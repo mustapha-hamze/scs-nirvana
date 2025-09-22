@@ -1,0 +1,80 @@
+@{
+    Layout = null;
+}
+@using Services.Utilities.ApplicationConst
+@model List<Infrastructure.Dto.GeneralDtos.SystemTypeDto>
+<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+    <thead>
+        <tr>
+            <td>Id</td>
+            <th>Type Group</th>
+            <th>Title</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            //var culture = await cultureServices.GetById(item.CultureId);
+            <tr>
+                <td>@item.Id</td>
+                <td>
+                    @switch (item.TypeGroupId)
+                    {
+                        case TypeId.ContentSchema:
+                            <span>Content Schema</span>
+                            break;
+                        case TypeId.Content:
+                            <span>Content</span>
+                            break;
+                        case TypeId.PTEPropertyType:
+                            <span>Property</span>
+                            break;
+                        case TypeId.PTEDevelopmentType:
+                            <span>Development</span>
+                            break;
+                        case TypeId.Company:
+                            <span>Company</span>
+                            break;
+                        case TypeId.User:
+                            <span>User</span>
+                            break;
+                        case TypeId.PTEAttributeGroup:
+                            <span>PT Attribute Group</span>
+                            break;
+                        case TypeId.PTEAttributeGroupItem:
+                            <span>PT Attribute Group Item</span>
+                            break;
+                        case TypeId.PTEDevelopmentUsageType:
+                            <span>PT Development Usage Type</span>
+                            break;
+                        case TypeId.PTEDevelopmentDealType:
+                            <span>PT Development Deal Type</span>
+                            break;
+                        case TypeId.PTEDevelopmentConstructionType:
+                            <span>PT Development Construction Type</span>
+                            break;
+                        case TypeId.PTEDevelopmentAttachment:
+                            <span>PT Development Attachment</span>
+                            break;
+                        case TypeId.PTEPropertyAttachment:
+                            <span>PT Property Attachment</span>
+                            break;
+                        case TypeId.UserGroup:
+                            <span>User Group</span>
+                            break;
+                        case TypeId.SystemCustomMuddle:
+                            <span>System Custom Muddle</span>
+                            break;
+                    }
+                </td>
+                <td>@item.Title</td>
+                <td>
+                    <a href="javascript: void(0);" class="action-icon">
+                        <i class="mdi mdi-delete"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

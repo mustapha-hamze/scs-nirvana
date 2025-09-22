@@ -1,0 +1,45 @@
+@{
+    Layout = null;
+}
+
+@model Infrastructure.Dto.GeneralDtos.ApplicationSettingDto
+@using Services.Utilities.ApplicationConst
+
+<form class="needs-validation row" novalidate id="frmApplicationSetting" method="POST">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ApplicationId" />
+    <div asp-validation-summary="All" class="text-danger">
+    </div>
+    <div class="mb-3 col-md-6">
+        <label class="form-label">Title</label>
+        <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
+            maxlength="256">
+        <div class="invalid-feedback">
+            Min length is 4 and max length is 256
+        </div>
+    </div>
+    <div class="mb-3 col-md-6">
+        <label class="form-label">Setting</label>
+        <select class="form-control" asp-for="SettingId">
+            <option value="@ApplicationSettingId.ContentImageSize">Content Image Size</option>
+            <option value="@ApplicationSettingId.ContentImageAspectRatio">Content Image Aspect Ratio</option>
+            <option value="@ApplicationSettingId.FrontContentTypes">Front Content Types</option>
+            <option value="@ApplicationSettingId.DevelopmentImageSize">Development Image Size</option>
+            <option value="@ApplicationSettingId.DevelopmentImageAspectRatio">Development Image Aspect Ratio</option>
+            <option value="@ApplicationSettingId.PropertyImageSize">Property Image Size</option>
+            <option value="@ApplicationSettingId.PropertyImageAspectRatio">Property Image Aspect Ratio</option>
+            <option value="@ApplicationSettingId.DefaultCurrency">Default Currency</option>
+            <option value="@ApplicationSettingId.WebsiteUrl">Website Url</option>
+        </select>
+    </div>
+    <div class="mb-3 col-md-6">
+        <label class="form-label">Value</label>
+        <input type="text" class="form-control" asp-for="Value" placeholder="Value" required minlength="1"
+            maxlength="64">
+        <div class="invalid-feedback">
+            Min length is 1 and max length is 512
+        </div>
+    </div>
+</form>
+<div class="alert alert-warning">Note: for image size, enter the image like 1920-1080(width-height)</div>
+<button class="btn btn-primary mt-2" onclick="saveApplicationSettingForm()">Submit form</button>

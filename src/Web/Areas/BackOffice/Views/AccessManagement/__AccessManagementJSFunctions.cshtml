@@ -1,0 +1,143 @@
+<script>
+
+    function sectorForm() {
+        clearModalBody("__sectorForm__");
+        $.ajax({
+            url: '/BackOffice/AccessManagement/SectorForm/',
+            type: "GET"
+        }).done(function (data) {
+            $("#__sectorForm__").html(data);
+        });
+    }
+
+    function sectorList() {
+        clearModalBody("findSectorsResultBody");
+        $.ajax({
+            url: '/BackOffice/AccessManagement/SectorList',
+            type: "GET"
+        }).done(function (data) {
+            $("#findSectorsResultBody").html(data);
+        });
+    }
+
+    function saveSector() {
+        if (checkFormValidity('frmSaveSector')) {
+            var frmSaveSector = $("#frmSaveSector");
+            clearModalBody("__sectorForm__");
+            $.ajax({
+                type: "POST",
+                url: '/BackOffice/AccessManagement/SaveSector',
+                data: frmSaveSector.serialize(),
+            }).done(function (data) {
+                if (data === "Done") {
+                    sectorForm();
+                    sectorList();
+                }
+            });
+        }
+    }
+
+    function entities(sectorId) {
+        entityForm(sectorId);
+        entityList(sectorId);
+    }
+
+    function entityForm(sectorId) {
+        clearModalBody("entityFormPlaceHolder");
+        $.ajax({
+            url: '/BackOffice/AccessManagement/EntityForm/' + sectorId,
+            type: "GET"
+        }).done(function (data) {
+            $("#entityFormPlaceHolder").html(data);
+        });
+    }
+
+    function entityList(sectorId) {
+        clearModalBody("entityListPlaceHolder");
+        $.ajax({
+            url: '/BackOffice/AccessManagement/EntityList/' + sectorId,
+            type: "GET"
+        }).done(function (data) {
+            $("#entityListPlaceHolder").html(data);
+        });
+    }
+
+    function saveEntity() {
+        if (checkFormValidity('frmSaveSectorEntity')) {
+            var sectorId = $("#SectorId").val();
+            var frmSaveSectorEntity = $("#frmSaveSectorEntity");
+            clearModalBody("entityFormPlaceHolder");
+            $.ajax({
+                type: "POST",
+                url: '/BackOffice/AccessManagement/SaveEntity',
+                data: frmSaveSectorEntity.serialize(),
+            }).done(function (data) {
+                if (data === "Done") {
+                    entityForm(sectorId);
+                    entityList(sectorId);
+                }
+            });
+        }
+    }
+
+    function accessForm() {
+        clearModalBody("__accessForm__");
+        $.ajax({
+            url: '/BackOffice/AccessManagement/AccessForm',
+            type: "GET"
+        }).done(function (data) {
+            $("#__accessForm__").html(data);
+            getSectorEntitiesDDL();
+        });
+    }
+
+    function accessEditForm(id) {
+        clearModalBody("__accessForm__");
+        $.ajax({
+            url: '/BackOffice/AccessManagement/AccessForm/' + id,
+            type: "GET"
+        }).done(function (data) {
+            $("#__accessForm__").html(data);
+            $("html, body").animate({ scrollTop: 0 }, 500);
+            //getSectorEntitiesDDL();
+        });
+    }
+
+    function accessList() {
+        clearModalBody("findAccessesResultBody");
+        $.ajax({
+            url: '/BackOffice/AccessManagement/AccessList',
+            type: "GET"
+        }).done(function (data) {
+            $("#findAccessesResultBody").html(data);
+        });
+    }
+
+    function getSectorEntitiesDDL(mode = '', id = 0) {
+        $.ajax({
+            url: '/BackOffice/AccessManagement/GetSectorEntities/' + $("#__sectorId__").val(),
+            type: "GET"
+        }).done(function (data) {
+            $("#sectorEntitiesDDL").html(data);
+            if (mode == 'edit') {
+                $("#sectorEntitiesDDL").val(id);
+            }
+        });
+    }
+
+    function saveAccess() {
+        if (checkFormValidity('frmSaveAccess')) {
+            var frmSaveAccess = $("#frmSaveAccess");
+            console.log(frmSaveAccess.serialize());
+            $.ajax({
+                type: "POST",
+                url: '/BackOffice/AccessManagement/SaveAccess',
+                data: frmSaveAccess.serialize(),
+            }).done(function (data) {
+                if (data === "Done") {
+                    accessList();
+                }
+            });
+        }
+    }
+</script>

@@ -1,0 +1,21 @@
+@{
+    Layout = null;
+    var applications =
+    (List<Infrastructure.Dto.GeneralDtos.ApplicationDto>)ViewData["Applications"];
+    var userApplications =
+    (List<Infrastructure.Dto.GeneralDtos.UserInApplicationDto>)ViewData["UserApplications"];
+    var sectors = (List<Infrastructure.Dto.AccessManagerDtos.SectorDto>)ViewData["Sectors"];
+}
+
+<div class="p-2">
+    <div class="alert alert-info mb-3">
+        <div class="row">
+            @foreach (var sector in sectors)
+            {
+                <div class="col-md-3 mt-1">
+                    @sector.Title
+                </div>
+            }
+        </div>
+    </div>
+</div>

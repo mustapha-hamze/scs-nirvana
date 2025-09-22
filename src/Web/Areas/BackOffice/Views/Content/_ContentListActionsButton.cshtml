@@ -1,0 +1,25 @@
+@{
+    var data = ViewData["PartialData"].ToString();
+    var dataArr = data.Split(",");
+    var id = Convert.ToInt32(dataArr[0]);
+    var typeId = Convert.ToInt32(dataArr[1]);
+
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+@if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_EDIT_1005"))
+{
+    <a href="/BackOffice/Content/ContentForm/@id/@typeId" class="action-icon">
+    <i class="mdi mdi-content-save-edit"></i>
+</a>
+}
+@if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_DELETE_1002"))
+{
+    <a href="javascript: void(0);" class="action-icon" onclick="deleteContent(@id)">
+    <i class="mdi mdi-delete"></i>
+</a>
+}

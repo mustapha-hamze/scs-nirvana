@@ -1,0 +1,38 @@
+@{
+    Layout = null;
+
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+@if (Model != null)
+{
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_BODY_1007"))
+    {
+        <div class="tab-pane" id="body">
+</div>
+    }
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_IMAGES_1008"))
+    {
+        <div class="tab-pane" id="images">
+</div>
+    }
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_ATTACHMENT_1013"))
+    {
+        <div class="tab-pane" id="attachment">
+</div>
+    }
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_RELATIONS_1010"))
+    {
+        <div class="tab-pane mt-2" id="relations">
+</div>
+    }
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_META_1012"))
+    {
+        <div class="tab-pane" id="metadata">
+</div>
+    }
+}

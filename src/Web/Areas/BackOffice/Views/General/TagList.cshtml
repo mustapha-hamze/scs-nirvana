@@ -1,0 +1,41 @@
+@{
+    Layout = null;
+}
+
+@model List<Infrastructure.Dto.GeneralDtos.TagDto>
+
+<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Created</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>
+                    @switch (item.TypeId)
+                    {
+                        case 100:
+                            <text>CMS</text>
+                            break;
+                        case 200:
+                            <text>PropTech</text>
+                            break;
+                    }
+                </td>
+                <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
+                <td>
+                    <a href="javascript: void(0);" class="action-icon">
+                        <i class="mdi mdi-delete"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,52 @@
+@{
+    Layout = null;
+    var sectors = (List<Infrastructure.Dto.AccessManagerDtos.SectorDto>)ViewData["Sectors"];
+    var sectorEntities = (List<Infrastructure.Dto.AccessManagerDtos.SectorEntityDto>)ViewData["SectorEntities"];
+}
+
+@model Infrastructure.Dto.AccessManagerDtos.EntityAccessDto
+<div class="card">
+    <div class="card-body">
+        <form class="needs-validation row" id="frmSaveAccess" novalidate asp-action="SaveSector" method="POST">
+            <input type="hidden" name="Id" asp-for="Id">
+            <input type="hidden" name="IsActive" asp-for="IsActive">
+            <input type="hidden" name="IsDeleted" asp-for="IsDeleted">
+            <input type="hidden" name="Status" asp-for="Status">
+            <input type="hidden" name="CreatedDT" asp-for="CreatedDT">
+            <input type="hidden" name="UpdatedDT" asp-for="UpdatedDT">
+            <div class="col-md-2 p-0">
+                <select class="form-control" id="__sectorId__" onchange="getSectorEntitiesDDL()">
+                    @foreach (var item in sectors)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 ps-1">
+                <select class="form-control" name="EntityId" asp-for="EntityId" id="sectorEntitiesDDL">
+                    @foreach (var item in sectorEntities)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6 ps-1">
+                <input type="text" required name="Access" asp-for="Access" id="Access" class="form-control"
+                    placeholder="Access">
+                <div class="invalid-feedback">
+                    Title is required
+                </div>
+            </div>
+            <div class="col-md-2 ps-2">
+                <a href="javascript:void(0);" class="btn btn-primary" onclick="saveAccess()">
+                    <i class="uil uil-file-check-alt"></i>
+                    Save Access
+                </a>
+            </div>
+        </form>
+        <script>
+            $("#__sectorId__").val(@ViewData["SectorId"]);
+            getSectorEntitiesDDL('edit', @ViewData["EntityId"]);
+        </script>
+    </div>
+</div>

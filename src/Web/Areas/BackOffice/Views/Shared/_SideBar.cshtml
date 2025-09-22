@@ -1,0 +1,58 @@
+@* @inject Services.GeneralServices.IZoneServices zoneServices; *@
+@inject Services.GeneralServices.ISystemTypeServices systemTypeServices;
+@inject Services.GeneralServices.IApplicationServices applicationServices;
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices;
+
+@{
+    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+    var app = await applicationServices.GetById(user.CurrentApplicationId);
+}
+
+<!-- LOGO -->
+<a href="/BackOffice/Home/Index" class="logo logo-light">
+    <span class="logo-lg">
+        <img class="h-100" src="/BackOffice/logo-l.png">
+    </span>
+    <span class="logo-sm">
+        <img src="/BackOffice/logo-s.png">
+    </span>
+</a>
+
+<div class="h-100" id="leftside-menu-container" data-simplebar>
+
+    <!--- Sidemenu -->
+    <ul class="side-nav">
+
+        <li class="side-nav-title side-nav-item">
+            <h5>@app.Title</h5>
+        </li>
+        <li class="side-nav-title side-nav-item">Navigation</li>
+
+        <li class="side-nav-item">
+            <a href="/BackOffice/Home/Index" class="side-nav-link">
+                <i class="uil uil-monitor"></i>
+                <span> Dashboard </span>
+            </a>
+        </li>
+
+        <li class="side-nav-title side-nav-item">Apps</li>
+
+        @await Html.PartialAsync("_SideBarCMS")
+
+        @await Html.PartialAsync("_SideBarPTE")
+
+        @await Html.PartialAsync("_SideBarSCM")
+
+        @await Html.PartialAsync("_SideBarETM")
+
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <li class="side-nav-title side-nav-item">Settings</li>
+        }
+        @await Html.PartialAsync("_SideBarUserManagement")
+        @await Html.PartialAsync("_SideBarAdminMenu")
+    </ul>
+    <!-- End Sidebar -->
+
+</div>
+<!-- Sidebar -left -->

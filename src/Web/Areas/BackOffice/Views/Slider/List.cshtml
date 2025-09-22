@@ -1,0 +1,36 @@
+@{
+    Layout = null;
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@model List<Domains.Entities.CustomModule.Slider>
+
+<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Title</td>
+                <td>
+                    @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001_ACCESSITEMS_1001"))
+                    {
+                        <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
+                            data-bs-target="#sliderItem-modal" onclick="sliderItems('@item.Id')">
+                            <i class="mdi mdi-menu"></i>
+                        </a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,41 @@
+@{
+    Layout = null;
+}
+@using Services.Utilities.ApplicationConst
+@model Infrastructure.Dto.GeneralDtos.SystemTypeDto
+<form class="needs-validation row" novalidate id="frmSystemType" method="POST">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger">
+    </div>
+    <div class="mb-3 col-md-6">
+        <label class="form-label" asp-for="Title">Title</label>
+        <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
+            maxlength="64">
+        <div class="invalid-feedback">
+            Min length is 4 and max length is 64
+        </div>
+    </div>
+    <div class="mb-3 col-md-6">
+        <label class="form-label" asp-for="TypeGroupId">Type Group</label>
+        <select class="form-control" asp-for="TypeGroupId" required>
+            <option value="@TypeId.Content">Content</option>
+            <option value="@TypeId.ContentAttachment">Content Attachment</option>
+            <option value="@TypeId.ContentSchema">ContentSchema</option>
+            <option value="@TypeId.PTEDevelopmentType">Development Type</option>
+            <option value="@TypeId.PTEPropertyType">Property</option>
+            <option value="@TypeId.Company">Company</option>
+            <option value="@TypeId.SystemCustomMuddle">System Custom Muddle</option>
+            <option value="@TypeId.User">User</option>
+
+            <option value="@TypeId.PTEAttributeGroup">PT Attribute Group</option>
+            <option value="@TypeId.PTEAttributeGroupItem">PT AttributeGroupItem</option>
+            <option value="@TypeId.PTEDevelopmentUsageType">Development Usage Type</option>
+            <option value="@TypeId.PTEDevelopmentDealType">Development Deal Type</option>
+            <option value="@TypeId.PTEDevelopmentConstructionType">Development Construction Type</option>
+            <option value="@TypeId.PTEDevelopmentAttachment">Development Attachment</option>
+            <option value="@TypeId.PTEPropertyAttachment">Property Attachment</option>
+            <option value="@TypeId.UserGroup">User Group</option>
+        </select>
+    </div>
+</form>
+<button class="btn btn-primary mt-2" onclick="saveSystemTypeForm()">Submit form</button>

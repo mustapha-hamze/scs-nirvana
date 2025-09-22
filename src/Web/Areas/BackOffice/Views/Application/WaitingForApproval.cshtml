@@ -1,0 +1,91 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Waiting for approval | SCS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="/BackOffice/images/favicon.ico">
+
+    <!-- App css -->
+    @await Html.PartialAsync("_CSSAssets")
+
+    <style>
+        .new-auth-fluid {
+            background: url(../BackOffice/images/bg-auth-2.jpg) !important;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+    </style>
+
+</head>
+
+<body class="authentication-bg pb-0" data-layout-config='{"darkMode":false}'>
+
+    <div class="auth-fluid">
+        <!--Auth fluid left content -->
+        <div class="auth-fluid-form-box">
+            <div class="align-items-center d-flex h-100">
+                <div class="card-body">
+
+                    <!-- Logo -->
+                    <div class="auth-brand text-center text-lg-start">
+                        <a class="logo-dark">
+                            <span><img src="/BackOffice/logo-l.png" alt="" height="18"></span>
+                        </a>
+                        <a class="logo-light">
+                            <span><img src="/BackOffice/logo-s.png" alt="" height="18"></span>
+                        </a>
+                    </div>
+
+                    <!-- email send icon with text-->
+                    <div class="text-center m-auto">
+                        <img src="assets/images/features-1.svg" alt="mail sent image" height="256" />
+                        <h4 class="text-dark-50 text-center mt-4 fw-bold">Please waiting for approval</h4>
+                        <p class="text-muted mb-4">
+                            Your registration is under processing by Admin for approval.
+                        </p>
+                    </div>
+
+                    <!-- Footer-->
+                    <footer class="footer footer-alt">
+                        <p class="text-muted">SCS Application</p>
+                    </footer>
+
+                </div> <!-- end .card-body -->
+            </div> <!-- end .align-items-center.d-flex.h-100-->
+        </div>
+        <!-- end auth-fluid-form-box-->
+
+        <!-- Auth fluid right content -->
+        <div class="new-auth-fluid auth-fluid-right text-center">
+            <div class="auth-user-testimonial">
+                <h2 class="mb-3">I love to achieve the goals</h2>
+                <p class="lead"><i class="mdi mdi-format-quote-open">
+                    </i>
+                    Buying real estate is not only the best way, the quickest way, the safest way, but the only way to
+                    become wealthy.
+                    <i class="mdi mdi-format-quote-close"></i>
+                </p>
+                <p>
+                    - Marshall Field
+                </p>
+            </div> <!-- end auth-user-testimonial-->
+        </div>
+        <!-- end Auth fluid right content -->
+    </div>
+    <!-- end auth-fluid-->
+
+    <!-- bundle -->
+    <script src="/BackOffice/js/vendor.min.js"></script>
+    <script src="/BackOffice/js/app.min.js"></script>
+
+</body>
+
+</html>

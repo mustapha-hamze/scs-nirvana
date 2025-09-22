@@ -1,0 +1,51 @@
+@{
+    Layout = null;
+
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+@if (Model != null)
+{
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_UPDATE_1001"))
+    {
+        <button type="submit" id="btnSaveContentForm"
+            onclick="$('#textAreaDescription').val($('#__descriptionEditor__ .ql-editor').html());$('#textAreaDescriptionFA').val($('#__descriptionEditorFA__ .ql-editor').html())"
+            class="btn btn-primary mt-2">
+            <i class="uil uil-file-check-alt"></i> Save Content
+        </button>
+    }
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_CHANGE_ACTIVITY_1004"))
+    {
+        @if (Model.IsActive)
+        {
+            <a href="javascript: void(0);" id="btnDeactiveContent"
+                onclick="changeContentActiveMode(@Model.TypeId, @Model.Id, false, 'btnDeactiveContent')"
+                class="btn btn-success mt-2 ml-3">
+                Active (click to deactive)
+            </a>
+        }
+        else
+        {
+            <a href="javascript: void(0);" id="btnActiveContent"
+                onclick="changeContentActiveMode(@Model.TypeId, @Model.Id, true,'btnActiveContent')"
+                class="btn btn-danger mt-2 ml-3">
+                Deactive (click to active)
+            </a>
+        }
+    }
+}
+else
+{
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_SAVE_1003"))
+    {
+        <button type="submit" id="btnSaveContentForm"
+            onclick="$('#textAreaDescription').val($('#__descriptionEditor__ .ql-editor').html());$('#textAreaDescriptionFA').val($('#__descriptionEditorFA__ .ql-editor').html())"
+            class="btn btn-primary mt-2 ml-3">
+            <i class="uil uil-file-check-alt"></i> Save Content
+        </button>
+    }
+}

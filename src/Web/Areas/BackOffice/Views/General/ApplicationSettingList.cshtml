@@ -1,0 +1,65 @@
+@{
+    Layout = null;
+}
+
+@model List<Infrastructure.Dto.GeneralDtos.ApplicationSettingDto>
+@using Services.Utilities.ApplicationConst
+
+<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Setting</th>
+            <th>Value</th>
+            <th>Created</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>
+                    @switch (item.SettingId)
+                    {
+                        case ApplicationSettingId.ContentImageSize:
+                            <text>Content Image Size</text>
+                            break;
+                        case ApplicationSettingId.ContentImageAspectRatio:
+                            <text>Content Image Aspect Ratio</text>
+                            break;
+                        case ApplicationSettingId.DevelopmentImageSize:
+                            <text>Development Image Size</text>
+                            break;
+                        case ApplicationSettingId.DevelopmentImageAspectRatio:
+                            <text>Development Image Aspect Ratio</text>
+                            break;
+                        case ApplicationSettingId.PropertyImageSize:
+                            <text>PropertyImageSize</text>
+                            break;
+                        case ApplicationSettingId.PropertyImageAspectRatio:
+                            <text>Property Image Aspect Ratio</text>
+                            break;
+                        case ApplicationSettingId.DefaultCurrency:
+                            <text>Default Currency</text>
+                            break;
+                        case ApplicationSettingId.FrontContentTypes:
+                            <text>Front Content Types</text>
+                            break;
+                        case ApplicationSettingId.WebsiteUrl:
+                            <text>Website Url</text>
+                            break;
+                    }
+                </td>
+                <td>@item.Value</td>
+                <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
+                <td>
+                    <a href="javascript: void(0);" class="action-icon">
+                        <i class="mdi mdi-delete"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

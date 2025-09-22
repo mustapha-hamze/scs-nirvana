@@ -1,0 +1,41 @@
+@{
+    Layout = null;
+
+    var applications =
+    (List<Infrastructure.Dto.GeneralDtos.ApplicationDto>)ViewData["Applications"];
+    var userApplications =
+    (List<Infrastructure.Dto.GeneralDtos.UserInApplicationDto>)ViewData["UserApplications"];
+}
+
+@model Infrastructure.Dto.AccessManagerDtos.SetAccessDto
+
+<div class="row">
+    <div class="col-md-4" id="div_entities">
+        <form action="" method="post" id="frmSaveEntitiesToUser">
+            @Html.AntiForgeryToken()
+
+            <select class="form-control mb-1" name="ApplicationId" id="__ddlApplications__"
+                onchange="getApplicationSectors()">
+                @foreach (var application in applications)
+                {
+                    if (userApplications.Any(a => a.ApplicationId == application.Id))
+                    {
+                        <option value="@application.Id">@application.Title</option>
+                    }
+                }
+            </select>
+            <select class="form-control mb-1" id="__ddlSectors__" onchange="getSectorEntities()">
+            </select>
+            <div class="alert alert-info mb-2" id="__checkBox_Entities__">
+            </div>
+            <input type="hidden" id="Accesses" asp-for="Accesses">
+            <input type="hidden" id="UserId" asp-for="UserId">
+
+        </form>
+        <button class="btn btn-success" onclick="saveEntityAccess()">
+            <i class="mdi mdi-content-save"></i>Save
+        </button>
+    </div>
+    <div class="col-md-4" id="div_accesses"></div>
+    <div class="col-md-4" id="div_view"></div>
+</div>

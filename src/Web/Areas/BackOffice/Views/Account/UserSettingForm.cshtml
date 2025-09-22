@@ -1,0 +1,112 @@
+@{
+    Layout = null;
+
+    var roles = (List<Microsoft.AspNetCore.Identity.IdentityRole>)ViewData["Roles"];
+    var applications =
+    (List<Infrastructure.Dto.GeneralDtos.ApplicationDto>)ViewData["Applications"];
+    var userRoles = (IList<string>)ViewData["UserRoles"];
+    var userApplications =
+    (List<Infrastructure.Dto.GeneralDtos.UserInApplicationDto>)ViewData["UserApplications"];
+}
+
+<ul class="nav nav-tabs mb-1">
+    <li class="nav-item">
+        <a href="#roles" data-bs-toggle="tab" aria-expanded="false" class="nav-link active" id="roleTabTitle">
+            <i class="mdi mdi-home-variant d-md-none d-block"></i>
+            <span class="d-none d-md-block">Roles</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="#applications" data-bs-toggle="tab" aria-expanded="true" class="nav-link" id="applicationTabTitle">
+            <i class="mdi mdi-account-circle d-md-none d-block"></i>
+            <span class="d-none d-md-block">Applications</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="#sectors" onclick="sectors('@ViewData["UserId"]')" data-bs-toggle="tab" aria-expanded="true"
+            class="nav-link" id="sectorTabTitle">
+            <i class="mdi mdi-account-circle d-md-none d-block"></i>
+            <span class="d-none d-md-block">Sectors</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="#entities" onclick="entities('@ViewData["UserId"]')" data-bs-toggle="tab" aria-expanded="true"
+            class="nav-link" id="entityTabTitle">
+            <i class="mdi mdi-account-circle d-md-none d-block"></i>
+            <span class="d-none d-md-block">Entity</span>
+        </a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane show active" id="roles">
+        <table class="table table-centered mb-0">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in roles)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>
+                            @if (!userRoles.Any(r => r.Contains(item.Name)))
+                            {
+                                <a href="javascript: void(0);" onclick="addUserToRole('@ViewData["UserId"]', '@item.Name')"
+                                    class="btn btn-sm btn-warning">Add</a>
+                            }
+                            else
+                            {
+                                <a href="javascript: void(0);" onclick="removeUserFromRole('@ViewData["UserId"]', '@item.Name')"
+                                    class="btn btn-sm btn-success">Added</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="tab-pane" id="applications">
+        <table class="table table-centered mb-0">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Title</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in applications)
+                {
+                    <tr>
+                        <td>@item.Title</td>
+                        <td>
+                            @if (!userApplications.Any(a => a.ApplicationId == item.Id))
+                            {
+                                <a href="javascript: void(0);" onclick="addUserToApplication('@ViewData["UserId"]', @item.Id)"
+                                    class="btn btn-sm btn-warning">Add</a>
+                            }
+                            else
+                            {
+                                var relation = userApplications.Single(a => a.ApplicationId == item.Id);
+                                <a href="javascript: void(0);"
+                                    onclick="removeUserFromApplication('@ViewData["UserId"]', @relation.Id)"
+                                    class="btn btn-sm btn-success">Added</a>
+                            }
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+    <div class="tab-pane" id="sectors">
+    </div>
+    <div class="tab-pane" id="entities">
+        <h1>entity</h1>
+    </div>
+</div>
+
+<input type="hidden" name="" id="__hidTXTUserId__" value="@ViewData["UserId"]">

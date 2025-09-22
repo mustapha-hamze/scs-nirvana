@@ -1,0 +1,563 @@
+@{
+    Layout = null;
+}
+<script src="/BackOffice/vendor/quill/quill.min.js"></script>
+
+<script>
+    function findContents(typeId) {
+        clearModalBody("findContentsResultBody");
+        $.ajax({
+            url: '/BackOffice/Content/ContentList/' + typeId,
+            type: "GET"
+        }).done(function (data) {
+            $("#findContentsResultBody").html(data);
+            $("#datatable-buttons").DataTable({
+                lengthChange: !1,
+                pageLength: 25,
+                buttons: ["copy", "print"],
+                order: [[0, 'desc']],
+                language: {
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    }
+                },
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
+        });
+    }
+
+    function createNewContent() {
+        window.location.replace("/BackOffice/Content/ContentForm/0/" + $("#hidContentsTypeId_List").val());
+    }
+
+    function backToContentList() {
+        window.location.replace("/BackOffice/Content/Index/" + $("#hidTypeIdContent_Form").val());
+    }
+
+    function changeContentActiveMode(typeId, contentId, mode, btnId) {
+        setLoadingForBtn(btnId);
+        $.ajax({
+            url: `/BackOffice/Content/ChangeContentActiveMode/${typeId}/${contentId}/${mode}`,
+            type: "GET"
+        }).done(function (data) {
+            location.reload();
+        });
+    }
+
+    function addContentSection(schemaId) {
+        setLoadingForBtn("btnAddSectionContent");
+        var index = parseInt($("#hidPriority__ContentSection").val());
+        $.ajax({
+            url: '/BackOffice/Content/CreateContentSection/' + schemaId + "/" + index,
+            type: "GET"
+        }).done(function (data) {
+            $("#sectionPlaceHolder").append(data);
+            $("#divAddSectionPlaceHolder").addClass("mt-2");
+            removeLoadingForBtn("btnAddSectionContent", "addContentSection()", "Add Section");
+            index = index + 1;
+            $("#hidPriority__ContentSection").val(index);
+        });
+    }
+
+    function saveContentRelations() {
+        var contentId = $("#hidContentId").val();
+
+        var categoriesSelected = $('#__Select2_Categories__').select2('data');
+        var _categoriesSelected = "";
+        $.each(categoriesSelected, function () {
+            if (this.id != undefined)
+                _categoriesSelected += this.id + "|";
+        });
+        var categoryForm = new FormData();
+        categoryForm.append("Data", _categoriesSelected);
+        setLoadingForBtn('btnSaveContentRelations');
+        $.ajax({
+            url: "/BackOffice/Content/SaveRelation/Category/" + contentId,
+            method: "POST",
+            contentType: false,
+            processData: false,
+            data: categoryForm
+        }).done(function (data) {
+            if (data === "Done") {
+                var tagsSelected = $('#__Select2_Tags__').select2('data');
+                var _tagsSelected = "";
+                $.each(tagsSelected, function () {
+                    if (this.id !== undefined)
+                        _tagsSelected += this.id + "|";
+                });
+                var tagForm = new FormData();
+                tagForm.append("Data", _tagsSelected);
+                $.ajax({
+                    url: "/BackOffice/Content/SaveRelation/Tag/" + contentId,
+                    method: "POST",
+                    contentType: false,
+                    processData: false,
+                    data: tagForm
+                }).done(function (data) {
+                    if (data === "Done") {
+                        var culturesSelected = $('#__Select2_Cultures__').select2('data');
+                        var _culturesSelected = "";
+                        $.each(culturesSelected, function () {
+                            if (this.id !== undefined)
+                                _culturesSelected += this.id + "|";
+                        });
+                        var cultureForm = new FormData();
+                        cultureForm.append("Data", _culturesSelected);
+                        $.ajax({
+                            url: "/BackOffice/Content/SaveRelation/Culture/" + contentId,
+                            method: "POST",
+                            contentType: false,
+                            processData: false,
+                            data: cultureForm
+                        }).done(function (data) {
+                            messageBox("Saved!", "Content relation has been saved", "success");
+                            loadContentRelations();
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    function initTextEditor(elementId) {
+        var quill = new Quill("#" + elementId, {
+            theme: "snow",
+            modules: {
+                toolbar: [[{ font: [] }, { size: [] }],
+                ["bold", "italic", "underline", "strike"],
+                [{ color: [] },
+                { background: [] }], [{ script: "super" }, { script: "sub" }], [{ header: [!1, 1, 2, 3, 4, 5, 6] }, "blockquote", "code-block"],
+                [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
+                ["direction", { align: [] }],
+                ["link", "image", "video"],
+                ["clean"]]
+            }
+        }),
+            quill = new Quill("#" + elementId, { theme: "bubble" });
+    }
+
+    function deleteContent(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/BackOffice/Content/DeleteContent/' + id,
+                    type: "GET"
+                }).done(function (data) {
+                    if (data === "Done") {
+                        messageBox("Deleted!", "Selected item has been deleted.", "success")
+                        findContents($("#hidContentsTypeId_List").val());
+                    } else {
+                        messageBox("Error!", "Selected item has not been deleted.", "error")
+                    }
+                });
+            }
+        });
+    }
+
+    function saveBody() {
+        var deletedSections = $("#hidSectionDeleted").val();
+        if (deletedSections.length > 0) {
+            var deletedSectionsArray = deletedSections.split("|");
+            $.each(deletedSectionsArray, function () {
+                if (this != "") {
+                    setLoadingForBtn('btnSaveContentBody');
+                    $.ajax({
+                        url: '/BackOffice/Content/DeleteSection/' + this,
+                        type: "GET"
+                    }).done(function () {
+                        if (sections.length === 0) {
+                            messageBox("Saved!", "Content relation has been saved", "success");
+                            loadContentBody();
+                        }
+                    });
+                }
+            });
+        }
+        var mainDataList;
+        var dataList = [];
+        var sections = $("#sectionPlaceHolder .row");
+        $.each(sections, function () {
+            var elements = $(this).children();
+            $.each(elements, function () {
+                var elementSize = $(this).attr("size");
+                var element = $(this).children();
+                $.each(element, function () {
+                    var elementType = $(this).attr("elementType");
+                    var schemaId = $(this).attr("schemaId");
+                    var schemaDetailTitle = $(this).attr("schemaDetailTitle");
+                    var contentId = $("#hidContentId").val();
+                    var elementId = $(this).attr("elementId");
+                    switch (elementType) {
+                        case "1000":
+                            var value = $(this).val();
+                            dataList.push({
+                                ElementType: 1000, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
+                        case "1001":
+                            var value = $(this).attr("imageName");
+                            dataList.push({
+                                ElementType: 1001, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
+                        case "1002":
+                            var textAreaSeedId = $(this).attr("textAreaSeedId");
+                            $("#__TextArea__" + textAreaSeedId).val($('#__TextEditor__' + textAreaSeedId + ' .ql-editor').html());
+                            var value = $("#__TextArea__" + textAreaSeedId).val();
+                            console.log(elementId);
+                            dataList.push({
+                                ElementType: 1002, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
+                        case "1003":
+                            var value = "";
+                            $.each($(this).children(), function () {
+                                if ($(this).attr("imageName") != undefined) {
+                                    value += $(this).attr("imageName") + "|";
+                                }
+                            });
+                            value = value.substring(0, (value.length - 1));
+                            dataList.push({
+                                ElementType: 1003, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
+                        case "1004":
+                            var value = $(this).attr("fileName");
+                            dataList.push({
+                                ElementType: 1004, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
+                    }
+                });
+            });
+
+            if (dataList.length != 0) {
+                mainDataList = { SectionId: $(this).attr("sectionId"), ContentId: $("#hidContentId").val(), Priority: $(this).attr("priority"), Elements: dataList };
+                setLoadingForBtn('btnSaveContentBody');
+                $.ajax({
+                    url: "/BackOffice/Content/SaveSection",
+                    contentType: "application/json",
+                    type: "POST",
+                    data: JSON.stringify(mainDataList)
+                }).done(function (data) {
+                    messageBox("Saved!", "Content relation has been saved", "success");
+                    loadContentBody();
+                });
+            }
+            dataList = [];
+            mainDataList = [];
+        });
+
+    }
+
+    function uploadBodyImage(divElementId, elementId = 0) {
+        var fileUpload = $("#image-upload-" + divElementId).get(0);
+        var files = fileUpload.files;
+        var file;
+        if (fileUpload.files.length != 0) {
+            file = files[0];
+        }
+
+        var upload = new FormData();
+        upload.append("File", file);
+        upload.append("Extention", file.type.toLowerCase());
+
+        $("#image-upload-" + divElementId).hide();
+        $("#imageUploaderLoading-" + divElementId).show();
+
+
+        $.ajax({
+            url: "/BackOffice/Content/UploadBodyImage",
+            type: "POST",
+            contentType: false,
+            processData: false,
+            data: upload
+        }).done(function (data) {
+            var _data = data.split("|");
+            if (_data[0] === "Done") {
+                var image = "<img src='/Storage/Section/Images/" + _data[1] + "' elementType='1001' imageName='" +
+                    _data[1] + "' class='w-100' elementId='" + elementId + "'/>";
+                image += "<input type=\"file\" id=\"image-upload-" + divElementId +
+                    "\" accept=\".jpg, .png, jpeg\" onchange=\"uploadBodyImage('" + divElementId + "', 0)\" class=\"form-control\">";
+                $("#" + divElementId).html(image);
+            } else {
+                $("#image-upload-" + divElementId).show();
+                $("#imageUploaderLoading-" + divElementId).hide();
+                messageBox("Error!", "Something went wrong, please try again", "error");
+            }
+        });
+    }
+
+    function uploadBodyFile(elementId, schemaId) {
+        var fileUpload = $("#file-upload-" + elementId).get(0);
+        var files = fileUpload.files;
+        var file;
+        if (fileUpload.files.length != 0) {
+            file = files[0];
+        }
+
+        var upload = new FormData();
+        upload.append("File", file);
+        upload.append("FileName", elementId);
+        upload.append("Extention", file.type.toLowerCase());
+
+        $("#file-upload-" + elementId).hide();
+        $("#fileUploaderLoading-" + elementId).show();
+
+        $.ajax({
+            url: "/BackOffice/Content/UploadBodyFile",
+            type: "POST",
+            contentType: false,
+            processData: false,
+            data: upload
+        }).done(function (data) {
+            var _data = data.split("|");
+            if (_data[0] === "Done") {
+                var fileUploader = "";
+                fileUploader += "<div elementType=\"1004\" schemaId='" + schemaId +
+                    "' fileName='" + _data[1] + "' class=\"card text-white bg-primary overflow-hidden\">";
+                fileUploader += "<div class=\"card-body\">";
+                fileUploader += "<div class=\"toll-free-box text-center\">";
+                fileUploader += "<h4><i class=\"mdi mdi-file-cabinet\"></i>" + file.name + "</h4>";
+                fileUploader += "</div>";
+                fileUploader += "</div>";
+                fileUploader += "</div>";
+                $("#" + elementId).html(fileUploader);
+            } else {
+                $("#file-upload-" + elementId).show();
+                $("#fileUploaderLoading-" + elementId).hide();
+                messageBox("Error!", "Something went wrong, please try again", "error");
+            }
+        });
+    }
+
+    function openFileUploaderForGallery() {
+        $("#fileUploaderForGallery").click();
+    }
+
+    function uploadBodyImageGallery(elementId) {
+
+        var fileUpload = $("#fileUploaderForGallery").get(0);
+        var files = fileUpload.files;
+
+        var upload = new FormData();
+        for (var i = 0; i < files.length; i++) {
+            upload.append(files[i].name + i, files[i]);
+        }
+        $.ajax({
+            url: "/BackOffice/Content/UploadBodyImageGallery",
+            type: "POST",
+            contentType: false,
+            processData: false,
+            data: upload
+        }).done(function (data) {
+            var _data = data.split("|");
+            if (_data[0] === "Done") {
+                var images = _data[1].split(",");
+                var imagesHTML = "";
+                $.each(images, function () {
+                    if (this != "") {
+                        var imageIdPlaceHolderId = this.split(".");
+                        imagesHTML += "<div class='col-md-3 mb-2' imageName='" + this + "' id='" + imageIdPlaceHolderId[0] + "'>";
+                        imagesHTML += "<img src='/Storage/Section/Gallery/" + this + "' class='w-100'/>";
+                        imagesHTML += "<button type=\"button\" onclick=\"removeImageGallery('" + imageIdPlaceHolderId[0] + "')\" class=\"btn btn-sm btn-outline-danger w-100\">Remove</button>";
+                        imagesHTML += "</div>";
+                    }
+                });
+
+                $("#__imageGallery__" + elementId).html(imagesHTML + $("#__imageGallery__" + elementId).html());
+            } else {
+                $("#image-upload-" + elementId).show();
+                $("#imageUploaderLoading-" + elementId).hide();
+                messageBox("Error!", "Something went wrong, please try again", "error");
+            }
+        });
+    }
+
+    function removeBodySection(elementId) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "If you save body, you won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var sectionId = $("#" + elementId).attr("sectionid");
+                if (sectionId != 0) {
+                    $("#hidSectionDeleted").val($("#hidSectionDeleted").val() + sectionId + "|");
+                }
+                $("#" + elementId).remove();
+                var index = parseInt($("#hidPriority__ContentSection").val());
+                index = index + 1;
+                $("#hidPriority__ContentSection").val(index);
+            }
+        });
+    }
+
+    function saveContentMetadata() {
+        if (checkFormValidity('frmContentMetadata')) {
+            var frmContentMetadata = $("#frmContentMetadata");
+            setLoadingForBtn('btnSaveContentMetadata');
+            $.ajax({
+                type: "POST",
+                url: "/BackOffice/Content/SaveContentMetadata",
+                data: frmContentMetadata.serialize()
+            }).done(function (data) {
+                if (data === "Done") {
+                    messageBox("Saved!", "Content metadata has been saved", "success");
+                    loadContentMetadata();
+                }
+                else {
+                    messageBox("error!", "Content metadata has not been saved", "error");
+                }
+            });
+        }
+    }
+
+    function uploadContentImage() {
+        if ($("#ddlImageSetting").val() == 0) {
+            messageBox("error!", "Please select image setting.", "error");
+            $("#contentMainImageUploader").val("");
+            return;
+        }
+        var fileUpload = $("#contentMainImageUploader").get(0);
+        var files = fileUpload.files;
+        var file;
+        if (fileUpload.files.length != 0) {
+            file = files[0];
+        }
+
+        var upload = new FormData();
+        var contentId = $("#hidContentId").val();
+        var settingId = $("#ddlImageSetting").val();
+        upload.append("File", file);
+        upload.append("ContentId", contentId);
+        upload.append("SettingId", settingId);
+        clearModalBody("images");
+        $.ajax({
+            url: "/BackOffice/Content/UploadContentImage",
+            type: "POST",
+            contentType: false,
+            processData: false,
+            data: upload
+        }).done(function (data) {
+            var _data = data.split(",");
+            if (_data[0] === "Done") {
+                messageBox("Uploaded!", "Content image has been uploaded", "success");
+                loadContentImages();
+            }
+            else {
+                messageBox("error!", "Content image has not been uploaded", "error");
+                $("#contentMainImageUploader").val("");
+            }
+        });
+    }
+
+    function removeImageGallery(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "If you save body, you won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $("#" + id).remove();
+            }
+        });
+    }
+
+    function enableTextEditorForEdit(editorId, textAreaId, mutedTextEditor) {
+        $('#' + editorId).show();
+        $('#' + editorId).html("");
+        initTextEditor(editorId);
+        $('#' + editorId + ' .ql-editor').html($('#' + textAreaId).val());
+        $('#' + mutedTextEditor).remove();
+    }
+
+    function loadContentBody() {
+        clearModalBody("body");
+        $.ajax({
+            url: '/BackOffice/Content/ContentSections/' + $("#hidContentId").val(),
+            type: "GET"
+        }).done(function (data) {
+            $("#body").html(data);
+        });
+    }
+
+    function loadContentImages() {
+        clearModalBody("images");
+        $.ajax({
+            url: '/BackOffice/Content/ContentImages/' + $("#hidContentId").val(),
+            type: "GET"
+        }).done(function (data) {
+            $("#images").html(data);
+        });
+    }
+
+    function loadContentRelations() {
+        clearModalBody("relations");
+        $.ajax({
+            url: '/BackOffice/Content/ContentRelations/' + $("#hidContentId").val(),
+            type: "GET"
+        }).done(function (data) {
+            $("#relations").html(data);
+            $('.select2').select2();
+
+            var categories = $("#hidCategoriesRelated").val().split("|");
+            var categoriesData = [];
+            $.each(categories, function (id) {
+                categoriesData.push(this);
+            });
+            $('#__Select2_Categories__').val(categoriesData);
+            $('#__Select2_Categories__').trigger('change');
+
+            var tags = $("#hidTagsRelated").val().split("|");
+            var tagsData = [];
+            $.each(tags, function (id) {
+                tagsData.push(this);
+            });
+            $('#__Select2_Tags__').val(tagsData);
+            $('#__Select2_Tags__').trigger('change');
+
+            var cultures = $("#hidCulturesRelated").val().split("|");
+            var culturesData = [];
+            $.each(cultures, function (id) {
+                culturesData.push(this);
+            });
+            $('#__Select2_Cultures__').val(culturesData);
+            $('#__Select2_Cultures__').trigger('change');
+        });
+    }
+
+    function loadContentMetadata() {
+        clearModalBody("metadata");
+        $.ajax({
+            url: '/BackOffice/Content/ContentMetadata/' + $("#hidContentId").val(),
+            type: "GET"
+        }).done(function (data) {
+            $("#metadata").html(data);
+        });
+    }
+</script>

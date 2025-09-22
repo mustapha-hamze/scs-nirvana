@@ -1,0 +1,41 @@
+@{
+    Layout = null;
+}
+<script>
+    function newApplicationForm() {
+        clearModalBody("applicationModalBody");
+
+        $.ajax({
+            url: '/BackOffice/Application/ApplicationForm',
+            type: "GET"
+        }).done(function (data) {
+            $("#applicationModalBody").html(data);
+        });
+    }
+
+    function saveApplicationForm() {
+        if (checkFormValidity('frmApplication')) {
+            var frmApplication = $("#frmApplication");
+
+            var fileUpload = $("#file-upload-ApplicationLogo").get(0);
+            var files = fileUpload.files;
+            var file = files[0];
+
+            clearModalBody("applicationModalBody");
+
+            $.ajax({
+                type: "POST",
+                url: "/BackOffice/Application/SaveApplicationForm",
+                data: frmApplication.serialize()
+            }).done(function (data) {
+                var result = data.split('|');
+                if (result[0] === "Done") {
+                    uploadFile(file, "/BackOffice/Application/UploadApplicationLogo", result[1]);
+                }
+                else {
+                    $("#applicationModalBody").html(data);
+                }
+            });
+        }
+    }
+</script>

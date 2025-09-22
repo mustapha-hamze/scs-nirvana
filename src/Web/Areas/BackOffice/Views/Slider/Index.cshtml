@@ -1,0 +1,22 @@
+<div class="row mb-2 mt-2" id="sliderFormPlaceHolder">
+</div>
+
+<div class="row">
+    <div class="col-xl-12 p-0">
+        <div class="card">
+            <div class="card-body p-1">
+                <div class="table-responsive-sm" id="findSlidersResultBody">
+
+                </div> <!-- end table-responsive-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div>
+</div>
+@await Html.PartialAsync("__SliderJSFunctions")
+@await Html.PartialAsync("__SliderItemModal")
+@section Scripts {
+    <script>
+        getSliderList();
+        getSliderForm();
+    </script>
+}

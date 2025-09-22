@@ -1,0 +1,41 @@
+@{
+    Layout = null;
+    var cultures = (List<Infrastructure.Dto.GeneralDtos.CultureDto>)ViewData["Cultures"];
+}
+
+@using Services.Utilities.ApplicationConst
+@model Infrastructure.Dto.GeneralDtos.CurrencyDto
+
+<form class="needs-validation row" novalidate id="frmCurrency" method="POST">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="IsActive" />
+    <input type="hidden" asp-for="IsDeleted" />
+    <input type="hidden" asp-for="CreatedDT" />
+    <input type="hidden" asp-for="UpdatedDT" />
+    <div asp-validation-summary="All" class="text-danger">
+    </div>
+    <div class="mb-6 col-md-6 mb-2">
+        <label class="form-label" asp-for="Name">Name</label>
+        <input type="text" class="form-control" asp-for="Name" placeholder="Name" required minlength="4" maxlength="64">
+        <div class="invalid-feedback">
+            Min length is 4 and max length is 64
+        </div>
+    </div>
+    @* <div class="mb-6 col-md-6 mb-2">
+        <label class="form-label" asp-for="ReferenceId">Reference Id</label>
+        <input type="text" class="form-control" asp-for="ReferenceId" placeholder="ReferenceId" maxlength="64">
+        <div class="invalid-feedback">
+        Max length is 64
+        </div>
+        </div> *@
+    @*<div class="mb-6 col-md-6 mb-2">
+        <label class="form-label" asp-for="CultureId">Culture</label>
+        <select asp-for="CultureId" class="form-control select2" data-toggle="select2">
+        @foreach (var item in cultures)
+        {
+        <option value="@item.Id">@item.Name</option>
+        }
+        </select>
+        </div> *@
+</form>
+<button class="btn btn-primary mt-2" onclick="saveCurrencyForm()">Submit form</button>

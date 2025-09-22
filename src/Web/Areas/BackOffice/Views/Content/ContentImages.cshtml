@@ -1,0 +1,61 @@
+@{
+    Layout = null;
+    var contentImageAspectRatio =
+    (List<Infrastructure.Dto.GeneralDtos.ApplicationSettingDto>)ViewData["ContentImageAspectRatio"];
+    var contentImageSizes =
+    (List<Infrastructure.Dto.GeneralDtos.ApplicationSettingDto>)ViewData["ContentImageSizes"];
+    var contentImages =
+    (List<Infrastructure.Dto.CMSDtos.ContentImageDto>)ViewData["ContentImage"];
+
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+<div class="row mt-2">
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_UPLOAD_IMAGES_1009"))
+    {
+        <div class="col-md-4">
+            <select class="form-control" name="" id="ddlImageSetting">
+                <option value="0">Chose image setting</option>
+                @foreach (var item in contentImageSizes)
+                {
+                    <option value="@item.Id">@item.Title</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-8">
+            <input type="file" onchange="uploadContentImage()" name="" id="contentMainImageUploader" class="form-control">
+        </div>
+    }
+    <div class="col-md-12 mb-2 mt-3">
+        <div class="alert alert-warning">Content image aspect ratio must be :
+            @contentImageAspectRatio[0].Value
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h5>Content image sizes</h5>
+            @foreach (var item in contentImageSizes)
+            {
+                <div class="row">
+                    <div class="col-md-6">@item.Title</div>
+                    <div class="col-md-6">@item.Value.ToString().Replace("-", "*")</div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="row" id="__contentImagePlaceHolder__">
+        @if (contentImages != null)
+        {
+            foreach (var item in contentImages)
+            {
+                <div class="col-md-3 p-2">
+                    <img src="/Storage/Content/Image/@item.ContentId/@item.ImageFileName" class="w-100" />
+                </div>
+            }
+        }
+    </div>
+</div>

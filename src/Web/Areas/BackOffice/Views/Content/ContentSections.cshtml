@@ -1,0 +1,154 @@
+@{
+    var schemas = (List<Infrastructure.Dto.CMSDtos.SchemaDto>)ViewData["Schemas"];
+    var sections = (List<Infrastructure.Dto.CMSDtos.SectionDto>)ViewData["Sections"];
+    int priority = 0;
+    if (sections.Count > 0)
+    {
+        priority = sections[sections.Count - 1].Priority + 1;
+    }
+    Layout = null;
+
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+<input type="hidden" id="hidPriority__ContentSection" value="@priority" />
+
+<div class="row mt-2">
+    <div class="col-md-12" id="sectionPlaceHolder">
+        @foreach (var item in sections)
+        {
+            string sectionElementId = Guid.NewGuid().ToString();
+            <div class="row mb-2" id="sectionDiv-@sectionElementId" sectionId="@item.Id">
+                <div class="text-end">
+                    <button type="button" onclick="removeBodySection('sectionDiv-@sectionElementId')"
+                        class="btn btn-xs btn-outline-danger btn-rounded remove-section-button">
+                        <i class="mdi mdi-delete"></i>
+                    </button>
+                </div>
+
+                @foreach (var element in item.SectionElements)
+                {
+                    string elementRandomId = Guid.NewGuid().ToString();
+                    switch (element.ElementType)
+                    {
+                        case 1002:
+                            <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
+                                <label for="" class="mb-1">@element.ElementTitle</label>
+                                <div id="mutedTextEditor__@elementRandomId" class="muted-text-editor">
+                                    <button type="button"
+                                        onclick="enableTextEditorForEdit('__TextEditor__@elementRandomId', '__TextArea__@elementRandomId', 'mutedTextEditor__@elementRandomId')"
+                                        class="btn btn-xs btn-outline-info btn-rounded remove-section-button">
+                                        <i class="mdi mdi-content-save-edit"></i>
+                                    </button>
+                                    <div class="ql-editor">
+                                        @Html.Raw(element.EditorText)
+                                    </div>
+                                </div>
+                                <textarea class="form-control" textAreaSeedId="@elementRandomId" elementId="@element.Id"
+                                    id="__TextArea__@elementRandomId" elementType="1002" style="display: none;">
+                                    @Html.Raw(element.EditorText)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </textarea>
+                                <div id="__TextEditor__@elementRandomId" style=" height: 300px; display: none;">
+                                    <div class="ql-editor">
+                                        @Html.Raw(element.EditorText)
+                                    </div>
+                                </div>
+                            </div>
+                            break;
+                        case 1001:
+                            <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
+                                <label for="" class="mb-1">@element.ElementTitle</label>
+                                <img src="/Storage/Section/Images/@element.FileNameText" class="w-100" elementId="@element.Id"
+                                    elementType="1001" imageName="@element.FileNameText" />
+                                <input type="file" id="image-upload-@elementRandomId" accept=".jpg, .png, jpeg"
+                                    onchange="uploadBodyImage('@elementRandomId', @element.Id)" class="form-control">
+                                <div id="imageUploaderLoading-@elementRandomId" class="p-3 text-center" style="display: none;">
+                                    <div class="spinner-border text-info" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            break;
+                        case 1004:
+                            <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId" elementId="@element.Id"
+                                elementType="1004">
+                                <label for="" class="mb-1">@element.ElementTitle</label>
+                                <div class="card text-white bg-success overflow-hidden">
+                                    <div class="card-body">
+                                        <button type="button" onclick="removeBodySection('sectionDiv-@sectionElementId')"
+                                            class="btn btn-xs btn-outline-danger btn-rounded remove-section-button">
+                                            <i class="mdi mdi-delete"></i>
+                                        </button>
+                                        <div class=toll-free-box text-center">
+                                            <h4><i class="mdi mdi-file-cabinet"></i>@element.FileNameText</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            break;
+                        case 1003:
+                            var images = element.GalleryImages.Split('|');
+                            <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
+                                <label for="" class="mb-1">@element.ElementTitle</label>
+                                <div class="row" id="__imageGallery__@elementRandomId" elementId="@element.Id" elementType="1003">
+                                    @foreach (var galleryImage in images)
+                                    {
+                                        var galleryImageIdPlaceHolderId = galleryImage.Split('.');
+                                        <div class="col-md-3 mb-2" id="@galleryImageIdPlaceHolderId[0]" imageName="@galleryImage">
+                                            <img src="/Storage/Section/Gallery/@galleryImage" class="w-100">
+                                            <button type="button" onclick="removeImageGallery('@galleryImageIdPlaceHolderId[0]')"
+                                                class="btn btn-sm btn-outline-danger w-100">Remove</button>
+                                        </div>
+                                    }
+                                    <div class="col-md-2 hand-pointer" onclick="openFileUploaderForGallery()">
+                                        <div class="card text-white bg-danger overflow-hidden mb-1 mt-2">
+                                            <div class="card-body">
+                                                <div class="toll-free-box text-center">
+                                                    <h4> <i class="mdi mdi-image-plus"></i>Add</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input id="fileUploaderForGallery" accept=".jpg, .png, jpeg"
+                                onchange="uploadBodyImageGallery('@elementRandomId')" type="file" style="display: none;" multiple>
+                            break;
+                        case 1000:
+                            <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
+                                <label for="" class="mb-1">@element.ElementTitle</label>
+                                <input class="form-control" type="text" maxlength="256" elementId="@element.Id"
+                                    value="@element.TinyText" elementType="1000" />
+                            </div>
+                            break;
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+<div class="row mb-2" id="divAddSectionPlaceHolder">
+    @foreach (var item in schemas)
+    {
+        <div class="col-md-1 rounded border border-1 hand-pointer p-2" onclick="addContentSection(@item.Id)">
+            <img style="width: 64px; height: 64px;" src="/Storage/Schema/Logos/@item.LogoFileName?100001"
+                asp-append-version="true" />
+            <div class="mt-1" style="font-size: 9pt;">@item.Title</div>
+        </div>
+    }
+</div>
+<div class="row">
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_SAVE_BODY_1007"))
+    {
+        <div class="col-md-12 m-0 p-0">
+            <a href="javascript:void(0);" id="btnSaveContentBody" onclick="saveBody()" class="btn btn-primary"><i
+                    class="uil uil-file-share-alt"></i> Save Body</a>
+        </div>
+    }
+</div>
+
+<input id="hidSectionDeleted" type="hidden" />

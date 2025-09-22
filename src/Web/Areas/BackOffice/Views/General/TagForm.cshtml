@@ -1,0 +1,27 @@
+@{
+    Layout = null;
+}
+@using Services.Utilities.ApplicationConst
+@model Infrastructure.Dto.GeneralDtos.TagDto
+<form class="needs-validation row" novalidate id="frmTag" method="POST">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger">
+    </div>
+    <div class="mb-3 col-md-6">
+        <label class="form-label" asp-for="Title">Title</label>
+        <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
+            maxlength="64">
+        <div class="invalid-feedback">
+            Min length is 4 and max length is 64
+        </div>
+    </div>
+    <div class="mb-3 col-md-6">
+        <label class="form-label" asp-for="TypeId">Type Id</label>
+        <select class="form-control" asp-for="TypeId">
+            <option value="@TypeId.Content">Content</option>
+            <option value="@TypeId.PTEDevelopmentType">Development</option>
+            @* <option value="@TypeId.Property">Property</option> *@
+        </select>
+    </div>
+</form>
+<button class="btn btn-primary mt-2" onclick="saveTagForm()">Submit form</button>

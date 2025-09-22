@@ -1,0 +1,40 @@
+@{
+    Layout = null;
+}
+
+@model Infrastructure.Dto.AccessManagerDtos.SectorEntityDto
+
+<div class="row pb-2">
+    <div class="col-md-12">
+        <h4 class="alert alert-success">Sector: @ViewData["SectorTitle"]</h4>
+    </div>
+</div>
+
+<form class="needs-validation row" id="frmSaveSectorEntity" novalidate asp-action="SaveSectorEntity" method="POST">
+    <input type="hidden" name="Id" asp-for="Id">
+    <input type="hidden" name="IsActive" asp-for="IsActive">
+    <input type="hidden" name="IsDeleted" asp-for="IsDeleted">
+    <input type="hidden" name="Status" asp-for="Status">
+    <input type="hidden" name="CreatedDT" asp-for="CreatedDT">
+    <input type="hidden" name="UpdatedDT" asp-for="UpdatedDT">
+    <input type="hidden" name="SectorId" asp-for="SectorId">
+    <div class="col-md-4 ps-2">
+        <input type="text" required name="Title" asp-for="Title" id="" class="form-control" placeholder="Title">
+        <div class="invalid-feedback">
+            Title is required
+        </div>
+    </div>
+    <div class="col-md-4 ps-2">
+        <input type="text" required name="AccessKey" asp-for="AccessKey" id="" class="form-control"
+            placeholder="AccessKey">
+        <div class="invalid-feedback">
+            Title is required
+        </div>
+    </div>
+    <div class="col-md-3 ps-2">
+        <a href="javascript: void(0);" class="btn btn-primary" onclick="saveEntity()">
+            <i class="uil uil-file-check-alt"></i>
+            Save Entity
+        </a>
+    </div>
+</form>

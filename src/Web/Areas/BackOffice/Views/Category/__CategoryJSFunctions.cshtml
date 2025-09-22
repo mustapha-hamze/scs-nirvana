@@ -1,0 +1,55 @@
+<script>
+    function newCategoryForm(schemaId) {
+        clearModalBody("categoryModalBody");
+        $.ajax({
+            url: '/BackOffice/Category/Form',
+            type: "GET"
+        }).done(function (data) {
+            $("#categoryModalBody").html(data);
+            $('.select2').select2(
+                { dropdownParent: $('#category-modal') }
+            );
+        });
+    }
+
+    function saveCategoryForm() {
+        if (checkFormValidity('frmCategory')) {
+
+            var frmCategory = $("#frmCategory");
+            clearModalBody("categoryModalBody");
+            $.ajax({
+                url: '/BackOffice/Category/SaveForm',
+                type: "POST",
+                data: frmCategory.serialize()
+            }).done(function (data) {
+                if (data === "Done") {
+                    location.reload();
+                }
+            });
+
+        }
+    }
+
+    function findCategories() {
+        clearModalBody("findCategoriesResultBody");
+        $.ajax({
+            url: '/BackOffice/Category/List',
+            type: "GET",
+        }).done(function (data) {
+            $("#findCategoriesResultBody").html(data);
+            $("#datatable-buttons").DataTable({
+                lengthChange: !1,
+                buttons: ["copy", "print"],
+                language: {
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    }
+                },
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
+        });
+    }
+</script>

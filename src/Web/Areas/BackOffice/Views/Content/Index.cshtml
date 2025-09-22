@@ -1,0 +1,27 @@
+@model Infrastructure.Dto.CMSDtos.ContentDto
+
+<div class="row mb-2 mt-2">
+  <div class="col-md-12 p-0">
+    @await Html.PartialAsync("_CreateContentButton")
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xl-12 p-0">
+    <div class="card">
+      <div class="card-body p-1">
+        <div class="table-responsive-sm" id="findContentsResultBody"></div>
+        <!-- end table-responsive-->
+      </div>
+      <!-- end card -->
+    </div>
+    <!-- end col-->
+  </div>
+</div>
+@await Html.PartialAsync("__ContentJSFunctions")
+<input type="hidden" id="hidContentsTypeId_List" value="@ViewData["TypeId"]" />
+@section Scripts {
+  <script>
+    findContents($("#hidContentsTypeId_List").val());
+  </script>
+}

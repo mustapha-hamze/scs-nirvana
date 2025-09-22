@@ -1,0 +1,165 @@
+@model Infrastructure.Dto.CMSDtos.ContentDto
+
+@{
+    var types = (List<Infrastructure.Dto.GeneralDtos.SystemTypeDto>)ViewData["Types"];
+
+    var publishDateTime = Model.PublishDt.ToString("yyyy-MM-dd HH:mm");
+}
+
+<style>
+    .fa---elements {
+        text-align: right !important;
+        direction: rtl !important;
+    }
+
+    #__descriptionEditorFA__ .ql-editor {
+        text-align: right !important;
+        direction: rtl !important;
+    }
+</style>
+
+<link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
+<link href="/BackOffice/vendor/quill/quill.snow.css" rel="stylesheet" type="text/css" />
+<div class="row mt-2">
+    <div class="col-md-2 p-0">
+        <a class="btn btn-primary w-100" onclick="backToContentList()" href="javascript:void(0);">
+            <i class="uil uil-corner-up-left"></i>
+            Back
+        </a>
+    </div>
+</div>
+<div class="row card mt-2 p-2">
+    <ul class="nav nav-tabs mb-1">
+        <li class="nav-item">
+            <a href="#general" data-bs-toggle="tab" aria-expanded="false" class="nav-link active">
+                <i class="mdi mdi-home-variant d-md-none d-block"></i>
+                <span class="d-none d-md-block">General</span>
+            </a>
+        </li>
+        @await Html.PartialAsync("_ContentFormTabs", Model)
+    </ul>
+    <div class="tab-content mb-3">
+        <div class="tab-pane show active" id="general">
+            <form class="needs-validation row" novalidate id="frmContent" method="POST" asp-action="SaveContentForm">
+                <input type="hidden" asp-for="Id" id="hidContentId" />
+                <input type="hidden" asp-for="ApplicationId" />
+                <input type="hidden" asp-for="CreatedDT" />
+                <input type="hidden" asp-for="UpdatedDT" />
+                <input type="hidden" asp-for="IsDeleted" />
+                <input type="hidden" asp-for="IsActive" />
+                <div asp-validation-summary="All" class="text-danger">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" asp-for="TypeId">Type</label>
+                    <select id="ddlContentTypeIds__Form" type="text" class="form-control" asp-for="TypeId"
+                        placeholder="Title">
+                        @foreach (var item in types)
+                        {
+                            <option value="@item.Id">@item.Title</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" asp-for="Title">Title</label>
+                    <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
+                        maxlength="256">
+                    <div class="invalid-feedback">
+                        Min length is 4 and max length is 256
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" asp-for="Title_FA">Title FA</label>
+                    <input type="text" class="form-control fa---elements" asp-for="Title_FA" placeholder="Title FA"
+                        required minlength="4" maxlength="256">
+                    <div class="invalid-feedback">
+                        Min length is 4 and max length is 256
+                    </div>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <label class="form-label" asp-for="HeadLine">Head Line</label>
+                    <textarea class="form-control" asp-for="HeadLine" maxlength="2048"></textarea>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <label class="form-label" asp-for="HeadLine_FA">Head Line FA</label>
+                    <textarea class="form-control fa---elements" asp-for="HeadLine_FA" maxlength="2048"></textarea>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <label class="form-label" asp-for="Abstract">Abstract</label>
+                    <textarea class="form-control" asp-for="Abstract" maxlength="2048"></textarea>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <label class="form-label" asp-for="Abstract_FA">Abstract FA</label>
+                    <textarea class="form-control fa---elements" asp-for="Abstract_FA" maxlength="2048"></textarea>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <label class="form-label" asp-for="Description">Description</label>
+                    <textarea class="form-control" asp-for="Description" style="display: none;"
+                        id="textAreaDescription"></textarea>
+                    <div id="__descriptionEditor__" style="height: 300px;">
+                    </div>
+                </div>
+                <div class="col-md-12 mb-2">
+                    <label class="form-label" asp-for="Description_FA">Description FA</label>
+                    <textarea class="form-control" asp-for="Description_FA" style="display: none;"
+                        id="textAreaDescriptionFA"></textarea>
+                    <div id="__descriptionEditorFA__" style="height: 300px;" class="fa---elements">
+                    </div>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label">Publish Date & Time</label>
+                    <input type="text" id="datetime-datepicker-publish" name="PublishDt" asp-for="PublishDt"
+                        value="@publishDateTime" class="form-control" placeholder="Date and Time">
+                </div>
+                <div class="col-md-12">
+                    @await Html.PartialAsync("_ContentFormSaveButton", Model)
+                    @if (Model.Id != 0)
+                    {
+                        string contentPreviewUrl = ViewData["WebsiteUrl"].ToString() + "/" + Model.Id;
+                        <a class="btn btn-info mt-2 ml-3" href="@contentPreviewUrl" target="_blank">
+                            Preview Content
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+        @await Html.PartialAsync("_ContentFormTabsBody", Model)
+    </div>
+</div>
+@await Html.PartialAsync("__ContentJSFunctions")
+<input type="hidden" name="" id="hidTypeIdContent_Form" value="@ViewData["TypeId"]">
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#ddlContentTypeIds__Form").val($("#hidTypeIdContent_Form").val());
+
+            $("#linkCMSContentMenu").addClass("active");
+            $("#cmsMenuLi").addClass("menuitem-active");
+            $("#liCMSContent").addClass("menuitem-active");
+            $("#sidebarContentManagement").addClass("show");
+            $("#thirdLayerMenu_Content_" + $("#hidTypeIdContent_Form").val()).addClass("menuitem-active");
+            $("#sidebarSecondLevel").addClass("show");
+
+            initTextEditor("__descriptionEditor__");
+            initTextEditor("__descriptionEditorFA__");
+
+            $('#__descriptionEditor__ .ql-editor').html($('#textAreaDescription').val());
+            $('#__descriptionEditorFA__ .ql-editor').html($('#textAreaDescriptionFA').val());
+
+            $("#datetime-datepicker-publish").flatpickr({ enableTime: !0, dateFormat: "Y-m-d H:i" })
+        });
+
+        if ($("#hidContentId").val() != "0") {
+            // body
+            loadContentBody();
+
+            // images
+            loadContentImages();
+
+            // relations
+            loadContentRelations();
+
+            // metadata
+            loadContentMetadata();
+        }
+    </script>
+}

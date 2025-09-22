@@ -1,0 +1,88 @@
+@{
+    Layout = null;
+    string sectionElementId = Guid.NewGuid().ToString();
+}
+
+@model List<Infrastructure.Dto.CMSDtos.SchemaDetailsDto>
+
+<div class="row mb-2" sectionId="0" priority='@ViewData["Priority"]' id="sectionDiv-@sectionElementId">
+    <div class="text-end">
+        <button type="button" onclick="removeBodySection('sectionDiv-@sectionElementId')"
+            class="btn btn-xs btn-outline-danger btn-rounded remove-section-button">
+            <i class="mdi mdi-delete"></i>
+        </button>
+    </div>
+    @foreach (var item in Model)
+    {
+        string elementRandomId = Guid.NewGuid().ToString();
+
+        @switch (item.TypeId)
+        {
+            case 1002:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <textarea class="form-control" schemaDetailTitle="@item.Title" textAreaSeedId="@elementRandomId"
+                        id="__TextArea__@elementRandomId" elementType="1002" schemaId="@item.SchemaId"
+                        style="display: none;"></textarea>
+                    <div id="__TextEditor__@elementRandomId" style=" height: 300px;">
+                    </div>
+                    <script>
+                        initTextEditor("__TextEditor__@elementRandomId");
+                        $(' #__TextEditor__@elementRandomId .ql-editor').html($('#__TextArea_@elementRandomId').val());
+                    </script>
+                </div>
+                break;
+            case 1001:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <input type="file" schemaDetailTitle="@item.Title" id="image-upload-@elementRandomId" accept=".jpg, .png, jpeg"
+                        onchange="uploadBodyImage('@elementRandomId', 0)" class="form-control">
+                    <div id="imageUploaderLoading-@elementRandomId" class="p-3 text-center" style="display: none;">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                break;
+            case 1004:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <input type="file" schemaDetailTitle="@item.Title" id="file-upload-@elementRandomId"
+                        onchange="uploadBodyFile('@elementRandomId')" class="form-control">
+                    <div id="fileUploaderLoading-@elementRandomId" class="p-3 text-center" style="display: none;">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                break;
+            case 1003:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <div class="row" schemaDetailTitle="@item.Title" schemaId="@item.SchemaId" id="__imageGallery__@elementRandomId"
+                        elementType="1003">
+                        <div class="col-md-2 hand-pointer" onclick="openFileUploaderForGallery()">
+                            <div class="card text-white bg-danger overflow-hidden mb-1 mt-2">
+                                <div class="card-body">
+                                    <div class="toll-free-box text-center">
+                                        <h4> <i class="mdi mdi-image-plus"></i>Add</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input id="fileUploaderForGallery" accept=".jpg, .png, jpeg" onchange="uploadBodyImageGallery('@elementRandomId')"
+                    type="file" style="display: none;" multiple>
+                break;
+            case 1000:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <input class="form-control" schemaDetailTitle="@item.Title" type="text" maxlength="256"
+                        schemaId="@item.SchemaId" elementType="1000" />
+                </div>
+                break;
+        }
+    }
+</div>
+<hr>

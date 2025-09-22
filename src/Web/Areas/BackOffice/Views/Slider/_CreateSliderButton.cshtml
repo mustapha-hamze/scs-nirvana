@@ -1,0 +1,16 @@
+@{
+    Layout = null;
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+@if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_ADD_1000"))
+{
+    <a class="btn btn-primary" href="javascript:void(0)" onclick="createNewContent()">
+    <i class="uil uil-plus"></i>
+    Create Slider
+</a>
+}

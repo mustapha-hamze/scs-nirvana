@@ -1,0 +1,54 @@
+@{
+    Layout = null;
+
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+@model Infrastructure.Dto.CMSDtos.ContentMetadataDto
+
+<div class="row">
+    <div class="col-md-12 mt-2">
+        <form class="needs-validation row" novalidate id="frmContentMetadata" method="POST">
+            <input type="hidden" asp-for="Id" id="hidContentMetadataId" />
+            <input type="hidden" asp-for="ContentId" />
+            <input type="hidden" asp-for="CreatedDT" />
+            <input type="hidden" asp-for="UpdatedDT" />
+            <input type="hidden" asp-for="IsDeleted" />
+            <input type="hidden" asp-for="IsActive" />
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Title</label>
+                <input type="text" asp-for="Title" class="form-control" placeholder="Title" minlength="2"
+                    maxlength="64">
+                <div class="invalid-feedback">
+                    Min length is 4 and max length is 64
+                </div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">Author</label>
+                <input type="text" class="form-control" asp-for="Author" minlength="2" maxlength="128" />
+                <div class="invalid-feedback">
+                    Min length is 4 and max length is 128
+                </div>
+            </div>
+            <div class="col-md-12 mb-2">
+                <label class="form-label">Keywords</label>
+                <textarea class="form-control" asp-for="Keywords" maxlength="1024"></textarea>
+            </div>
+            <div class="col-md-12 mb-2">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" maxlength="2048" asp-for="Description"></textarea>
+            </div>
+        </form>
+    </div>
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_SAVE_META_1013"))
+    {
+        <div class="col-md-12 mt-2">
+            <a href="javascript: void(0);" id="btnSaveContentMetadata" onclick="saveContentMetadata()"
+                class="btn btn-primary"><i class="uil uil-file-share-alt"></i> Save Metadata</a>
+        </div>
+    }
+</div>

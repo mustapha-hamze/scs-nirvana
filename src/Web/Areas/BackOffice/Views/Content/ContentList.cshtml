@@ -1,0 +1,64 @@
+@{
+    Layout = null;
+    var types = (List<Infrastructure.Dto.GeneralDtos.SystemTypeDto>)ViewData["Types"];
+}
+
+@model List<Infrastructure.Dto.CMSDtos.ContentDto>
+
+<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Activity</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>
+                    @if (item.Title.Length > 64)
+                    {
+                        <text>@item.Title.Substring(0, 64) ...</text>
+                    }
+                    else
+                    {
+                        <text>@item.Title</text>
+                    }
+                </td>
+                <td>
+                    @{
+                        var typeTitle = types.Where(t => t.Id == item.TypeId).ToList();
+
+                        if (typeTitle.Count > 0)
+                        {
+                            <span>@typeTitle[0].Title</span>
+                        }
+                    }
+                </td>
+                <td>
+                    @if (item.IsActive)
+                    {
+                        <span class="badge bg-success rounded-pill p-1">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger rounded-pill p-1">Deactive</span>
+                    }
+                </td>
+                <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
+                <td>
+                    @{
+                        ViewData["PartialData"] = item.Id.ToString() + "," + item.TypeId.ToString();
+                    }
+                    @await Html.PartialAsync("_ContentListActionsButton", ViewData["PartialData"])
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,59 @@
+@{
+    Layout = null;
+
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+
+@if (Model != null)
+{
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_BODY_1007"))
+    {
+        <li class="nav-item">
+    <a href="#body" data-bs-toggle="tab" aria-expanded="true" class="nav-link">
+        <i class="mdi mdi-account-circle d-md-none d-block"></i>
+        <span class="d-none d-md-block">Body</span>
+    </a>
+</li>
+    }
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_IMAGES_1008"))
+    {
+        <li class="nav-item">
+    <a href="#images" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+        <i class="mdi mdi-settings-outline d-md-none d-block"></i>
+        <span class="d-none d-md-block">Images</span>
+    </a>
+</li>
+    }
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_ATTACHMENT_1013"))
+    {
+        <li class="nav-item">
+    <a href="#attachment" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+        <i class="mdi mdi-settings-outline d-md-none d-block"></i>
+        <span class="d-none d-md-block">Attachments</span>
+    </a>
+</li>
+    }
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_RELATIONS_1010"))
+    {
+        <li class="nav-item">
+    <a href="#relations" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+        <i class="mdi mdi-settings-outline d-md-none d-block"></i>
+        <span class="d-none d-md-block">Relations</span>
+    </a>
+</li>
+    }
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_META_1012"))
+    {
+        <li class="nav-item">
+    <a href="#metadata" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+        <i class="mdi mdi-settings-outline d-md-none d-block"></i>
+        <span class="d-none d-md-block">Metadata</span>
+    </a>
+</li>
+    }
+}

@@ -1,0 +1,113 @@
+@{
+    Layout = null;
+    var userApplications =
+    (List<Infrastructure.Dto.GeneralDtos.UserInApplicationDto>)ViewData["UserApplications"];
+}
+
+@model List<Infrastructure.Dto.GeneralDtos.ApplicationDto>
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Select Application to login | SCS</title>
+
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="/BackOffice/images/favicon.ico">
+
+    @await Html.PartialAsync("_CSSAssets")
+
+</head>
+
+<body class="loading authentication-bg"
+    data-layout-config='{"leftSideBarTheme":"dark","layoutBoxed":false, "leftSidebarCondensed":false, "leftSidebarScrollable":false,"darkMode":true, "showRightSidebarOnStart": true}'>
+    <div class="account-pages pt-2 pt-sm-5 pb-4 pb-sm-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card">
+
+                        <!-- Logo -->
+                        <div class="card-header text-center bg-primary">
+                            <h4 class="text-white p-0">Select application to enter admin panel</h4>
+                        </div>
+
+                        <div class="card-body p-2">
+                            <div class="row">
+                                @if (User.IsInRole("SuperAdmin"))
+                                {
+                                    @foreach (var item in Model)
+                                    {
+                                        <div class="col-md-3">
+                                            <div class="card d-block">
+                                                <img class="card-img-top" src="/Storage/Application/Logos/@item.LogoFileName" />
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@item.Title</h5>
+                                                    @* <p class="card-text">@description</p> *@
+                                                    <a href="/BackOffice/Application/SelectAppToEnter/@item.Id"
+                                                        class="btn btn-primary w-100">Select</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="col-md-2">
+                                        <button class="btn btn-info pt-3 pb-3 h-100" data-bs-toggle="modal"
+                                            data-bs-target="#application-modal" onclick="newApplicationForm()">
+                                            <i class="uil uil-plus h1"></i>
+                                            <br />
+                                            <h5>New Application</h5>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @foreach (var item in userApplications)
+                                    {
+                                        var app = Model.SingleOrDefault(a => a.Id == item.ApplicationId);
+                                        <div class="col-md-3 m-2">
+                                            <div class="card d-block">
+                                                <img class="card-img-top" src="/Storage/Application/Logos/@app.LogoFileName" />
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@app.Title</h5>
+                                                    <p class="card-text">@app.Description</p>
+                                                    <a href="/BackOffice/Application/SelectAppToEnter/@app.Id"
+                                                        class="btn btn-primary w-100">Select</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                @* <button class="col-md-2 m-2 btn btn-info pt-3 pb-3 h-100" data-bs-toggle="modal"
+                                    data-bs-target="#application-modal" onclick="newApplicationForm()">
+                                    <i class="uil uil-plus h1"></i>
+                                    <br />
+                                    <h5 class="fw-normal">New Application</h4>
+                                    </button> *@
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- end card -->
+
+                </div> <!-- end col -->
+            </div>
+            <!-- end row -->
+        </div>
+        <!-- end container -->
+    </div>
+    <!-- end page -->
+
+    <footer class="footer footer-alt">
+        <script>document.write(new Date().getFullYear())</script> © SCS
+    </footer>
+
+    <!-- bundle -->
+    @await Html.PartialAsync("_JSAssets")
+
+    @await Html.PartialAsync("__ApplicationModal")
+    @await Html.PartialAsync("__ApplicationJSFunctions")
+</body>
+
+</html>

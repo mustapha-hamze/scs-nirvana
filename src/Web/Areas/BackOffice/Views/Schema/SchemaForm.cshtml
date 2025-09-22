@@ -1,0 +1,55 @@
+@{
+    Layout = null;
+}
+
+@model Infrastructure.Dto.CMSDtos.SchemaDto
+
+<form class="needs-validation row" novalidate id="frmSchema" method="POST">
+    <input type="hidden" asp-for="Id" id="hidSchemaId" />
+    <input type="hidden" asp-for="ApplicationId" />
+    <input type="hidden" asp-for="IsActive" />
+    <input type="hidden" asp-for="IsDeleted" />
+    <input type="hidden" asp-for="CreatedDT" />
+    <input type="hidden" asp-for="UpdatedDT" />
+    <input type="hidden" asp-for="LogoFileName" />
+    <div asp-validation-summary="All" class="text-danger">
+    </div>
+    <div class="col-md-5 mb-2">
+        <label class="form-label" asp-for="Title">Title</label>
+        <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
+            maxlength="64">
+        <div class="invalid-feedback">
+            Min length is 4 and max length is 64
+        </div>
+    </div>
+
+    @if (Model.Id == 0)
+    {
+        <div class="col-md-7 mb-2">
+            <label class="form-label">Logo</label>
+            <input type="file" class="form-control" name="SchemaLogo" id="file-upload-SchemaLogo" required />
+        </div>
+    }
+    else
+    {
+        <div class="col-md-7 mb-2" style="display: none;" id="schemaLogoUploaderPlaceHolder">
+            <label class="form-label">Logo</label>
+            <input type="file" class="form-control" name="SchemaLogo" id="file-upload-SchemaLogo" />
+        </div>
+        <div class="col-md-7 text-center" id="schemaLogoPreviewPlaceHolder">
+            <img id="hover-on-image" class="w-50 rounded border border-1" src="/Storage/Schema/Logos/@Model.LogoFileName"
+                asp-append-version="true" />
+            <br />
+            <a href="javascript: void(0);" onclick="removeLogo()" class="btn btn-danger w-50 mt-1">
+                <i class="mdi mdi-delete"></i>
+                Remove
+            </a>
+        </div>
+    }
+
+
+    <div class="col-md-3 mb-2 mt-3">
+        <a href="javascript: void(0);" onclick="saveSchemaForm()" class="btn btn-primary"><i
+                class="uil uil-file-check-alt"></i> Save Schema</a>
+    </div>
+</form>

@@ -1,0 +1,43 @@
+@{
+    Layout = null;
+    var zones = (List<Infrastructure.Dto.GeneralDtos.ZoneDto>)ViewData["Zones"];
+}
+
+@model Infrastructure.Dto.GeneralDtos.ZoneDto
+
+<form class="needs-validation row" novalidate id="frmZone" method="POST">
+    <input type="hidden" asp-for="Id" id="Id" />
+    <input type="hidden" asp-for="CreatedDT" id="CreatedDT" />
+    <input type="hidden" asp-for="UpdatedDT" id="UpdatedDT" />
+    <input type="hidden" asp-for="IsActive" id="IsActive" />
+    <input type="hidden" asp-for="IsActive" id="IsDeleted" />
+    <input type="hidden" asp-for="IsActive" id="Status" />
+    <div asp-validation-summary="All" class="text-danger">
+    </div>
+    <div class="col-md-6 mb-2">
+        <label class="form-label" asp-for="Title">Title</label>
+        <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
+            maxlength="64">
+        <div class="invalid-feedback">
+            Min length is 4 and max length is 64
+        </div>
+    </div>
+    <div class="col-md-6 mb-2">
+        <label class="form-label" asp-for="ParentId">Parent</label>
+        <select asp-for="ParentId" class="form-control select2" data-toggle="select2" data-placeholder="Choose ..."
+            id="__Select2_Zones__">
+            <option value="0">No Parent</option>
+            @if (zones != null)
+            {
+                foreach (var item in zones)
+                {
+                    <option value="@item.Id">@item.Title</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="mb-3 col-md-12">
+        <a href="javascript: void(0);" id="btnSaveZoneForm" class="btn btn-primary mt-2" onclick="saveZoneForm()">Submit
+            form</a>
+    </div>
+</form>

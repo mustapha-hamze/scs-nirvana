@@ -1,0 +1,42 @@
+@model List<Microsoft.AspNetCore.Identity.IdentityRole>
+<div class="container-fluid mt-2">
+    <div class="row">
+        <div class="col-xl-5">
+            <div class="card">
+                <div class="card-body">
+                    <form class="needs-validation" novalidate method="POST">
+                        <h4>Create user role</h4>
+                        <hr>
+                        <label class="form-label" for="txtRoleName">Role Name</label>
+                        <input type="text" name="RoleName" class="form-control" id="txtRoleName" placeholder="Role Name"
+                            required>
+                        <button class="btn btn-primary mt-3 w-50" type="submit">Submit form</button>
+                    </form>
+                </div> <!-- end card body-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+        <div class="col-xl-7">
+            <div class="card">
+                <div class="card-body">
+                    <h4>User roles list</h4>
+                    <hr />
+                    <table class="table table-sm table-centered mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.Name</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div> <!-- end card body-->
+            </div> <!-- end card -->
+        </div>
+    </div>
+</div>

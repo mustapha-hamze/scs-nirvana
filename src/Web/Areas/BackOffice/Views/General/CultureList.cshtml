@@ -1,0 +1,31 @@
+@{
+    Layout = null;
+}
+
+@model List<Infrastructure.Dto.GeneralDtos.CultureDto>
+
+<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Key</th>
+            <th>Created</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>@item.Key</td>
+                <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
+                <td>
+                    <a href="javascript: void(0);" class="action-icon">
+                        <i class="mdi mdi-delete"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,22 @@
+@{
+    Layout = null;
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+<div class="col-md-4">
+    <form action="" method="post" id="__frmCreateSliderForm__">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="ApplicationId" id="ApplicationId" value="@ViewData["ApplicationId"]">
+        <input type="text" class="form-control" placeholder="Title" id="Title" name="Title" value="">
+    </form>
+</div>
+<div class="col-md-8">
+    @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001_SAVE_1000"))
+    {
+        <button class="btn btn-primary" id="__btnCreateSlider__" onclick="createSlider()" type="button">Create
+            slider</button>
+    }
+</div>

@@ -1,0 +1,27 @@
+<div class="row mb-2 mt-2">
+    <div class="col-md-12 p-0">
+        @await Html.PartialAsync("_CreateCompanyButton")
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-12 p-0">
+        <div class="card">
+            <div class="card-body p-1">
+                <div class="table-responsive-sm" id="findCompaniesResultBody">
+
+                </div> <!-- end table-responsive-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div>
+</div>
+
+@await Html.PartialAsync("__CompanyJSFunctions")
+
+@await Html.PartialAsync("__CompanyModal")
+
+@section Scripts {
+    <script>
+        findCompanies()
+    </script>
+}

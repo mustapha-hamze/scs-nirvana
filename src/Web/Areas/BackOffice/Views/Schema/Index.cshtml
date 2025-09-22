@@ -1,0 +1,32 @@
+<div class="row mt-2 mb-2">
+    <div class="col-md-12 p-0">
+        <button class="btn btn-primary" data-bs-toggle="modal" onclick="schemaForm()" data-bs-target="#schema-modal">
+            <i class="uil uil-plus"></i>
+            Create Schema
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-12 p-0">
+        <div class="card">
+            <div class="card-body p-1">
+                <div class="tab-content">
+                    <div class="table-responsive-sm" id="findSchemasResultBody">
+
+                    </div> <!-- end table-responsive-->
+                </div> <!-- end card body-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div>
+</div>
+
+
+@await Html.PartialAsync("__SchemaDetailsModal")
+@await Html.PartialAsync("__SchemaModal")
+@await Html.PartialAsync("__SchemaJSFunctions")
+@section Scripts {
+    <script>
+        findSchemas();
+    </script>
+}

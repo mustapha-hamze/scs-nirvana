@@ -1,0 +1,62 @@
+@model Infrastructure.Dto.UserManagementDtos.UserDto
+
+<div class="row mb-2 mt-2">
+    <div class="col-md-12 p-0">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#user-modal"
+            onclick="newUserForm()">
+            <i class="uil uil-user-plus"></i>
+            Create User
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 p-0">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" id="frmUserFilters" class="row">
+                    <div class="col-md-2">
+                        <select class="form-control" asp-for="IsAdminUser">
+                            <option value="true">Admin Users</option>
+                            <option value="false">Users</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" asp-for="Email" placeholder="Email">
+                    </div>
+                    <div class="col-md-3">
+                        <a href="javascript: void(0);" class="btn btn-primary" onclick="findUsers()" id="btnUserFilter">
+                            <i class="uil uil-filter"></i> Filter
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-xl-12 p-0">
+        <div class="card">
+            <div class="card-body p-1">
+                <div class="table-responsive-sm" id="findUsersResultBody">
+
+                </div> <!-- end table-responsive-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div>
+</div>
+
+@await Html.PartialAsync("__UserModal")
+@await Html.PartialAsync("__UserSettingModal")
+@await Html.PartialAsync("__UserAttachmentModal")
+@await Html.PartialAsync("__AccountJSFunctions")
+@await Html.PartialAsync("~/Areas/BackOffice/Views/UserAttachment/__UserAttachmentJSFunctions.cshtml")
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            findUsers();
+        });
+    </script>
+}

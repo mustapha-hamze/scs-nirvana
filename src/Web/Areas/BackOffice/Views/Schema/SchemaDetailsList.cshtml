@@ -1,0 +1,52 @@
+@{
+    Layout = null;
+}
+
+@model List<Infrastructure.Dto.CMSDtos.SchemaDetailsDto>
+
+<table class="table table-striped table-centered mb-0">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Created</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>
+                    @switch (item.TypeId)
+                    {
+                        case 1000:
+                            <text>Input Text</text>
+                            break;
+                        case 1001:
+                            <text>Image</text>
+                            break;
+                        case 1002:
+                            <text>Text Editor</text>
+                            break;
+                        case 1003:
+                            <text>Image Gallery</text>
+                            break;
+                        case 1004:
+                            <text>File Upload</text>
+                            break;
+                    }
+                </td>
+                <td>@item.Size</td>
+                <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
+                <td>
+                    <a href="javascript: void(0);" class="action-icon">
+                        <i class="mdi mdi-delete"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,24 @@
+@{
+    Layout = null;
+}
+@if (User.IsInRole("SuperAdmin"))
+{
+    <li class="side-nav-item">
+    <a data-bs-toggle="collapse" href="#sidebarUserManagement" aria-expanded="false"
+        aria-controls="sidebarUserManagement" class="side-nav-link">
+        <i class="dripicons-user-group"></i>
+        <span> User Management </span>
+        <span class="menu-arrow"></span>
+    </a>
+    <div class="collapse" id="sidebarUserManagement">
+        <ul class="side-nav-second-level">
+            <li>
+                <a href="/BackOffice/Account/Users">Users</a>
+            </li>
+            <li>
+                <a href="/BackOffice/Account/Roles">Roles</a>
+            </li>
+        </ul>
+    </div>
+</li>
+}

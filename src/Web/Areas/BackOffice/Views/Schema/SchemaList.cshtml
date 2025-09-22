@@ -1,0 +1,39 @@
+@{
+    Layout = null;
+}
+
+@model List<Infrastructure.Dto.CMSDtos.SchemaDto>
+
+<div class="table-responsive-sm">
+    <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Created</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
+                    <td>
+                        <a href="javascript: void(0);" class="action-icon" onclick="deleteSchema(@item.Id)">
+                            <i class="mdi mdi-delete"></i>
+                        </a>
+                        <a href="javascript: void(0);" data-bs-toggle="modal" onclick="schemaForm(@item.Id)"
+                            data-bs-target="#schema-modal" class="action-icon">
+                            <i class="mdi mdi-pencil"></i>
+                        </a>
+                        <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
+                            data-bs-target="#schema-details-modal" onclick="newSchemaDetailsForm(@item.Id)">
+                            <i class="mdi mdi-menu"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

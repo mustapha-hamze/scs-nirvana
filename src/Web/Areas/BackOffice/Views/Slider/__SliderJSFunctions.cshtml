@@ -1,0 +1,188 @@
+@{
+    Layout = null;
+}
+
+<script>
+    function createSliderItem() {
+        const fileInput = $('#sliderItemImage');
+        const fileName = fileInput.val();
+        const file = fileInput.prop('files')[0];
+
+        if (file == undefined) {
+            messageBox("Error!", "Please select an image for slide.", "error");
+            return;
+        }
+
+        var arrFile = file.name.split('.');
+        if (arrFile[arrFile.length - 1] != 'jpg') {
+            messageBox("Error!", "The image of slide must be JPG.", "error");
+            return;
+        }
+
+        console.log(frmCreateSliderItemForm);
+
+        $("#__btnCreateSliderItem__").html("Please wait ...");
+        $("#__btnCreateSliderItem__").removeAttr("onclick");
+        var frmCreateSliderItemForm = $("#__frmCreateSliderItemForm__");
+        $.ajax({
+            type: "POST",
+            url: "/BackOffice/Slider/CreateItem",
+            data: frmCreateSliderItemForm.serialize()
+        }).done(function (data) {
+            const _data = data.split('|');
+            uploadSliderItemImage(_data[0], _data[1]);
+        });
+    }
+
+    function uploadSliderItemImage(sliderId, imageFileName) {
+        const fileInput = $('#sliderItemImage');
+        const file = fileInput.prop('files')[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        $.ajax({
+            url: `/BackOffice/Slider/UploadSliderItemImage?sliderId=${sliderId}&imageFileName=${imageFileName}`,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false
+        }).done(function () {
+            if ($("#__sliderItem_FRM_ImageFileName").val() == "") {
+                $("#__btnCreateSliderItem__").html("Create slider item");
+                $("#__btnCreateSliderItem__").attr("onclick", "createSliderItem()");
+            } else {
+                $("#__btnUpdateSliderItem__").html("Update slider item");
+                $("#__btnUpdateSliderItem__").attr("onclick", "updateSliderItem()");
+            }
+            sliderItems($("#__sliderItem_FRM_SliderId").val());
+        });
+    }
+
+    function getSliderForm() {
+        $.ajax({
+            url: '/BackOffice/Slider/Create',
+            type: "GET"
+        }).done(function (data) {
+            $("#sliderFormPlaceHolder").html(data);
+        });
+    }
+
+    function getSliderList() {
+        $.ajax({
+            url: '/BackOffice/Slider/List',
+            type: "GET"
+        }).done(function (data) {
+            $("#findSlidersResultBody").html(data);
+        });
+    }
+
+    function sliderItems(sliderId) {
+        $.ajax({
+            url: '/BackOffice/Slider/SliderItems',
+            type: "GET"
+        }).done(function (data) {
+            $("#sliderItemModalBody").html(data);
+            getSliderItemsForm(sliderId);
+            getSliderItemsList(sliderId);
+        });
+    }
+
+    function getSliderItemsForm(sliderId) {
+        $.ajax({
+            url: `/BackOffice/Slider/GetSliderItemForm/${sliderId}/0`,
+            type: "GET"
+        }).done(function (data) {
+            $("#__sliderItemFormPlaceHolder__").html(data);
+        });
+    }
+
+    function getSliderItemsList(sliderId) {
+        $.ajax({
+            url: `/BackOffice/Slider/GetSliderItemList/${sliderId}`,
+            type: "GET"
+        }).done(function (data) {
+            $("#__sliderItemsListPlaceHolder__").html(data);
+        });
+    }
+
+    function createSlider() {
+        $("#__btnCreateSlider__").html("Please wait ...");
+        $("#__btnCreateSlider__").removeAttr("onclick");
+        var frmCreateSliderForm = $("#__frmCreateSliderForm__");
+        $.ajax({
+            type: "POST",
+            url: "/BackOffice/Slider/Create",
+            data: frmCreateSliderForm.serialize()
+        }).done(function (data) {
+            getSliderList();
+            getSliderForm();
+            $("#__btnCreateSlider__").html("Create slider");
+            $("#__btnCreateSlider__").attr("onclick", "createSlider()");
+        });
+    }
+
+    function deactiveSliderItem(sliderItemId) {
+        $.ajax({
+            url: '/BackOffice/Slider/DeactiveItem?sliderItemId=' + sliderItemId,
+            type: "GET"
+        }).done(function (data) {
+            sliderItems($("#__sliderItem_FRM_SliderId").val());
+        });
+    }
+
+    function activeSliderItem(sliderItemId) {
+        $.ajax({
+            url: '/BackOffice/Slider/ActiveItem?sliderItemId=' + sliderItemId,
+            type: "GET"
+        }).done(function (data) {
+            sliderItems($("#__sliderItem_FRM_SliderId").val());
+        });
+    }
+
+    function deleteSliderItem(sliderItemId) {
+        $.ajax({
+            url: '/BackOffice/Slider/DeleteItem?sliderItemId=' + sliderItemId,
+            type: "GET"
+        }).done(function (data) {
+            sliderItems($("#__sliderItem_FRM_SliderId").val());
+        });
+    }
+
+    function editSliderItem(sliderItemId, sliderId) {
+        $.ajax({
+            url: `/BackOffice/Slider/GetSliderItemForm/${sliderId}/${sliderItemId}`,
+            type: "GET"
+        }).done(function (data) {
+            $("#__sliderItemFormPlaceHolder__").html(data);
+        });
+    }
+
+    function updateSliderItem() {
+        const fileInput = $('#sliderItemImage');
+        const fileName = fileInput.val();
+        const file = fileInput.prop('files')[0];
+
+        if (file != undefined) {
+            var arrFile = file.name.split('.');
+            if (arrFile[arrFile.length - 1] != 'jpg') {
+                messageBox("Error!", "The image of silde must be JPG.", "error");
+                return;
+            }
+        }
+
+        $("#__btnUpdateSliderItem__").html("Please wait ...");
+        $("#__btnUpdateSliderItem__").removeAttr("onclick");
+        var frmCreateSliderItemForm = $("#__frmCreateSliderItemForm__");
+        $.ajax({
+            type: "POST",
+            url: "/BackOffice/Slider/UpdateItem",
+            data: frmCreateSliderItemForm.serialize()
+        }).done(function () {
+            if (file != undefined) {
+                uploadSliderItemImage($("#__sliderItem_FRM_SliderId").val(), $("#__sliderItem_FRM_ImageFileName").val());
+            } else {
+                $("#__btnUpdateSliderItem__").html("Update slider item");
+                $("#__btnUpdateSliderItem__").attr("onclick", "updateSliderItem()");
+            }
+        });
+    }
+</script>

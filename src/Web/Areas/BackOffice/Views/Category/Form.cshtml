@@ -1,0 +1,38 @@
+@{
+    Layout = null;
+    var categories = (List<Infrastructure.Dto.CMSDtos.CategoryDto>)ViewData["Categories"];
+}
+
+@model Infrastructure.Dto.CMSDtos.CategoryDto
+
+<form class="needs-validation row" novalidate id="frmCategory" method="POST">
+    <input type="hidden" asp-for="Id" id="hidCategoryId" />
+    <div asp-validation-summary="All" class="text-danger">
+    </div>
+    <div class="col-md-6 mb-2">
+        <label class="form-label" asp-for="Title">Title</label>
+        <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
+            maxlength="64">
+        <div class="invalid-feedback">
+            Min length is 4 and max length is 64
+        </div>
+    </div>
+    <div class="col-md-6 mb-2">
+        <label class="form-label" asp-for="ParentId">Parent</label>
+        <select asp-for="ParentId" class="form-control select2" data-toggle="select2">
+            <option value="0">Parent</option>
+            @foreach (var item in categories)
+            {
+                <option value="@item.Id">@item.Title</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-12 mb-2">
+        <label class="form-label" asp-for="Description">Description</label>
+        <textarea class="form-control" asp-for="Description"></textarea>
+    </div>
+    <div class="mb-3 col-md-12">
+        <a href="javascript: void(0);" id="btnSaveCategoryForm" class="btn btn-primary mt-2"
+            onclick="saveCategoryForm()"><i class="uil uil-file-check-alt"></i> Save Category</a>
+    </div>
+</form>

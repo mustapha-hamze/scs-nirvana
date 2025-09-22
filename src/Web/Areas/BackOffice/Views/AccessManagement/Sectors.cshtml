@@ -1,0 +1,25 @@
+<div class="row mb-2 mt-2" id="__sectorForm__">
+
+</div>
+<div class="row">
+    <div class="col-xl-12 p-0">
+        <div class="card">
+            <div class="card-body p-1">
+                <div class="table-responsive-sm" id="findSectorsResultBody">
+
+                </div> <!-- end table-responsive-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div>
+</div>
+
+@await Html.PartialAsync("__AccessManagementJSFunctions")
+@await Html.PartialAsync("__SectorEntityModal")
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            sectorForm();
+            sectorList();
+        });
+    </script>
+}

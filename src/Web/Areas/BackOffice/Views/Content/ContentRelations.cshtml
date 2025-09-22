@@ -1,0 +1,89 @@
+@{
+    Layout = null;
+    var tags = (List<Infrastructure.Dto.GeneralDtos.TagDto>)ViewData["Tags"];
+    var categories = (List<Infrastructure.Dto.CMSDtos.CategoryDto>)ViewData["Categories"];
+    var cultures = (List<Infrastructure.Dto.GeneralDtos.CultureDto>)ViewData["Cultures"];
+
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+}
+
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+@model Infrastructure.Dto.CMSDtos.ContentDto
+
+<div class="row">
+    <div class="col-md-12">
+        <h4 class="mt-1 fw-normal">Categories</h3>
+    </div>
+    <div class="row">
+        <div class="col-md-12 mb-2">
+            <select class="form-control select2 select2-multiple" data-toggle="select2" multiple="multiple"
+                data-placeholder="Choose ..." id="__Select2_Categories__">
+                @if (categories != null)
+                {
+                    foreach (var item in categories)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h4 class="mt-1 fw-normal">Tags</h3>
+    </div>
+    <div class="row">
+        <div class="col-md-12 mb-2">
+            <select class="form-control select2 select2-multiple" data-toggle="select2" multiple="multiple"
+                data-placeholder="Choose ..." id="__Select2_Tags__">
+                @if (tags != null)
+                {
+                    foreach (var item in tags)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h4 class="mt-1 fw-normal">Cultures</h3>
+    </div>
+    <div class="row">
+        <div class="col-md-12 mb-2">
+            <select class="form-control select2 select2-multiple" data-toggle="select2" multiple="multiple"
+                data-placeholder="Choose ..." id="__Select2_Cultures__">
+                @if (cultures != null)
+                {
+                    foreach (var item in cultures)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+</div>
+@if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_SAVE_RELATIONS_1011"))
+{
+    <div class="row mt-2">
+    <div class="col-md-12">
+        <a href="javascript: void(0);" id="btnSaveContentRelations" onclick="saveContentRelations()"
+            class="btn btn-primary"><i class="uil uil-file-share-alt"></i> Save
+            Relations</a>
+    </div>
+</div>
+}
+
+@if (Model != null)
+{
+    <input type="hidden" id="hidCategoriesRelated" value="@Model.Categories">
+    <input type="hidden" id="hidTagsRelated" value="@Model.Tags">
+    <input type="hidden" id="hidCulturesRelated" value="@Model.Cultures">
+}

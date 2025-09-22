@@ -1,0 +1,354 @@
+<script>
+    function newTagForm() {
+        $("#generalModalLabel").html("Add new tag");
+        clearModalBody("generalModalBody");
+        $.ajax({
+            url: '/BackOffice/General/TagForm',
+            type: "GET"
+        }).done(function (data) {
+            $("#generalModalBody").html(data);
+        });
+    }
+
+    function saveTagForm() {
+        if (checkFormValidity('frmTag')) {
+            var frmTag = $("#frmTag");
+
+            clearModalBody("generalModalBody");
+
+            $.ajax({
+                type: "POST",
+                url: "/BackOffice/General/SaveTagForm",
+                data: frmTag.serialize()
+            }).done(function (data) {
+                $("#selectTagTypeId").val(data);
+                findTags();
+                $('#general-modal').modal('hide');
+            });
+        }
+    }
+
+    function findTags() {
+        clearModalBody("findTagsResultBody");
+        $.ajax({
+            url: '/BackOffice/General/TagList',
+            type: "GET"
+        }).done(function (data) {
+            $("#findTagsResultBody").html(data);
+            $("#datatable-buttons").DataTable({
+                lengthChange: !1,
+                buttons: ["copy", "print"],
+                language: {
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    }
+                },
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
+        });
+    }
+
+    function newCultureForm() {
+        $("#generalModalLabel").html("Add new culture");
+        clearModalBody("generalModalBody");
+        $.ajax({
+            url: '/BackOffice/General/CultureForm',
+            type: "GET"
+        }).done(function (data) {
+            $("#generalModalBody").html(data);
+        });
+    }
+
+    function saveCultureForm() {
+        if (checkFormValidity('frmCulture')) {
+            var frmCulture = $("#frmCulture");
+
+            clearModalBody("generalModalBody");
+
+            $.ajax({
+                type: "POST",
+                url: "/BackOffice/General/SaveCultureForm",
+                data: frmCulture.serialize()
+            }).done(function (data) {
+                findCultures();
+                $('#general-modal').modal('hide');
+            });
+        }
+    }
+
+    function findCultures() {
+        clearModalBody("findCulturesResultBody");
+        $.ajax({
+            url: '/BackOffice/General/CultureList',
+            type: "GET"
+        }).done(function (data) {
+            $("#findCulturesResultBody").html(data);
+            $("#datatable-buttons").DataTable({
+                lengthChange: !1,
+                buttons: ["copy", "print"],
+                language: {
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    }
+                },
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
+        });
+    }
+
+    function newApplicationSettingForm() {
+        $("#generalModalLabel").html("Add new setting");
+        clearModalBody("generalModalBody");
+        $.ajax({
+            url: '/BackOffice/General/ApplicationSettingForm',
+            type: "GET"
+        }).done(function (data) {
+            $("#generalModalBody").html(data);
+        });
+    }
+
+    function saveApplicationSettingForm() {
+        if (checkFormValidity('frmApplicationSetting')) {
+            var frmApplicationSetting = $("#frmApplicationSetting");
+
+            clearModalBody("generalModalBody");
+
+            $.ajax({
+                type: "POST",
+                url: "/BackOffice/General/ApplicationSettingForm",
+                data: frmApplicationSetting.serialize()
+            }).done(function (data) {
+                $('#general-modal').modal('hide');
+                findApplicationSetting();
+            });
+        }
+    }
+
+    function findApplicationSetting() {
+        clearModalBody("findApplicationSettingResultBody");
+        $.ajax({
+            url: '/BackOffice/General/ApplicationSettingList',
+            type: "GET"
+        }).done(function (data) {
+            $("#findApplicationSettingResultBody").html(data);
+            $("#datatable-buttons").DataTable({
+                lengthChange: !1,
+                buttons: ["copy", "print"],
+                language: {
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    }
+                },
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
+        });
+    }
+
+    function newZoneForm() {
+        $("#generalModalLabel").html("Add zone tag");
+        clearModalBody("generalModalBody");
+        $.ajax({
+            url: '/BackOffice/General/ZoneForm',
+            type: "GET"
+        }).done(function (data) {
+            $("#generalModalBody").html(data);
+            $('#__Select2_Zones__').select2({
+                dropdownParent: $('#general-modal')
+            });
+        });
+    }
+
+    function saveZoneForm() {
+        if (checkFormValidity('frmZone')) {
+            var frmTag = $("#frmZone");
+
+            clearModalBody("generalModalBody");
+
+            $.ajax({
+                type: "POST",
+                url: "/BackOffice/General/SaveZoneForm",
+                data: frmTag.serialize()
+            }).done(function (data) {
+                findZones();
+                $('#general-modal').modal('hide');
+            });
+        }
+    }
+
+    function findZones() {
+        clearModalBody("findZonesResultBody");
+        $.ajax({
+            url: '/BackOffice/General/ZoneList',
+            type: "GET"
+        }).done(function (data) {
+            $("#findZonesResultBody").html(data);
+            $("#datatable-buttons").DataTable({
+                sAjaxSource: "/BackOffice/General/ZoneListJsonData",
+                bServerSide: true,
+                bProcessing: true,
+                fixedHeader: {
+                    headerOffset: 50
+                },
+                bSearchable: true,
+                pageLength: 25,
+                language: {
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    },
+                    "emptyTable": "No record found.",
+                    "processing":
+                        '<div class="p-5 text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden"></span></div></div>'
+                }, "columns": [
+                    {
+                        "data": "id",
+                        "autoWidth": true,
+                        "searchable": true
+                    },
+                    {
+                        "data": "title",
+                        "autoWidth": true,
+                        "searchable": true
+                    },
+                    {
+                        "data": "parentTitle",
+                        "autoWidth": true,
+                        "searchable": true
+                    }, {
+                        "data": "createdDT",
+                        "autoWidth": true,
+                        "searchable": true
+                    },
+                    {
+                        "data": 'id',
+                        "autoWidth": true,
+                        "searchable": false,
+                        "sortable": false,
+                        render: (data, type, row) => {
+                            return `<a href="javascript: void(0);" class="action-icon">
+                                        <i class="mdi mdi-delete"></i>
+                                    </a>`;
+                        }
+                    }
+                ],
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
+        });
+    }
+
+    function newSystemTypeForm() {
+        $("#generalModalLabel").html("Add system type");
+        clearModalBody("generalModalBody");
+        $.ajax({
+            url: '/BackOffice/General/SystemTypeForm',
+            type: "GET"
+        }).done(function (data) {
+            $("#generalModalBody").html(data);
+    @* $('#__Select2_Zones__').select2({
+                dropdownParent: $('#general-modal')
+                }); *@
+        });
+    }
+
+    function saveSystemTypeForm() {
+        if (checkFormValidity('frmSystemType')) {
+            var frmSystemType = $("#frmSystemType");
+
+            clearModalBody("generalModalBody");
+
+            $.ajax({
+                type: "POST",
+                url: "/BackOffice/General/SaveSystemTypeForm",
+                data: frmSystemType.serialize()
+            }).done(function (data) {
+                findSystemTypes();
+                $('#general-modal').modal('hide');
+            });
+        }
+    }
+
+    function findSystemTypes() {
+        clearModalBody("findSystemTypesResultBody");
+        $.ajax({
+            url: '/BackOffice/General/SystemTypesList',
+            type: "GET"
+        }).done(function (data) {
+            $("#findSystemTypesResultBody").html(data);
+            $("#datatable-buttons").DataTable({
+                lengthChange: !1,
+                buttons: ["copy", "print"],
+                language: {
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    }
+                },
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
+        });
+    }
+
+    function newCurrencyForm() {
+        $("#generalModalLabel").html("Add new currency");
+        clearModalBody("generalModalBody");
+        $.ajax({
+            url: '/BackOffice/General/CurrenciesForm',
+            type: "GET"
+        }).done(function (data) {
+            $("#generalModalBody").html(data);
+        });
+    }
+
+    function saveCurrencyForm() {
+        if (checkFormValidity('frmCurrency')) {
+            var frmCurrency = $("#frmCurrency");
+
+            clearModalBody("generalModalBody");
+
+            $.ajax({
+                type: "POST",
+                url: "/BackOffice/General/SaveCurrenciesForm",
+                data: frmCurrency.serialize()
+            }).done(function (data) {
+                findCurrencies();
+                $('#general-modal').modal('hide');
+            });
+        }
+    }
+
+    function findCurrencies() {
+        clearModalBody("findCurrencysResultBody");
+        $.ajax({
+            url: '/BackOffice/General/CurrenciesList',
+            type: "Get"
+        }).done(function (data) {
+            $("#findCurrencysResultBody").html(data);
+            $("#datatable-buttons").DataTable({
+                lengthChange: !1,
+                buttons: ["copy", "print"],
+                language: {
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    }
+                },
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
+        });
+    }
+</script>

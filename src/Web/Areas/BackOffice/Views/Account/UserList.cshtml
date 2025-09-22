@@ -1,0 +1,58 @@
+@{
+    Layout = null;
+}
+
+@model List<Infrastructure.Dto.UserManagementDtos.UserDto>
+
+<table class="table table-striped table-centered mb-0">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Phone Number</th>
+            <th>Is Approved</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="table-user">
+                    <img src="/BackOffice/images/users/blank-user.png" alt="table-user" class="me-2 rounded-circle" />
+                    @item.FirstName @item.LastName
+                </td>
+                <td>@item.Email</td>
+                <td>@item.PhoneNumber</td>
+                <td>
+                    @if (item.IsApprove)
+                    {
+                        <span class="badge bg-success rounded-pill p-1">Approved</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger rounded-pill p-1">Not Approved</span>
+                    }
+                </td>
+                <td>@item.CreatedDT.ToString("yyyy MMM dd hh:mm")</td>
+                <td>@item.UpdatedDT.ToString("yyyy MMM dd hh:mm")</td>
+                <td class="table-action">
+                    <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
+                        data-bs-target="#user-setting-modal" onclick="userSettingForm('@item.Id')">
+                        <i class="mdi mdi-menu"></i>
+                    </a>
+                    <a href="javascript: void(0);" onclick="editUserForm('@item.Id')" class="action-icon"
+                        data-bs-toggle="modal" data-bs-target="#user-modal">
+                        <i class="mdi mdi-pencil"></i>
+                    </a>
+                    <a href="javascript: void(0);" onclick="loadUserAttachmentForm('@item.Id')" class="action-icon"
+                        data-bs-toggle="modal" data-bs-target="#user-attachment-modal">
+                        <i class="mdi mdi-attachment"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

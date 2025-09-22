@@ -1,0 +1,32 @@
+@{
+    Layout = null;
+}
+@model List<Infrastructure.Dto.AccessManagerDtos.SectorDto>
+
+<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Manage</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Title</td>
+                <td>
+                    <a href="javascript: void(0);" class="action-icon">
+                        <i class="mdi mdi-content-save-edit"></i>
+                    </a>
+                    <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
+                    data-bs-target="#sectorEntity-modal" onclick="entities(@item.Id)">
+                        <i class="mdi mdi-menu"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

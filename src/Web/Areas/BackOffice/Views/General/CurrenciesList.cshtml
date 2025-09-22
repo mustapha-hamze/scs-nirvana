@@ -1,0 +1,39 @@
+@{
+    Layout = null;
+}
+
+@model List<Infrastructure.Dto.GeneralDtos.CurrencyDto>
+@inject Services.GeneralServices.ICultureServices cultureServices;
+
+<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+    <thead>
+        <tr>
+            <td>Id</td>
+            <th>Title</th>
+            @* <th>Reference</th> *@
+            <th>Country Code</th>
+            <th>Symbol</th>
+            <th>Created</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            //var culture = await cultureServices.GetById(item.CultureId);
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Name</td>
+                @* <td>@item.ReferenceId</td> *@
+                <td>@item.CountryCode</td>
+                <th>@item.Symbol</th>
+                <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
+                <td>
+                    <a href="javascript: void(0);" class="action-icon">
+                        <i class="mdi mdi-delete"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

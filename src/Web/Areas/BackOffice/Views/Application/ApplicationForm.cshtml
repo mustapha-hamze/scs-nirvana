@@ -1,0 +1,31 @@
+@{
+    Layout = null;
+}
+@model Infrastructure.Dto.GeneralDtos.ApplicationDto
+<form class="needs-validation row" novalidate id="frmApplication" method="POST">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="LogoFileName" />
+    <div asp-validation-summary="All" class="text-danger">
+    </div>
+    <div class="mb-3 col-md-6">
+        <label class="form-label" asp-for="Title">Title</label>
+        <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
+            maxlength="64">
+        <div class="invalid-feedback">
+            Min length is 4 and max length is 64
+        </div>
+    </div>
+    <div class="mb-3 col-md-6">
+        <label class="form-label" asp-for="Description">Description</label>
+        <textarea class="form-control" asp-for="Description" placeholder="Description" required minlength="32"
+            maxlength="512"></textarea>
+        <div class="invalid-feedback">
+            Min length is 32 and max length is 512
+        </div>
+    </div>
+    <div class="mb-3 col-md-12">
+        <label for="example-fileinput" class="form-label">Application Logo</label>
+        <input id="file-upload-ApplicationLogo" type="file" name="ApplicationLogo" class="form-control" required>
+    </div>
+</form>
+<button class="btn btn-primary mt-2" onclick="saveApplicationForm()">Submit form</button>

@@ -1,0 +1,40 @@
+@{
+}
+@using Services.Utilities.ApplicationConst
+@model Infrastructure.Dto.GeneralDtos.TagDto
+
+<div class="row mb-2 mt-2">
+    <div class="col-md-12 p-0">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#general-modal"
+            onclick="newTagForm()">
+            <i class="uil uil-plus"></i>
+            Add Tag
+        </button>
+        <button type="button" class="btn btn-primary ms-3" id="refreshCacheDbTags"
+            onclick="refreshCacheDB('Tag', 'refreshCacheDbTags')">
+            Refresh Cache
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-12 p-0">
+        <div class="card">
+            <div class="card-body p-1">
+                <div class="table-responsive-sm" id="findTagsResultBody">
+
+                </div> <!-- end table-responsive-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div>
+</div>
+
+@await Html.PartialAsync("__GeneralModal")
+@await Html.PartialAsync("__GeneralJSFunctions")
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            findTags();
+        });
+    </script>
+}

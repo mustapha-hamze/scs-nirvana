@@ -1,0 +1,31 @@
+@model Infrastructure.Dto.CMSDtos.CategoryDto
+
+<div class="row mb-2 mt-2">
+    <div class="col-md-12 p-0">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#category-modal"
+            onclick="newCategoryForm()">
+            <i class="uil uil-plus"></i>
+            Create Category
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-12 p-0">
+        <div class="card">
+            <div class="card-body p-1">
+                <div class="table-responsive-sm" id="findCategoriesResultBody">
+
+                </div> <!-- end table-responsive-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div>
+</div>
+
+@await Html.PartialAsync("__CategoryModal")
+@await Html.PartialAsync("__CategoryJSFunctions")
+@section Scripts {
+    <script>
+        findCategories();
+    </script>
+}
