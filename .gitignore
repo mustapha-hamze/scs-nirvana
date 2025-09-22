@@ -1,0 +1,10 @@
+/src/Core/Application/bin
+/src/Core/Application/obj
+/src/Core/Domain/bin
+/src/Core/Domain/obj
+/src/Core/Infrastructure/bin
+/src/Core/Infrastructure/obj
+/src/Core/Services/bin
+/src/Core/Services/obj
+/src/Web/bin
+/src/Web/obj
