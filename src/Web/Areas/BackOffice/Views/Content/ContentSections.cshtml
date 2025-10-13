@@ -49,7 +49,7 @@
                                     </div>
                                 </div>
                                 <textarea class="form-control" textAreaSeedId="@elementRandomId" elementId="@element.Id"
-                                    id="__TextArea__@elementRandomId" elementType="1002" style="display: none;">
+                    id="__TextArea__@elementRandomId" elementType="1002" style="display: none;">
                                     @Html.Raw(element.EditorText)
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </textarea>
                                 <div id="__TextEditor__@elementRandomId" style=" height: 300px; display: none;">
@@ -98,7 +98,7 @@
                                     @foreach (var galleryImage in images)
                                     {
                                         var galleryImageIdPlaceHolderId = galleryImage.Split('.');
-                                        <div class="col-md-3 mb-2" id="@galleryImageIdPlaceHolderId[0]" imageName="@galleryImage">
+                                        <div class="col-md-2 mb-2" id="@galleryImageIdPlaceHolderId[0]" imageName="@galleryImage">
                                             <img src="/Storage/Section/Gallery/@galleryImage" class="w-100">
                                             <button type="button" onclick="removeImageGallery('@galleryImageIdPlaceHolderId[0]')"
                                                 class="btn btn-sm btn-outline-danger w-100">Remove</button>

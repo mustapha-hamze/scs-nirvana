@@ -1,4 +1,5 @@
 namespace Web.Areas.BackOffice.Controllers;
+
 [Authorize]
 
 [Area("BackOffice")]
@@ -125,7 +126,7 @@ public class GeneralController : BaseController
     }
     #endregion
 
-    #region  System Tags
+    #region  System Types
     public IActionResult SystemTypes()
     {
         return View();

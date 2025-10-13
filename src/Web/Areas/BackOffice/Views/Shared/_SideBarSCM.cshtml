@@ -8,24 +8,18 @@
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_"))
 {
     <li class="side-nav-item">
-    <a data-bs-toggle="collapse" href="#sidebarSCM" aria-expanded="false" aria-controls="sidebarSCM"
-        class="side-nav-link">
-        <i class="uil uil-images"></i>
-        <span> System Modules </span>
-        <span class="menu-arrow"></span>
-    </a>
-    <div class="collapse" id="sidebarSCM">
-        <ul class="side-nav-second-level">
-            @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001"))
+        <a data-bs-toggle="collapse" href="#sidebarSCM" aria-expanded="false" aria-controls="sidebarSCM"
+            class="side-nav-link">
+            <i class="uil uil-images"></i>
+            <span> System Modules </span>
+            <span class="menu-arrow"></span>
+        </a>
+        <div class="collapse" id="sidebarSCM">
+            <ul class="side-nav-second-level">
+                @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001"))
                 {
                     <li>
                         <a href="/BackOffice/Slider/Index">Sliders</a>
-                    </li>
-                }
-                @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1002"))
-                {
-                    <li>
-                        <a href="/BackOffice/Boxes/Index">Boxes</a>
                     </li>
                 }
             </ul>

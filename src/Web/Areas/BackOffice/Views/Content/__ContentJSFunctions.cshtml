@@ -276,7 +276,7 @@
 
         var upload = new FormData();
         upload.append("File", file);
-        upload.append("Extention", file.type.toLowerCase());
+        upload.append("Extension", file.type.toLowerCase());
 
         $("#image-upload-" + divElementId).hide();
         $("#imageUploaderLoading-" + divElementId).show();
@@ -315,7 +315,7 @@
         var upload = new FormData();
         upload.append("File", file);
         upload.append("FileName", elementId);
-        upload.append("Extention", file.type.toLowerCase());
+        upload.append("Extension", file.type.toLowerCase());
 
         $("#file-upload-" + elementId).hide();
         $("#fileUploaderLoading-" + elementId).show();
@@ -360,6 +360,7 @@
         for (var i = 0; i < files.length; i++) {
             upload.append(files[i].name + i, files[i]);
         }
+
         $.ajax({
             url: "/BackOffice/Content/UploadBodyImageGallery",
             type: "POST",
@@ -374,7 +375,7 @@
                 $.each(images, function () {
                     if (this != "") {
                         var imageIdPlaceHolderId = this.split(".");
-                        imagesHTML += "<div class='col-md-3 mb-2' imageName='" + this + "' id='" + imageIdPlaceHolderId[0] + "'>";
+                        imagesHTML += "<div class='col-md-2 mb-2' imageName='" + this + "' id='" + imageIdPlaceHolderId[0] + "'>";
                         imagesHTML += "<img src='/Storage/Section/Gallery/" + this + "' class='w-100'/>";
                         imagesHTML += "<button type=\"button\" onclick=\"removeImageGallery('" + imageIdPlaceHolderId[0] + "')\" class=\"btn btn-sm btn-outline-danger w-100\">Remove</button>";
                         imagesHTML += "</div>";
@@ -382,10 +383,14 @@
                 });
 
                 $("#__imageGallery__" + elementId).html(imagesHTML + $("#__imageGallery__" + elementId).html());
+
+                return;
             } else {
                 $("#image-upload-" + elementId).show();
                 $("#imageUploaderLoading-" + elementId).hide();
                 messageBox("Error!", "Something went wrong, please try again", "error");
+
+                return;
             }
         });
     }

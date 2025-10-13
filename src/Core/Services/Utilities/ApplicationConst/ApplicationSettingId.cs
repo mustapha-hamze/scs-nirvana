@@ -16,5 +16,7 @@ namespace Services.Utilities.ApplicationConst
 
         public const int WebsiteUrl = 5000;
 
+        public const int WebsitePage = 6000;
+
     }
 }

@@ -11,11 +11,9 @@ namespace Application.ContentManagement;
 public class ContentProvider : IContentProvider
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly IConnectionMultiplexer _redis;
-    public ContentProvider(ApplicationDbContext dbContext, IConnectionMultiplexer redis)
+    public ContentProvider(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
-        _redis = redis;
     }
 
     public async Task<List<Content>> GetLatestContents(int applicationId)
@@ -156,51 +154,47 @@ public class ContentProvider : IContentProvider
         return result;
     }
 
-    public void IncreaseViewedTime(int contentId, int applicationId)
-    {
-        string publicId = applicationId.ToString() + contentId.ToString(); ;
-        var db = _redis.GetDatabase();
-        var content = db.HashGet("hash_CMS_ContentsViewCount", publicId);
+    // public async Task<List<Content>> GetMostViewedContent(int applicationId)
+    // {
+    //     var db = _redis.GetDatabase();
 
-        long viewCount = 0;
-        if (!string.IsNullOrEmpty(content))
-        {
-            viewCount = long.Parse(content) + 1;
-            db.HashSet("hash_CMS_ContentsViewCount", new HashEntry[] { new HashEntry(publicId, viewCount) });
-        }
-        else
-        {
-            db.HashSet("hash_CMS_ContentsViewCount", new HashEntry[] { new HashEntry(publicId, 1) });
-        }
+    //     var records = db.HashGetAll("hash_CMS_ContentsViewCount")
+    //         .Select(entry => new
+    //         {
+    //             Field = entry.Name.ToString(),
+    //             Value = int.Parse(entry.Value.ToString())
+    //         })
+    //         .Where(record => record.Field.StartsWith(applicationId.ToString()))
+    //         .OrderByDescending(record => record.Value)
+    //         .Take(10)
+    //         .ToList();
+
+    //     int[] contentIds = records.Select(record => int.Parse(record.Field.ToString().Replace(applicationId.ToString(), ""))).ToArray();
+
+    //     var mostViewedContents = new List<Content>();
+    //     foreach (var contentId in contentIds)
+    //     {
+    //         var content = await _dbContext.Contents.Where(c => c.Id == contentId && c.IsActive && !c.IsDeleted)
+    //         .Include(c => c.Images.Where(i => !i.IsDeleted)).ToListAsync();
+
+    //         if (content.Count > 0)
+    //             mostViewedContents.Add(content[0]);
+    //     }
+
+    //     return mostViewedContents;
+    // }
+
+    public async Task<List<Content>> GetPage(int pageId)
+    {
+        var page = _dbContext.Contents.Where(c => c.TypeId == pageId && c.IsActive && !c.IsDeleted)
+            .Include(c => c.Sections.Where(s => !s.IsDeleted));
+
+        return await page.ToListAsync();
     }
-
-    public async Task<List<Content>> GetMostViewedContent(int applicationId)
+    public async Task<List<SectionElement>> GetSectionElements(int sectionId)
     {
-        var db = _redis.GetDatabase();
+        var sectionElements = _dbContext.SectionElements.Where(se => se.SectionId == sectionId && se.IsActive && !se.IsDeleted);
 
-        var records = db.HashGetAll("hash_CMS_ContentsViewCount")
-            .Select(entry => new
-            {
-                Field = entry.Name.ToString(),
-                Value = int.Parse(entry.Value.ToString())
-            })
-            .Where(record => record.Field.StartsWith(applicationId.ToString()))
-            .OrderByDescending(record => record.Value)
-            .Take(10)
-            .ToList();
-
-        int[] contentIds = records.Select(record => int.Parse(record.Field.ToString().Replace(applicationId.ToString(), ""))).ToArray();
-
-        var mostViewedContents = new List<Content>();
-        foreach (var contentId in contentIds)
-        {
-            var content = await _dbContext.Contents.Where(c => c.Id == contentId && c.IsActive && !c.IsDeleted)
-            .Include(c => c.Images.Where(i => !i.IsDeleted)).ToListAsync();
-
-            if (content.Count > 0)
-                mostViewedContents.Add(content[0]);
-        }
-
-        return mostViewedContents;
+        return await sectionElements.ToListAsync();
     }
 }

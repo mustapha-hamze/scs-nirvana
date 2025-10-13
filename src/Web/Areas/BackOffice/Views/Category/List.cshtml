@@ -1,13 +1,13 @@
 @{
     Layout = null;
 }
-@inject Services.CMSServices.ICategoryServices categoryServices;
 @model List<Infrastructure.Dto.CMSDtos.CategoryDto>
 
 <div class="table-responsive-sm">
     <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
         <thead>
             <tr>
+                <th>Id</th>
                 <th>Title</th>
                 <th>Parent</th>
                 <th>Created</th>
@@ -15,9 +15,10 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @foreach (CategoryDto item in Model)
             {
                 <tr>
+                    <td>@item.Id</td>
                     <td>@item.Title</td>
                     <td>
                         @if (item.ParentId != 0)

@@ -22,14 +22,14 @@ namespace Infrastructure.CMSRepository
         {
             return _dbContext.Schemas
                 .Where(s => s.ApplicationId == applicationId && !s.IsDeleted)
-                .OrderByDescending(s => s.CreatedDT).ToList();
+                .Order().ToList();
         }
 
         public List<SchemaDetails> DetailsList(int schemaId)
         {
             return _dbContext.SchemaDetails
                 .Where(s => !s.IsDeleted && s.SchemaId == schemaId)
-                .OrderByDescending(s => s.CreatedDT).ToList();
+                .Order().ToList();
         }
     }
 }

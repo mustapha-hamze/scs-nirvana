@@ -8,6 +8,8 @@ namespace Infrastructure.Dto.GeneralDtos
 
         public int TypeGroupId { get; set; }
 
+        public bool IsRTL { get; set; }
+
         [StringLength(128)]
         public string Title { get; set; }
     }

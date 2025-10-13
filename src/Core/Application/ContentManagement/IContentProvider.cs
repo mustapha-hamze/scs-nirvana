@@ -13,6 +13,7 @@ public interface IContentProvider
     Task<List<Content>> GetNotification(int typeId);
     ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20);
     ContentListResultModel GetContentsListByTagId(int applicationId, int tagId, int pageIndex = 0, int pageSize = 20);
-    void IncreaseViewedTime(int contentId, int applicationId);
-    Task<List<Content>> GetMostViewedContent(int applicationId);
+    // Task<List<Content>> GetMostViewedContent(int applicationId);
+    Task<List<Content>> GetPage(int pageId);
+    Task<List<SectionElement>> GetSectionElements(int sectionId);
 }

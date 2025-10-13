@@ -30,7 +30,7 @@ namespace Infrastructure.GeneralRepository
         {
             return _dbContext.SystemTypes
                 .Where(s => !s.IsDeleted && s.IsActive && s.ApplicationId == applicationId && s.TypeGroupId == typeGroup)
-                .OrderByDescending(s => s.CreatedDT).ToList();
+                .Order().ToList();
         }
     }
 }

@@ -22,10 +22,12 @@ namespace Infrastructure.CMSRepository
 
         public List<Category> List(int applicationId)
         {
-            return _dbContext.Categories
+            var categories = _dbContext.Categories
                 .Where(c => !c.IsDeleted && c.ApplicationId == applicationId && !c.IsDeleted)
-                .OrderByDescending(c => c.CreatedDT)
+                .OrderBy(c => c.Id)
                 .ToList();
+
+            return categories;
         }
 
         public List<Category> GetAllFullPath(int applicationId)

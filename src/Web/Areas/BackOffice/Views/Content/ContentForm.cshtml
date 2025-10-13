@@ -53,24 +53,17 @@
                     <label class="form-label" asp-for="TypeId">Type</label>
                     <select id="ddlContentTypeIds__Form" type="text" class="form-control" asp-for="TypeId"
                         placeholder="Title">
+                        <option value="@ViewData["TypeId"]">Pages</option>
                         @foreach (var item in types)
                         {
                             <option value="@item.Id">@item.Title</option>
                         }
                     </select>
                 </div>
-                <div class="col-md-4 mb-2">
+                <div class="col-md-8 mb-2">
                     <label class="form-label" asp-for="Title">Title</label>
                     <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
                         maxlength="256">
-                    <div class="invalid-feedback">
-                        Min length is 4 and max length is 256
-                    </div>
-                </div>
-                <div class="col-md-4 mb-2">
-                    <label class="form-label" asp-for="Title_FA">Title FA</label>
-                    <input type="text" class="form-control fa---elements" asp-for="Title_FA" placeholder="Title FA"
-                        required minlength="4" maxlength="256">
                     <div class="invalid-feedback">
                         Min length is 4 and max length is 256
                     </div>
@@ -80,29 +73,14 @@
                     <textarea class="form-control" asp-for="HeadLine" maxlength="2048"></textarea>
                 </div>
                 <div class="col-md-12 mb-2">
-                    <label class="form-label" asp-for="HeadLine_FA">Head Line FA</label>
-                    <textarea class="form-control fa---elements" asp-for="HeadLine_FA" maxlength="2048"></textarea>
-                </div>
-                <div class="col-md-12 mb-2">
                     <label class="form-label" asp-for="Abstract">Abstract</label>
                     <textarea class="form-control" asp-for="Abstract" maxlength="2048"></textarea>
-                </div>
-                <div class="col-md-12 mb-2">
-                    <label class="form-label" asp-for="Abstract_FA">Abstract FA</label>
-                    <textarea class="form-control fa---elements" asp-for="Abstract_FA" maxlength="2048"></textarea>
                 </div>
                 <div class="col-md-12 mb-2">
                     <label class="form-label" asp-for="Description">Description</label>
                     <textarea class="form-control" asp-for="Description" style="display: none;"
                         id="textAreaDescription"></textarea>
                     <div id="__descriptionEditor__" style="height: 300px;">
-                    </div>
-                </div>
-                <div class="col-md-12 mb-2">
-                    <label class="form-label" asp-for="Description_FA">Description FA</label>
-                    <textarea class="form-control" asp-for="Description_FA" style="display: none;"
-                        id="textAreaDescriptionFA"></textarea>
-                    <div id="__descriptionEditorFA__" style="height: 300px;" class="fa---elements">
                     </div>
                 </div>
                 <div class="col-md-3 mb-2">
@@ -132,20 +110,28 @@
         $(document).ready(function () {
             $("#ddlContentTypeIds__Form").val($("#hidTypeIdContent_Form").val());
 
-            $("#linkCMSContentMenu").addClass("active");
-            $("#cmsMenuLi").addClass("menuitem-active");
-            $("#liCMSContent").addClass("menuitem-active");
-            $("#sidebarContentManagement").addClass("show");
-            $("#thirdLayerMenu_Content_" + $("#hidTypeIdContent_Form").val()).addClass("menuitem-active");
-            $("#sidebarSecondLevel").addClass("show");
+            if ($("#hidTypeIdContent_Form").val().startsWith("100")) {
+                $("#sidebarContentManagement").addClass("show");
+                $("#liCMSAppPages").addClass("menuitem-active");
+                $("#sidebarSecondLevelAppPages").addClass("show");
+                $("#thirdLayerMenu_AppPages_" + $("#hidTypeIdContent_Form").val()).addClass("menuitem-active");
+                $("#thirdLayerMenu_AppPages_" + $("#hidTypeIdContent_Form").val() + " a").addClass("active");
+            } else {
+                $("#sidebarContentManagement").addClass("show");
+                $("#liCMSContent").addClass("menuitem-active");
+                $("#sidebarSecondLevel").addClass("show");
+                $("#thirdLayerMenu_Content_" + $("#hidTypeIdContent_Form").val()).addClass("menuitem-active");
+                $("#thirdLayerMenu_Content_" + $("#hidTypeIdContent_Form").val() + " a").addClass("active");
+            }
 
             initTextEditor("__descriptionEditor__");
-            initTextEditor("__descriptionEditorFA__");
-
             $('#__descriptionEditor__ .ql-editor').html($('#textAreaDescription').val());
-            $('#__descriptionEditorFA__ .ql-editor').html($('#textAreaDescriptionFA').val());
 
-            $("#datetime-datepicker-publish").flatpickr({ enableTime: !0, dateFormat: "Y-m-d H:i" })
+            // FARSI
+            @* initTextEditor("__descriptionEditorFA__");
+            $('#__descriptionEditorFA__ .ql-editor').html($('#textAreaDescriptionFA').val()); *@
+
+                $("#datetime-datepicker-publish").flatpickr({ enableTime: !0, dateFormat: "Y-m-d H:i" })
         });
 
         if ($("#hidContentId").val() != "0") {
@@ -153,7 +139,7 @@
             loadContentBody();
 
             // images
-            loadContentImages();
+            //loadContentImages();
 
             // relations
             loadContentRelations();

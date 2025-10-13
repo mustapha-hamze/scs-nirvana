@@ -15,24 +15,13 @@ namespace Infrastructure.Dto.CMSDtos
         [StringLength(256)]
         public string Title { get; set; }
 
-        [StringLength(256)]
-        public string Title_FA { get; set; }
-
         [StringLength(2048)]
         public string HeadLine { get; set; }
 
         [StringLength(2048)]
-        public string HeadLine_FA { get; set; }
-
-        [StringLength(2048)]
         public string Abstract { get; set; }
 
-        [StringLength(2048)]
-        public string Abstract_FA { get; set; }
-
         public string Description { get; set; }
-
-        public string Description_FA { get; set; }
 
         [StringLength(1024)]
         public string Categories { get; set; }

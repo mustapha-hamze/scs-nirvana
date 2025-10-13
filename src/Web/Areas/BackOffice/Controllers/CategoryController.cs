@@ -1,4 +1,5 @@
 namespace Web.Areas.BackOffice.Controllers;
+
 [Authorize]
 
 [Area("BackOffice")]
@@ -53,7 +54,9 @@ public class CategoryController : BaseController
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         //TODO: Implement Realistic Implementation
-        return View(_categoryServices.List(user.CurrentApplicationId));
+        var categories = _categoryServices.List(user.CurrentApplicationId);
+
+        return View(categories);
     }
     #endregion
 }

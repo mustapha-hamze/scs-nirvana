@@ -1,4 +1,5 @@
 ﻿namespace Infrastructure.CMSRepository;
+
 public class ContentRepository : Repository<Content>, IContentRepository
 {
     // fields
@@ -44,9 +45,6 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 Title = c.Title,
                 Abstract = c.Abstract,
                 HeadLine = c.HeadLine,
-                Title_FA = c.Title_FA,
-                HeadLine_FA = c.HeadLine_FA,
-                Abstract_FA = c.Abstract_FA,
                 CreatedDT = c.CreatedDT,
                 Categories = c.Categories,
                 Images = c.Images.Where(ci => ci.Size == 640).ToList()
@@ -119,10 +117,6 @@ public class ContentRepository : Repository<Content>, IContentRepository
                         content.Cultures,
                         content.Status,
                         content.TypeId,
-                        content.Title_FA,
-                        content.Abstract_FA,
-                        content.HeadLine_FA,
-                        content.Description_FA
                     };
 
         var _result = query
@@ -137,13 +131,9 @@ public class ContentRepository : Repository<Content>, IContentRepository
             {
                 Id = item.ContentId,
                 Title = item.Title,
-                Title_FA = item.Title_FA,
                 Abstract = item.Abstract,
-                Abstract_FA = item.Abstract_FA,
                 HeadLine = item.HeadLine,
-                HeadLine_FA = item.HeadLine_FA,
                 Description = item.Description,
-                Description_FA = item.Description_FA,
                 CreatedDT = item.ContentCreatedDT,
                 Images = _dbContext.ContentImages.Where(i => i.ContentId == item.ContentId && (i.Size == 640 || i.Size == 430 || i.Size == 860)).ToList()
             });
@@ -204,11 +194,8 @@ public class ContentRepository : Repository<Content>, IContentRepository
             {
                 Id = c.Id,
                 Title = c.Title,
-                Title_FA = c.Title_FA,
                 Abstract = c.Abstract,
-                Abstract_FA = c.Abstract_FA,
                 HeadLine = c.HeadLine,
-                HeadLine_FA = c.HeadLine_FA,
                 CreatedDT = c.CreatedDT,
                 Categories = c.Categories,
                 Images = c.Images.Where(ci => ci.Size == 640).ToList()

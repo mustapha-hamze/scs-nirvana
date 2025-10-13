@@ -55,8 +55,10 @@ public class ContentController : BaseController
     {
         ViewData["TypeId"] = typeId;
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+
         //TODO: Implement Realistic Implementation
         ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
+
         if (id != 0)
         {
             var content = await _contentServices.GetById(id);
@@ -355,16 +357,16 @@ public class ContentController : BaseController
     }
 
     [HttpPost]
-    public IActionResult UploadBodyImage(IFormFile File, string Extension)
+    public async Task<IActionResult> UploadBodyImage(IFormFile File, string Extension)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Images/");
 
         var _extension = Extension.Split('/');
         string ImageName = Guid.NewGuid().ToString();
 
-        // if (await UploadImage(File, savePath, ImageName + "." + _extension[1]))
-        //     return Content("Done|" + ImageName + "." + _extension[1]);
-        // else
+        if (await UploadImage(File, savePath, ImageName + "." + _extension[1]))
+            return Content("Done|" + ImageName + "." + _extension[1]);
+        else
             return Content("Failed");
     }
 
@@ -382,26 +384,20 @@ public class ContentController : BaseController
     }
 
     [HttpPost]
-    public IActionResult UploadBodyImageGallery()
+    public async Task<IActionResult> UploadBodyImageGallery()
     {
-        //TODO: Implement Realistic Implementation
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Gallery/");
 
-        // 
-
-        // if (await UploadImage(File, savePath, FileName + "." + _extension[1]))
-        //     return Content("Done|" + FileName + "." + _extension[1]);
-        // else
         string result = string.Empty;
         var uploadedImages = Request.Form.Files;
-        // foreach (var item in uploadedImages)
-        // {
-        //     string FileName = Guid.NewGuid().ToString();
-        //     var fileNameArray = item.FileName.ToString().Split(".");
-        //     string fileExtension = fileNameArray[fileNameArray.Length - 1];
-        //     if (await UploadImage(item, savePath, FileName + "." + fileExtension))
-        //         result += FileName + "." + fileExtension + ",";
-        // }
+        foreach (var item in uploadedImages)
+        {
+            string FileName = Guid.NewGuid().ToString();
+            var fileNameArray = item.FileName.ToString().Split(".");
+            string fileExtension = fileNameArray[fileNameArray.Length - 1];
+            if (await UploadImage(item, savePath, FileName + "." + fileExtension))
+                result += FileName + "." + fileExtension + ",";
+        }
 
         return Content("Done|" + result);
     }

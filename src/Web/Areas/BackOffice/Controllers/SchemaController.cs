@@ -1,4 +1,5 @@
 namespace Web.Areas.BackOffice.Controllers;
+
 [Authorize]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
@@ -73,7 +74,7 @@ public class SchemaController : BaseController
     {
         var schema = await _schemaServices.GetById(EntityId);
 
-        var savePath = Path.Combine(_appEnvironment.ContentRootPath, "/wwwroot/Storage/Schema/Logos/");
+        var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Schema/Logos/");
 
         var _extension = Extension.Split('/');
 
@@ -81,9 +82,9 @@ public class SchemaController : BaseController
 
         await _schemaServices.Update(schema);
 
-        // if (await UploadImage(File, savePath, schema.LogoFileName))
-        //     return Content("Done");
-        // else
+        if (await UploadImage(File, savePath, schema.LogoFileName))
+            return Content("Done");
+        else
             return Content("Failed");
     }
 

@@ -221,7 +221,7 @@
             var upload = new FormData();
             upload.append("File", file);
             upload.append("EntityId", entityId);
-            upload.append("Extention", file.type.toLowerCase());
+            upload.append("Extension", file.type.toLowerCase());
 
             $.ajax({
                 url: url,

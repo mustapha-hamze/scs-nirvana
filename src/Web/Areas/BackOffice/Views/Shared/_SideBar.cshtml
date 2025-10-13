@@ -39,11 +39,7 @@
 
         @await Html.PartialAsync("_SideBarCMS")
 
-        @await Html.PartialAsync("_SideBarPTE")
-
         @await Html.PartialAsync("_SideBarSCM")
-
-        @await Html.PartialAsync("_SideBarETM")
 
         @if (User.IsInRole("SuperAdmin"))
         {

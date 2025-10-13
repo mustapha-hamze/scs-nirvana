@@ -1,4 +1,5 @@
 namespace Web.Areas.BackOffice.Controllers;
+
 [Authorize]
 
 [Area("BackOffice")]
@@ -459,12 +460,12 @@ public class AccountController : BaseController
     {
         await _userManager.CreateAsync(new ApplicationUser
         {
-            FirstName = "Mustapha",
-            LastName = "Hamze",
+            FirstName = "Admin",
+            LastName = "Tech",
             BirthDate = Convert.ToDateTime("1989-01-19"),
-            PhoneNumber = "+905370410785",
-            Email = "persianagroup.tech@gmail.com",
-            UserName = "persianagroup.tech@gmail.com",
+            PhoneNumber = "+905554443333",
+            Email = "admin@dibamagzin.com",
+            UserName = "admin@dibamagzin.com",
             BusinessAddress = "",
             HomeAddress = "",
             IsAdminUser = true,
@@ -473,7 +474,7 @@ public class AccountController : BaseController
             IsApprove = true
         }, "Tech2023%$HM-Ist");
 
-        var _user = await _userManager.FindByEmailAsync("persianagroup.tech@gmail.com");
+        var _user = await _userManager.FindByEmailAsync("admin@dibamagzin.com");
         await _userManager.AddToRoleAsync(_user, "SuperAdmin");
 
         return Content("Done");

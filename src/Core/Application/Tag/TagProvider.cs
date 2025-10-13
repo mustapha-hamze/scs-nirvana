@@ -8,11 +8,9 @@ namespace Application.Tag;
 
 public class TagProvider : ITagProvider
 {
-    private readonly IConnectionMultiplexer _redis;
     private readonly ApplicationDbContext _dbContext;
-    public TagProvider(IConnectionMultiplexer redis, ApplicationDbContext dbContext)
+    public TagProvider(ApplicationDbContext dbContext)
     {
-        _redis = redis;
         _dbContext = dbContext;
     }
 

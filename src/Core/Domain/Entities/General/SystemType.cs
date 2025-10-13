@@ -12,6 +12,8 @@ namespace Domains.Entities.General
         [StringLength(128)]
         public string Title { get; set; }
 
+        public bool IsRTL { get; set; }
+
         // relation
         [ForeignKey("ApplicationId")]
         public virtual Application Application { get; set; }

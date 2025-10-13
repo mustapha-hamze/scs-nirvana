@@ -1,4 +1,5 @@
 @using Services.Utilities.ApplicationConst;
+
 @{
     var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
     var accesses = await userManagementServices.GetUserAccesses(user.Email);
@@ -6,22 +7,25 @@
         accesses = "NULL";
 
     int appId = user.CurrentApplicationId;
+
+    var appPages = applicationServices.GetApplicationSetting(user.CurrentApplicationId, 6000).OrderBy(ap => ap.Value);
 }
 @inject Services.GeneralServices.ISystemTypeServices systemTypeServices
 @inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Services.GeneralServices.IApplicationServices applicationServices;
 
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_"))
 {
     <li class="side-nav-item" id="cmsMenuLi">
-    <a data-bs-toggle="collapse" href="#sidebarContentManagement" aria-expanded="false"
-        aria-controls="sidebarContentManagement" class="side-nav-link">
-        <i class="uil-document-layout-right"></i>
-        <span> Content Management </span>
-        <span class="menu-arrow"></span>
-    </a>
-    <div class="collapse" id="sidebarContentManagement">
-        <ul class="side-nav-second-level">
-            @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001"))
+        <a data-bs-toggle="collapse" href="#sidebarContentManagement" aria-expanded="false"
+            aria-controls="sidebarContentManagement" class="side-nav-link">
+            <i class="uil-document-layout-right"></i>
+            <span> Content Management </span>
+            <span class="menu-arrow"></span>
+        </a>
+        <div class="collapse" id="sidebarContentManagement">
+            <ul class="side-nav-second-level">
+                @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001"))
                 {
                     <li class="side-nav-item" id="liCMSContent">
                         <a data-bs-toggle="collapse" href="#sidebarSecondLevel" aria-expanded="false"
@@ -38,6 +42,27 @@
                                 {
                                     <li id="thirdLayerMenu_Content_@item.Id">
                                         <a href="/BackOffice/Content/Index/@item.Id">@item.Title</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </li>
+                }
+                @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1004"))
+                {
+                    <li class="side-nav-item" id="liCMSAppPages">
+                        <a data-bs-toggle="collapse" href="#sidebarSecondLevelAppPages" aria-expanded="false"
+                            aria-controls="sidebarSecondLevelAppPages">
+                            <span>Pages</span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <div class="collapse" id="sidebarSecondLevelAppPages">
+                            <ul class="side-nav-third-level">
+                                @foreach (var item in appPages)
+                                {
+                                    var pageType = "100" + item.Value;
+                                    <li id="thirdLayerMenu_AppPages_@pageType">
+                                        <a href="/BackOffice/Content/Index/@pageType">@item.Title</a>
                                     </li>
                                 }
                             </ul>

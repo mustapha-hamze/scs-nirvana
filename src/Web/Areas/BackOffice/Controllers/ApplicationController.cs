@@ -1,4 +1,5 @@
 namespace Web.Areas.BackOffice.Controllers;
+
 [Authorize]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
@@ -70,9 +71,9 @@ public class ApplicationController : BaseController
 
         await _applicationServices.Update(application);
 
-        // if (await UploadImage(File, savePath, application.LogoFileName))
-        //     return Content("Done");
-        // else
+        if (await UploadFile(File, savePath, application.LogoFileName))
+            return Content("Done");
+        else
             return Content("Failed");
     }
 
