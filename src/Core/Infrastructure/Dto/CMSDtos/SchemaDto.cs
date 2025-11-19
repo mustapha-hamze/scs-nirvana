@@ -5,5 +5,6 @@ namespace Infrastructure.Dto.CMSDtos
         public int ApplicationId { get; set; }
         public string Title { get; set; }
         public string LogoFileName { get; set; }
+        public int TypeId { get; set; }
     }
 }

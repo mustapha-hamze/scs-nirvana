@@ -1,3 +1,4 @@
+@using Microsoft.JSInterop.Infrastructure
 @{
     Layout = null;
     string sectionElementId = Guid.NewGuid().ToString();
@@ -5,7 +6,7 @@
 
 @model List<Infrastructure.Dto.CMSDtos.SchemaDetailsDto>
 
-<div class="row mb-2" sectionId="0" priority='@ViewData["Priority"]' id="sectionDiv-@sectionElementId">
+<div class="row mb-2 border pt-2 pb-1" sectionId="0" priority='@ViewData["Priority"]' id="sectionDiv-@sectionElementId">
     <div class="text-end">
         <button type="button" onclick="removeBodySection('sectionDiv-@sectionElementId')"
             class="btn btn-xs btn-outline-danger btn-rounded remove-section-button">
@@ -22,8 +23,8 @@
                 <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
                     <label for="" class="mb-1">@item.Title</label>
                     <textarea class="form-control" schemaDetailTitle="@item.Title" textAreaSeedId="@elementRandomId"
-                        id="__TextArea__@elementRandomId" elementType="1002" schemaId="@item.SchemaId"
-                        style="display: none;"></textarea>
+            id="__TextArea__@elementRandomId" elementType="1002" schemaId="@item.SchemaId"
+            style="display: none;"></textarea>
                     <div id="__TextEditor__@elementRandomId" style=" height: 300px;">
                     </div>
                     <script>
@@ -82,7 +83,42 @@
                         schemaId="@item.SchemaId" elementType="1000" />
                 </div>
                 break;
+            case 1005:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <textarea class="form-control" schemaDetailTitle="@item.Title" schemaId="@item.SchemaId"
+            elementType="1005"></textarea>
+                </div>
+                break;
+            case 1006:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <input class="form-control" schemaDetailTitle="@item.Title" type="text" maxlength="256"
+                        schemaId="@item.SchemaId" elementType="1006" />
+                </div>
+                break;
+            case 1007:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <input class="form-control" schemaDetailTitle="@item.Title" type="text" maxlength="256"
+                        schemaId="@item.SchemaId" elementType="1007" />
+                </div>
+                break;
+            case 1008:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <input class="form-control" schemaDetailTitle="@item.Title" type="text" maxlength="256"
+                        schemaId="@item.SchemaId" elementType="1008" />
+                </div>
+                break;
+            case 1009:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <input class="form-control" schemaDetailTitle="@item.Title" type="text" maxlength="256"
+                        schemaId="@item.SchemaId" elementType="1009" />
+                </div>
+                break;
+
         }
     }
 </div>
-<hr>

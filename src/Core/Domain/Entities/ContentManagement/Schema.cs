@@ -21,6 +21,8 @@ namespace Domains.Entities.ContentManagement
         [StringLength(128)]
         public string LogoFileName { get; set; }
 
+        public int TypeId { get; set; }
+
 
         // relation
         public virtual ICollection<SchemaDetails> Details { get; set; }

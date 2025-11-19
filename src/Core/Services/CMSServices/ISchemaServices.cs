@@ -10,6 +10,7 @@ namespace Services.CMSServices
         Task<SchemaDto> Update(SchemaDto schema);
         Task<SchemaDto> GetById(int id);
         Task Delete(int id);
+        List<SchemaDto> List(int applicationId, int typeId);
         List<SchemaDto> List(int applicationId);
 
 

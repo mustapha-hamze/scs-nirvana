@@ -7,9 +7,7 @@ using Infrastructure.Repository;
 using Infrastructure.SCMRepository;
 using Infrastructure.UserManagementRepository;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using Web.Areas.BackOffice.Controllers;
-using StackExchange.Redis;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,65 +67,22 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(
 
 builder.Services.AddMediatR(AppDomain.CurrentDomain.GetAssemblies());
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnectionString")));
-
 var mapperConfig = new MapperConfiguration(mc => mc.AddProfile(new MapperProfile()));
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "WEBAPI.FRONT", Version = "v1" });
-    // To Enable authorization using Swagger (JWT)    
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\r\n\r\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\"",
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-              {
-                  Reference = new OpenApiReference
-                  {
-                      Type = ReferenceType.SecurityScheme,
-                      Id = "Bearer"
-                  }
-              },
-              Array.Empty<string>()
-        }
-    });
-});
-
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options => options.IdleTimeout = TimeSpan.FromDays(1));
 builder.Services.AddMvc();
-builder.Services.AddControllersWithViews().AddJsonOptions(
-    options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        options.JsonSerializerOptions.WriteIndented = true;
-    }
-);
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
     options.LoginPath = "/Login";
     options.SlidingExpiration = true;
 });
-
-builder.Services.AddAuthentication().AddCookie().AddGoogle(options =>
-    {
-        options.ClientId = "337798672568-eckdec0jp9j3sgihlvaqa6n80ebl80nu.apps.googleusercontent.com";
-        options.ClientSecret = "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";
-    });
 
 var app = builder.Build();
 
@@ -140,15 +95,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-//app.UseMigrationsEndPoint();
-//dbContext.Database.Migrate();
-
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
-app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -167,8 +117,5 @@ app.UseEndpoints(endpoints =>
         pattern: "{controller=Home}/{action=Index}");
     endpoints.MapRazorPages();
 });
-
-// app.UseSwagger();
-// app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEBSITE.ADMIN v1"));
 
 app.Run();

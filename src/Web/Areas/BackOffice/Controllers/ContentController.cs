@@ -1,3 +1,5 @@
+using SkiaSharp;
+
 namespace Web.Areas.BackOffice.Controllers;
 
 [Authorize]
@@ -75,11 +77,17 @@ public class ContentController : BaseController
         }
     }
 
-    [Route("/{area}/Content/ContentSections/{contentId}")]
-    public IActionResult ContentSections(int contentId)
+    [Route("/{area}/Content/ContentSections/{contentId}/{typeId}")]
+    public IActionResult ContentSections(int contentId, int typeId)
     {
+        int schemaTypeId = 0;
+        if (typeId >= 1111)
+            schemaTypeId = 1000;
+        else
+            schemaTypeId = 1001;
+
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["Schemas"] = _schemaServices.List(user.CurrentApplicationId);
+        ViewData["Schemas"] = _schemaServices.List(user.CurrentApplicationId, schemaTypeId);
         ViewData["Sections"] = _contentServices.GetSections(contentId);
         return View();
     }
@@ -121,7 +129,6 @@ public class ContentController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentForm(ContentDto content)
     {
-        Console.WriteLine("==============================================" + content.PublishDt);
         //TODO: Implement Realistic Implementation
         if (content.Id == 0)
         {
@@ -272,6 +279,14 @@ public class ContentController : BaseController
                                 ElementTitle = item.Title
                             });
                             break;
+                        case 1005:
+                            await _contentServices.UpdateSectionElement(new SectionElementDto
+                            {
+                                Id = item.Id,
+                                EditorText = item.Value,
+                                ElementTitle = item.Title
+                            });
+                            break;
                     }
                 }
                 return Content("Done");
@@ -340,6 +355,61 @@ public class ContentController : BaseController
                                 SectionId = _section.Id,
                                 IsActive = true,
                                 ElementType = 1004,
+                                Size = item.Size,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1005:
+                            await _contentServices.CreateSectionElement(new SectionElementDto
+                            {
+                                EditorText = item.Value,
+                                SectionId = _section.Id,
+                                IsActive = true,
+                                ElementType = 1005,
+                                Size = item.Size,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1006:
+                            await _contentServices.CreateSectionElement(new SectionElementDto
+                            {
+                                TinyText = item.Value,
+                                SectionId = _section.Id,
+                                IsActive = true,
+                                ElementType = 1006,
+                                Size = item.Size,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1007:
+                            await _contentServices.CreateSectionElement(new SectionElementDto
+                            {
+                                TinyText = item.Value,
+                                SectionId = _section.Id,
+                                IsActive = true,
+                                ElementType = 1007,
+                                Size = item.Size,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1008:
+                            await _contentServices.CreateSectionElement(new SectionElementDto
+                            {
+                                TinyText = item.Value,
+                                SectionId = _section.Id,
+                                IsActive = true,
+                                ElementType = 1008,
+                                Size = item.Size,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1009:
+                            await _contentServices.CreateSectionElement(new SectionElementDto
+                            {
+                                TinyText = item.Value,
+                                SectionId = _section.Id,
+                                IsActive = true,
+                                ElementType = 1009,
                                 Size = item.Size,
                                 ElementTitle = item.Title
                             });
@@ -428,29 +498,60 @@ public class ContentController : BaseController
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var imageSettings = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
 
-        // var currentImageSettings = imageSettings.Single(s => s.Id == settingId);
-        // foreach (var item in currentImageSettings.Value.Split(","))
-        // {
-        //     var sizes = item.Split("-");
-        //     using var image = Image.Load(file.OpenReadStream());
-        //     image.Mutate(x => x.Resize(Convert.ToInt32(sizes[0]), Convert.ToInt32(sizes[1])));
+        var currentImageSettings = imageSettings.Single(s => s.Id == settingId);
 
-        //     string imageName = Guid.NewGuid().ToString();
-        //     image.Save(savePath + "/" + imageName + "." + fileExtention);
+        using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
 
-        //     await _contentServices.CreateContentImage(new ContentImageDto
-        //     {
-        //         ContentId = contentId,
-        //         ImageFileName = imageName + "." + fileExtention,
-        //         IsActive = true,
-        //         Size = Convert.ToInt32(sizes[0])
-        //     });
-        // }
+        foreach (var item in currentImageSettings.Value.Split(","))
+        {
+            var sizes = item.Split("-");
+            int targetWidth = Convert.ToInt32(sizes[0]);
+            int targetHeight = Convert.ToInt32(sizes[1]);
+
+            memoryStream.Position = 0;
+            using var original = SKBitmap.Decode(memoryStream);
+            using var resized = original.Resize(
+                new SKImageInfo(targetWidth, targetHeight),
+                SKSamplingOptions.Default
+            );
+            using var image = SKImage.FromBitmap(resized);
+            using var data = image.Encode(GetSKEncodedImageFormat(fileExtension), 90);
+
+            string imageName = Guid.NewGuid().ToString();
+            string fullPath = Path.Combine(savePath, imageName + "." + fileExtension);
+
+            // Use System.IO.File instead of File
+            using var fileStream = System.IO.File.OpenWrite(fullPath);
+            data.SaveTo(fileStream);
+
+            await _contentServices.CreateContentImage(new ContentImageDto
+            {
+                ContentId = contentId,
+                ImageFileName = imageName + "." + fileExtension,
+                IsActive = true,
+                Size = targetWidth
+            });
+        }
 
         return Content("Done," + arrImagesName);
     }
 
+    private SKEncodedImageFormat GetSKEncodedImageFormat(string extension)
+    {
+        return extension.ToLower() switch
+        {
+            "jpg" or "jpeg" => SKEncodedImageFormat.Jpeg,
+            "png" => SKEncodedImageFormat.Png,
+            "gif" => SKEncodedImageFormat.Gif,
+            "bmp" => SKEncodedImageFormat.Bmp,
+            "webp" => SKEncodedImageFormat.Webp,
+            _ => SKEncodedImageFormat.Jpeg
+        };
+    }
+
     [Route("/{area}/Content/DeleteSection/{id}")]
+    [HttpDelete]
     public async Task<IActionResult> DeleteSection(int id)
     {
         //TODO: Implement Realistic Implementation

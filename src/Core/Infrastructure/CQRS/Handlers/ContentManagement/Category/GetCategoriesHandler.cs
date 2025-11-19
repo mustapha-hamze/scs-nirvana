@@ -1,9 +1,5 @@
 ﻿using AutoMapper;
 using Infrastructure.CQRS.Queries.ContentManagement.Category;
-using Infrastructure.Data;
-using Infrastructure.Dto.CMSDtos;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.CQRS.Handlers.ContentManagement.Category;
 

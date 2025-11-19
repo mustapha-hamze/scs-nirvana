@@ -61,6 +61,7 @@ public class ContentProvider : IContentProvider
         return await _dbContext.Contents
             .Include(c => c.Images.Where(i => !i.IsDeleted))
             .Include(c => c.Metadata)
+            .Include(c => c.Sections.Where(s => !s.IsDeleted))
             .SingleAsync(c => c.Id == contentId && c.IsActive && !c.IsDeleted);
     }
 

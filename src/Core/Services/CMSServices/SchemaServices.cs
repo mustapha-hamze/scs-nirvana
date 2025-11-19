@@ -44,6 +44,11 @@ namespace Services.CMSServices
             await _schemaRepository.Delete(id);
         }
 
+        public List<SchemaDto> List(int applicationId, int typeId)
+        {
+            return Mapper(_schemaRepository.List(applicationId, typeId));
+        }
+
         public List<SchemaDto> List(int applicationId)
         {
             return Mapper(_schemaRepository.List(applicationId));

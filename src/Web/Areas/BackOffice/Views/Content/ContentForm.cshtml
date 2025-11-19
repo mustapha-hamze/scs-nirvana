@@ -53,8 +53,8 @@
                     <label class="form-label" asp-for="TypeId">Type</label>
                     <select id="ddlContentTypeIds__Form" type="text" class="form-control" asp-for="TypeId"
                         placeholder="Title">
-                        <option value="@ViewData["TypeId"]">Pages</option>
-                        @foreach (var item in types)
+                        @* <option value="@ViewData["TypeId"]">Pages</option> *@
+                        @foreach (SystemTypeDto item in types)
                         {
                             <option value="@item.Id">@item.Title</option>
                         }
@@ -139,7 +139,7 @@
             loadContentBody();
 
             // images
-            //loadContentImages();
+            loadContentImages();
 
             // relations
             loadContentRelations();

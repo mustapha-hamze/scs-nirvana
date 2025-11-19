@@ -16,17 +16,17 @@ namespace Services.CMSServices
         private readonly IContentRepository _contentRepository;
         private readonly IRepository<ContentSection> _contentSectionRepository;
         private readonly IRepository<SectionElement> _sectionElementRepository;
-        private readonly IRepository<ContentMetadata> _contnentMetadataRepository;
+        private readonly IRepository<ContentMetadata> _contentMetadataRepository;
         private readonly IRepository<ContentImage> _contentImageRepository;
 
         // constructor
         public ContentServices(IContentRepository contentRepository, IRepository<ContentSection> contentSectionRepository,
-        IRepository<SectionElement> sectionElementRepository, IRepository<ContentMetadata> contnentMetadataRepository, IRepository<ContentImage> contentImageRepository)
+        IRepository<SectionElement> sectionElementRepository, IRepository<ContentMetadata> contentMetadataRepository, IRepository<ContentImage> contentImageRepository)
         {
             _contentRepository = contentRepository;
             _contentSectionRepository = contentSectionRepository;
             _sectionElementRepository = sectionElementRepository;
-            _contnentMetadataRepository = contnentMetadataRepository;
+            _contentMetadataRepository = contentMetadataRepository;
             _contentImageRepository = contentImageRepository;
         }
 
@@ -167,12 +167,12 @@ namespace Services.CMSServices
         public async Task<ContentMetadataDto> CreateContentMetadata(ContentMetadataDto contentMetadata)
         {
             contentMetadata.IsActive = true;
-            return Mapper(await _contnentMetadataRepository.Create(Mapper(contentMetadata)));
+            return Mapper(await _contentMetadataRepository.Create(Mapper(contentMetadata)));
         }
 
         public async Task<ContentMetadataDto> UpdateContentMetadata(ContentMetadataDto contentMetadata)
         {
-            return Mapper(await _contnentMetadataRepository.Update(Mapper(contentMetadata)));
+            return Mapper(await _contentMetadataRepository.Update(Mapper(contentMetadata)));
         }
 
         public async Task CreateContentImage(ContentImageDto contentImage)

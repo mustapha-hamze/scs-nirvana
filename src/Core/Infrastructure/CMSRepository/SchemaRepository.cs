@@ -18,6 +18,13 @@ namespace Infrastructure.CMSRepository
         }
 
         // methods
+        public List<Schema> List(int applicationId, int typeId)
+        {
+            return _dbContext.Schemas
+                .Where(s => s.ApplicationId == applicationId && s.TypeId == typeId && !s.IsDeleted)
+                .Order().ToList();
+        }
+
         public List<Schema> List(int applicationId)
         {
             return _dbContext.Schemas

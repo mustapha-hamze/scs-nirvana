@@ -166,24 +166,6 @@
     }
 
     function saveBody() {
-        var deletedSections = $("#hidSectionDeleted").val();
-        if (deletedSections.length > 0) {
-            var deletedSectionsArray = deletedSections.split("|");
-            $.each(deletedSectionsArray, function () {
-                if (this != "") {
-                    setLoadingForBtn('btnSaveContentBody');
-                    $.ajax({
-                        url: '/BackOffice/Content/DeleteSection/' + this,
-                        type: "GET"
-                    }).done(function () {
-                        if (sections.length === 0) {
-                            messageBox("Saved!", "Content relation has been saved", "success");
-                            loadContentBody();
-                        }
-                    });
-                }
-            });
-        }
         var mainDataList;
         var dataList = [];
         var sections = $("#sectionPlaceHolder .row");
@@ -194,6 +176,8 @@
                 var element = $(this).children();
                 $.each(element, function () {
                     var elementType = $(this).attr("elementType");
+                    @* console.log(elementType);
+                    return; *@
                     var schemaId = $(this).attr("schemaId");
                     var schemaDetailTitle = $(this).attr("schemaDetailTitle");
                     var contentId = $("#hidContentId").val();
@@ -243,6 +227,41 @@
                                 ContentId: contentId, Size: elementSize, Id: elementId
                             });
                             break;
+                        case "1005":
+                            var value = $(this).val();
+                            dataList.push({
+                                ElementType: 1005, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
+                        case "1006":
+                            var value = $(this).val();
+                            dataList.push({
+                                ElementType: 1006, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
+                        case "1007":
+                            var value = $(this).val();
+                            dataList.push({
+                                ElementType: 1007, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
+                        case "1008":
+                            var value = $(this).val();
+                            dataList.push({
+                                ElementType: 1008, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
+                        case "1009":
+                            var value = $(this).val();
+                            dataList.push({
+                                ElementType: 1009, Value: value, Title: schemaDetailTitle,
+                                ContentId: contentId, Size: elementSize, Id: elementId
+                            });
+                            break;
                     }
                 });
             });
@@ -263,7 +282,6 @@
             dataList = [];
             mainDataList = [];
         });
-
     }
 
     function uploadBodyImage(divElementId, elementId = 0) {
@@ -408,6 +426,22 @@
             if (result.isConfirmed) {
                 var sectionId = $("#" + elementId).attr("sectionid");
                 if (sectionId != 0) {
+                    // delete from database
+                    // .......
+                    $.ajax({
+                        type: "DELETE",
+                        url: `/BackOffice/Content/DeleteSection/${sectionId}`,
+                    }).done(function (data) {
+                        if (data === "Done") {
+                            messageBox("Deleted!", "Content section has been deleted", "success");
+                            $("#hidSectionDeleted").val($("#hidSectionDeleted").val() + sectionId + "|");
+                            loadContentBody();
+                        }
+                        else {
+                            messageBox("error!", "Content section has not been deleted", "error");
+                        }
+                    });
+                } else {
                     $("#hidSectionDeleted").val($("#hidSectionDeleted").val() + sectionId + "|");
                 }
                 $("#" + elementId).remove();
@@ -495,16 +529,20 @@
 
     function enableTextEditorForEdit(editorId, textAreaId, mutedTextEditor) {
         $('#' + editorId).show();
-        $('#' + editorId).html("");
+        //console.log($('#' + editorId).html());
+        //$('#' + editorId).html("");
+        //$('#' + editorId).val("");
         initTextEditor(editorId);
-        $('#' + editorId + ' .ql-editor').html($('#' + textAreaId).val());
+        //$('#' + editorId).html($('#' + textAreaId).val());
         $('#' + mutedTextEditor).remove();
     }
 
     function loadContentBody() {
         clearModalBody("body");
+        var typeId = $("#hidTypeIdContent_Form").val();
+        var contentId = $("#hidContentId").val()
         $.ajax({
-            url: '/BackOffice/Content/ContentSections/' + $("#hidContentId").val(),
+            url: `/BackOffice/Content/ContentSections/${contentId}/${typeId}`,
             type: "GET"
         }).done(function (data) {
             $("#body").html(data);

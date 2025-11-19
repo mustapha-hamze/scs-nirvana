@@ -47,6 +47,14 @@
         </div>
     }
 
+    <div class="col-md-5 mb-2">
+        <label class="form-label" asp-for="TypeId">Schema Type</label>
+        <select type="text" class="form-control" asp-for="TypeId" placeholder="TypeId">
+            <option value="1000">Content</option>
+            <option value="1001">Pages</option>
+        </select>
+    </div>
+
 
     <div class="col-md-3 mb-2 mt-3">
         <a href="javascript: void(0);" onclick="saveSchemaForm()" class="btn btn-primary"><i
