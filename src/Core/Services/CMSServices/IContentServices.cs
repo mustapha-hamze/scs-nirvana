@@ -22,6 +22,7 @@ namespace Services.CMSServices
         Task<SectionElementDto> CreateSectionElement(SectionElementDto sectionElement);
         Task UpdateSectionElement(SectionElementDto sectionElement);
         List<SectionDto> GetSections(int contentId);
+        Task UpdateSectionPriority(int sectionId, int priority);
 
         Task CreateContentCategories(string data, string entity, int contentId);
         Task CreateContentTags(string data, string entity, int contentId);

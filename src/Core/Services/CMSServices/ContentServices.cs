@@ -314,5 +314,10 @@ namespace Services.CMSServices
             IMapper mapper = config.CreateMapper();
             return mapper.Map<List<ContentImage>, List<ContentImageDto>>(contentImage);
         }
+
+        public async Task UpdateSectionPriority(int sectionId, int priority)
+        {
+            await _contentRepository.UpdateSectionPriority(sectionId, priority);
+        }
     }
 }

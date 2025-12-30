@@ -118,7 +118,20 @@
                         schemaId="@item.SchemaId" elementType="1009" />
                 </div>
                 break;
-
+            case 1010:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <input class="form-control" schemaDetailTitle="@item.Title" type="text" maxlength="256"
+                        schemaId="@item.SchemaId" elementType="1010" />
+                </div>
+                break;
+            case 1011:
+                <div class="col-md-@item.Size mb-1" size="@item.Size" id="@elementRandomId">
+                    <label for="" class="mb-1">@item.Title</label>
+                    <input class="form-control" schemaDetailTitle="@item.Title" type="text" maxlength="256"
+                        schemaId="@item.SchemaId" elementType="1011" />
+                </div>
+                break;
         }
     }
 </div>

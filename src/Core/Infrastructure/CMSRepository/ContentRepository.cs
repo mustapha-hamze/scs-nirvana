@@ -402,4 +402,11 @@ public class ContentRepository : Repository<Content>, IContentRepository
             return new List<ContentDto>();
         }
     }
+
+    public async Task UpdateSectionPriority(int sectionId, int priority)
+    {
+        var section = await _dbContext.ContentSections.SingleAsync(cs => cs.Id == sectionId);
+        section.Priority = priority;
+        await _dbContext.SaveChangesAsync();
+    }
 }

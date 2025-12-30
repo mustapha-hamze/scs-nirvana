@@ -1,3 +1,4 @@
+@using ZXing.QrCode.Internal
 @model Infrastructure.Dto.CMSDtos.ContentDto
 
 @{
@@ -54,9 +55,17 @@
                     <select id="ddlContentTypeIds__Form" type="text" class="form-control" asp-for="TypeId"
                         placeholder="Title">
                         @* <option value="@ViewData["TypeId"]">Pages</option> *@
-                        @foreach (SystemTypeDto item in types)
+
+                        @if (Model.TypeId.ToString().Contains("100"))
                         {
-                            <option value="@item.Id">@item.Title</option>
+                            <option value="@Model.TypeId">Page</option>
+                        }
+                        else
+                        {
+                            foreach (SystemTypeDto item in types)
+                            {
+                                <option value="@item.Id">@item.Title</option>
+                            }
                         }
                     </select>
                 </div>

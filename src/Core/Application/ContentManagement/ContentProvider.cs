@@ -62,7 +62,7 @@ public class ContentProvider : IContentProvider
             .Include(c => c.Images.Where(i => !i.IsDeleted))
             .Include(c => c.Metadata)
             .Include(c => c.Sections.Where(s => !s.IsDeleted))
-            .SingleAsync(c => c.Id == contentId && c.IsActive && !c.IsDeleted);
+            .FirstOrDefaultAsync(c => c.Id == contentId && c.IsActive && !c.IsDeleted);
     }
 
     public async Task<Content> GetContentForPreview(int contentId)

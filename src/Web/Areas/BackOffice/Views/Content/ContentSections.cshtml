@@ -17,12 +17,42 @@
 
 <input type="hidden" id="hidPriority__ContentSection" value="@priority" />
 
+<style>
+    .muted-text-editor div p {
+        margin-bottom: 0rem !important;
+    }
+</style>
+
 <div class="mt-2" id="sectionPlaceHolder">
-    @foreach (var item in sections)
+    @for (int i = 0; i < sections.Count; i++)
     {
         string sectionElementId = Guid.NewGuid().ToString();
-        <div class="row mb-2 border pt-2 pb-1" id="sectionDiv-@sectionElementId" sectionId="@item.Id">
+
+        var item = sections[i];
+
+        var prevId = i > 0 ? sections[i - 1].Id : (int?)null;
+        var nextId = i < sections.Count - 1 ? sections[i + 1].Id : (int?)null;
+
+        var isFirstItem = false;
+        if (i == 0)
+        {
+            isFirstItem = true;
+            prevId = 0;
+        }
+
+        <div class="row mb-2 border pt-2 pb-1" id="sectionDiv-@sectionElementId" priority="@item.Priority"
+            sectionId="@item.Id">
             <div class="text-end">
+                <button type="button"
+                    onclick="increasePriority('sectionDiv-@sectionElementId', @isFirstItem.ToString().ToLower(),'@item.Priority','@item.Id', @(prevId ?? 0), @(nextId ?? 0))"
+                    class="btn btn-xs btn-outline-success btn-rounded remove-section-button">
+                    <i class="mdi mdi-arrow-up"></i>
+                </button>
+                <button type="button"
+                    onclick="decreasePriority('sectionDiv-@sectionElementId', @isFirstItem.ToString().ToLower(),'@item.Priority','@item.Id', @(prevId ?? 0), @(nextId ?? 0))"
+                    class="btn btn-xs btn-outline-success btn-rounded remove-section-button">
+                    <i class="mdi mdi-arrow-down"></i>
+                </button>
                 <button type="button" onclick="removeBodySection('sectionDiv-@sectionElementId')"
                     class="btn btn-xs btn-outline-danger btn-rounded remove-section-button">
                     <i class="mdi mdi-delete"></i>
@@ -44,15 +74,15 @@
                                     <i class="mdi mdi-content-save-edit"></i>
                                 </button>
                                 <div>
-                                    @Html.Raw(element.EditorText)
+                                    @Html.Raw(element.EditorText.Replace("<p> </p>", ""))
                                 </div>
                             </div>
                             <textarea class="form-control" textAreaSeedId="@elementRandomId" elementId="@element.Id"
                 id="__TextArea__@elementRandomId" elementType="1002" style="display: none;">
-                                    @Html.Raw(element.EditorText)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </textarea>
+                                    @Html.Raw(element.EditorText.Replace("<p> </p>", ""))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </textarea>
                             <div id="__TextEditor__@elementRandomId" style=" height: 300px; display: none;">
                                 <div class="ql-editor">
-                                    @Html.Raw(element.EditorText)
+                                    @Html.Raw(element.EditorText.Replace("<p> </p>", ""))
                                 </div>
                             </div>
                         </div>
@@ -131,22 +161,74 @@
                         break;
                     case 1006:
                         <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
-                            <h1>@element.TinyText</h1>
+                            <h1>
+                                @element.TinyText
+                                <button type="button"
+                                    onclick="enableHTagForEdit('@element.Id','1006','@element.TinyText','@elementRandomId')"
+                                    class="btn btn-xs btn-outline-info btn-rounded remove-section-button">
+                                    <i class="mdi mdi-content-save-edit"></i>
+                                </button>
+                            </h1>
                         </div>
                         break;
                     case 1007:
                         <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
-                            <h2>@element.TinyText</h2>
+                            <h2>
+                                @element.TinyText
+                                <button type="button"
+                                    onclick="enableHTagForEdit('@element.Id','1007','@element.TinyText','@elementRandomId')"
+                                    class="btn btn-xs btn-outline-info btn-rounded remove-section-button">
+                                    <i class="mdi mdi-content-save-edit"></i>
+                                </button>
+                            </h2>
                         </div>
                         break;
                     case 1008:
                         <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
-                            <h3>@element.TinyText</h3>
+                            <h3>
+                                @element.TinyText
+                                <button type="button"
+                                    onclick="enableHTagForEdit('@element.Id','1008','@element.TinyText','@elementRandomId')"
+                                    class="btn btn-xs btn-outline-info btn-rounded remove-section-button">
+                                    <i class="mdi mdi-content-save-edit"></i>
+                                </button>
+                            </h3>
                         </div>
                         break;
                     case 1009:
                         <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
-                            <h4>@element.TinyText</h4>
+                            <h4>
+                                @element.TinyText
+                                <button type="button"
+                                    onclick="enableHTagForEdit('@element.Id','1009','@element.TinyText','@elementRandomId')"
+                                    class="btn btn-xs btn-outline-info btn-rounded remove-section-button">
+                                    <i class="mdi mdi-content-save-edit"></i>
+                                </button>
+                            </h4>
+                        </div>
+                        break;
+                    case 1010:
+                        <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
+                            <h5>
+                                @element.TinyText
+                                <button type="button"
+                                    onclick="enableHTagForEdit('@element.Id','1010','@element.TinyText','@elementRandomId')"
+                                    class="btn btn-xs btn-outline-info btn-rounded remove-section-button">
+                                    <i class="mdi mdi-content-save-edit"></i>
+                                </button>
+                            </h5>
+                        </div>
+                        break;
+                    case 1011:
+                        <div class="col-md-@element.Size mb-1" size="@element.Size" id="@elementRandomId">
+                            <h6>
+                                @element.TinyText
+                                <button type="button"
+                                    onclick="enableHTagForEdit('@element.Id','1011','@element.TinyText','@elementRandomId')"
+                                    class="btn btn-xs btn-outline-info btn-rounded remove-section-button">
+                                    <i class="mdi mdi-content-save-edit"></i>
+                                </button>
+                            </h6>
                         </div>
                         break;
                 }
@@ -172,6 +254,8 @@
     {
         <a href="javascript:void(0);" id="btnSaveContentBody" onclick="saveBody()" class="btn btn-primary"><i
                 class="uil uil-file-share-alt"></i> Save Body</a>
+        <a href="javascript:void(0);" id="btnUpdateContentBodyLayout" onclick="updateBodyLayout()" class="btn btn-info"><i
+                class="uil uil-file-share-alt"></i> Update Body Layout</a>
     }
 </div>
 

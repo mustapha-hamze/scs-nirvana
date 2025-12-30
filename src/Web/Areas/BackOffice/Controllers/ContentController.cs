@@ -259,7 +259,7 @@ public class ContentController : BaseController
                             await _contentServices.UpdateSectionElement(new SectionElementDto
                             {
                                 Id = item.Id,
-                                EditorText = item.Value,
+                                EditorText = item.Value.Replace("<p></p>", "").Replace("<p> </p>", "").Replace("\n", ""),
                                 ElementTitle = item.Title
                             });
                             break;
@@ -284,6 +284,54 @@ public class ContentController : BaseController
                             {
                                 Id = item.Id,
                                 EditorText = item.Value,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1006:
+                            await _contentServices.UpdateSectionElement(new SectionElementDto
+                            {
+                                Id = item.Id,
+                                TinyText = item.Value,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1007:
+                            await _contentServices.UpdateSectionElement(new SectionElementDto
+                            {
+                                Id = item.Id,
+                                TinyText = item.Value,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1008:
+                            await _contentServices.UpdateSectionElement(new SectionElementDto
+                            {
+                                Id = item.Id,
+                                TinyText = item.Value,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1009:
+                            await _contentServices.UpdateSectionElement(new SectionElementDto
+                            {
+                                Id = item.Id,
+                                TinyText = item.Value,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1010:
+                            await _contentServices.UpdateSectionElement(new SectionElementDto
+                            {
+                                Id = item.Id,
+                                TinyText = item.Value,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1011:
+                            await _contentServices.UpdateSectionElement(new SectionElementDto
+                            {
+                                Id = item.Id,
+                                TinyText = item.Value,
                                 ElementTitle = item.Title
                             });
                             break;
@@ -362,7 +410,7 @@ public class ContentController : BaseController
                         case 1005:
                             await _contentServices.CreateSectionElement(new SectionElementDto
                             {
-                                EditorText = item.Value,
+                                EditorText = item.Value.Replace("<p></p>", "").Replace("<p> </p>", "").Replace("\n", ""),
                                 SectionId = _section.Id,
                                 IsActive = true,
                                 ElementType = 1005,
@@ -414,6 +462,28 @@ public class ContentController : BaseController
                                 ElementTitle = item.Title
                             });
                             break;
+                        case 1010:
+                            await _contentServices.CreateSectionElement(new SectionElementDto
+                            {
+                                TinyText = item.Value,
+                                SectionId = _section.Id,
+                                IsActive = true,
+                                ElementType = 1010,
+                                Size = item.Size,
+                                ElementTitle = item.Title
+                            });
+                            break;
+                        case 1011:
+                            await _contentServices.CreateSectionElement(new SectionElementDto
+                            {
+                                TinyText = item.Value,
+                                SectionId = _section.Id,
+                                IsActive = true,
+                                ElementType = 1011,
+                                Size = item.Size,
+                                ElementTitle = item.Title
+                            });
+                            break;
                     }
                 }
                 return Content("Done");
@@ -424,6 +494,18 @@ public class ContentController : BaseController
             return Content("Failed");
         }
         // return Content(Newtonsoft.Json.JsonConvert.SerializeObject(section));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateSectionsLayoutOrder([FromBody] string sectionsOrder)
+    {
+        var sectionsOrderArray = sectionsOrder.Split(',');
+        for (int i = 0; i < sectionsOrderArray.Length - 1; i++)
+        {
+            await _contentServices.UpdateSectionPriority(Convert.ToInt32(sectionsOrderArray[i]), i + 1);
+        }
+
+        return Ok("Done");
     }
 
     [HttpPost]
