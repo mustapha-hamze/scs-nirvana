@@ -7,11 +7,12 @@ public interface IContentProvider
 {
     Task<List<Content>> GetLatestContents(int applicationId);
     Task<Content> GetContent(int contentId);
+    Task<Content> GetContentForTranslate(int contentId);
     Task<Content> GetContentForPreview(int contentId);
 
     Task<List<Content>> FeaturedCategory(int typeId);
     Task<List<Content>> GetNotification(int typeId);
-    ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20);
+    ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en");
     ContentListResultModel GetContentsListByTagId(int applicationId, int tagId, int pageIndex = 0, int pageSize = 20);
     // Task<List<Content>> GetMostViewedContent(int applicationId);
     Task<List<Content>> GetPage(int pageId);

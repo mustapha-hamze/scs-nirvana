@@ -1,3 +1,5 @@
+using Application.ContentManagement;
+using Core.Services.TranslatorServices;
 using SkiaSharp;
 
 namespace Web.Areas.BackOffice.Controllers;
@@ -11,6 +13,7 @@ public class ContentController : BaseController
     // fields
     #region fields
     private readonly IContentServices _contentServices;
+    private readonly IContentProvider _contentProvider;
     private readonly ISchemaServices _schemaServices;
     private readonly ICategoryServices _categoryServices;
     private readonly ITagServices _tagServices;
@@ -19,6 +22,7 @@ public class ContentController : BaseController
     private readonly IApplicationServices _applicationServices;
     private readonly ISystemTypeServices _systemTypeServices;
     private readonly IUserManagementServices _userManagementServices;
+    private readonly IContentTranslator _contentTranslator;
     #endregion
 
     // constructor
@@ -27,7 +31,8 @@ public class ContentController : BaseController
         ICategoryServices categoryServices,
         ITagServices tagServices, ICultureServices cultureServices, IHostEnvironment appEnvironment,
         IApplicationServices applicationServices, ISystemTypeServices systemTypeServices,
-        IUserManagementServices userManagementServices)
+        IUserManagementServices userManagementServices, IContentTranslator contentTranslator,
+        IContentProvider contentProvider)
     {
         _applicationServices = applicationServices;
         _contentServices = contentServices;
@@ -38,6 +43,8 @@ public class ContentController : BaseController
         _appEnvironment = appEnvironment;
         _systemTypeServices = systemTypeServices;
         _userManagementServices = userManagementServices;
+        _contentTranslator = contentTranslator;
+        _contentProvider = contentProvider;
     }
     #endregion
 
@@ -162,8 +169,20 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ChangeContentActiveMode/{typeId}/{contentId}/{mode}")]
     public async Task<IActionResult> ChangeContentActiveMode(int typeId, int contentId, bool mode)
     {
-        //TODO: Implement Realistic Implementation
-        await _contentServices.ChangeContentActiveMode(contentId, mode);
+        if (mode)
+        {
+            var content = await _contentProvider.GetContentForTranslate(contentId);
+            content.FarsiContent = "";
+            var result = await _contentTranslator.Translate(content);
+            content.FarsiContent = result;
+            content.IsActive = mode;
+            // await _contentServices.UpdateTranslate(contentId, result);
+            await _contentServices.Update(content);
+        }
+        else
+        {
+            await _contentServices.ChangeContentActiveMode(contentId, mode);
+        }
 
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
 

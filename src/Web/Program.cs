@@ -9,9 +9,11 @@ using Infrastructure.UserManagementRepository;
 using Microsoft.EntityFrameworkCore;
 using Web.Areas.BackOffice.Controllers;
 using Microsoft.AspNetCore.Http.Features;
+using Application.ContentManagement;
+using Newtonsoft.Json;
+using Core.Services.TranslatorServices;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.Configure<FormOptions>(options =>
     {
@@ -48,7 +50,7 @@ builder.Services.AddScoped(typeof(ISectorEntityRepository), typeof(SectorEntityR
 builder.Services.AddTransient<ISectorEntityServices, SectorEntityServices>();
 builder.Services.AddScoped(typeof(IEntityAccessRepository), typeof(EntityAccessRepository));
 builder.Services.AddTransient<IEntityAccessServices, EntityAccessServices>();
-builder.Services.AddTransient<IEntityAccessServices, EntityAccessServices>();
+builder.Services.AddTransient<IContentTranslator, ContentTranslator>();
 
 builder.Services.AddScoped<BaseController>();
 
@@ -76,6 +78,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options => options.IdleTimeout = TimeSpan.FromDays(1));
 builder.Services.AddMvc();
+
+builder.Services.AddTransient<IContentProvider, ContentProvider>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

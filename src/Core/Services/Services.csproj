@@ -16,8 +16,9 @@
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="6.2.6" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="ZXing.Net" Version="0.16.9" />
+    <PackageReference Include="OpenAI" Version="2.8.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />

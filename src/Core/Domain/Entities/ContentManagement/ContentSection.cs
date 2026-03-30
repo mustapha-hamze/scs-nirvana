@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 namespace Domains.Entities.ContentManagement
 {
@@ -18,8 +18,9 @@ namespace Domains.Entities.ContentManagement
         // relation
         public virtual ICollection<SectionElement> Elements { get; set; }
 
-        // foregin key
+        // foreign key
         [ForeignKey("ContentId")]
+        [JsonIgnore]
         public virtual Content Content { get; set; }
     }
 }

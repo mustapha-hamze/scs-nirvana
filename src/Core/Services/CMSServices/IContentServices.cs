@@ -12,6 +12,7 @@ namespace Services.CMSServices
         Task Delete(int id);
         Task ChangeContentActiveMode(int id, bool mode);
         Task<ContentDto> Update(ContentDto content);
+        Task<Content> Update(Content content);
         Task<ContentDto> GetById(int id);
         List<ContentDto> List(int applicationId);
         List<ContentDto> List(int applicationId, int pageIndex);
@@ -38,6 +39,8 @@ namespace Services.CMSServices
         Task DeleteSection(int sectionId);
 
         Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId);
+
+        Task UpdateTranslate(int contentId, string translatedContent);
 
         List<Content> GetContentByIdFull(int id);
         List<Content> GetContentByTypeId(int typeId);

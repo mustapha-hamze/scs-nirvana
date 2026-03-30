@@ -12,7 +12,7 @@ namespace Services.CMSServices
 {
     public class ContentServices : IContentServices
     {
-        // fileds
+        // fields
         private readonly IContentRepository _contentRepository;
         private readonly IRepository<ContentSection> _contentSectionRepository;
         private readonly IRepository<SectionElement> _sectionElementRepository;
@@ -73,9 +73,21 @@ namespace Services.CMSServices
             await _contentRepository.Update(content);
         }
 
+        public async Task UpdateTranslate(int contentId, string translatedContent)
+        {
+            var content = await _contentRepository.GetById(contentId);
+            content.FarsiContent = translatedContent;
+            await _contentRepository.Update(content);
+        }
+
         public async Task<ContentDto> Update(ContentDto content)
         {
             return Mapper(await _contentRepository.Update(Mapper(content)));
+        }
+
+        public async Task<Content> Update(Content content)
+        {
+            return await _contentRepository.Update(content);
         }
 
         public async Task<ContentDto> GetById(int id)

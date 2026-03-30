@@ -58,11 +58,28 @@ public class ContentProvider : IContentProvider
         // }
 
         // return Task.FromResult(new Content());
+        // return await _dbContext.Contents
+        //     .Include(c => c.Images.Where(i => !i.IsDeleted))
+        //     .Include(c => c.Metadata)
+        //     .Include(c => c.Sections.Where(s => !s.IsDeleted))
+        //     .FirstOrDefaultAsync(c => c.Id == contentId && c.IsActive && !c.IsDeleted);
+
         return await _dbContext.Contents
             .Include(c => c.Images.Where(i => !i.IsDeleted))
             .Include(c => c.Metadata)
             .Include(c => c.Sections.Where(s => !s.IsDeleted))
+                .ThenInclude(s => s.Elements)
             .FirstOrDefaultAsync(c => c.Id == contentId && c.IsActive && !c.IsDeleted);
+    }
+
+    public async Task<Content> GetContentForTranslate(int contentId)
+    {
+        return await _dbContext.Contents
+            .Include(c => c.Images.Where(i => !i.IsDeleted))
+            .Include(c => c.Metadata)
+            .Include(c => c.Sections.Where(s => !s.IsDeleted))
+                .ThenInclude(s => s.Elements)
+            .FirstOrDefaultAsync(c => c.Id == contentId && !c.IsDeleted);
     }
 
     public async Task<Content> GetContentForPreview(int contentId)
@@ -103,30 +120,58 @@ public class ContentProvider : IContentProvider
         .ToListAsync();
     }
 
-    public ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20)
+    public ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en")
     {
-        int rowCount = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString())).Count();
-        int pageCount = rowCount / pageSize;
-        if ((rowCount % pageSize) > 0)
-            pageCount++;
+        if (keyLang == "fa")
+        {
+            int rowCount = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString())).Count();
+            int pageCount = rowCount / pageSize;
+            if ((rowCount % pageSize) > 0)
+                pageCount++;
 
-        int skipSize = (pageIndex * pageSize);
+            int skipSize = (pageIndex * pageSize);
 
-        var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString()))
-            .Skip(skipSize)
-            .Take(pageSize)
-            .Include(c => c.Images.Where(i => !i.IsDeleted))
-            .OrderByDescending(c => c.UpdatedDT);
+            var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString()))
+                .Skip(skipSize)
+                .Take(pageSize)
+                .Include(c => c.Images.Where(i => !i.IsDeleted))
+                .OrderByDescending(c => c.UpdatedDT);
 
-        var category = _dbContext.Categories.Single(c => c.Id == categoryId);
+            var category = _dbContext.Categories.Single(c => c.Id == categoryId);
 
-        var result = new ContentListResultModel();
-        result.CurrentPage = pageIndex;
-        result.PageCount = pageCount;
-        result.Contents = contents.ToList();
-        result.Title = category.Title;
+            var result = new ContentListResultModel();
+            result.CurrentPage = pageIndex;
+            result.PageCount = pageCount;
+            result.Contents = contents.ToList();
+            result.Title = category.Title;
 
-        return result;
+            return result;
+        }
+        else
+        {
+            int rowCount = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString())).Count();
+            int pageCount = rowCount / pageSize;
+            if ((rowCount % pageSize) > 0)
+                pageCount++;
+
+            int skipSize = (pageIndex * pageSize);
+
+            var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString()))
+                .Skip(skipSize)
+                .Take(pageSize)
+                .Include(c => c.Images.Where(i => !i.IsDeleted))
+                .OrderByDescending(c => c.UpdatedDT);
+
+            var category = _dbContext.Categories.Single(c => c.Id == categoryId);
+
+            var result = new ContentListResultModel();
+            result.CurrentPage = pageIndex;
+            result.PageCount = pageCount;
+            result.Contents = contents.ToList();
+            result.Title = category.Title;
+
+            return result;
+        }
     }
 
     public ContentListResultModel GetContentsListByTagId(int applicationId, int tagId, int pageIndex = 0, int pageSize = 20)

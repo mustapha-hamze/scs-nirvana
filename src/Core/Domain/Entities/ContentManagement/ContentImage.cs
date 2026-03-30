@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 namespace Domains.Entities.ContentManagement
 {
@@ -12,6 +13,7 @@ namespace Domains.Entities.ContentManagement
         public string ImageFileName { get; set; }
 
         [ForeignKey("ContentId")]
+        [JsonIgnore]
         public virtual Content Content { get; set; }
 
         public int Size { get; set; }

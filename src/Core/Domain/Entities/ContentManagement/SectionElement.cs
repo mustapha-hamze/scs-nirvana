@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Newtonsoft.Json;
 
 namespace Domains.Entities.ContentManagement
 {
@@ -26,8 +25,9 @@ namespace Domains.Entities.ContentManagement
         [StringLength(256)]
         public string ElementTitle { get; set; }
 
-        // foregin key
+        // foreign key
         [ForeignKey("SectionId")]
+        [JsonIgnore]
         public virtual ContentSection Section { get; set; }
     }
 }

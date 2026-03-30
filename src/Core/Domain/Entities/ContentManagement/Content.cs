@@ -23,6 +23,8 @@ namespace Domains.Entities.ContentManagement
 
         public string Description { get; set; }
 
+        public string FarsiContent { get; set; }
+
         [StringLength(1024)]
         public string Categories { get; set; }
         [StringLength(1024)]
