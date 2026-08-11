@@ -1,0 +1,234 @@
+@model Infrastructure.Dto.CMSDtos.FarsiContentEditDto
+
+<style>
+    .fa---elements {
+        text-align: right !important;
+        direction: rtl !important;
+    }
+
+    .fa---elements .ql-editor {
+        text-align: right !important;
+        direction: rtl !important;
+    }
+</style>
+
+<link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
+<link href="/BackOffice/vendor/quill/quill.snow.css" rel="stylesheet" type="text/css" />
+
+<div class="row mt-2">
+    <div class="col-md-2 p-0">
+        <a class="btn btn-primary w-100" onclick="backToContentList()" href="javascript:void(0);">
+            <i class="uil uil-corner-up-left"></i>
+            Back
+        </a>
+    </div>
+</div>
+
+@if (ViewBag.FarsiInitializedFromEnglish == true)
+{
+    <div class="alert alert-info mt-2" role="alert">
+        Farsi content was not found (or was invalid). The fields below have been pre-filled from the English
+        content as a starting point.
+    </div>
+}
+
+<div class="row card mt-2 p-2">
+    <ul class="nav nav-tabs mb-1">
+        <li class="nav-item">
+            <a href="#general" data-bs-toggle="tab" aria-expanded="false" class="nav-link active">
+                <i class="mdi mdi-home-variant d-md-none d-block"></i>
+                <span class="d-none d-md-block">General</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#body" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                <i class="mdi mdi-file-document-outline d-md-none d-block"></i>
+                <span class="d-none d-md-block">Body</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#metadata" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                <i class="mdi mdi-tag-text-outline d-md-none d-block"></i>
+                <span class="d-none d-md-block">Metadata</span>
+            </a>
+        </li>
+    </ul>
+
+    <form id="frmFarsiContent" method="POST" asp-action="SaveFarsiContentForm">
+        <input type="hidden" asp-for="Id" id="hidFarsiContentId" />
+
+        <div class="tab-content mb-3">
+            <div class="tab-pane show active" id="general">
+                <div class="row">
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label" asp-for="Title">Title</label>
+                        <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Title" maxlength="256">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label" asp-for="HeadLine">Head Line</label>
+                        <textarea class="form-control fa---elements" dir="rtl" asp-for="HeadLine" maxlength="2048"></textarea>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label" asp-for="Abstract">Abstract</label>
+                        <textarea class="form-control fa---elements" dir="rtl" asp-for="Abstract" maxlength="2048"></textarea>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label" asp-for="Description">Description</label>
+                        <textarea class="form-control" asp-for="Description" style="display: none;" id="textAreaDescriptionFA"></textarea>
+                        <div id="__descriptionEditorFA__" class="fa---elements" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane" id="body">
+                @if (Model.Sections != null && Model.Sections.Count > 0)
+                {
+                    @for (int s = 0; s < Model.Sections.Count; s++)
+                    {
+                        var section = Model.Sections[s];
+                        <input type="hidden" asp-for="Sections[s].Id" />
+                        <div class="row mb-2 border pt-2 pb-1">
+                            @for (int e = 0; e < section.SectionElements.Count; e++)
+                            {
+                                var element = section.SectionElements[e];
+                                <input type="hidden" asp-for="Sections[s].SectionElements[e].Id" />
+                                <div class="col-md-@element.Size mb-1">
+                                    <label class="mb-1">@element.ElementTitle</label>
+                                    @switch (element.ElementType)
+                                    {
+                                        case 1000:
+                                        case 1006:
+                                        case 1007:
+                                        case 1008:
+                                        case 1009:
+                                        case 1010:
+                                        case 1011:
+                                            <input type="text" class="form-control fa---elements" dir="rtl" maxlength="256"
+                                                   asp-for="Sections[s].SectionElements[e].TinyText" />
+                                            break;
+                                        case 1002:
+                                            var quillId = "__farsiEditor_" + s + "_" + e + "__";
+                                            var textAreaId = "__farsiTextArea_" + s + "_" + e + "__";
+                                            <textarea class="form-control" style="display: none;" id="@textAreaId"
+                                                      asp-for="Sections[s].SectionElements[e].EditorText"></textarea>
+                                            <div id="@quillId" class="fa---elements farsi-rich-editor" data-target="@textAreaId"
+                                                 style="height: 250px;"></div>
+                                            break;
+                                        case 1005:
+                                            <textarea class="form-control fa---elements" dir="rtl"
+                                                      asp-for="Sections[s].SectionElements[e].EditorText"></textarea>
+                                            break;
+                                        case 1001:
+                                            <img src="/Storage/Section/Images/@element.FileNameText" class="w-100" />
+                                            <small class="text-muted d-block">Preserved from source content (not editable here)</small>
+                                            break;
+                                        case 1003:
+                                            var images = (element.GalleryImages ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries);
+                                            <div class="row">
+                                                @foreach (var galleryImage in images)
+                                                {
+                                                    <div class="col-md-2 mb-2">
+                                                        <img src="/Storage/Section/Gallery/@galleryImage" class="w-100">
+                                                    </div>
+                                                }
+                                            </div>
+                                            <small class="text-muted d-block">Preserved from source content (not editable here)</small>
+                                            break;
+                                        case 1004:
+                                            <div class="card text-white bg-success overflow-hidden">
+                                                <div class="card-body">
+                                                    <div class="toll-free-box text-center">
+                                                        <h4><i class="mdi mdi-file-cabinet"></i>@element.FileNameText</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted d-block">Preserved from source content (not editable here)</small>
+                                            break;
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">This content has no body sections.</p>
+                }
+            </div>
+
+            <div class="tab-pane" id="metadata">
+                <div class="row">
+                    <input type="hidden" asp-for="Metadata.Id" />
+                    <input type="hidden" asp-for="Metadata.ContentId" />
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label" asp-for="Metadata.Title">Title</label>
+                        <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Metadata.Title" maxlength="256">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label" asp-for="Metadata.Author">Author</label>
+                        <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Metadata.Author" maxlength="128">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label" asp-for="Metadata.Keywords">Keywords</label>
+                        <textarea class="form-control fa---elements" dir="rtl" asp-for="Metadata.Keywords" maxlength="1024"></textarea>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label" asp-for="Metadata.Description">Description</label>
+                        <textarea class="form-control fa---elements" dir="rtl" asp-for="Metadata.Description" maxlength="2048"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <a href="javascript:void(0);" id="btnSaveFarsiContent" onclick="saveFarsiContent()" class="btn btn-primary">
+                    <i class="uil uil-file-share-alt"></i> Save
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@await Html.PartialAsync("__ContentJSFunctions")
+<input type="hidden" id="hidTypeIdContent_Form" value="@ViewData["TypeId"]">
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            initTextEditor("__descriptionEditorFA__");
+            $('#__descriptionEditorFA__ .ql-editor').html($('#textAreaDescriptionFA').val());
+
+            $(".farsi-rich-editor").each(function () {
+                var editorId = $(this).attr("id");
+                var targetId = $(this).attr("data-target");
+                initTextEditor(editorId);
+                $("#" + editorId + " .ql-editor").html($("#" + targetId).val());
+            });
+        });
+
+        function saveFarsiContent() {
+            $('#textAreaDescriptionFA').val($('#__descriptionEditorFA__ .ql-editor').html());
+
+            $(".farsi-rich-editor").each(function () {
+                var targetId = $(this).attr("data-target");
+                $("#" + targetId).val($(this).find(".ql-editor").html());
+            });
+
+            setLoadingForBtn('btnSaveFarsiContent');
+            $.ajax({
+                url: "/BackOffice/Content/SaveFarsiContentForm",
+                type: "POST",
+                data: $("#frmFarsiContent").serialize()
+            }).done(function (data) {
+                if (data === "Done") {
+                    messageBox("Saved!", "Farsi content has been saved", "success");
+                    removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt"></i> Save');
+                } else {
+                    messageBox("Error!", "Farsi content has not been saved", "error");
+                    removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt"></i> Save');
+                }
+            });
+        }
+    </script>
+}

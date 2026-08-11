@@ -1,5 +1,6 @@
 using Application.ContentManagement;
 using Core.Services.TranslatorServices;
+using Domains.Entities.ContentManagement;
 using SkiaSharp;
 
 namespace Web.Areas.BackOffice.Controllers;
@@ -23,6 +24,12 @@ public class ContentController : BaseController
     private readonly ISystemTypeServices _systemTypeServices;
     private readonly IUserManagementServices _userManagementServices;
     private readonly IContentTranslator _contentTranslator;
+
+    private static readonly JsonSerializerSettings _farsiJsonSettings = new JsonSerializerSettings
+    {
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+        NullValueHandling = NullValueHandling.Include
+    };
     #endregion
 
     // constructor
@@ -155,6 +162,166 @@ public class ContentController : BaseController
 
             return RedirectToAction("ContentForm", new { id = content.Id, typeId = _content.TypeId });
         }
+    }
+
+    [Route("/{area}/{controller}/FarsiContentForm/{id}/{typeId}")]
+    public async Task<IActionResult> FarsiContentForm(int id, int typeId)
+    {
+        var englishContent = await _contentProvider.GetContentForTranslate(id);
+        if (englishContent == null)
+            return NotFound();
+
+        ViewData["TypeId"] = typeId;
+
+        var (source, usedEnglishFallback) = GetFarsiEditSource(englishContent);
+        ViewBag.FarsiInitializedFromEnglish = usedEnglishFallback;
+
+        return View(MapToFarsiEditDto(source));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveFarsiContentForm(FarsiContentEditDto model)
+    {
+        if (model == null || model.Id == 0)
+            return Content("Failed");
+
+        var englishContent = await _contentProvider.GetContentForTranslate(model.Id);
+        if (englishContent == null)
+            return NotFound();
+
+        var (baseContent, _) = GetFarsiEditSource(englishContent);
+
+        baseContent.Title = model.Title;
+        baseContent.HeadLine = model.HeadLine;
+        baseContent.Abstract = model.Abstract;
+        baseContent.Description = model.Description;
+
+        if (model.Metadata != null)
+        {
+            if (baseContent.Metadata == null)
+                baseContent.Metadata = new ContentMetadata { ContentId = baseContent.Id };
+
+            baseContent.Metadata.Title = model.Metadata.Title;
+            baseContent.Metadata.Author = model.Metadata.Author;
+            baseContent.Metadata.Keywords = model.Metadata.Keywords;
+            baseContent.Metadata.Description = model.Metadata.Description;
+        }
+
+        if (model.Sections != null && baseContent.Sections != null)
+        {
+            foreach (var sectionEdit in model.Sections)
+            {
+                var section = baseContent.Sections.FirstOrDefault(s => s.Id == sectionEdit.Id);
+                if (section?.Elements == null || sectionEdit.SectionElements == null)
+                    continue;
+
+                foreach (var elementEdit in sectionEdit.SectionElements)
+                {
+                    var element = section.Elements.FirstOrDefault(e => e.Id == elementEdit.Id);
+                    if (element == null)
+                        continue;
+
+                    switch (element.ElementType)
+                    {
+                        case 1000:
+                        case 1006:
+                        case 1007:
+                        case 1008:
+                        case 1009:
+                        case 1010:
+                        case 1011:
+                            element.TinyText = elementEdit.TinyText;
+                            break;
+                        case 1002:
+                        case 1005:
+                            element.EditorText = elementEdit.EditorText;
+                            break;
+                    }
+                }
+            }
+        }
+
+        var farsiJson = JsonConvert.SerializeObject(baseContent, _farsiJsonSettings);
+
+        // Reuse the already-tracked `englishContent` instance (rather than UpdateTranslate's
+        // internal AsNoTracking().GetById()) to avoid a duplicate-identity conflict on the
+        // same DbContext, and set only FarsiContent so English fields are left untouched.
+        englishContent.FarsiContent = farsiJson;
+        await _contentServices.Update(englishContent);
+
+        return Content("Done");
+    }
+
+    // Returns the Content graph to use as the editable Farsi source: the previously saved
+    // FarsiContent JSON when present and valid, otherwise the English content as a starting point.
+    // Always returns a detached clone (never `englishContent` itself) so mutating it for Farsi
+    // edits can never leak into the EF-tracked English entity, and so it can't collide with
+    // `englishContent`'s own tracking identity when later saved.
+    private (Content Source, bool UsedEnglishFallback) GetFarsiEditSource(Content englishContent)
+    {
+        if (string.IsNullOrWhiteSpace(englishContent.FarsiContent))
+            return (CloneDetached(englishContent), true);
+
+        try
+        {
+            var parsed = JsonConvert.DeserializeObject<Content>(englishContent.FarsiContent, _farsiJsonSettings);
+            return parsed == null ? (CloneDetached(englishContent), true) : (parsed, false);
+        }
+        catch (JsonException)
+        {
+            return (CloneDetached(englishContent), true);
+        }
+    }
+
+    private static Content CloneDetached(Content content)
+    {
+        return JsonConvert.DeserializeObject<Content>(JsonConvert.SerializeObject(content, _farsiJsonSettings), _farsiJsonSettings);
+    }
+
+    private static FarsiContentEditDto MapToFarsiEditDto(Content content)
+    {
+        return new FarsiContentEditDto
+        {
+            Id = content.Id,
+            ApplicationId = content.ApplicationId,
+            TypeId = content.TypeId,
+            Title = content.Title,
+            HeadLine = content.HeadLine,
+            Abstract = content.Abstract,
+            Description = content.Description,
+            PublishDt = content.PublishDt,
+            Metadata = new FarsiContentMetadataEditDto
+            {
+                Id = content.Metadata?.Id ?? 0,
+                ContentId = content.Id,
+                Title = content.Metadata?.Title,
+                Author = content.Metadata?.Author,
+                Keywords = content.Metadata?.Keywords,
+                Description = content.Metadata?.Description
+            },
+            Sections = (content.Sections ?? new List<ContentSection>())
+                .OrderBy(s => s.Priority)
+                .Select(s => new FarsiSectionEditDto
+                {
+                    Id = s.Id,
+                    ContentId = s.ContentId,
+                    Priority = s.Priority,
+                    SectionElements = (s.Elements ?? new List<SectionElement>())
+                        .Select(e => new FarsiSectionElementEditDto
+                        {
+                            Id = e.Id,
+                            SectionId = e.SectionId,
+                            ElementType = e.ElementType,
+                            TinyText = e.TinyText,
+                            EditorText = e.EditorText,
+                            FileNameText = e.FileNameText,
+                            GalleryImages = e.GalleryImages,
+                            ElementTitle = e.ElementTitle,
+                            Size = e.Size
+                        }).ToList()
+                }).ToList()
+        };
     }
 
     [Route("/{area}/{controller}/{action}/{id}")]
