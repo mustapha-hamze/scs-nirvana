@@ -53,7 +53,7 @@
                 <div class="col-md-4 mb-2">
                     <label class="form-label" asp-for="TypeId">Type</label>
                     <select id="ddlContentTypeIds__Form" type="text" class="form-control" asp-for="TypeId"
-                        placeholder="Title">
+                            placeholder="Title">
                         @* <option value="@ViewData["TypeId"]">Pages</option> *@
 
                         @if (Model.TypeId.ToString().Contains("100"))
@@ -72,7 +72,7 @@
                 <div class="col-md-8 mb-2">
                     <label class="form-label" asp-for="Title">Title</label>
                     <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
-                        maxlength="256">
+                           maxlength="256">
                     <div class="invalid-feedback">
                         Min length is 4 and max length is 256
                     </div>
@@ -88,14 +88,14 @@
                 <div class="col-md-12 mb-2">
                     <label class="form-label" asp-for="Description">Description</label>
                     <textarea class="form-control" asp-for="Description" style="display: none;"
-                        id="textAreaDescription"></textarea>
+                              id="textAreaDescription"></textarea>
                     <div id="__descriptionEditor__" style="height: 300px;">
                     </div>
                 </div>
                 <div class="col-md-3 mb-2">
                     <label class="form-label">Publish Date & Time</label>
                     <input type="text" id="datetime-datepicker-publish" name="PublishDt" asp-for="PublishDt"
-                        value="@publishDateTime" class="form-control" placeholder="Date and Time">
+                           value="@publishDateTime" class="form-control" placeholder="Date and Time">
                 </div>
                 <div class="col-md-12">
                     @await Html.PartialAsync("_ContentFormSaveButton", Model)

@@ -16,12 +16,19 @@ public class ContentTranslator : IContentTranslator
     }
     public async Task<string> Translate(Content content)
     {
-        var contentStr = JsonConvert.SerializeObject(content);
+        var settings = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            NullValueHandling = NullValueHandling.Include
+        };
+        var contentStr = JsonConvert.SerializeObject(content, settings);
 
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage($@"
-                    You are a professional Persian translator for a luxury fashion magazine CMS.
+                    You are a professional Persian (Farsi) translator specializing in content for a luxury international magazine focused on fashion, 
+                    design, art, culture and lifestyle. You have expert knowledge of all terminology and specialized expressions in fashion, design, 
+                    architecture, art, and lifestyle, and you translate texts with precision, cultural nuance, and a high level of fluency for a Persian-speaking audience.
 
                     Translate all English user-facing text values in the provided JSON object into Persian (Farsi), while preserving the JSON structure exactly.
 

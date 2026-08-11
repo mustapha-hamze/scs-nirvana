@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Domains.Entities.ContentManagement
 {
@@ -22,6 +23,7 @@ namespace Domains.Entities.ContentManagement
 
         // relations
         [ForeignKey("ContentId")]
+        [JsonIgnore]
         public virtual Content Content { get; set; }
     }
 }

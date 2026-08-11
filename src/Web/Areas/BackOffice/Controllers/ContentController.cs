@@ -79,6 +79,7 @@ public class ContentController : BaseController
         {
             return View(new ContentDto
             {
+                TypeId = typeId,
                 PublishDt = DateTime.Now // Set default publish date to now
             });
         }
