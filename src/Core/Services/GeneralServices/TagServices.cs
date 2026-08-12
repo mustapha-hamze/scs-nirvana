@@ -10,19 +10,21 @@ namespace Services.GeneralServices
     {
         // fields
         private readonly global::Application.GeneralRepository.ITagRepository _tagRepository;
+        private readonly IMapper _mapper;
 
         // constructor
-        public TagServices(global::Application.GeneralRepository.ITagRepository tagRepository)
+        public TagServices(global::Application.GeneralRepository.ITagRepository tagRepository, IMapper mapper)
         {
             _tagRepository = tagRepository;
+            _mapper = mapper;
         }
 
         // methods
         public async Task<TagDto> Create(TagDto tag)
         {
             tag.IsActive = true;
-            var result = await _tagRepository.Create(Mapper(tag));
-            return Mapper(result);
+            var result = await _tagRepository.Create(_mapper.Map<Tag>(tag));
+            return _mapper.Map<TagDto>(result);
         }
 
         public async Task Delete(int id)
@@ -32,46 +34,17 @@ namespace Services.GeneralServices
 
         public List<TagDto> List(int applicationId)
         {
-            return Mapper(_tagRepository.List(applicationId));
+            return _mapper.Map<List<TagDto>>(_tagRepository.List(applicationId));
         }
 
         public List<TagDto> FindTagsByTypeId(int applicationId, int typeId)
         {
-            return Mapper(_tagRepository.FindTagsByTypeId(applicationId, typeId));
+            return _mapper.Map<List<TagDto>>(_tagRepository.FindTagsByTypeId(applicationId, typeId));
         }
 
         public async Task<TagDto> GetById(int id)
         {
-            return Mapper(await _tagRepository.GetById(id));
-        }
-
-        // mapper
-        private Tag Mapper(TagDto tag)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<TagDto, Tag>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<TagDto, Tag>(tag);
-        }
-        private TagDto Mapper(Tag tag)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Tag, TagDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<Tag, TagDto>(tag);
-        }
-        private List<TagDto> Mapper(List<Tag> tag)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Tag, TagDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<List<Tag>, List<TagDto>>(tag);
+            return _mapper.Map<TagDto>(await _tagRepository.GetById(id));
         }
     }
 }

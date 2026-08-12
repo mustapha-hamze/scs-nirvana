@@ -11,18 +11,20 @@ namespace Services.CMSServices
     {
         // fields
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
 
         // constructor
-        public CategoryServices(ICategoryRepository categoryRepository)
+        public CategoryServices(ICategoryRepository categoryRepository, IMapper mapper)
         {
             _categoryRepository = categoryRepository;
+            _mapper = mapper;
         }
 
         // methods
         public async Task<CategoryDto> Create(CategoryDto category)
         {
             category.IsActive = true;
-            return Mapper(await _categoryRepository.Create(Mapper(category)));
+            return _mapper.Map<CategoryDto>(await _categoryRepository.Create(_mapper.Map<Category>(category)));
         }
 
         public async Task Delete(int id)
@@ -32,46 +34,17 @@ namespace Services.CMSServices
 
         public List<CategoryDto> List(int applicationId)
         {
-            return Mapper(_categoryRepository.List(applicationId));
+            return _mapper.Map<List<CategoryDto>>(_categoryRepository.List(applicationId));
         }
 
         public async Task<CategoryDto> GetById(int id)
         {
-            return Mapper(await _categoryRepository.GetById(id));
+            return _mapper.Map<CategoryDto>(await _categoryRepository.GetById(id));
         }
 
         public List<CategoryDto> GetAllFullPath(int applicationId)
         {
-            return Mapper(_categoryRepository.GetAllFullPath(applicationId));
-        }
-
-        // mapper
-        private Category Mapper(CategoryDto category)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<CategoryDto, Category>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<CategoryDto, Category>(category);
-        }
-        private CategoryDto Mapper(Category category)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Category, CategoryDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<Category, CategoryDto>(category);
-        }
-        private List<CategoryDto> Mapper(List<Category> category)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Category, CategoryDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<List<Category>, List<CategoryDto>>(category);
+            return _mapper.Map<List<CategoryDto>>(_categoryRepository.GetAllFullPath(applicationId));
         }
     }
 }

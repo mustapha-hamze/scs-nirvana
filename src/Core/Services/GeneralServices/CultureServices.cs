@@ -11,18 +11,20 @@ namespace Services.GeneralServices
     {
         // fields
         private readonly ICultureRepository _cultureRepository;
+        private readonly IMapper _mapper;
 
         // constructor
-        public CultureServices(ICultureRepository cultureRepository)
+        public CultureServices(ICultureRepository cultureRepository, IMapper mapper)
         {
             _cultureRepository = cultureRepository;
+            _mapper = mapper;
         }
 
         // methods
         public async Task<CultureDto> Create(CultureDto culture)
         {
             culture.IsActive = true;
-            return Mapper(await _cultureRepository.Create(Mapper(culture)));
+            return _mapper.Map<CultureDto>(await _cultureRepository.Create(_mapper.Map<Culture>(culture)));
         }
 
         public async Task Delete(int id)
@@ -32,41 +34,12 @@ namespace Services.GeneralServices
 
         public List<CultureDto> List()
         {
-            return Mapper(_cultureRepository.List());
+            return _mapper.Map<List<CultureDto>>(_cultureRepository.List());
         }
 
         public async Task<CultureDto> GetById(int id)
         {
-            return Mapper(await _cultureRepository.GetById(id));
-        }
-
-        // mapper
-        private Culture Mapper(CultureDto culture)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<CultureDto, Culture>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<CultureDto, Culture>(culture);
-        }
-        private CultureDto Mapper(Culture culture)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Culture, CultureDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<Culture, CultureDto>(culture);
-        }
-        private List<CultureDto> Mapper(List<Culture> culture)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Culture, CultureDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<List<Culture>, List<CultureDto>>(culture);
+            return _mapper.Map<CultureDto>(await _cultureRepository.GetById(id));
         }
     }
 }

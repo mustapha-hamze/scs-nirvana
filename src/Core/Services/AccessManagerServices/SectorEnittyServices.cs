@@ -11,68 +11,39 @@ namespace Services.AccessManagerServices
     {
         // fields
         private readonly ISectorEntityRepository _sectorEntityRepository;
+        private readonly IMapper _mapper;
 
         // constructor
-        public SectorEntityServices(ISectorEntityRepository sectorEntityRepository)
+        public SectorEntityServices(ISectorEntityRepository sectorEntityRepository, IMapper mapper)
         {
             _sectorEntityRepository = sectorEntityRepository;
+            _mapper = mapper;
         }
 
         // methods
         public async Task Create(SectorEntityDto sectorEntity)
         {
-            await _sectorEntityRepository.Create(Mapper(sectorEntity));
+            await _sectorEntityRepository.Create(_mapper.Map<SectorEntity>(sectorEntity));
         }
 
         public async Task Update(SectorEntityDto sectorEntity)
         {
-            await _sectorEntityRepository.Update(Mapper(sectorEntity));
+            await _sectorEntityRepository.Update(_mapper.Map<SectorEntity>(sectorEntity));
         }
 
         public List<SectorEntityDto> GetSectorEntities(int sectorId)
         {
-            return Mapper(_sectorEntityRepository.GetSectorEntities(sectorId));
+            return _mapper.Map<List<SectorEntityDto>>(_sectorEntityRepository.GetSectorEntities(sectorId));
         }
 
         public List<SectorEntityDto> GetAllEntities()
         {
-            return Mapper(_sectorEntityRepository.GetAllEntities());
+            return _mapper.Map<List<SectorEntityDto>>(_sectorEntityRepository.GetAllEntities());
         }
 
         public async Task<SectorEntityDto> GetById(int id)
         {
-            return Mapper(await _sectorEntityRepository.GetById(id));
-        }
-
-        // mapper
-        private SectorEntity Mapper(SectorEntityDto sectorEntity)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<SectorEntityDto, SectorEntity>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<SectorEntityDto, SectorEntity>(sectorEntity);
-        }
-
-        private SectorEntityDto Mapper(SectorEntity sectorEntity)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<SectorEntity, SectorEntityDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<SectorEntity, SectorEntityDto>(sectorEntity);
-        }
-
-        private List<SectorEntityDto> Mapper(List<SectorEntity> sectorEntities)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<SectorEntity, SectorEntityDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<List<SectorEntity>, List<SectorEntityDto>>(sectorEntities);
+            return _mapper.Map<SectorEntityDto>(await _sectorEntityRepository.GetById(id));
         }
     }
 }

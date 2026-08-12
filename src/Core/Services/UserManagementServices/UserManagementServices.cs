@@ -11,18 +11,21 @@ namespace Services.UserManagementServices
     public class UserManagementServices : IUserManagementServices
     {
         private readonly IUserManagementRepository _userManagementRepository;
-        public UserManagementServices(IUserManagementRepository userManagementRepository)
+        private readonly IMapper _mapper;
+
+        public UserManagementServices(IUserManagementRepository userManagementRepository, IMapper mapper)
         {
             _userManagementRepository = userManagementRepository;
+            _mapper = mapper;
         }
         public List<UserDto> List(bool isAdminUser, string email = "")
         {
-            return Mapper(_userManagementRepository.List(isAdminUser, email));
+            return _mapper.Map<List<UserDto>>(_userManagementRepository.List(isAdminUser, email));
         }
 
         public UserDto GetUserByEmailAddress(string email)
         {
-            return Mapper(_userManagementRepository.GetUserByEmailAddress(email));
+            return _mapper.Map<UserDto>(_userManagementRepository.GetUserByEmailAddress(email));
         }
 
         public async Task<string> GetUserAccesses(string email)
@@ -43,28 +46,6 @@ namespace Services.UserManagementServices
         public async Task SetCurrentApplicationId(string email, int appId)
         {
             await _userManagementRepository.SetCurrentApplicationId(email, appId);
-        }
-
-        /// Mapper
-
-        private UserDto Mapper(ApplicationUser applicationUser)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<ApplicationUser, UserDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<ApplicationUser, UserDto>(applicationUser);
-        }
-
-        private List<UserDto> Mapper(List<ApplicationUser> applicationUsers)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<ApplicationUser, UserDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<List<ApplicationUser>, List<UserDto>>(applicationUsers);
         }
     }
 }
