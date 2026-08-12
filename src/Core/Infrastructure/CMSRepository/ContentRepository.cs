@@ -1,4 +1,6 @@
-﻿namespace Infrastructure.CMSRepository;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace Infrastructure.CMSRepository;
 
 public class ContentRepository : Repository<Content>, IContentRepository
 {
@@ -7,10 +9,10 @@ public class ContentRepository : Repository<Content>, IContentRepository
     private readonly SqlConnection _sqlConnection;
 
     // constructor
-    public ContentRepository(ApplicationDbContext dbContext) : base(dbContext)
+    public ContentRepository(ApplicationDbContext dbContext, IConfiguration configuration) : base(dbContext)
     {
         _dbContext = dbContext;
-        _sqlConnection = new(ConnectionString);
+        _sqlConnection = new(configuration.GetConnectionString("DefaultConnection"));
     }
 
     // methods

@@ -18,8 +18,6 @@ namespace Infrastructure.Data
             : base(options)
         {
         }
-        //public const string ConnectionString = "Data Source=65.109.7.113;Initial Catalog=___SCSDB_2023___;User Id=sa;Password=serDB2023@$8992;Trust Server Certificate=True;";
-        //public const string ConnectionString = "Data Source=SQL5110.site4now.net;Initial Catalog=db_a9616e_scsdatabase;User Id=db_a9616e_scsdatabase_admin;Password=2023ABab$#;Trust Server Certificate=True;";
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {
             builder.UseSqlServer(DBSetting.ConnectionString());
