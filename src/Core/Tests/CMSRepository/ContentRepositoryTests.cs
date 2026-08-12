@@ -2,25 +2,12 @@ using Core.Tests.TestSupport;
 using Domains.Entities.ContentManagement;
 using Infrastructure.CMSRepository;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Moq;
 using Xunit;
 
 namespace Core.Tests.CMSRepository;
 
 public class ContentRepositoryTests
 {
-    private static IConfiguration CreateConfiguration()
-    {
-        var section = new Mock<IConfigurationSection>();
-        section.Setup(s => s["DefaultConnection"]).Returns("Data Source=test;Initial Catalog=test;Integrated Security=true;");
-
-        var configuration = new Mock<IConfiguration>();
-        configuration.Setup(c => c.GetSection("ConnectionStrings")).Returns(section.Object);
-
-        return configuration.Object;
-    }
-
     [Fact]
     public async Task CreateContentCategories_ReplacesRelations_InOneAtomicOperation()
     {
@@ -34,7 +21,7 @@ public class ContentRepositoryTests
         await context.SaveChangesAsync();
 
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
-        var repository = new ContentRepository(context, CreateConfiguration(), unitOfWork);
+        var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
 
         await repository.CreateContentCategories("3|4|5", "category", content.Id);
 
@@ -59,7 +46,7 @@ public class ContentRepositoryTests
         await context.SaveChangesAsync();
 
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
-        var repository = new ContentRepository(context, CreateConfiguration(), unitOfWork);
+        var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
 
         await repository.CreateContentCategories("", "category", content.Id);
 
