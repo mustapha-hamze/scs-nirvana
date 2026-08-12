@@ -45,27 +45,27 @@ namespace Services.CMSServices
             await _contentRepository.Delete(id);
         }
 
-        public List<Content> GetContentByIdFull(int id)
+        public List<ContentApiDto> GetContentByIdFull(int id)
         {
             return _contentRepository.GetContentByIdFull(id);
         }
 
-        public List<Content> GetContentByTypeId(int typeId)
+        public List<ContentApiDto> GetContentByTypeId(int typeId)
         {
             return _contentRepository.GetContentByTypeId(typeId);
         }
 
-        public BlogIndexDto GetContentByTypeId(int typeId, int pageIndex = 1)
+        public BlogIndexApiDto GetContentByTypeId(int typeId, int pageIndex = 1)
         {
             return _contentRepository.GetContentByTypeId(typeId, pageIndex);
         }
 
-        public BlogIndexDto GetContentByCategoryId(int categoryId, int pageIndex = 1, int pageSize = 40)
+        public BlogIndexApiDto GetContentByCategoryId(int categoryId, int pageIndex = 1, int pageSize = 40)
         {
             return _contentRepository.GetContentByCategoryId(categoryId, pageIndex, pageSize);
         }
 
-        public BlogIndexDto GetContentByCategoryIdByDate(int categoryId, DateTime startDate, DateTime endDate, int pageIndex)
+        public BlogIndexApiDto GetContentByCategoryIdByDate(int categoryId, DateTime startDate, DateTime endDate, int pageIndex)
         {
             return _contentRepository.GetContentByCategoryIdByDate(categoryId, startDate, endDate, pageIndex);
         }
@@ -220,7 +220,7 @@ namespace Services.CMSServices
             return await _contentRepository.GetContentsInCategory(categoryId, applicationId);
         }
 
-        public List<Content> GetContentInCategoryAsBox(int categoryId)
+        public List<ContentApiDto> GetContentInCategoryAsBox(int categoryId)
         {
             return _contentRepository.GetContentInCategoryAsBox(categoryId);
         }

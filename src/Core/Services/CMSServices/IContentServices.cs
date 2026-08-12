@@ -42,12 +42,12 @@ namespace Services.CMSServices
 
         Task UpdateTranslate(int contentId, string translatedContent);
 
-        List<Content> GetContentByIdFull(int id);
-        List<Content> GetContentByTypeId(int typeId);
-        BlogIndexDto GetContentByTypeId(int typeId, int pageIndex = 1);
-        BlogIndexDto GetContentByCategoryId(int categoryId, int pageIndex = 1, int pageSize = 40);
-        BlogIndexDto GetContentByCategoryIdByDate(int categoryId, DateTime startDate, DateTime endDate, int pageIndex);
+        List<ContentApiDto> GetContentByIdFull(int id);
+        List<ContentApiDto> GetContentByTypeId(int typeId);
+        BlogIndexApiDto GetContentByTypeId(int typeId, int pageIndex = 1);
+        BlogIndexApiDto GetContentByCategoryId(int categoryId, int pageIndex = 1, int pageSize = 40);
+        BlogIndexApiDto GetContentByCategoryIdByDate(int categoryId, DateTime startDate, DateTime endDate, int pageIndex);
 
-        List<Content> GetContentInCategoryAsBox(int categoryId);
+        List<ContentApiDto> GetContentInCategoryAsBox(int categoryId);
     }
 }
