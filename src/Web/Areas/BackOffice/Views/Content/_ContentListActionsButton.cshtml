@@ -23,3 +23,9 @@
     <i class="mdi mdi-delete"></i>
 </a>
 }
+@if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_EDIT_FARSI_1014"))
+{
+    <a href="/BackOffice/Content/FarsiContentForm/@id/@typeId" class="action-icon" title="Manage Farsi Version">
+    <i class="mdi mdi-translate"></i>
+</a>
+}
