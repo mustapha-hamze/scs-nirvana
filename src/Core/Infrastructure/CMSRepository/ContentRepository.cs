@@ -59,7 +59,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
         var rowsCount = _dbContext.Contents.Count(c => c.TypeId == typeId && !c.IsDeleted && c.IsActive);
         var pageCount = rowsCount / 15;
-        if ((rowsCount % 15) > 1)
+        if ((rowsCount % 15) > 0)
             pageCount++;
 
         result.PagesCount = pageCount;
@@ -129,6 +129,13 @@ public class ContentRepository : Repository<Content>, IContentRepository
             .Take(pageSize)
             .ToList();
 
+        var contentIds = _result.Select(r => r.ContentId).ToList();
+        var imagesByContentId = _dbContext.ContentImages
+            .Where(i => contentIds.Contains(i.ContentId) && (i.Size == 640 || i.Size == 430 || i.Size == 860))
+            .ToList()
+            .GroupBy(i => i.ContentId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
         List<Content> contents = new();
         foreach (var item in _result)
         {
@@ -140,7 +147,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 HeadLine = item.HeadLine,
                 Description = item.Description,
                 CreatedDT = item.ContentCreatedDT,
-                Images = _dbContext.ContentImages.Where(i => i.ContentId == item.ContentId && (i.Size == 640 || i.Size == 430 || i.Size == 860)).ToList()
+                Images = imagesByContentId.TryGetValue(item.ContentId, out var images) ? images : new List<ContentImage>()
             });
         }
 
@@ -168,6 +175,13 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
         var result = query.ToList();
 
+        var contentIds = result.Select(r => r.ContentId).ToList();
+        var imagesByContentId = _dbContext.ContentImages
+            .Where(i => contentIds.Contains(i.ContentId) && i.Size == 640)
+            .ToList()
+            .GroupBy(i => i.ContentId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
         List<Content> contents = new();
         foreach (var item in result)
         {
@@ -178,7 +192,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 Abstract = item.Abstract,
                 HeadLine = item.HeadLine,
                 Description = item.Description,
-                Images = _dbContext.ContentImages.Where(i => i.ContentId == item.ContentId && i.Size == 640).ToList()
+                Images = imagesByContentId.TryGetValue(item.ContentId, out var images) ? images : new List<ContentImage>()
             });
         }
 
@@ -209,9 +223,10 @@ public class ContentRepository : Repository<Content>, IContentRepository
             .Skip(skipCount).Take(15).ToList();
 
         var rowsCount = _dbContext.Contents
-       .Count(c => c.Categories.Contains(categoryId.ToString()) && !c.IsDeleted && c.IsActive);
+       .Count(c => c.Categories.Contains(categoryId.ToString()) && !c.IsDeleted && c.IsActive
+            && c.CreatedDT > startDate && c.CreatedDT < endDate);
         var pageCount = rowsCount / 15;
-        if ((rowsCount % 15) > 1)
+        if ((rowsCount % 15) > 0)
             pageCount++;
 
         result.PagesCount = pageCount;
@@ -255,6 +270,13 @@ public class ContentRepository : Repository<Content>, IContentRepository
         return _dbContext.ContentSections
             .Where(s => !s.IsDeleted && s.ContentId == contentId)
             .OrderBy(s => s.Priority).ToList();
+    }
+
+    public List<SectionElement> GetSectionElements(List<int> sectionIds)
+    {
+        return _dbContext.SectionElements
+            .Where(e => !e.IsDeleted && e.IsActive && sectionIds.Contains(e.SectionId))
+            .ToList();
     }
 
     public List<SectionElement> GetSectionElements(int sectionId)

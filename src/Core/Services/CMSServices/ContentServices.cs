@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Infrastructure.Dto.CMSDtos;
@@ -141,13 +142,17 @@ namespace Services.CMSServices
         {
             var sections = _contentRepository.GetContentSections(contentId);
 
+            var elementsBySectionId = _contentRepository.GetSectionElements(sections.Select(s => s.Id).ToList())
+                .GroupBy(e => e.SectionId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             var _sections = new List<SectionDto>();
             foreach (var item in sections)
             {
                 var __section = new SectionDto();
                 __section = _mapper.Map<SectionDto>(item);
-                var element = _mapper.Map<List<SectionElementDto>>(_contentRepository.GetSectionElements(item.Id));
-                __section.SectionElements = element;
+                var elements = elementsBySectionId.TryGetValue(item.Id, out var sectionElements) ? sectionElements : new List<SectionElement>();
+                __section.SectionElements = _mapper.Map<List<SectionElementDto>>(elements);
                 _sections.Add(__section);
             }
 

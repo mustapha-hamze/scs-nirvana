@@ -7,6 +7,7 @@ public interface IContentRepository : IRepository<Content>
     List<Content> OurBlogBoxList(int applicationId);
     List<ContentSection> GetContentSections(int contentId);
     List<SectionElement> GetSectionElements(int sectionId);
+    List<SectionElement> GetSectionElements(List<int> sectionIds);
     Task UpdateSectionPriority(int sectionId, int priority);
     Task CreateContentCategories(string data, string entity, int contentId);
     Task CreateContentTags(string data, string entity, int contentId);

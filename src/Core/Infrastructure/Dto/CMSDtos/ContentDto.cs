@@ -1,7 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Domains.Entities.ContentManagement;
-using System.ComponentModel.DataAnnotations.Schema;
-using Domains.Entities.General;
 
 namespace Infrastructure.Dto.CMSDtos
 {
@@ -31,15 +28,5 @@ namespace Infrastructure.Dto.CMSDtos
         public string Cultures { get; set; }
 
         public DateTime PublishDt { get; set; }
-
-        // relation
-        public virtual ICollection<ContentSection> Sections { get; set; }
-
-        public virtual ICollection<ContentImage> Images { get; set; }
-
-        public virtual ContentMetadata Metadata { get; set; }
-
-        [ForeignKey("ApplicationId")]
-        public virtual Domains.Entities.General.Application Application { get; set; }
     }
 }
