@@ -7,7 +7,6 @@ using Domains.Entities.CustomModule;
 
 namespace Domains.Entities.General
 {
-    [Table("GNR_Applications")]
     public class Application : BaseEntity
     {
         // property

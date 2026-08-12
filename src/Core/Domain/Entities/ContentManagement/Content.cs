@@ -4,7 +4,6 @@ using Domains.Entities.General;
 
 namespace Domains.Entities.ContentManagement
 {
-    [Table("CMS_Contents")]
     public class Content : BaseEntity
     {
         // property

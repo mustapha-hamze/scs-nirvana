@@ -30,6 +30,39 @@ namespace Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // General
+            modelBuilder.Entity<Domains.Entities.General.Application>().ToTable("GNR_Applications");
+            modelBuilder.Entity<SystemLog>().ToTable("GRN_SystemLogs");
+            modelBuilder.Entity<Domains.Entities.General.Tag>().ToTable("GNR_Tags");
+            modelBuilder.Entity<Culture>().ToTable("GNR_Cultures");
+            modelBuilder.Entity<UserInApplication>().ToTable("GNR_UserInApplications");
+            modelBuilder.Entity<ApplicationSetting>().ToTable("GNR_ApplicationSettings");
+            modelBuilder.Entity<SystemType>().ToTable("GNR_SystemTypes");
+            modelBuilder.Entity<Sector>().ToTable("AME_Sectors");
+            modelBuilder.Entity<SectorEntity>().ToTable("AME_SectorEntities");
+            modelBuilder.Entity<EntityAccess>().ToTable("AME_EntityAccesses");
+            modelBuilder.Entity<UserAccess>().ToTable("GNR_UserAccesses");
+
+            // CMS
+            modelBuilder.Entity<Category>().ToTable("CMS_Categories");
+            modelBuilder.Entity<Comment>().ToTable("CMS_Comments");
+            modelBuilder.Entity<Content>().ToTable("CMS_Contents");
+            modelBuilder.Entity<ContentImage>().ToTable("CMS_ContentImages");
+            modelBuilder.Entity<ContentMetadata>().ToTable("CMS_ContentMetadata");
+            modelBuilder.Entity<ContentSection>().ToTable("CMS_ContentSections");
+            modelBuilder.Entity<Schema>().ToTable("CMS_Schema");
+            modelBuilder.Entity<SchemaDetails>().ToTable("CMS_SchemaDetails");
+            modelBuilder.Entity<SectionElement>().ToTable("CMS_SectionElements");
+            modelBuilder.Entity<ContentInCategory>().ToTable("CMS_ContentInCategories");
+            modelBuilder.Entity<ContentInTag>().ToTable("CMS_ContentInTags");
+            modelBuilder.Entity<ContentInCulture>().ToTable("CMS_ContentInCultures");
+            modelBuilder.Entity<ContentAttachment>().ToTable("CMS_ContentAttachments");
+            modelBuilder.Entity<ContentAttachmentItem>().ToTable("CMS_ContentAttachmentItems");
+
+            // SCM = System Custom Module
+            modelBuilder.Entity<Domains.Entities.CustomModule.Slider>().ToTable("SCM_Sliders");
+            modelBuilder.Entity<SliderItem>().ToTable("SCM_SliderItems");
         }
 
         // General

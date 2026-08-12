@@ -1,6 +1,5 @@
 ﻿namespace Domains.Entities.ContentManagement;
 
-[Table("CMS_Comments")]
 public class Comment : BaseEntity
 {
     public int ContentId { get; set; }

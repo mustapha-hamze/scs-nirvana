@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 
 namespace Domains.Entities.ContentManagement
 {
-    [Table("CMS_ContentImages")]
     public class ContentImage : BaseEntity
     {
         public int ContentId { get; set; }

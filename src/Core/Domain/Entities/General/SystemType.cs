@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domains.Entities.General
 {
-    [Table("GNR_SystemTypes")]
     public class SystemType : BaseEntity
     {
         public int ApplicationId { get; set; }

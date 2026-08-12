@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domains.Entities.CustomModule
 {
-    [Table("SCM_SliderItems")]
     public class SliderItem : BaseEntity
     {
         public int SliderId { get; set; }

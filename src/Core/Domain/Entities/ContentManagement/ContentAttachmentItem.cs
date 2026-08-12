@@ -1,5 +1,4 @@
 namespace Domains.Entities.ContentManagement;
-[Table("CMS_ContentAttachmentItems")]
 public class ContentAttachmentItem : BaseEntity
 {
     public int AttachmentId { get; set; }

@@ -5,7 +5,6 @@ using Domains.Entities.General;
 
 namespace Domains.Entities.ContentManagement
 {
-    [Table("CMS_Schema")]
     public class Schema : BaseEntity
     {
         public Schema()

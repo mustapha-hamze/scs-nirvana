@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace Domains.Entities.ContentManagement
 {
-    [Table("CMS_ContentMetadata")]
     public class ContentMetadata : BaseEntity
     {
         public int ContentId { get; set; }

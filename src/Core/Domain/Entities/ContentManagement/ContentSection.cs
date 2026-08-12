@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 
 namespace Domains.Entities.ContentManagement
 {
-    [Table("CMS_ContentSections")]
     public class ContentSection : BaseEntity
     {
 

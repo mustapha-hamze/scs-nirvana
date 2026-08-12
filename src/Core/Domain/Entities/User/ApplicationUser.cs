@@ -2,6 +2,10 @@
 using System;
 
 namespace Domains.Entities.User;
+
+// Identity integration concern: this type is coupled to ASP.NET Core Identity (IdentityUser)
+// rather than being a persistence-agnostic domain type. Kept here to avoid disrupting
+// IdentityDbContext<ApplicationUser> and the many repositories/services that depend on it.
 public class ApplicationUser : IdentityUser
 {
     public ApplicationUser()
