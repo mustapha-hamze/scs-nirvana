@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domains.Entities.ContentManagement;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using OpenAI.Chat;
 
@@ -9,10 +10,10 @@ namespace Core.Services.TranslatorServices;
 public class ContentTranslator : IContentTranslator
 {
     private readonly ChatClient _client;
-    private readonly string _apiKey = "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";
-    public ContentTranslator()
+
+    public ContentTranslator(IConfiguration configuration)
     {
-        _client = new ChatClient("gpt-5.2-chat-latest", _apiKey);
+        _client = new ChatClient("gpt-5.2-chat-latest", configuration["OPENAI_API_KEY"]);
     }
     public async Task<string> Translate(Content content)
     {

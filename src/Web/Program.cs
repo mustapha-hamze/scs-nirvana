@@ -13,6 +13,8 @@ using Application.ContentManagement;
 using Newtonsoft.Json;
 using Core.Services.TranslatorServices;
 
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<FormOptions>(options =>
