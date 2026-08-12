@@ -1,10 +1,11 @@
+using Application.Tag;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using StackExchange.Redis;
 
-namespace Application.Tag;
+namespace Infrastructure.Tag;
 
 public class TagProvider : ITagProvider
 {

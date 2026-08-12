@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Domains.Entities.AccessManagement;
-using Infrastructure.AccessManagerRepository;
+using Application.AccessManagerRepository;
 using Infrastructure.Dto.AccessManagerDtos;
 
 namespace Services.AccessManagerServices

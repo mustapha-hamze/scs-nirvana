@@ -1,8 +1,9 @@
+using Application.ContentManagement;
 using Domains.Entities.ContentManagement;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ContentManagement;
+namespace Infrastructure.ContentManagement;
 
 public class CategoryProvider : ICategoryProvider
 {

@@ -1,7 +1,8 @@
+using Application.Slider;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Slider;
+namespace Infrastructure.Slider;
 
 public class SliderProvider : ISliderProvider
 {

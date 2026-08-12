@@ -1,4 +1,5 @@
-﻿using Application.ResultModels;
+﻿using Application.ContentManagement;
+using Application.ResultModels;
 using Domains.Entities.ContentManagement;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using StackExchange.Redis;
 
-namespace Application.ContentManagement;
+namespace Infrastructure.ContentManagement;
 
 public class ContentProvider : IContentProvider
 {

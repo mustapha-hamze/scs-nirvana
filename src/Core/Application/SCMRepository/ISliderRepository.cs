@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Domains.Entities.CustomModule;
-using Infrastructure.Repository;
+using Application.Repository;
 
-namespace Infrastructure.SCMRepository
+namespace Application.SCMRepository
 {
-    public interface ISliderRepository : IRepository<Slider>
+    public interface ISliderRepository : IRepository<Domains.Entities.CustomModule.Slider>
     {
-        List<Slider> GetSliders(int applicationId);
+        List<Domains.Entities.CustomModule.Slider> GetSliders(int applicationId);
         List<SliderItem> GetSliderItems(int sliderId);
         Task<SliderItem> CreateSliderItem(SliderItem sliderItem);
         Task DeactiveSliderItem(int sliderItemId);
         Task DeleteSliderItem(int sliderItemId);
         Task ActiveSliderItem(int sliderItemId);
-        Slider GetSliderWithItems(int sliderId);
+        Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId);
         Task<SliderItem> GetSliderItem(int sliderItemId);
         Task<SliderItem> UpdateSliderItem(SliderItem sliderItem);
     }

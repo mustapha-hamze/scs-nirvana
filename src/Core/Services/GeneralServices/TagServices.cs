@@ -3,17 +3,16 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Infrastructure.Dto.GeneralDtos;
 using Domains.Entities.General;
-using Infrastructure.GeneralRepository;
 
 namespace Services.GeneralServices
 {
     public class TagServices : ITagServices
     {
-        // fields 
-        private readonly ITagRepository _tagRepository;
+        // fields
+        private readonly global::Application.GeneralRepository.ITagRepository _tagRepository;
 
         // constructor
-        public TagServices(ITagRepository tagRepository)
+        public TagServices(global::Application.GeneralRepository.ITagRepository tagRepository)
         {
             _tagRepository = tagRepository;
         }

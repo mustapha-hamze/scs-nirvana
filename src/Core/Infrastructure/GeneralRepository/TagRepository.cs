@@ -6,7 +6,7 @@ using Infrastructure.Repository;
 
 namespace Infrastructure.GeneralRepository
 {
-    public class TagRepository : Repository<Tag>, ITagRepository
+    public class TagRepository : Repository<Domains.Entities.General.Tag>, global::Application.GeneralRepository.ITagRepository
     {
         // fields
         private readonly ApplicationDbContext _dbContext;
@@ -19,7 +19,7 @@ namespace Infrastructure.GeneralRepository
         }
 
         // methods
-        public List<Tag> List(int applicationId)
+        public List<Domains.Entities.General.Tag> List(int applicationId)
         {
             return _dbContext.Tags
                 .Where(t => t.ApplicationId == applicationId && !t.IsDeleted)
@@ -27,7 +27,7 @@ namespace Infrastructure.GeneralRepository
                 .ToList();
         }
 
-        public List<Tag> FindTagsByTypeId(int applicationId, int typeId)
+        public List<Domains.Entities.General.Tag> FindTagsByTypeId(int applicationId, int typeId)
         {
             return _dbContext.Tags
                 .Where(t => t.ApplicationId == applicationId && !t.IsDeleted && t.TypeId == typeId)

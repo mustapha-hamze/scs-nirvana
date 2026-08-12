@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Domains.Entities.CustomModule;
-using Infrastructure.SCMRepository;
 
 namespace Services.SCMServices
 {
     public class SliderServices : ISliderServices
     {
-        private readonly ISliderRepository _sliderRepository;
-        public SliderServices(ISliderRepository sliderRepository)
+        private readonly global::Application.SCMRepository.ISliderRepository _sliderRepository;
+        public SliderServices(global::Application.SCMRepository.ISliderRepository sliderRepository)
         {
             _sliderRepository = sliderRepository;
         }

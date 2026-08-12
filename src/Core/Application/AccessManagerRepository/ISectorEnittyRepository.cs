@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Domains.Entities.AccessManagement;
-using Infrastructure.Repository;
+using Application.Repository;
 
-namespace Infrastructure.AccessManagerRepository
+namespace Application.AccessManagerRepository
 {
     public interface ISectorEntityRepository : IRepository<SectorEntity>
     {

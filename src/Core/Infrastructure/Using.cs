@@ -6,6 +6,7 @@ global using Infrastructure.CQRS.Queries.ContentManagement.Attachment;
 global using Domains.Entities.ContentManagement;
 global using Infrastructure.CQRS.Command.ContentManagement.Attachment;
 global using Infrastructure.Repository;
+global using Application.Repository;
 global using Microsoft.EntityFrameworkCore;
 global using Dapper;
 global using Microsoft.Data.SqlClient;

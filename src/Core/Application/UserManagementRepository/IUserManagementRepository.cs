@@ -1,6 +1,6 @@
 using Domains.Entities.User;
 
-namespace Infrastructure.UserManagementRepository
+namespace Application.UserManagementRepository
 {
     public interface IUserManagementRepository
     {

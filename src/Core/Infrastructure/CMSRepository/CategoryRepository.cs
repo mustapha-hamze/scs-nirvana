@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.CMSRepository;
 using Domains.Entities.ContentManagement;
 using Dapper;
 using Microsoft.Data.SqlClient;

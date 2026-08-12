@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Domains.Entities.ContentManagement;
-using Infrastructure.Repository;
+using Application.Repository;
 
-namespace Infrastructure.CMSRepository
+namespace Application.CMSRepository
 {
     public interface ICategoryRepository : IRepository<Category>
     {

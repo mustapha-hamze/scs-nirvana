@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Domains.Entities.User;
 using Infrastructure.Dto.UserManagementDtos;
-using Infrastructure.UserManagementRepository;
+using Application.UserManagementRepository;
 using Dapper;
 
 namespace Services.UserManagementServices

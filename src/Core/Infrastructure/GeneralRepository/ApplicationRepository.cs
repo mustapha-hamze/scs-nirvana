@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.GeneralRepository
 {
-    public class ApplicationRepository : Repository<Application>, IApplicationRepository
+    public class ApplicationRepository : Repository<Domains.Entities.General.Application>, global::Application.GeneralRepository.IApplicationRepository
     {
         private readonly ApplicationDbContext _dbContext;
 
@@ -18,7 +18,7 @@ namespace Infrastructure.GeneralRepository
             _dbContext = dbContext;
         }
 
-        public List<Application> List()
+        public List<Domains.Entities.General.Application> List()
         {
             return _dbContext.Applications
                 .Where(a => !a.IsDeleted)

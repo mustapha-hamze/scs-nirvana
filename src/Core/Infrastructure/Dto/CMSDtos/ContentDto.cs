@@ -40,6 +40,6 @@ namespace Infrastructure.Dto.CMSDtos
         public virtual ContentMetadata Metadata { get; set; }
 
         [ForeignKey("ApplicationId")]
-        public virtual Application Application { get; set; }
+        public virtual Domains.Entities.General.Application Application { get; set; }
     }
 }

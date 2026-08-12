@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Infrastructure.Dto.CMSDtos;
 using Domains.Entities.ContentManagement;
-using Infrastructure.CMSRepository;
+using Application.CMSRepository;
 
 namespace Services.CMSServices
 {

@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Infrastructure.Dto.CMSDtos;
 using Domains.Entities.ContentManagement;
+using Application.CMSRepository;
+using Application.Repository;
 using Infrastructure;
-using Infrastructure.CMSRepository;
-using Infrastructure.Repository;
 
 namespace Services.CMSServices
 {

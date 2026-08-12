@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Domains.Entities.General;
-using Infrastructure.Repository;
+using Application.Repository;
 
-namespace Infrastructure.GeneralRepository
+namespace Application.GeneralRepository
 {
     public interface ISystemTypeRepository : IRepository<SystemType>
     {

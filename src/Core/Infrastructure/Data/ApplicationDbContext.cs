@@ -33,9 +33,9 @@ namespace Infrastructure.Data
         }
 
         // General
-        public DbSet<Application> Applications { get; set; }
+        public DbSet<Domains.Entities.General.Application> Applications { get; set; }
         public DbSet<SystemLog> SystemLogs { get; set; }
-        public DbSet<Tag> Tags { get; set; }
+        public DbSet<Domains.Entities.General.Tag> Tags { get; set; }
         public DbSet<Culture> Cultures { get; set; }
         public DbSet<UserInApplication> UserInApplications { get; set; }
         public DbSet<ApplicationSetting> ApplicationSettings { get; set; }
@@ -63,7 +63,7 @@ namespace Infrastructure.Data
 
 
         // SCM = System Custom Module
-        public DbSet<Slider> Sliders { get; set; }
+        public DbSet<Domains.Entities.CustomModule.Slider> Sliders { get; set; }
         public DbSet<SliderItem> SliderItems { get; set; }
     }
 }

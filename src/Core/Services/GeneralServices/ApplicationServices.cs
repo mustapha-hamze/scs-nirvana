@@ -4,19 +4,18 @@ using AutoMapper;
 using Infrastructure.Dto.GeneralDtos;
 using Domains.Entities.General;
 using Infrastructure;
-using Infrastructure.GeneralRepository;
-using Infrastructure.Repository;
+using Application.Repository;
 
 namespace Services.GeneralServices
 {
     public class ApplicationServices : IApplicationServices
     {
         // fields
-        private readonly IApplicationRepository _applicationRepository;
+        private readonly global::Application.GeneralRepository.IApplicationRepository _applicationRepository;
         private readonly IRepository<ApplicationSetting> _applicationSettingRepository;
 
         // cunstructor
-        public ApplicationServices(IApplicationRepository applicationRepository, IRepository<ApplicationSetting> applicationSettingRepository)
+        public ApplicationServices(global::Application.GeneralRepository.IApplicationRepository applicationRepository, IRepository<ApplicationSetting> applicationSettingRepository)
         {
             _applicationSettingRepository = applicationSettingRepository;
             _applicationRepository = applicationRepository;
@@ -74,34 +73,34 @@ namespace Services.GeneralServices
         }
 
         // auto mappers
-        private List<ApplicationDto> Mapper(List<Application> applications)
+        private List<ApplicationDto> Mapper(List<Domains.Entities.General.Application> applications)
         {
             var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Application, ApplicationDto>()
+                cfg.CreateMap<Domains.Entities.General.Application, ApplicationDto>()
             );
 
             IMapper mapper = config.CreateMapper();
-            return mapper.Map<List<Application>, List<ApplicationDto>>(applications);
+            return mapper.Map<List<Domains.Entities.General.Application>, List<ApplicationDto>>(applications);
         }
 
-        private ApplicationDto Mapper(Application application)
+        private ApplicationDto Mapper(Domains.Entities.General.Application application)
         {
             var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Application, ApplicationDto>()
+                cfg.CreateMap<Domains.Entities.General.Application, ApplicationDto>()
             );
 
             IMapper mapper = config.CreateMapper();
-            return mapper.Map<Application, ApplicationDto>(application);
+            return mapper.Map<Domains.Entities.General.Application, ApplicationDto>(application);
         }
 
-        private Application Mapper(ApplicationDto application)
+        private Domains.Entities.General.Application Mapper(ApplicationDto application)
         {
             var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<ApplicationDto, Application>()
+                cfg.CreateMap<ApplicationDto, Domains.Entities.General.Application>()
             );
 
             IMapper mapper = config.CreateMapper();
-            return mapper.Map<ApplicationDto, Application>(application);
+            return mapper.Map<ApplicationDto, Domains.Entities.General.Application>(application);
         }
 
         private List<UserInApplicationDto> Mapper(List<UserInApplication> userApplications)

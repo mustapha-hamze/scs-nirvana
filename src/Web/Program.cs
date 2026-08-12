@@ -1,4 +1,10 @@
 ﻿using System.Text.Json.Serialization;
+using Application.AccessManagerRepository;
+using Application.CMSRepository;
+using Application.GeneralRepository;
+using Application.Repository;
+using Application.SCMRepository;
+using Application.UserManagementRepository;
 using Infrastructure.AccessManagerRepository;
 using Infrastructure.CMSRepository;
 using Infrastructure.GeneralRepository;
@@ -10,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Web.Areas.BackOffice.Controllers;
 using Microsoft.AspNetCore.Http.Features;
 using Application.ContentManagement;
+using Infrastructure.ContentManagement;
 using Newtonsoft.Json;
 using Core.Services.TranslatorServices;
 
