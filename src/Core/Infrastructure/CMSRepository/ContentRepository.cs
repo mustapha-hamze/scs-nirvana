@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Application.UnitOfWork;
+using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.CMSRepository;
 
@@ -7,12 +8,14 @@ public class ContentRepository : Repository<Content>, IContentRepository
     // fields
     private readonly ApplicationDbContext _dbContext;
     private readonly SqlConnection _sqlConnection;
+    private readonly IUnitOfWork _unitOfWork;
 
     // constructor
-    public ContentRepository(ApplicationDbContext dbContext, IConfiguration configuration) : base(dbContext)
+    public ContentRepository(ApplicationDbContext dbContext, IConfiguration configuration, IUnitOfWork unitOfWork) : base(dbContext)
     {
         _dbContext = dbContext;
         _sqlConnection = new(configuration.GetConnectionString("DefaultConnection"));
+        _unitOfWork = unitOfWork;
     }
 
     // methods
@@ -271,102 +274,108 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
     public async Task CreateContentCategories(string data, string entity, int contentId)
     {
-        var content = _dbContext.Contents.Single(c => c.Id == contentId);
-
-        content.Categories = data;
-        content.UpdatedDT = DateTime.Now;
-        _dbContext.Entry(content).State = EntityState.Modified;
-        await _dbContext.SaveChangesAsync();
-
-        _dbContext.ContentInCategories
-            .RemoveRange(_dbContext.ContentInCategories
-            .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
-        await _dbContext.SaveChangesAsync();
-
-        if (data != "" && data != null && data != string.Empty)
+        await _unitOfWork.ExecuteInTransactionAsync(() =>
         {
-            var categories = data.Split('|');
-            foreach (var item in categories)
+            var content = _dbContext.Contents.Single(c => c.Id == contentId);
+
+            content.Categories = data;
+            content.UpdatedDT = DateTime.Now;
+            _dbContext.Entry(content).State = EntityState.Modified;
+
+            _dbContext.ContentInCategories
+                .RemoveRange(_dbContext.ContentInCategories
+                .Where(c => c.ContentId == contentId)
+                .AsEnumerable());
+
+            if (data != "" && data != null && data != string.Empty)
             {
-                if (item != null && item != "" && item != string.Empty)
+                var categories = data.Split('|');
+                foreach (var item in categories)
                 {
-                    _dbContext.ContentInCategories.Add(new ContentInCategory
+                    if (item != null && item != "" && item != string.Empty)
                     {
-                        ContentId = contentId,
-                        CategoryId = Convert.ToInt32(item),
-                        CreatedDt = DateTime.Now
-                    });
-                    await _dbContext.SaveChangesAsync();
+                        _dbContext.ContentInCategories.Add(new ContentInCategory
+                        {
+                            ContentId = contentId,
+                            CategoryId = Convert.ToInt32(item),
+                            CreatedDt = DateTime.Now
+                        });
+                    }
                 }
             }
-        }
+
+            return Task.CompletedTask;
+        });
     }
 
     public async Task CreateContentTags(string data, string entity, int contentId)
     {
-        var content = _dbContext.Contents.Single(c => c.Id == contentId);
-        content.Tags = data;
-        content.UpdatedDT = DateTime.Now;
-        _dbContext.Entry(content).State = EntityState.Modified;
-        await _dbContext.SaveChangesAsync();
-
-        _dbContext.ContentInTags
-            .RemoveRange(_dbContext.ContentInTags
-            .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
-        await _dbContext.SaveChangesAsync();
-
-        if (data != "" && data != null && data != string.Empty)
+        await _unitOfWork.ExecuteInTransactionAsync(() =>
         {
-            var tags = data.Split('|');
+            var content = _dbContext.Contents.Single(c => c.Id == contentId);
+            content.Tags = data;
+            content.UpdatedDT = DateTime.Now;
+            _dbContext.Entry(content).State = EntityState.Modified;
 
-            foreach (var item in tags)
+            _dbContext.ContentInTags
+                .RemoveRange(_dbContext.ContentInTags
+                .Where(c => c.ContentId == contentId)
+                .AsEnumerable());
+
+            if (data != "" && data != null && data != string.Empty)
             {
-                if (item != null && item != "" && item != string.Empty)
+                var tags = data.Split('|');
+
+                foreach (var item in tags)
                 {
-                    _dbContext.ContentInTags.Add(new ContentInTag
+                    if (item != null && item != "" && item != string.Empty)
                     {
-                        ContentId = contentId,
-                        TagId = Convert.ToInt32(item)
-                    });
-                    await _dbContext.SaveChangesAsync();
+                        _dbContext.ContentInTags.Add(new ContentInTag
+                        {
+                            ContentId = contentId,
+                            TagId = Convert.ToInt32(item)
+                        });
+                    }
                 }
             }
-        }
+
+            return Task.CompletedTask;
+        });
     }
 
     public async Task CreateContentCultures(string data, string entity, int contentId)
     {
-        var content = _dbContext.Contents.Single(c => c.Id == contentId);
-        content.Cultures = data;
-        content.UpdatedDT = DateTime.Now;
-        _dbContext.Entry(content).State = EntityState.Modified;
-        await _dbContext.SaveChangesAsync();
-
-        _dbContext.ContentInCultures
-            .RemoveRange(_dbContext.ContentInCultures
-            .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
-        await _dbContext.SaveChangesAsync();
-
-        if (data != "" && data != null && data != string.Empty)
+        await _unitOfWork.ExecuteInTransactionAsync(() =>
         {
-            var Cultures = data.Split('|');
+            var content = _dbContext.Contents.Single(c => c.Id == contentId);
+            content.Cultures = data;
+            content.UpdatedDT = DateTime.Now;
+            _dbContext.Entry(content).State = EntityState.Modified;
 
-            foreach (var item in Cultures)
+            _dbContext.ContentInCultures
+                .RemoveRange(_dbContext.ContentInCultures
+                .Where(c => c.ContentId == contentId)
+                .AsEnumerable());
+
+            if (data != "" && data != null && data != string.Empty)
             {
-                if (item != null && item != "" && item != string.Empty)
+                var Cultures = data.Split('|');
+
+                foreach (var item in Cultures)
                 {
-                    _dbContext.ContentInCultures.Add(new ContentInCulture
+                    if (item != null && item != "" && item != string.Empty)
                     {
-                        ContentId = contentId,
-                        CultureId = Convert.ToInt32(item)
-                    });
-                    await _dbContext.SaveChangesAsync();
+                        _dbContext.ContentInCultures.Add(new ContentInCulture
+                        {
+                            ContentId = contentId,
+                            CultureId = Convert.ToInt32(item)
+                        });
+                    }
                 }
             }
-        }
+
+            return Task.CompletedTask;
+        });
     }
 
     public async Task DeleteAllContentImages(int contentId)

@@ -5,6 +5,7 @@ using Application.GeneralRepository;
 using Application.Repository;
 using Application.SCMRepository;
 using Application.UserManagementRepository;
+using Application.UnitOfWork;
 using Infrastructure.AccessManagerRepository;
 using Infrastructure.CMSRepository;
 using Infrastructure.GeneralRepository;
@@ -12,6 +13,7 @@ using Infrastructure.Mapper;
 using Infrastructure.Repository;
 using Infrastructure.SCMRepository;
 using Infrastructure.UserManagementRepository;
+using Infrastructure.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Web.Areas.BackOffice.Controllers;
 using Microsoft.AspNetCore.Http.Features;
@@ -35,6 +37,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IUserManagementRepository), typeof(UserManagementRepository));
 builder.Services.AddTransient<IUserManagementServices, UserManagementServices>();
 builder.Services.AddScoped(typeof(IApplicationRepository), typeof(ApplicationRepository));
