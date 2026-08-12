@@ -6,6 +6,8 @@
 /src/Core/Infrastructure/obj
 /src/Core/Services/bin
 /src/Core/Services/obj
+/src/Core/Tests/bin
+/src/Core/Tests/obj
 /src/Web/bin
 /src/Web/obj
 /src/Web/wwwroot/Storage
