@@ -18,12 +18,6 @@ namespace Infrastructure.Data
             : base(options)
         {
         }
-        protected override void OnConfiguring(DbContextOptionsBuilder builder)
-        {
-            builder.UseSqlServer(DBSetting.ConnectionString());
-
-            base.OnConfiguring(builder);
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
