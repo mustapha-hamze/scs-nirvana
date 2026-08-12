@@ -35,6 +35,7 @@ namespace Infrastructure.Data
             modelBuilder.Entity<SectorEntity>().ToTable("AME_SectorEntities");
             modelBuilder.Entity<EntityAccess>().ToTable("AME_EntityAccesses");
             modelBuilder.Entity<UserAccess>().ToTable("GNR_UserAccesses");
+            modelBuilder.Entity<UserAttachment>().ToTable("GNR_UserAttachments");
 
             // CMS
             modelBuilder.Entity<Category>().ToTable("CMS_Categories");
@@ -69,6 +70,7 @@ namespace Infrastructure.Data
         public DbSet<SectorEntity> SectorEntities { get; set; }
         public DbSet<EntityAccess> EntityAccesses { get; set; }
         public DbSet<UserAccess> UserAccesses { get; set; }
+        public DbSet<UserAttachment> UserAttachments { get; set; }
 
         // CMS
         public DbSet<Category> Categories { get; set; }

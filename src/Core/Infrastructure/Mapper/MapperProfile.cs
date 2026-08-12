@@ -72,6 +72,8 @@ namespace Infrastructure.Mapper
 
             // User management
             CreateMap<ApplicationUser, UserDto>();
+            CreateMap<UserAttachment, UserAttachmentDto>();
+            CreateMap<UserAttachmentDto, UserAttachment>();
         }
     }
 }

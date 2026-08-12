@@ -1,7 +1,7 @@
 ﻿global using Microsoft.AspNetCore.Mvc;
 global using Services.CMSServices;
 global using Services.SCMServices;
-global using Infrastructure.CQRS.Command.EventManagement;
+global using Infrastructure.CQRS.Command.UserManagement;
 global using MediatR;
 global using Newtonsoft.Json;
 global using Web.Areas.Api.Models;
