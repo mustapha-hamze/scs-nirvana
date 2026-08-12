@@ -13,7 +13,7 @@ public class ContentTranslator : IContentTranslator
 
     public ContentTranslator(IConfiguration configuration)
     {
-        _client = new ChatClient("gpt-5.2-chat-latest", configuration["OPENAI_API_KEY"]);
+        _client = new ChatClient("gpt-5.6-sol", configuration["OPENAI_API_KEY"]);
     }
     public async Task<string> Translate(Content content)
     {
