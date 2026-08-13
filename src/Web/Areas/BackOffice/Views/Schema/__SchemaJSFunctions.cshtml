@@ -120,7 +120,7 @@
             if (result.isConfirmed) {
                 $.ajax({
                     url: '/BackOffice/Schema/DeleteSchema/' + id,
-                    type: "GET"
+                    type: "DELETE"
                 }).done(function (data) {
                     if (data === "Done") {
                         messageBox("Deleted!", "Selected item has been deleted.", "success")

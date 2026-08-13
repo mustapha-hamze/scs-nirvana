@@ -41,7 +41,7 @@
     setLoadingForBtn(btnId);
     $.ajax({
     url: `/BackOffice/Content/ChangeContentActiveMode/${typeId}/${contentId}/${mode}`,
-    type: "GET"
+    type: "POST"
     }).done(function (data) {
     location.reload();
     });
@@ -152,7 +152,7 @@
     if (result.isConfirmed) {
     $.ajax({
     url: '/BackOffice/Content/DeleteContent/' + id,
-    type: "GET"
+    type: "DELETE"
     }).done(function (data) {
     if (data === "Done") {
     messageBox("Deleted!", "Selected item has been deleted.", "success")

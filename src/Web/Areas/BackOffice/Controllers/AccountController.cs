@@ -61,6 +61,8 @@ public class AccountController : BaseController
         return Redirect("/BackOffice/Account/Roles");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToRole/{userId}/{roleName}")]
     public async Task<IActionResult> AddUserToRole(string userId, string roleName)
     {
@@ -73,6 +75,8 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromRole/{userId}/{roleName}")]
     public async Task<IActionResult> RemoveUserFromRole(string userId, string roleName)
     {
@@ -85,6 +89,8 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToApplication/{userId}/{applicationId}")]
     public async Task<IActionResult> AddUserToApplication(string userId, int applicationId)
     {
@@ -93,6 +99,8 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
     public async Task<IActionResult> RemoveUserFromApplication(int relationId)
     {

@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -7,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
+    <meta name="request-verification-token" content="@Xsrf.GetAndStoreTokens(Context).RequestToken" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="/BackOffice/images/favicon.ico">
@@ -134,6 +136,22 @@
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+
+    <!-- Anti-forgery token is attached to every state-changing AJAX call here so
+         individual pages/partials don't need to duplicate this logic. -->
+    <script>
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                var safeMethods = /^(GET|HEAD|OPTIONS|TRACE)$/i;
+                if (!safeMethods.test(settings.type)) {
+                    xhr.setRequestHeader(
+                        "X-CSRF-TOKEN",
+                        $('meta[name="request-verification-token"]').attr("content")
+                    );
+                }
+            }
+        });
+    </script>
 
     <!-- Vendor js -->
     <script src="/BackOffice/js/vendor.min.js"></script>

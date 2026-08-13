@@ -32,7 +32,7 @@ public class UserAttachmentController : BaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [HttpGet("/{area}/{controller}/SaveUserAttachment")]
+    [Route("/{area}/{controller}/SaveUserAttachment")]
     public async Task<IActionResult> SaveUserAttachment(UserAttachmentDto attachment)
     {
         await _sender.Send(new CreateUserAttachmentCommand(attachment));

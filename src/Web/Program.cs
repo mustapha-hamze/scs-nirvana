@@ -87,6 +87,11 @@ builder.Services.AddSingleton(mapper);
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+});
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options => options.IdleTimeout = TimeSpan.FromDays(1));
 builder.Services.AddMvc();

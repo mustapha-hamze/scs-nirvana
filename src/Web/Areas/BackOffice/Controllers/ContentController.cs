@@ -332,6 +332,8 @@ public class ContentController : BaseController
         return View(contents);
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Content/ChangeContentActiveMode/{typeId}/{contentId}/{mode}")]
     public async Task<IActionResult> ChangeContentActiveMode(int typeId, int contentId, bool mode)
     {
@@ -369,6 +371,8 @@ public class ContentController : BaseController
         return View(schemaDetails);
     }
 
+    [HttpDelete]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Content/DeleteContent/{id}")]
     public async Task<IActionResult> DeleteContent(int id)
     {

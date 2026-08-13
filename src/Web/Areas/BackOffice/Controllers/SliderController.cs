@@ -128,6 +128,8 @@ public class SliderController : BaseController
         return Ok();
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ActiveItem(int sliderItemId)
     {
         //TODO: Implement Realistic Implementation
@@ -135,6 +137,8 @@ public class SliderController : BaseController
         return Ok();
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeactiveItem(int sliderItemId)
     {
         //TODO: Implement Realistic Implementation
@@ -142,6 +146,8 @@ public class SliderController : BaseController
         return Ok();
     }
 
+    [HttpDelete]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteItem(int sliderItemId)
     {
         //TODO: Implement Realistic Implementation

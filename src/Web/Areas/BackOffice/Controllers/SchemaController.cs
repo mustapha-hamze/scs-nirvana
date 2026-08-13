@@ -95,6 +95,8 @@ public class SchemaController : BaseController
         return View(_schemaServices.List(user.CurrentApplicationId));
     }
 
+    [HttpDelete]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Schema/DeleteSchema/{id}")]
     public async Task<IActionResult> DeleteSchema(int id)
     {
