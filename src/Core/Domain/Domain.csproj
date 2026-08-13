@@ -16,9 +16,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Both Identity packages are required. Microsoft.Extensions.Identity.Stores provides
+         IdentityUser for ApplicationUser : IdentityUser. Microsoft.AspNetCore.Identity (2.2.0)
+         is also required even though nothing in Domain references its types directly: removing
+         it breaks Infrastructure's build, because Infrastructure DTOs (e.g.
+         Dto/GeneralDtos/ApplicationDto.cs, Dto/UserManagementDtos/UserLoginDto.cs) use
+         Microsoft.AspNetCore.Http/Authentication types that currently only resolve transitively
+         through this package, without a direct reference of their own. Fixing that properly
+         belongs to Infrastructure.csproj, not this step. -->
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
 </Project>
