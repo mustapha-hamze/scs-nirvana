@@ -88,6 +88,8 @@ namespace Services.CMSServices
             return _mapper.Map<ContentDto>(await _contentRepository.Update(_mapper.Map<Content>(content)));
         }
 
+        // See IContentServices.Update(Content) — legacy/internal path for the Farsi-translation
+        // flow only.
         public async Task<Content> Update(Content content)
         {
             return await _contentRepository.Update(content);
