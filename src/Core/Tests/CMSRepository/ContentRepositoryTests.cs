@@ -59,6 +59,38 @@ public class ContentRepositoryTests
     }
 
     [Fact]
+    public void List_Paged_OtherApplicationsContentCannotFillOrEmptyThePage()
+    {
+        // Regression guard: Skip/Take used to run before the Where(ApplicationId == ...) filter,
+        // so pagination was computed over every application's content and filtered afterward.
+        // Seed far more "other application" content, created more recently, than would fit in a
+        // single page — under the old code this would crowd out the target application entirely.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var baseTime = DateTime.Now;
+        for (var i = 0; i < 30; i++)
+        {
+            context.Contents.Add(new Content { ApplicationId = 2, TypeId = 1000, Title = $"Other app {i}", IsActive = true, CreatedDT = baseTime.AddMinutes(100 + i) });
+        }
+        for (var i = 0; i < 25; i++)
+        {
+            context.Contents.Add(new Content { ApplicationId = 1, TypeId = 1000, Title = $"Target app {i}", IsActive = true, CreatedDT = baseTime.AddMinutes(i) });
+        }
+        context.SaveChanges();
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var firstPage = repository.List(applicationId: 1, pageIndex: 0);
+        var secondPage = repository.List(applicationId: 1, pageIndex: 1);
+
+        Assert.Equal(20, firstPage.Count);
+        Assert.All(firstPage, c => Assert.Equal(1, c.ApplicationId));
+        Assert.Equal(5, secondPage.Count);
+        Assert.All(secondPage, c => Assert.Equal(1, c.ApplicationId));
+    }
+
+    [Fact]
     public async Task GetContentsInCategory_ConnectionFailure_ThrowsInsteadOfSwallowingAndReturningEmptyList()
     {
         // Regression guard: this used to open a long-lived SqlConnection field and swallow every

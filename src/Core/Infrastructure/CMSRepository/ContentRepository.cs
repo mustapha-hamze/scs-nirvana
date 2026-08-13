@@ -387,9 +387,14 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
     public List<Content> List(int applicationId, int pageIndex)
     {
-        var contents = _dbContext.Contents.Skip(pageIndex * 20).Take(20)
+        // Was: Skip/Take ran before the Where filter, so pagination was computed over every
+        // application's content and only filtered down afterward — content from other
+        // applications could fill (or empty out) the requested page.
+        var contents = _dbContext.Contents
             .Where(c => !c.IsDeleted && c.ApplicationId == applicationId)
-            .OrderByDescending(c => c.CreatedDT).ToList();
+            .OrderByDescending(c => c.CreatedDT)
+            .Skip(pageIndex * 20).Take(20)
+            .ToList();
         return contents;
     }
 
