@@ -13,3 +13,16 @@
 /src/Web/wwwroot/Storage
 .env
 .DS_Store
+
+# Generated build output anywhere in the repo (catch-all, in addition to the explicit
+# per-project paths above so new/renamed projects can't reintroduce this).
+bin/
+obj/
+*.dll
+*.pdb
+
+# Test result/output artifacts
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
