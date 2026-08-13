@@ -1,12 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using Domains.Entities;
 
-namespace Infrastructure.Dto.AccessManagerDtos
+namespace Application.Contracts.General
 {
-    public class SectorDto : BaseEntity
+    public class TagDto : BaseEntity
     {
         public int ApplicationId { get; set; }
 
         [StringLength(64)]
         public string Title { get; set; }
+        public int TypeId { get; set; }
     }
 }

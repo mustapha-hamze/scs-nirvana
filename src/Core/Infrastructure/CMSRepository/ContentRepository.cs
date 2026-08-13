@@ -1,4 +1,5 @@
-﻿using Application.UnitOfWork;
+﻿using Application.CMSRepository;
+using Application.UnitOfWork;
 using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.CMSRepository;

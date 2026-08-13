@@ -1,6 +1,8 @@
+using System;
 using System.ComponentModel.DataAnnotations;
+using Domains.Entities;
 
-namespace Infrastructure.Dto.CMSDtos
+namespace Application.Contracts.CMS
 {
     public class ContentDto : BaseEntity
     {

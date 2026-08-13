@@ -3,10 +3,10 @@
 
     var roles = (List<Microsoft.AspNetCore.Identity.IdentityRole>)ViewData["Roles"];
     var applications =
-    (List<Infrastructure.Dto.GeneralDtos.ApplicationDto>)ViewData["Applications"];
+    (List<Application.Contracts.General.ApplicationDto>)ViewData["Applications"];
     var userRoles = (IList<string>)ViewData["UserRoles"];
     var userApplications =
-    (List<Infrastructure.Dto.GeneralDtos.UserInApplicationDto>)ViewData["UserApplications"];
+    (List<Application.Contracts.General.UserInApplicationDto>)ViewData["UserApplications"];
 }
 
 <ul class="nav nav-tabs mb-1">

@@ -1,4 +1,12 @@
-﻿namespace Infrastructure.CMSRepository;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Application.Contracts.CMS;
+using Application.Contracts.CMSApi;
+using Application.Repository;
+using Domains.Entities.ContentManagement;
+
+namespace Application.CMSRepository;
 
 public interface IContentRepository : IRepository<Content>
 {

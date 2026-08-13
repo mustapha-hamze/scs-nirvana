@@ -1,11 +1,11 @@
 @{
     Layout = null;
     var contentImageAspectRatio =
-    (List<Infrastructure.Dto.GeneralDtos.ApplicationSettingDto>)ViewData["ContentImageAspectRatio"];
+    (List<Application.Contracts.General.ApplicationSettingDto>)ViewData["ContentImageAspectRatio"];
     var contentImageSizes =
-    (List<Infrastructure.Dto.GeneralDtos.ApplicationSettingDto>)ViewData["ContentImageSizes"];
+    (List<Application.Contracts.General.ApplicationSettingDto>)ViewData["ContentImageSizes"];
     var contentImages =
-    (List<Infrastructure.Dto.CMSDtos.ContentImageDto>)ViewData["ContentImage"];
+    (List<Application.Contracts.CMS.ContentImageDto>)ViewData["ContentImage"];
 
     var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
     if (accesses == string.Empty)

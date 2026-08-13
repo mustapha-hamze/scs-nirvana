@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Infrastructure.Dto.UserManagementDtos;
+using Application.Contracts.UserManagement;
 
 namespace Services.UserManagementServices
 {

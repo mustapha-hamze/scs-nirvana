@@ -1,9 +1,9 @@
 @{
     Layout = null;
-    var types = (List<Infrastructure.Dto.GeneralDtos.SystemTypeDto>)ViewData["Types"];
+    var types = (List<Application.Contracts.General.SystemTypeDto>)ViewData["Types"];
 }
 @using Services.Utilities.ApplicationConst;
-@model Infrastructure.Dto.CMSDtos.SchemaDetailsDto
+@model Application.Contracts.CMS.SchemaDetailsDto
 
 <form class="needs-validation row" novalidate id="frmSchemaDetails" method="POST">
     <input type="hidden" asp-for="SchemaId" id="hideSchemaId" value="@ViewData["SchemaId"]" />

@@ -1,6 +1,6 @@
 @{
-    var schemas = (List<Infrastructure.Dto.CMSDtos.SchemaDto>)ViewData["Schemas"];
-    var sections = (List<Infrastructure.Dto.CMSDtos.SectionDto>)ViewData["Sections"];
+    var schemas = (List<Application.Contracts.CMS.SchemaDto>)ViewData["Schemas"];
+    var sections = (List<Application.Contracts.CMS.SectionDto>)ViewData["Sections"];
     int priority = 0;
     if (sections.Count > 0)
     {

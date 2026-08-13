@@ -1,8 +1,8 @@
 @using ZXing.QrCode.Internal
-@model Infrastructure.Dto.CMSDtos.ContentDto
+@model Application.Contracts.CMS.ContentDto
 
 @{
-    var types = (List<Infrastructure.Dto.GeneralDtos.SystemTypeDto>)ViewData["Types"];
+    var types = (List<Application.Contracts.General.SystemTypeDto>)ViewData["Types"];
 
     var publishDateTime = Model.PublishDt.ToString("yyyy-MM-dd HH:mm");
 }

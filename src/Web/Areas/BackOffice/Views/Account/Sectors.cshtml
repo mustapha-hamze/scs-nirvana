@@ -1,10 +1,10 @@
 @{
     Layout = null;
     var applications =
-    (List<Infrastructure.Dto.GeneralDtos.ApplicationDto>)ViewData["Applications"];
+    (List<Application.Contracts.General.ApplicationDto>)ViewData["Applications"];
     var userApplications =
-    (List<Infrastructure.Dto.GeneralDtos.UserInApplicationDto>)ViewData["UserApplications"];
-    var sectors = (List<Infrastructure.Dto.AccessManagerDtos.SectorDto>)ViewData["Sectors"];
+    (List<Application.Contracts.General.UserInApplicationDto>)ViewData["UserApplications"];
+    var sectors = (List<Application.Contracts.AccessManagement.SectorDto>)ViewData["Sectors"];
 }
 
 <div class="p-2">

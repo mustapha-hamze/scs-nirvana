@@ -1,9 +1,9 @@
 @{
     Layout = null;
     var entities =
-    (List<Infrastructure.Dto.AccessManagerDtos.SectorEntityDto>)ViewData["SectorEntities"];
+    (List<Application.Contracts.AccessManagement.SectorEntityDto>)ViewData["SectorEntities"];
 }
-@model List<Infrastructure.Dto.AccessManagerDtos.EntityAccessDto>
+@model List<Application.Contracts.AccessManagement.EntityAccessDto>
 
 <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
     <thead>

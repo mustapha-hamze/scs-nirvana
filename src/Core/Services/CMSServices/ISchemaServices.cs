@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Infrastructure.Dto.CMSDtos;
+using Application.Contracts.CMS;
 
 namespace Services.CMSServices
 {

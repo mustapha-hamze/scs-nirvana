@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Domains.Entities.AccessManagement;
 using Application.AccessManagerRepository;
-using Infrastructure.Dto.AccessManagerDtos;
+using Application.Contracts.AccessManagement;
 
 namespace Services.AccessManagerServices
 {

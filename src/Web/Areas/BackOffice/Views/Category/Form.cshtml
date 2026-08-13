@@ -1,9 +1,9 @@
 @{
     Layout = null;
-    var categories = (List<Infrastructure.Dto.CMSDtos.CategoryDto>)ViewData["Categories"];
+    var categories = (List<Application.Contracts.CMS.CategoryDto>)ViewData["Categories"];
 }
 
-@model Infrastructure.Dto.CMSDtos.CategoryDto
+@model Application.Contracts.CMS.CategoryDto
 
 <form class="needs-validation row" novalidate id="frmCategory" method="POST">
     <input type="hidden" asp-for="Id" id="hidCategoryId" />

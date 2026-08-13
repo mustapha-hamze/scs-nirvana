@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
-using Infrastructure.Dto.CMSDtos;
+using Application.Contracts.CMS;
 using Domains.Entities.ContentManagement;
 using Application.CMSRepository;
 using Application.Repository;

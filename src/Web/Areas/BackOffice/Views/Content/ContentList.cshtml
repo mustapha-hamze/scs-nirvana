@@ -1,9 +1,9 @@
 @{
     Layout = null;
-    var types = (List<Infrastructure.Dto.GeneralDtos.SystemTypeDto>)ViewData["Types"];
+    var types = (List<Application.Contracts.General.SystemTypeDto>)ViewData["Types"];
 }
 
-@model List<Infrastructure.Dto.CMSDtos.ContentDto>
+@model List<Application.Contracts.CMS.ContentDto>
 
 <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
     <thead>

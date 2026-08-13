@@ -1,7 +1,7 @@
 using AutoMapper;
 using Domains.Entities.ContentManagement;
-using Infrastructure.CMSRepository;
-using Infrastructure.Dto.CMSDtos;
+using Application.CMSRepository;
+using Application.Contracts.CMS;
 using Infrastructure.Mapper;
 using Application.Repository;
 using Moq;

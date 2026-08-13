@@ -1,5 +1,6 @@
+using Domains.Entities;
 
-namespace Infrastructure.Dto.CMSDtos
+namespace Application.Contracts.CMS
 {
     public class CategoryDto : BaseEntity
     {

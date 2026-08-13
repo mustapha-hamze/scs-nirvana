@@ -1,6 +1,6 @@
 using System;
 
-namespace Infrastructure.Dto.UserManagementDtos
+namespace Application.Contracts.UserManagement
 {
     public class UserDto
     {

@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Domains.Entities.User;
-using Infrastructure.Dto.UserManagementDtos;
+using Application.Contracts.UserManagement;
 using Application.UserManagementRepository;
-using Dapper;
 
 namespace Services.UserManagementServices
 {

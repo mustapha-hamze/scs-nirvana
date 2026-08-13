@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using Infrastructure.Dto.CMSDtos;
+using Application.Contracts.CMS;
 using Application.Contracts.CMSApi;
 using Domains.Entities.ContentManagement;
 using Application.Repository;
-using Infrastructure.CMSRepository;
+using Application.CMSRepository;
 
 namespace Services.CMSServices
 {

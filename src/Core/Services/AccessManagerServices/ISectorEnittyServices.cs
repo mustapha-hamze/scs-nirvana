@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Infrastructure.Dto.AccessManagerDtos;
+using Application.Contracts.AccessManagement;
 
 namespace Services.AccessManagerServices
 {

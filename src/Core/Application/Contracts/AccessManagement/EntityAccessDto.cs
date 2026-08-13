@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using Domains.Entities;
 
-namespace Infrastructure.Dto.AccessManagerDtos
+namespace Application.Contracts.AccessManagement
 {
     public class EntityAccessDto : BaseEntity
     {

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Domains.Entities.General;
 using Application.GeneralRepository;
-using Infrastructure.Dto.GeneralDtos;
+using Application.Contracts.General;
 
 namespace Services.GeneralServices
 {

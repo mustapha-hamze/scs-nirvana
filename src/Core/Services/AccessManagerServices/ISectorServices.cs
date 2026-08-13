@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domains.Entities.AccessManagement;
-using Infrastructure.Dto.AccessManagerDtos;
+using Application.Contracts.AccessManagement;
 
 namespace Services.AccessManagerServices
 {

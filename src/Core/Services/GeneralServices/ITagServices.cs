@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Infrastructure.Dto.GeneralDtos;
+using Application.Contracts.General;
 
 namespace Services.GeneralServices
 {

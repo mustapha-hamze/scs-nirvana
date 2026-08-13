@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using Domains.Entities;
 
-namespace Infrastructure.Dto.GeneralDtos
+namespace Application.Contracts.General
 {
     public class ApplicationSettingDto : BaseEntity
     {

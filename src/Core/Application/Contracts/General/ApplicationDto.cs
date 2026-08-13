@@ -1,12 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using Domains.Entities;
 
-namespace Infrastructure.Dto.GeneralDtos
+namespace Application.Contracts.General
 {
     public class ApplicationDto : BaseEntity
     {

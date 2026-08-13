@@ -2,9 +2,9 @@
     Layout = null;
 
     var applications =
-    (List<Infrastructure.Dto.GeneralDtos.ApplicationDto>)ViewData["Applications"];
+    (List<Application.Contracts.General.ApplicationDto>)ViewData["Applications"];
     var userApplications =
-    (List<Infrastructure.Dto.GeneralDtos.UserInApplicationDto>)ViewData["UserApplications"];
+    (List<Application.Contracts.General.UserInApplicationDto>)ViewData["UserApplications"];
 }
 
 @model Infrastructure.Dto.AccessManagerDtos.SetAccessDto

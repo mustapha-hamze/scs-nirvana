@@ -1,8 +1,8 @@
 @{
     Layout = null;
-    var tags = (List<Infrastructure.Dto.GeneralDtos.TagDto>)ViewData["Tags"];
-    var categories = (List<Infrastructure.Dto.CMSDtos.CategoryDto>)ViewData["Categories"];
-    var cultures = (List<Infrastructure.Dto.GeneralDtos.CultureDto>)ViewData["Cultures"];
+    var tags = (List<Application.Contracts.General.TagDto>)ViewData["Tags"];
+    var categories = (List<Application.Contracts.CMS.CategoryDto>)ViewData["Categories"];
+    var cultures = (List<Application.Contracts.General.CultureDto>)ViewData["Cultures"];
 
     var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
     if (accesses == string.Empty)
@@ -11,7 +11,7 @@
 
 @inject Services.UserManagementServices.IUserManagementServices userManagementServices
 
-@model Infrastructure.Dto.CMSDtos.ContentDto
+@model Application.Contracts.CMS.ContentDto
 
 <div class="row">
     <div class="col-md-12">
