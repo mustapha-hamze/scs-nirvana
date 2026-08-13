@@ -7,14 +7,14 @@ public class ContentRepository : Repository<Content>, IContentRepository
 {
     // fields
     private readonly ApplicationDbContext _dbContext;
-    private readonly SqlConnection _sqlConnection;
+    private readonly string _connectionString;
     private readonly IUnitOfWork _unitOfWork;
 
     // constructor
     public ContentRepository(ApplicationDbContext dbContext, IConfiguration configuration, IUnitOfWork unitOfWork) : base(dbContext)
     {
         _dbContext = dbContext;
-        _sqlConnection = new(configuration.GetConnectionString("DefaultConnection"));
+        _connectionString = configuration.GetConnectionString("DefaultConnection");
         _unitOfWork = unitOfWork;
     }
 
@@ -552,22 +552,19 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
     public async Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId)
     {
-        try
-        {
-            DynamicParameters parameters = new DynamicParameters();
-            parameters.Add("@P_CategoryId", categoryId);
-            parameters.Add("@P_ApplicationId", applicationId);
-            _sqlConnection.Open();
-            var queryResult = await _sqlConnection.QueryAsync
-                <ContentDto>("SP_ContentsInCategory", parameters, commandType: CommandType.StoredProcedure);
-            _sqlConnection.Close();
+        DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@P_CategoryId", categoryId);
+        parameters.Add("@P_ApplicationId", applicationId);
 
-            return queryResult.ToList();
-        }
-        catch (Exception)
-        {
-            return new List<ContentDto>();
-        }
+        // Short-lived connection, disposed even if the query throws, instead of a long-lived
+        // field opened/closed by hand (which leaked an open connection on any exception between
+        // Open() and Close(), and hid real failures behind an empty-list catch-all).
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        var queryResult = await connection.QueryAsync<ContentDto>(
+            "SP_ContentsInCategory", parameters, commandType: CommandType.StoredProcedure);
+
+        return queryResult.ToList();
     }
 
     public async Task UpdateSectionPriority(int sectionId, int priority)

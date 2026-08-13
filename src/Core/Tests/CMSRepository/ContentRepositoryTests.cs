@@ -57,4 +57,20 @@ public class ContentRepositoryTests
         Assert.Empty(relations);
         Assert.Equal("", updatedContent.Categories);
     }
+
+    [Fact]
+    public async Task GetContentsInCategory_ConnectionFailure_ThrowsInsteadOfSwallowingAndReturningEmptyList()
+    {
+        // Regression guard: this used to open a long-lived SqlConnection field and swallow every
+        // exception behind `catch (Exception) { return new List<ContentDto>(); }`, so a genuine
+        // failure (bad connection string, unreachable server, broken stored procedure) was
+        // indistinguishable from "no rows found". It must now propagate.
+        using var factory = new SqliteContextFactory();
+        await using var context = factory.CreateContext();
+
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var repository = new ContentRepository(context, TestConfiguration.CreateUnreachable(), unitOfWork);
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.GetContentsInCategory(categoryId: 1, applicationId: 1));
+    }
 }
