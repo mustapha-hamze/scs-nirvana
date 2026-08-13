@@ -138,10 +138,10 @@ public class ContentProvider : IContentProvider
             int skipSize = (pageIndex * pageSize);
 
             var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && categoryContentIds.Contains(c.Id))
+                .OrderByDescending(c => c.UpdatedDT)
                 .Skip(skipSize)
                 .Take(pageSize)
-                .Include(c => c.Images.Where(i => !i.IsDeleted))
-                .OrderByDescending(c => c.UpdatedDT);
+                .Include(c => c.Images.Where(i => !i.IsDeleted));
 
             var category = _dbContext.Categories.Single(c => c.Id == categoryId);
 
@@ -163,10 +163,10 @@ public class ContentProvider : IContentProvider
             int skipSize = (pageIndex * pageSize);
 
             var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && categoryContentIds.Contains(c.Id))
+                .OrderByDescending(c => c.UpdatedDT)
                 .Skip(skipSize)
                 .Take(pageSize)
-                .Include(c => c.Images.Where(i => !i.IsDeleted))
-                .OrderByDescending(c => c.UpdatedDT);
+                .Include(c => c.Images.Where(i => !i.IsDeleted));
 
             var category = _dbContext.Categories.Single(c => c.Id == categoryId);
 
@@ -195,10 +195,10 @@ public class ContentProvider : IContentProvider
         int skipSize = (pageIndex * pageSize);
 
         var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && tagContentIds.Contains(c.Id))
+            .OrderByDescending(c => c.UpdatedDT)
             .Skip(skipSize)
             .Take(pageSize)
-            .Include(c => c.Images.Where(i => !i.IsDeleted))
-            .OrderByDescending(c => c.UpdatedDT);
+            .Include(c => c.Images.Where(i => !i.IsDeleted));
 
         var tag = _dbContext.Tags.Single(c => c.Id == tagId);
 
