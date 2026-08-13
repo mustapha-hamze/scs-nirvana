@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Domains.Entities.General;
-using Infrastructure;
 using Application.GeneralRepository;
 using Infrastructure.Dto.GeneralDtos;
 
