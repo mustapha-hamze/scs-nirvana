@@ -454,32 +454,6 @@ public class AccountController : BaseController
         return Redirect("/");
     }
 
-    [AllowAnonymous]
-    [Route("/CreateSuperAdmin")]
-    public async Task<IActionResult> CreateSuperAdmin()
-    {
-        await _userManager.CreateAsync(new ApplicationUser
-        {
-            FirstName = "Admin",
-            LastName = "Tech",
-            BirthDate = Convert.ToDateTime("1989-01-19"),
-            PhoneNumber = "+905554443333",
-            Email = "admin@dibamagzin.com",
-            UserName = "admin@dibamagzin.com",
-            BusinessAddress = "",
-            HomeAddress = "",
-            IsAdminUser = true,
-            CreatedDT = DateTime.Now,
-            UpdatedDT = DateTime.Now,
-            IsApprove = true
-        }, "Tech2023%$HM-Ist");
-
-        var _user = await _userManager.FindByEmailAsync("admin@dibamagzin.com");
-        await _userManager.AddToRoleAsync(_user, "SuperAdmin");
-
-        return Content("Done");
-    }
-
     [Route("/BackOffice/Account/EntityAccesses/{id}")]
     public string EntityAccesses(int id)
     {
