@@ -5,16 +5,15 @@ namespace Application.ContentManagement;
 
 public interface IContentProvider
 {
-    Task<List<Content>> GetLatestContents(int applicationId);
-    Task<Content> GetContent(int contentId);
+    // Internal/legacy escape hatch: returns the full tracked Content entity graph (images,
+    // metadata, sections, elements) rather than a DTO. Kept deliberately, for the admin Farsi
+    // translation/activation flow in Web/Areas/BackOffice/Controllers/ContentController.cs
+    // (FarsiContentForm, SaveFarsiContentForm, ChangeContentActiveMode) and
+    // Web/Controllers/HomeController.cs, which mutate the entity in place and save it back. Do
+    // not add new callers of this outside that flow — prefer DTO-returning reads for anything
+    // else.
     Task<Content> GetContentForTranslate(int contentId);
-    Task<Content> GetContentForPreview(int contentId);
 
-    Task<List<Content>> FeaturedCategory(int typeId);
-    Task<List<Content>> GetNotification(int typeId);
     ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en");
     ContentListResultModel GetContentsListByTagId(int applicationId, int tagId, int pageIndex = 0, int pageSize = 20);
-    // Task<List<Content>> GetMostViewedContent(int applicationId);
-    Task<List<Content>> GetPage(int pageId);
-    Task<List<SectionElement>> GetSectionElements(int sectionId);
 }

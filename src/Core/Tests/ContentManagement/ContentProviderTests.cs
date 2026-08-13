@@ -11,6 +11,58 @@ namespace Core.Tests.ContentManagement;
 public class ContentProviderTests
 {
     [Fact]
+    public async Task GetContentForTranslate_ReturnsFullEntityGraph_ForTheFarsiTranslationFlow()
+    {
+        // The one deliberately-kept entity-returning provider method: the admin Farsi
+        // translation/activation flow needs the full tracked Content, not a DTO. This locks in
+        // what it loads.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Translate me", IsActive = false, IsDeleted = false };
+        context.Contents.Add(content);
+        context.SaveChanges();
+
+        context.ContentImages.Add(new ContentImage { ContentId = content.Id, ImageFileName = "hero.jpg", Size = 640, IsDeleted = false });
+        context.ContentMetadatas.Add(new ContentMetadata { ContentId = content.Id, Title = "Meta title" });
+        var section = new ContentSection { ContentId = content.Id, Priority = 1 };
+        context.ContentSections.Add(section);
+        context.SaveChanges();
+        context.SectionElements.Add(new SectionElement { SectionId = section.Id, ElementType = 1000, TinyText = "hi" });
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentForTranslate(content.Id);
+
+        Assert.NotNull(result);
+        Assert.Equal("Translate me", result.Title);
+        Assert.Single(result.Images);
+        Assert.NotNull(result.Metadata);
+        Assert.Equal("Meta title", result.Metadata.Title);
+        var resultSection = Assert.Single(result.Sections);
+        Assert.Single(resultSection.Elements);
+    }
+
+    [Fact]
+    public async Task GetContentForTranslate_IgnoresIsActive_ButExcludesDeleted()
+    {
+        // Unlike the other provider reads, this one is reachable for inactive content (it's used
+        // to activate content while translating it), but must still exclude soft-deleted rows.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var inactiveContent = new Content { ApplicationId = 1, TypeId = 1000, Title = "Inactive", IsActive = false, IsDeleted = false };
+        var deletedContent = new Content { ApplicationId = 1, TypeId = 1000, Title = "Deleted", IsActive = true, IsDeleted = true };
+        context.Contents.AddRange(inactiveContent, deletedContent);
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+
+        Assert.NotNull(await provider.GetContentForTranslate(inactiveContent.Id));
+        Assert.Null(await provider.GetContentForTranslate(deletedContent.Id));
+    }
+
+    [Fact]
     public void GetContentsListByCategoryId_CategoryOneDoesNotMatchCategoryEleven()
     {
         using var factory = new SqliteContextFactory();
