@@ -123,16 +123,21 @@ public class ContentProvider : IContentProvider
 
     public ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en")
     {
+        // Was: c.Categories.Contains(categoryId.ToString()), a substring match that also matched
+        // e.g. category "1" against a content tagged "11". Now uses the ContentInCategories join
+        // table, which matches on the exact category relation instead.
+        var categoryContentIds = _dbContext.ContentInCategories.Where(cc => cc.CategoryId == categoryId).Select(cc => cc.ContentId);
+
         if (keyLang == "fa")
         {
-            int rowCount = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString())).Count();
+            int rowCount = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && categoryContentIds.Contains(c.Id)).Count();
             int pageCount = rowCount / pageSize;
             if ((rowCount % pageSize) > 0)
                 pageCount++;
 
             int skipSize = (pageIndex * pageSize);
 
-            var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString()))
+            var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && categoryContentIds.Contains(c.Id))
                 .Skip(skipSize)
                 .Take(pageSize)
                 .Include(c => c.Images.Where(i => !i.IsDeleted))
@@ -150,14 +155,14 @@ public class ContentProvider : IContentProvider
         }
         else
         {
-            int rowCount = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString())).Count();
+            int rowCount = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && categoryContentIds.Contains(c.Id)).Count();
             int pageCount = rowCount / pageSize;
             if ((rowCount % pageSize) > 0)
                 pageCount++;
 
             int skipSize = (pageIndex * pageSize);
 
-            var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Categories.Contains(categoryId.ToString()))
+            var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && categoryContentIds.Contains(c.Id))
                 .Skip(skipSize)
                 .Take(pageSize)
                 .Include(c => c.Images.Where(i => !i.IsDeleted))
@@ -177,14 +182,19 @@ public class ContentProvider : IContentProvider
 
     public ContentListResultModel GetContentsListByTagId(int applicationId, int tagId, int pageIndex = 0, int pageSize = 20)
     {
-        int rowCount = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Tags.Contains(tagId.ToString())).Count();
+        // Was: c.Tags.Contains(tagId.ToString()), a substring match that also matched e.g. tag
+        // "1" against a content tagged "11". Now uses the ContentInTags join table, which matches
+        // on the exact tag relation instead.
+        var tagContentIds = _dbContext.ContentInTags.Where(ct => ct.TagId == tagId).Select(ct => ct.ContentId);
+
+        int rowCount = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && tagContentIds.Contains(c.Id)).Count();
         int pageCount = rowCount / pageSize;
         if ((rowCount % pageSize) > 0)
             pageCount++;
 
         int skipSize = (pageIndex * pageSize);
 
-        var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && c.Tags.Contains(tagId.ToString()))
+        var contents = _dbContext.Contents.Where(c => !c.IsDeleted && c.IsActive && c.ApplicationId == applicationId && tagContentIds.Contains(c.Id))
             .Skip(skipSize)
             .Take(pageSize)
             .Include(c => c.Images.Where(i => !i.IsDeleted))
