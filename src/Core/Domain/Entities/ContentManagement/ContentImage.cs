@@ -1,10 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Domains.Entities.ContentManagement
 {
-    [Table("CMS_ContentImages")]
     public class ContentImage : BaseEntity
     {
         public int ContentId { get; set; }

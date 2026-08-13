@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domains.Entities.General
 {
-    [Table("GNR_Tags")]
     public class Tag : BaseEntity
     {
         // property

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.SCMRepository
 {
-    public class SliderRepository : Repository<Slider>, ISliderRepository
+    public class SliderRepository : Repository<Domains.Entities.CustomModule.Slider>, global::Application.SCMRepository.ISliderRepository
     {
         // fields
         private readonly ApplicationDbContext _dbContext;
@@ -20,7 +20,7 @@ namespace Infrastructure.SCMRepository
             _dbContext = dbContext;
         }
 
-        public List<Slider> GetSliders(int applicationId)
+        public List<Domains.Entities.CustomModule.Slider> GetSliders(int applicationId)
         {
             return _dbContext.Sliders.Where(s => s.ApplicationId == applicationId).ToList();
         }
@@ -71,7 +71,7 @@ namespace Infrastructure.SCMRepository
             await _dbContext.SaveChangesAsync();
         }
 
-        public Slider GetSliderWithItems(int sliderId)
+        public Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId)
         {
             var result = _dbContext.Sliders.Where(s => s.Id == sliderId)
                 .Include(s => s.SliderItems.Where(si => !si.IsDeleted && si.IsActive))
@@ -80,7 +80,7 @@ namespace Infrastructure.SCMRepository
             if (result.Any())
                 return result[0];
 
-            return new Slider();
+            return new Domains.Entities.CustomModule.Slider();
         }
 
         public async Task<SliderItem> UpdateSliderItem(SliderItem sliderItem)

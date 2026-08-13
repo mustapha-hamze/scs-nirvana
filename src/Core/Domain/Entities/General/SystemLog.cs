@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domains.Entities.General
 {
-    [Table("GRN_SystemLogs")]
     public class SystemLog : BaseEntity
     {
         // property

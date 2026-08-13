@@ -3,9 +3,8 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Infrastructure.Dto.CMSDtos;
 using Domains.Entities.ContentManagement;
-using Infrastructure;
-using Infrastructure.CMSRepository;
-using Infrastructure.Repository;
+using Application.CMSRepository;
+using Application.Repository;
 
 namespace Services.CMSServices
 {
@@ -14,29 +13,31 @@ namespace Services.CMSServices
         // fields
         private readonly ISchemaRepository _schemaRepository;
         private readonly IRepository<SchemaDetails> _schemaDetailsRepository;
+        private readonly IMapper _mapper;
 
         // constructor
-        public SchemaServices(ISchemaRepository schemaRepository, IRepository<SchemaDetails> schemaDetailsRepository)
+        public SchemaServices(ISchemaRepository schemaRepository, IRepository<SchemaDetails> schemaDetailsRepository, IMapper mapper)
         {
             _schemaRepository = schemaRepository;
             _schemaDetailsRepository = schemaDetailsRepository;
+            _mapper = mapper;
         }
 
         // methods
         public async Task<SchemaDto> Create(SchemaDto schema)
         {
             schema.IsActive = true;
-            return Mapper(await _schemaRepository.Create(Mapper(schema)));
+            return _mapper.Map<SchemaDto>(await _schemaRepository.Create(_mapper.Map<Schema>(schema)));
         }
 
         public async Task<SchemaDto> Update(SchemaDto schema)
         {
-            return Mapper(await _schemaRepository.Update(Mapper(schema)));
+            return _mapper.Map<SchemaDto>(await _schemaRepository.Update(_mapper.Map<Schema>(schema)));
         }
 
         public async Task<SchemaDto> GetById(int id)
         {
-            return Mapper(await _schemaRepository.GetById(id));
+            return _mapper.Map<SchemaDto>(await _schemaRepository.GetById(id));
         }
 
         public async Task Delete(int id)
@@ -46,18 +47,18 @@ namespace Services.CMSServices
 
         public List<SchemaDto> List(int applicationId, int typeId)
         {
-            return Mapper(_schemaRepository.List(applicationId, typeId));
+            return _mapper.Map<List<SchemaDto>>(_schemaRepository.List(applicationId, typeId));
         }
 
         public List<SchemaDto> List(int applicationId)
         {
-            return Mapper(_schemaRepository.List(applicationId));
+            return _mapper.Map<List<SchemaDto>>(_schemaRepository.List(applicationId));
         }
 
         public async Task<SchemaDetailsDto> CreateDetails(SchemaDetailsDto schemaDetails)
         {
             schemaDetails.IsActive = true;
-            return MapperDetails(await _schemaDetailsRepository.Create(MapperDetails(schemaDetails)));
+            return _mapper.Map<SchemaDetailsDto>(await _schemaDetailsRepository.Create(_mapper.Map<SchemaDetails>(schemaDetails)));
         }
 
         public async Task DeleteDetails(int id)
@@ -67,66 +68,7 @@ namespace Services.CMSServices
 
         public List<SchemaDetailsDto> DetailsList(int schemaId)
         {
-            return MapperDetails(_schemaRepository.DetailsList(schemaId));
-        }
-
-
-
-        // mapper
-        private Schema Mapper(SchemaDto schema)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<SchemaDto, Schema>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<SchemaDto, Schema>(schema);
-        }
-        private SchemaDto Mapper(Schema schema)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Schema, SchemaDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<Schema, SchemaDto>(schema);
-        }
-        private List<SchemaDto> Mapper(List<Schema> schema)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Schema, SchemaDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<List<Schema>, List<SchemaDto>>(schema);
-        }
-
-        private SchemaDetails MapperDetails(SchemaDetailsDto schemaDetails)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<SchemaDetailsDto, SchemaDetails>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<SchemaDetailsDto, SchemaDetails>(schemaDetails);
-        }
-        private SchemaDetailsDto MapperDetails(SchemaDetails schemaDetails)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<SchemaDetails, SchemaDetailsDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<SchemaDetails, SchemaDetailsDto>(schemaDetails);
-        }
-        private List<SchemaDetailsDto> MapperDetails(List<SchemaDetails> schemaDetails)
-        {
-            var config = new MapperConfiguration(cfg =>
-                cfg.CreateMap<SchemaDetails, SchemaDetailsDto>()
-            );
-
-            IMapper mapper = config.CreateMapper();
-            return mapper.Map<List<SchemaDetails>, List<SchemaDetailsDto>>(schemaDetails);
+            return _mapper.Map<List<SchemaDetailsDto>>(_schemaRepository.DetailsList(schemaId));
         }
     }
 }

@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domains.Entities.ContentManagement
 {
-    [Table("CMS_SchemaDetails")]
     public class SchemaDetails : BaseEntity
     {
         public SchemaDetails()

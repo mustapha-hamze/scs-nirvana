@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domains.Entities.General
 {
-    [Table("GNR_UserAccesses")]
     public class UserAccess : BaseEntity
     {
         [StringLength(450)]

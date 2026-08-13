@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 
 namespace Domains.Entities.AccessManagement;
-[Table("AME_SectorEntities")]
 public class SectorEntity : BaseEntity
 {
     public int SectorId { get; set; }

@@ -1,5 +1,4 @@
 namespace Domains.Entities.AccessManagement;
-[Table("AME_EntityAccesses")]
 public class EntityAccess : BaseEntity
 {
     // public int ApplicationId { get; set; }

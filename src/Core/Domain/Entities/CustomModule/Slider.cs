@@ -5,7 +5,6 @@ using Domains.Entities.General;
 
 namespace Domains.Entities.CustomModule
 {
-    [Table("SCM_Sliders")]
     public class Slider : BaseEntity
     {
         public int ApplicationId { get; set; }

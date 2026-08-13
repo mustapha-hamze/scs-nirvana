@@ -1,8 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace Domains.Entities.ContentManagement
 {
-    [Table("CMS_SectionElements")]
     public class SectionElement : BaseEntity
     {
         // property

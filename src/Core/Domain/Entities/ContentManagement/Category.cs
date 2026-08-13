@@ -2,7 +2,6 @@
 
 namespace Domains.Entities.ContentManagement;
 
-[Table("CMS_Categories")]
 public class Category : BaseEntity
 {
     // property

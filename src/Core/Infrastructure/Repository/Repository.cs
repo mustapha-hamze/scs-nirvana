@@ -14,8 +14,6 @@ namespace Infrastructure.Repository
         private readonly ApplicationDbContext _dbContext;
         private readonly DbSet<T> _entities;
 
-        public const string ConnectionString = "Data Source=A2NWPLSK14SQL-v02.shr.prod.iad2.secureserver.net;Initial Catalog=ph19571531397_ShakibGroup_DB;User=sa_shakib_group;Password=Shakib2022%^mos;Trust Server Certificate=True;";
-
         public Repository(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
