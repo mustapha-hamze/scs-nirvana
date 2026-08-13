@@ -3,7 +3,7 @@ using Core.Tests.TestSupport;
 using Domains.Entities.ContentManagement;
 using Infrastructure.CMSRepository;
 using Infrastructure.Data;
-using Infrastructure.Dto.CMSDtos;
+using Application.Contracts.CMSApi;
 using Xunit;
 
 namespace Core.Tests.CMSRepository;

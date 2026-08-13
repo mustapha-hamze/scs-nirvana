@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Domains.Entities;
 
-namespace Infrastructure.Dto.CMSDtos
+namespace Application.Contracts.CMSApi
 {
     public class ContentSectionApiDto : BaseEntity
     {

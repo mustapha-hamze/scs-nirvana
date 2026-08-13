@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Domains.Entities;
 
-namespace Infrastructure.Dto.CMSDtos
+namespace Application.Contracts.CMSApi
 {
     // API-facing shape for public content endpoints (src/Web/Areas/Api/ContentController.cs).
     // Property names intentionally mirror the Domains.Entities.ContentManagement.Content entity
@@ -9,6 +10,11 @@ namespace Infrastructure.Dto.CMSDtos
     // carries no EF navigation back-references, so it can never produce a serialization cycle.
     // The entity's `Application` navigation is deliberately not mirrored here: across every public
     // read path it is always null (never `.Include()`-ed), so dropping it changes no observable value.
+    //
+    // Extends Domains.Entities.BaseEntity (not Infrastructure.Dto.BaseEntity): this type lives in
+    // Application, which only references Domain. Both BaseEntity types have the identical
+    // Id/Status/IsDeleted/IsActive/UpdatedDT/CreatedDT shape, so this is a compile-time-only
+    // change with no effect on JSON output.
     public class ContentApiDto : BaseEntity
     {
         public int ApplicationId { get; set; }

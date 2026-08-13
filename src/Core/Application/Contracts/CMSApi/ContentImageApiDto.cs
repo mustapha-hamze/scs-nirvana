@@ -1,4 +1,6 @@
-namespace Infrastructure.Dto.CMSDtos
+using Domains.Entities;
+
+namespace Application.Contracts.CMSApi
 {
     public class ContentImageApiDto : BaseEntity
     {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Infrastructure.Dto.CMSDtos
+namespace Application.Contracts.CMSApi
 {
     public class BlogIndexApiDto
     {

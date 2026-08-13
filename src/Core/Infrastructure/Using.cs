@@ -4,6 +4,7 @@ global using Infrastructure.Dto.CMSDtos;
 global using Domains.Entities.ContentManagement;
 global using Infrastructure.Repository;
 global using Application.Repository;
+global using Application.Contracts.CMSApi;
 global using Microsoft.EntityFrameworkCore;
 global using Dapper;
 global using Microsoft.Data.SqlClient;
