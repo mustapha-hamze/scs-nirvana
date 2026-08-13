@@ -12,3 +12,4 @@
 /src/Web/obj
 /src/Web/wwwroot/Storage
 .env
+.DS_Store
