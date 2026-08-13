@@ -17,6 +17,14 @@ public interface IContentRepository : IRepository<Content>
     List<SectionElement> GetSectionElements(int sectionId);
     List<SectionElement> GetSectionElements(List<int> sectionIds);
     Task UpdateSectionPriority(int sectionId, int priority);
+
+    // Purpose-specific, entity-free update paths for the Farsi translation/activation flow.
+    // Unlike IRepository<T>.GetById (AsNoTracking), these query the content without
+    // AsNoTracking, so EF's change tracker resolves to an already-tracked instance if the
+    // caller obtained one earlier in the same request (e.g. via IContentProvider's
+    // GetContentForTranslate) instead of creating a second, conflicting tracked instance.
+    Task UpdateFarsiContent(int contentId, string farsiContent);
+    Task ActivateTranslatedContent(int contentId, string translatedContent);
     Task CreateContentCategories(string data, string entity, int contentId);
     Task CreateContentTags(string data, string entity, int contentId);
     Task CreateContentCultures(string data, string entity, int contentId);

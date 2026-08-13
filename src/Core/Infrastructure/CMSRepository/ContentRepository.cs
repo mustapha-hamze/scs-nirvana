@@ -579,4 +579,24 @@ public class ContentRepository : Repository<Content>, IContentRepository
         section.Priority = priority;
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task UpdateFarsiContent(int contentId, string farsiContent)
+    {
+        // No AsNoTracking: if the content is already tracked in this DbContext (e.g. the
+        // Farsi-translation flow fetched it earlier via IContentProvider.GetContentForTranslate),
+        // this resolves to that same tracked instance instead of creating a conflicting second one.
+        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId);
+        content.FarsiContent = farsiContent;
+        content.UpdatedDT = DateTime.Now;
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task ActivateTranslatedContent(int contentId, string translatedContent)
+    {
+        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId);
+        content.FarsiContent = translatedContent;
+        content.IsActive = true;
+        content.UpdatedDT = DateTime.Now;
+        await _dbContext.SaveChangesAsync();
+    }
 }

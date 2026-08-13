@@ -244,11 +244,9 @@ public class ContentController : BaseController
 
         var farsiJson = JsonConvert.SerializeObject(baseContent, _farsiJsonSettings);
 
-        // Reuse the already-tracked `englishContent` instance (rather than UpdateTranslate's
-        // internal AsNoTracking().GetById()) to avoid a duplicate-identity conflict on the
-        // same DbContext, and set only FarsiContent so English fields are left untouched.
-        englishContent.FarsiContent = farsiJson;
-        await _contentServices.Update(englishContent);
+        // UpdateTranslate now queries without AsNoTracking, so it safely resolves to the
+        // already-tracked `englishContent` instance instead of conflicting with it.
+        await _contentServices.UpdateTranslate(model.Id, farsiJson);
 
         return Content("Done");
     }
@@ -342,10 +340,7 @@ public class ContentController : BaseController
             var content = await _contentProvider.GetContentForTranslate(contentId);
             content.FarsiContent = "";
             var result = await _contentTranslator.Translate(content);
-            content.FarsiContent = result;
-            content.IsActive = mode;
-            // await _contentServices.UpdateTranslate(contentId, result);
-            await _contentServices.Update(content);
+            await _contentServices.ActivateTranslatedContent(contentId, result);
         }
         else
         {

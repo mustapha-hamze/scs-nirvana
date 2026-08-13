@@ -79,21 +79,22 @@ namespace Services.CMSServices
 
         public async Task UpdateTranslate(int contentId, string translatedContent)
         {
-            var content = await _contentRepository.GetById(contentId);
-            content.FarsiContent = translatedContent;
-            await _contentRepository.Update(content);
+            // Was: GetById (AsNoTracking) + Update, which throws if the caller already holds a
+            // tracked Content instance for this id in the same request (e.g. from
+            // IContentProvider.GetContentForTranslate) — EF refuses to track a second instance
+            // with the same key. UpdateFarsiContent queries without AsNoTracking, so it resolves
+            // to the already-tracked instance instead of conflicting with it.
+            await _contentRepository.UpdateFarsiContent(contentId, translatedContent);
+        }
+
+        public async Task ActivateTranslatedContent(int contentId, string translatedContent)
+        {
+            await _contentRepository.ActivateTranslatedContent(contentId, translatedContent);
         }
 
         public async Task<ContentDto> Update(ContentDto content)
         {
             return _mapper.Map<ContentDto>(await _contentRepository.Update(_mapper.Map<Content>(content)));
-        }
-
-        // See IContentServices.Update(Content) — legacy/internal path for the Farsi-translation
-        // flow only.
-        public async Task<Content> Update(Content content)
-        {
-            return await _contentRepository.Update(content);
         }
 
         public async Task<ContentDto> GetById(int id)

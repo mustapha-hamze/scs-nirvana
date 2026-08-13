@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Contracts.CMS;
 using Application.Contracts.CMSApi;
-using Domains.Entities.ContentManagement;
 using System;
 
 namespace Services.CMSServices
@@ -13,16 +12,6 @@ namespace Services.CMSServices
         Task Delete(int id);
         Task ChangeContentActiveMode(int id, bool mode);
         Task<ContentDto> Update(ContentDto content);
-
-        // Legacy/internal escape hatch: takes and returns the Domain entity directly instead of
-        // ContentDto. Kept only for the Farsi-translation flow in
-        // Web/Areas/BackOffice/Controllers/ContentController.cs (SaveFarsiContentForm,
-        // ChangeContentActiveMode), which already holds a tracked Content instance from
-        // IContentProvider.GetContentForTranslate and mutates it in place before saving. Removing
-        // or narrowing this would require reworking that flow to round-trip through ContentDto,
-        // which is out of scope here — do not add new callers of this overload; prefer
-        // Update(ContentDto) for anything else.
-        Task<Content> Update(Content content);
         Task<ContentDto> GetById(int id);
         List<ContentDto> List(int applicationId);
         List<ContentDto> List(int applicationId, int pageIndex);
@@ -51,6 +40,7 @@ namespace Services.CMSServices
         Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId);
 
         Task UpdateTranslate(int contentId, string translatedContent);
+        Task ActivateTranslatedContent(int contentId, string translatedContent);
 
         List<ContentApiDto> GetContentByIdFull(int id);
         List<ContentApiDto> GetContentByTypeId(int typeId);

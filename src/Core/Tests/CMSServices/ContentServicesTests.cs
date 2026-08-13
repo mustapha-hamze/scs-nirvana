@@ -63,28 +63,33 @@ public class ContentServicesTests
     }
 
     [Fact]
-    public async Task UpdateTranslate_SetsFarsiContent_AndPreservesOtherFields()
+    public async Task UpdateTranslate_DelegatesToUpdateFarsiContent()
     {
-        var existing = new Content
-        {
-            Id = 5,
-            Title = "Original Title",
-            Abstract = "Original Abstract",
-            FarsiContent = null
-        };
-
+        // UpdateTranslate must go through the non-AsNoTracking repository method rather than
+        // GetById (AsNoTracking) + Update, since the latter throws when the caller already
+        // holds a tracked Content instance for this id in the same request (e.g. from
+        // IContentProvider.GetContentForTranslate).
         var contentRepository = new Mock<IContentRepository>();
-        contentRepository.Setup(r => r.GetById(5)).ReturnsAsync(existing);
-        contentRepository.Setup(r => r.Update(It.IsAny<Content>())).ReturnsAsync((Content c) => c);
+        contentRepository.Setup(r => r.UpdateFarsiContent(5, It.IsAny<string>())).Returns(Task.CompletedTask);
 
         var sut = CreateSut(contentRepository);
 
         await sut.UpdateTranslate(5, "{\"title\":\"ترجمه\"}");
 
-        contentRepository.Verify(r => r.Update(It.Is<Content>(c =>
-            c.FarsiContent == "{\"title\":\"ترجمه\"}" &&
-            c.Title == "Original Title" &&
-            c.Abstract == "Original Abstract")), Times.Once);
+        contentRepository.Verify(r => r.UpdateFarsiContent(5, "{\"title\":\"ترجمه\"}"), Times.Once);
+    }
+
+    [Fact]
+    public async Task ActivateTranslatedContent_DelegatesToRepository()
+    {
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.ActivateTranslatedContent(5, It.IsAny<string>())).Returns(Task.CompletedTask);
+
+        var sut = CreateSut(contentRepository);
+
+        await sut.ActivateTranslatedContent(5, "translated");
+
+        contentRepository.Verify(r => r.ActivateTranslatedContent(5, "translated"), Times.Once);
     }
 
     [Fact]
