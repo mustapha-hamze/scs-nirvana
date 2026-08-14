@@ -5,6 +5,8 @@
     var types = (List<Application.Contracts.General.SystemTypeDto>)ViewData["Types"];
 
     var publishDateTime = Model.PublishDt.ToString("yyyy-MM-dd HH:mm");
+    bool isNew = Model.Id == 0;
+    ViewData["Title"] = isNew ? "New Content" : "Edit Content";
 }
 
 @section Styles {
@@ -23,12 +25,23 @@
     </style>
 }
 
-<div class="row mt-2">
-    <div class="col-md-2 p-0">
-        <a class="btn btn-primary w-100" onclick="backToContentList()" href="javascript:void(0);">
+<div class="scs-page-header mt-2">
+    <div>
+        <a class="btn btn-outline-primary btn-sm mb-2" onclick="backToContentList()" href="javascript:void(0);">
             <i class="uil uil-corner-up-left"></i>
-            Back
+            Back to List
         </a>
+        <h1 class="scs-page-title">@(isNew ? "New Content" : "Edit Content")</h1>
+        <p class="scs-page-helper">
+            @if (isNew)
+            {
+                <text>Fill in the general details below, then save to unlock body, images, and relations.</text>
+            }
+            else
+            {
+                <text>Content #@Model.Id &middot; update the fields below and save your changes.</text>
+            }
+        </p>
     </div>
 </div>
 <div class="row card mt-2 p-2">
@@ -82,10 +95,12 @@
                 <div class="col-md-12 mb-2">
                     <label class="form-label" asp-for="HeadLine">Head Line</label>
                     <textarea class="form-control" asp-for="HeadLine" maxlength="2048"></textarea>
+                    <small class="text-muted">A short, attention-grabbing line shown above the title in listings.</small>
                 </div>
                 <div class="col-md-12 mb-2">
                     <label class="form-label" asp-for="Abstract">Abstract</label>
                     <textarea class="form-control" asp-for="Abstract" maxlength="2048"></textarea>
+                    <small class="text-muted">A brief summary used in previews, cards, and search results.</small>
                 </div>
                 <div class="col-md-12 mb-2">
                     <label class="form-label" asp-for="Description">Description</label>
@@ -98,13 +113,15 @@
                     <label class="form-label">Publish Date & Time</label>
                     <input type="text" id="datetime-datepicker-publish" name="PublishDt" asp-for="PublishDt"
                            value="@publishDateTime" class="form-control" placeholder="Date and Time">
+                    <small class="text-muted">Content becomes visible on the public site at this date and time.</small>
                 </div>
-                <div class="col-md-12">
+                <div class="col-md-12 d-flex flex-wrap align-items-center gap-2 border-top pt-3 mt-2">
                     @await Html.PartialAsync("_ContentFormSaveButton", Model)
                     @if (Model.Id != 0)
                     {
                         string contentPreviewUrl = ViewData["WebsiteUrl"].ToString() + "/" + Model.Id;
-                        <a class="btn btn-info mt-2 ml-3" href="@contentPreviewUrl" target="_blank">
+                        <a class="btn btn-info mt-2" href="@contentPreviewUrl" target="_blank" title="Open in a new tab">
+                            <i class="mdi mdi-eye-outline"></i>
                             Preview Content
                         </a>
                     }

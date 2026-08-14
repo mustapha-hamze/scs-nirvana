@@ -1,5 +1,18 @@
-<div class="row mb-2 mt-2">
-    <div class="col-md-12 p-0">
+@{
+    ViewData["Title"] = "Content Types";
+}
+
+<ul class="scs-breadcrumb">
+    <li><a href="/BackOffice/Home/Index">Dashboard</a></li>
+    <li>General Settings</li>
+    <li>Content Types</li>
+</ul>
+<div class="scs-page-header">
+    <div>
+        <h1 class="scs-page-title">Content Types</h1>
+        <p class="scs-page-helper">Manage the system type definitions used across content, schemas, and other modules.</p>
+    </div>
+    <div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#general-modal"
             onclick="newSystemTypeForm()">
             <i class="uil uil-plus"></i>

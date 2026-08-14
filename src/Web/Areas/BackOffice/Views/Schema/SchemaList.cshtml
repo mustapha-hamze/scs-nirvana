@@ -10,7 +10,7 @@
             <tr>
                 <th>Title</th>
                 <th>Created</th>
-                <th>Action</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -20,15 +20,18 @@
                     <td>@item.Title</td>
                     <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
                     <td>
-                        <a href="javascript: void(0);" class="action-icon" onclick="deleteSchema(@item.Id)">
+                        <a href="javascript: void(0);" class="action-icon" onclick="deleteSchema(@item.Id)"
+                            title="Delete" aria-label="Delete @item.Title">
                             <i class="mdi mdi-delete"></i>
                         </a>
                         <a href="javascript: void(0);" data-bs-toggle="modal" onclick="schemaForm(@item.Id)"
-                            data-bs-target="#schema-modal" class="action-icon">
+                            data-bs-target="#schema-modal" class="action-icon" title="Edit"
+                            aria-label="Edit @item.Title">
                             <i class="mdi mdi-pencil"></i>
                         </a>
                         <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
-                            data-bs-target="#schema-details-modal" onclick="newSchemaDetailsForm(@item.Id)">
+                            data-bs-target="#schema-details-modal" onclick="newSchemaDetailsForm(@item.Id)"
+                            title="Manage Fields" aria-label="Manage fields for @item.Title">
                             <i class="mdi mdi-menu"></i>
                         </a>
                     </td>

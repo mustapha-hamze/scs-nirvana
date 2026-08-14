@@ -11,7 +11,7 @@
             <th>Type</th>
             <th>Size</th>
             <th>Created</th>
-            <th>Action</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -63,7 +63,7 @@
                 <td>@item.Size</td>
                 <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
                 <td>
-                    <a href="javascript: void(0);" class="action-icon">
+                    <a href="javascript: void(0);" class="action-icon" title="Delete" aria-label="Delete @item.Title">
                         <i class="mdi mdi-delete"></i>
                     </a>
                 </td>

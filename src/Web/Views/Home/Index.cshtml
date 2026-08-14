@@ -1,7 +1,44 @@
 @{
     Layout = "_Layout";
+    ViewData["Title"] = "Home";
 }
 
-<div>
-    <h1>HELLO</h1>
-</div>
+<header class="scs-header">
+    <a href="/" class="scs-brand">
+        <span class="scs-brand-mark">N</span>
+        <span>Nirvana CMS</span>
+    </a>
+    <a href="/Login" class="scs-nav-cta">BackOffice Login</a>
+</header>
+
+<main>
+    <section class="scs-hero">
+        <h1>Nirvana CMS — Content &amp; Access Management by Sonic Core System</h1>
+        <p>
+            A unified BackOffice for managing content, categories, schemas, and user access
+            across your applications.
+        </p>
+        <div class="scs-cta-row">
+            <a href="/Login" class="scs-btn-primary">Go to BackOffice</a>
+        </div>
+    </section>
+
+    <section class="scs-features" aria-label="Platform capabilities">
+        <div class="scs-feature-card">
+            <h3>Content Management</h3>
+            <p>Create, organize, and publish content across categories and content types.</p>
+        </div>
+        <div class="scs-feature-card">
+            <h3>Schemas</h3>
+            <p>Define structured data schemas to keep content consistent and reusable.</p>
+        </div>
+        <div class="scs-feature-card">
+            <h3>Access Control</h3>
+            <p>Manage users, roles, and permissions with fine-grained sector-level access.</p>
+        </div>
+    </section>
+</main>
+
+<footer class="scs-footer">
+    <span>&copy; @DateTime.Now.Year Sonic Core System — Nirvana CMS</span>
+</footer>

@@ -13,19 +13,21 @@
 
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_EDIT_1005"))
 {
-    <a href="/BackOffice/Content/ContentForm/@id/@typeId" class="action-icon">
+    <a href="/BackOffice/Content/ContentForm/@id/@typeId" class="action-icon" title="Edit" aria-label="Edit content">
     <i class="mdi mdi-content-save-edit"></i>
 </a>
 }
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_DELETE_1002"))
 {
-    <a href="javascript: void(0);" class="action-icon" onclick="deleteContent(@id)">
+    <a href="javascript: void(0);" class="action-icon" onclick="deleteContent(@id)" title="Delete"
+        aria-label="Delete content">
     <i class="mdi mdi-delete"></i>
 </a>
 }
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_EDIT_FARSI_1014"))
 {
-    <a href="/BackOffice/Content/FarsiContentForm/@id/@typeId" class="action-icon" title="Manage Farsi Version">
+    <a href="/BackOffice/Content/FarsiContentForm/@id/@typeId" class="action-icon" title="Manage Farsi Version"
+        aria-label="Manage Farsi version">
     <i class="mdi mdi-translate"></i>
 </a>
 }

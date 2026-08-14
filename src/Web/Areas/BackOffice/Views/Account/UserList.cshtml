@@ -40,15 +40,18 @@
                 <td>@item.UpdatedDT.ToString("yyyy MMM dd hh:mm")</td>
                 <td class="table-action">
                     <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
-                        data-bs-target="#user-setting-modal" onclick="userSettingForm('@item.Id')">
+                        data-bs-target="#user-setting-modal" onclick="userSettingForm('@item.Id')" title="Settings"
+                        aria-label="Settings for @item.FirstName @item.LastName">
                         <i class="mdi mdi-menu"></i>
                     </a>
                     <a href="javascript: void(0);" onclick="editUserForm('@item.Id')" class="action-icon"
-                        data-bs-toggle="modal" data-bs-target="#user-modal">
+                        data-bs-toggle="modal" data-bs-target="#user-modal" title="Edit"
+                        aria-label="Edit @item.FirstName @item.LastName">
                         <i class="mdi mdi-pencil"></i>
                     </a>
                     <a href="javascript: void(0);" onclick="loadUserAttachmentForm('@item.Id')" class="action-icon"
-                        data-bs-toggle="modal" data-bs-target="#user-attachment-modal">
+                        data-bs-toggle="modal" data-bs-target="#user-attachment-modal" title="Attachments"
+                        aria-label="Attachments for @item.FirstName @item.LastName">
                         <i class="mdi mdi-attachment"></i>
                     </a>
                 </td>

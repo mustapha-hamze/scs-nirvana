@@ -24,16 +24,16 @@
         {
             <a href="javascript: void(0);" id="btnDeactiveContent"
                 onclick="changeContentActiveMode(@Model.TypeId, @Model.Id, false, 'btnDeactiveContent')"
-                class="btn btn-success mt-2 ml-3">
-                Active (click to deactive)
+                class="btn btn-success mt-2 ml-3" title="Active — click to deactivate">
+                Active (click to deactivate)
             </a>
         }
         else
         {
             <a href="javascript: void(0);" id="btnActiveContent"
                 onclick="changeContentActiveMode(@Model.TypeId, @Model.Id, true,'btnActiveContent')"
-                class="btn btn-danger mt-2 ml-3">
-                Deactive (click to active)
+                class="btn btn-danger mt-2 ml-3" title="Inactive — click to activate">
+                Inactive (click to activate)
             </a>
         }
     }

@@ -1,7 +1,20 @@
 @model Application.Contracts.UserManagement.UserDto
 
-<div class="row mb-2 mt-2">
-    <div class="col-md-12 p-0">
+@{
+    ViewData["Title"] = "Users";
+}
+
+<ul class="scs-breadcrumb">
+    <li><a href="/BackOffice/Home/Index">Dashboard</a></li>
+    <li>User Management</li>
+    <li>Users</li>
+</ul>
+<div class="scs-page-header">
+    <div>
+        <h1 class="scs-page-title">Users</h1>
+        <p class="scs-page-helper">Manage BackOffice users, approvals, and access.</p>
+    </div>
+    <div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#user-modal"
             onclick="newUserForm()">
             <i class="uil uil-user-plus"></i>

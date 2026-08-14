@@ -1,4 +1,37 @@
+@using Services.Utilities.ApplicationConst
 @model Application.Contracts.CMS.ContentDto
+
+@inject Services.GeneralServices.ISystemTypeServices systemTypeServices
+@inject Services.GeneralServices.IApplicationServices applicationServices
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+@{
+    int typeId = Convert.ToInt32(ViewData["TypeId"]);
+    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+    var contentTypes = systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
+    var appPages = applicationServices.GetApplicationSetting(user.CurrentApplicationId, 6000);
+
+    string typeTitle = contentTypes.FirstOrDefault(t => t.Id == typeId)?.Title;
+    if (typeTitle == null)
+    {
+        var page = appPages.FirstOrDefault(p => ("100" + p.Value) == typeId.ToString());
+        typeTitle = page?.Title ?? "Content";
+    }
+
+    ViewData["Title"] = typeTitle;
+}
+
+<ul class="scs-breadcrumb">
+    <li><a href="/BackOffice/Home/Index">Dashboard</a></li>
+    <li>Content Management</li>
+    <li>@typeTitle</li>
+</ul>
+<div class="scs-page-header">
+    <div>
+        <h1 class="scs-page-title">@typeTitle</h1>
+        <p class="scs-page-helper">Create, edit, and publish @typeTitle.ToLower() items.</p>
+    </div>
+</div>
 
 <div class="row mb-2 mt-2">
   <div class="col-md-12 p-0">
