@@ -10,34 +10,34 @@ public class SliderController : BaseController
     private readonly ISliderServices _sliderServices;
     private readonly IUserManagementServices _userManagementServices;
     private readonly IHostEnvironment _appEnvironment;
+    private readonly IFileUploadService _fileUploadService;
 
     // constructor
     public SliderController(ISliderServices sliderServices,
-        IUserManagementServices userManagementServices, IHostEnvironment appEnvironment)
+        IUserManagementServices userManagementServices, IHostEnvironment appEnvironment,
+        IFileUploadService fileUploadService)
     {
         _sliderServices = sliderServices;
         _userManagementServices = userManagementServices;
         _appEnvironment = appEnvironment;
+        _fileUploadService = fileUploadService;
     }
 
 
     // methods
     public IActionResult Index()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
     public IActionResult List()
     {
-        //TODO: Implement Realistic Implementation
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var slider = _sliderServices.GetSliders(user.CurrentApplicationId);
         return View(slider);
     }
     public IActionResult Create()
     {
-        //TODO: Implement Realistic Implementation
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["ApplicationId"] = user.CurrentApplicationId;
         return View();
@@ -47,7 +47,6 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Slider slider)
     {
-        //TODO: Implement Realistic Implementation
         slider.IsActive = true;
         await _sliderServices.Create(slider);
         return Ok();
@@ -63,7 +62,6 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateItem(SliderItem sliderItem)
     {
-        //TODO: Implement Realistic Implementation
         string imageName = Guid.NewGuid().ToString();
         sliderItem.ImageFileName = imageName + ".jpg";
         var _sliderItem = await _sliderServices.CreateSliderItem(sliderItem);
@@ -72,30 +70,24 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    public IActionResult UploadSliderItemImage(IFormFile file, int sliderId, string imageFileName)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadSliderItemImage(IFormFile file, int sliderId, string imageFileName)
     {
-        //TODO: Implement Realistic Implementation
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Slider/" + sliderId);
-        if (!Directory.Exists(savePath))
-        {
-            Directory.CreateDirectory(savePath);
-        }
+        var baseName = Path.GetFileNameWithoutExtension(imageFileName);
 
-        var _fileName = file.FileName.Split(".");
-        var fileExtension = _fileName[^1];
+        // Slider items are created with a hardcoded ".jpg" file name (see CreateItem/UpdateItem) before the
+        // image itself is uploaded, so the saved file must stay JPEG to match what was already persisted.
+        var uploadResult = await _fileUploadService.SaveImageAsync(file, savePath, baseName, ImageOutputFormat.Jpeg);
+        if (!uploadResult.Succeeded)
+            return BadRequest(uploadResult.Error);
 
-        // using var image = Image.Load(file.OpenReadStream());
-
-        // imageFileName = imageFileName.ToLower().Replace(".jpg", "");
-        // image.Save(savePath + "/" + imageFileName + "." + fileExtension);
-
-        return Ok();
+        return Ok(uploadResult.FileName);
     }
 
     [Route("/{area}/{controller}/SliderItems")]
     public IActionResult SliderItems()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
@@ -123,28 +115,30 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateItem(SliderItem model)
     {
-        //TODO: Implement Realistic Implementation
         await _sliderServices.UpdateSliderItem(model);
         return Ok();
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ActiveItem(int sliderItemId)
     {
-        //TODO: Implement Realistic Implementation
         await _sliderServices.ActiveSliderItem(sliderItemId);
         return Ok();
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeactiveItem(int sliderItemId)
     {
-        //TODO: Implement Realistic Implementation
         await _sliderServices.DeactiveSliderItem(sliderItemId);
         return Ok();
     }
 
+    [HttpDelete]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteItem(int sliderItemId)
     {
-        //TODO: Implement Realistic Implementation
         await _sliderServices.DeleteSliderItem(sliderItemId);
         return Ok();
     }

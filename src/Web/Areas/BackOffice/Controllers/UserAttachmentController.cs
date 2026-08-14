@@ -7,10 +7,12 @@ public class UserAttachmentController : BaseController
 {
     private readonly ISender _sender;
     private readonly IHostEnvironment _appEnvironment;
-    public UserAttachmentController(ISender sender, IHostEnvironment appEnvironment)
+    private readonly IFileUploadService _fileUploadService;
+    public UserAttachmentController(ISender sender, IHostEnvironment appEnvironment, IFileUploadService fileUploadService)
     {
         _sender = sender;
         _appEnvironment = appEnvironment;
+        _fileUploadService = fileUploadService;
     }
     [HttpGet("/{area}/{controller}/UserAttachmentForm/{userId}/{id?}")]
     public async Task<IActionResult> UserAttachmentForm(string userId, int id = 0)
@@ -32,42 +34,25 @@ public class UserAttachmentController : BaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [HttpGet("/{area}/{controller}/SaveUserAttachment")]
+    [Route("/{area}/{controller}/SaveUserAttachment")]
     public async Task<IActionResult> SaveUserAttachment(UserAttachmentDto attachment)
     {
         await _sender.Send(new CreateUserAttachmentCommand(attachment));
         return Content("Done");
     }
 
+    private static readonly string[] AllowedAttachmentExtensions = { "pdf" };
+
     [HttpPost]
-    public IActionResult UploadAttachmentFile(IFormFile file, string userId, int attachmentId, string attachmentType)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadAttachmentFile(IFormFile file, string userId, int attachmentId, string attachmentType)
     {
-        if (file == null || file.Length == 0)
-        {
-            return BadRequest("File is not selected or empty.");
-        }
-
-        var fileExtension = Path.GetExtension(file.FileName);
-        if (string.IsNullOrEmpty(fileExtension) || !fileExtension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
-        {
-            return BadRequest("Invalid file type. Only PDF files are allowed.");
-        }
-        //TODO: Implement Realistic Implementation
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/UserAttachment/" + userId);
-        if (!Directory.Exists(savePath))
-        {
-            Directory.CreateDirectory(savePath);
-        }
+        var fileName = attachmentType + "_" + attachmentId;
 
-        // Ensure the file name has a .pdf extension
-        var pdfFileName = attachmentType + "_" + attachmentId + ".pdf";
-        var filePath = Path.Combine(savePath, pdfFileName);
-
-        // Save the PDF file to the specified location
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            file.CopyTo(stream);
-        }
+        var uploadResult = await _fileUploadService.SaveFileAsync(file, savePath, fileName, AllowedAttachmentExtensions);
+        if (!uploadResult.Succeeded)
+            return BadRequest(uploadResult.Error);
 
         return Ok();
     }

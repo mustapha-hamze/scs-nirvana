@@ -88,7 +88,7 @@
             if (result.isConfirmed) {
                 $.ajax({
                     url: '/BackOffice/Account/AddUserToRole/' + userId + "/" + roleName,
-                    type: "GET"
+                    type: "POST"
                 }).done(function (data) {
                     if (data === "Done") {
                         messageBox("Done !", "The user has been added to role.", "success")
@@ -114,7 +114,7 @@
             if (result.isConfirmed) {
                 $.ajax({
                     url: '/BackOffice/Account/RemoveUserFromRole/' + userId + "/" + roleName,
-                    type: "GET"
+                    type: "POST"
                 }).done(function (data) {
                     if (data === "Done") {
                         messageBox("Done !", "The role has been removed from user.", "success")
@@ -140,7 +140,7 @@
             if (result.isConfirmed) {
                 $.ajax({
                     url: '/BackOffice/Account/AddUserToApplication/' + userId + "/" + applicationId,
-                    type: "GET"
+                    type: "POST"
                 }).done(function (data) {
                     if (data === "Done") {
                         messageBox("Done !", "The user has been added to application.", "success")
@@ -166,7 +166,7 @@
             if (result.isConfirmed) {
                 $.ajax({
                     url: '/BackOffice/Account/RemoveUserFromApplication/' + relationId,
-                    type: "GET"
+                    type: "POST"
                 }).done(function (data) {
                     if (data === "Done") {
                         messageBox("Done !", "The user has been removed from application.", "success")

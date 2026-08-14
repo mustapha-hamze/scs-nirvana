@@ -7,20 +7,22 @@
     var publishDateTime = Model.PublishDt.ToString("yyyy-MM-dd HH:mm");
 }
 
-<style>
-    .fa---elements {
-        text-align: right !important;
-        direction: rtl !important;
-    }
+@section Styles {
+    <link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
+    <link href="/BackOffice/vendor/quill/quill.snow.css" rel="stylesheet" type="text/css" />
+    <style>
+        .fa---elements {
+            text-align: right !important;
+            direction: rtl !important;
+        }
 
-    #__descriptionEditorFA__ .ql-editor {
-        text-align: right !important;
-        direction: rtl !important;
-    }
-</style>
+        #__descriptionEditorFA__ .ql-editor {
+            text-align: right !important;
+            direction: rtl !important;
+        }
+    </style>
+}
 
-<link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
-<link href="/BackOffice/vendor/quill/quill.snow.css" rel="stylesheet" type="text/css" />
 <div class="row mt-2">
     <div class="col-md-2 p-0">
         <a class="btn btn-primary w-100" onclick="backToContentList()" href="javascript:void(0);">

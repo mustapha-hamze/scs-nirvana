@@ -1,19 +1,20 @@
 @model Infrastructure.Dto.CMSDtos.FarsiContentEditDto
 
-<style>
-    .fa---elements {
-        text-align: right !important;
-        direction: rtl !important;
-    }
+@section Styles {
+    <link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
+    <link href="/BackOffice/vendor/quill/quill.snow.css" rel="stylesheet" type="text/css" />
+    <style>
+        .fa---elements {
+            text-align: right !important;
+            direction: rtl !important;
+        }
 
-    .fa---elements .ql-editor {
-        text-align: right !important;
-        direction: rtl !important;
-    }
-</style>
-
-<link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
-<link href="/BackOffice/vendor/quill/quill.snow.css" rel="stylesheet" type="text/css" />
+        .fa---elements .ql-editor {
+            text-align: right !important;
+            direction: rtl !important;
+        }
+    </style>
+}
 
 <div class="row mt-2">
     <div class="col-md-2 p-0">

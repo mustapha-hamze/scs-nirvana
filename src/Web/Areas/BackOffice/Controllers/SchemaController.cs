@@ -11,17 +11,20 @@ public class SchemaController : BaseController
     private readonly IHostEnvironment _appEnvironment;
     private readonly ISystemTypeServices _systemTypeServices;
     private readonly IUserManagementServices _userManagementServices;
+    private readonly IFileUploadService _fileUploadService;
     #endregion
 
     // constructor
-    #region constructor            
+    #region constructor
     public SchemaController(ISchemaServices schemaServices, IHostEnvironment appEnvironment,
-        ISystemTypeServices systemTypeServices, IUserManagementServices userManagementServices)
+        ISystemTypeServices systemTypeServices, IUserManagementServices userManagementServices,
+        IFileUploadService fileUploadService)
     {
         _appEnvironment = appEnvironment;
         _schemaServices = schemaServices;
         _systemTypeServices = systemTypeServices;
         _userManagementServices = userManagementServices;
+        _fileUploadService = fileUploadService;
     }
     #endregion
 
@@ -29,7 +32,6 @@ public class SchemaController : BaseController
     #region methods
     public IActionResult Index()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
@@ -38,7 +40,6 @@ public class SchemaController : BaseController
     {
         if (id == 0)
         {
-            //TODO: Implement Realistic Implementation
             return View(new SchemaDto
             {
                 LogoFileName = Guid.NewGuid().ToString()
@@ -70,31 +71,32 @@ public class SchemaController : BaseController
     }
 
     [HttpPost]
-    public async Task<IActionResult> UploadSchemaLogo(IFormFile File, int EntityId, string Extension)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadSchemaLogo(IFormFile File, int EntityId)
     {
         var schema = await _schemaServices.GetById(EntityId);
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Schema/Logos/");
+        var baseName = Path.GetFileNameWithoutExtension(schema.LogoFileName);
 
-        var _extension = Extension.Split('/');
+        var uploadResult = await _fileUploadService.SaveImageAsync(File, savePath, baseName);
+        if (!uploadResult.Succeeded)
+            return Content("Failed");
 
-        schema.LogoFileName = schema.LogoFileName + "." + _extension[1];
-
+        schema.LogoFileName = uploadResult.FileName;
         await _schemaServices.Update(schema);
 
-        if (await UploadImage(File, savePath, schema.LogoFileName))
-            return Content("Done");
-        else
-            return Content("Failed");
+        return Content("Done");
     }
 
     public IActionResult SchemaList()
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        //TODO: Implement Realistic Implementation
         return View(_schemaServices.List(user.CurrentApplicationId));
     }
 
+    [HttpDelete]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Schema/DeleteSchema/{id}")]
     public async Task<IActionResult> DeleteSchema(int id)
     {
@@ -109,14 +111,12 @@ public class SchemaController : BaseController
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["SchemaId"] = schemaId;
         ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.ContentSchema);
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
     [Route("/{area}/Schema/SchemaDetailsList/{schemaId}")]
     public IActionResult SchemaDetailsList(int schemaId)
     {
-        //TODO: Implement Realistic Implementation
         return View(_schemaServices.DetailsList(schemaId));
     }
 

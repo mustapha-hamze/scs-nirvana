@@ -1,0 +1,7 @@
+@model List<SectorEntityDto>
+@foreach (var item in Model)
+{
+    <div class="">
+        <a href="javascript:void(0);" onclick="loadEntityAccesses('@item.AccessKey', '@item.Id')">@item.Title</a>
+    </div>
+}

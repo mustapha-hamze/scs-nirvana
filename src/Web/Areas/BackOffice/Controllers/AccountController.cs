@@ -61,10 +61,11 @@ public class AccountController : BaseController
         return Redirect("/BackOffice/Account/Roles");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToRole/{userId}/{roleName}")]
     public async Task<IActionResult> AddUserToRole(string userId, string roleName)
     {
-        //TODO: Implement Realistic Implementation
         var user = await _userManager.FindByIdAsync(userId);
         var result = await _userManager.AddToRoleAsync(user, roleName);
         if (result.Succeeded)
@@ -73,10 +74,11 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromRole/{userId}/{roleName}")]
     public async Task<IActionResult> RemoveUserFromRole(string userId, string roleName)
     {
-        //TODO: Implement Realistic Implementation
         var user = await _userManager.FindByIdAsync(userId);
         var result = await _userManager.RemoveFromRoleAsync(user, roleName);
         if (result.Succeeded)
@@ -85,18 +87,20 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToApplication/{userId}/{applicationId}")]
     public async Task<IActionResult> AddUserToApplication(string userId, int applicationId)
     {
-        //TODO: Implement Realistic Implementation
         await _applicationServices.AddUserToApplication(userId, applicationId);
         return Content("Done");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
     public async Task<IActionResult> RemoveUserFromApplication(int relationId)
     {
-        //TODO: Implement Realistic Implementation
         await _applicationServices.RemoveUserFromApplication(relationId);
         return Content("Done");
     }
@@ -140,18 +144,10 @@ public class AccountController : BaseController
     }
 
     [Route("/{area}/{controller}/GetApplicationSectors/{appId}")]
-    public string GetApplicationSectors(int appId)
+    public IActionResult GetApplicationSectors(int appId)
     {
-        string html = string.Empty;
-
         var sectors = _sectorServices.GetAllSector(appId);
-
-        foreach (var item in sectors)
-        {
-            html += "<option value='" + item.Id + "'>" + item.Title + "</option>";
-        }
-
-        return html;
+        return PartialView("_SectorOptionsPartial", sectors);
     }
 
     [Route("/{area}/{controller}/{action}/{userId}/{appId}")]
@@ -163,21 +159,10 @@ public class AccountController : BaseController
     }
 
     [Route("/{area}/{controller}/GetSectorEntities/{sectorId}")]
-    public string GetSectorEntities(int sectorId)
+    public IActionResult GetSectorEntities(int sectorId)
     {
-        string html = string.Empty;
-
         var entities = _SectorEntityServices.GetSectorEntities(sectorId);
-
-        foreach (var item in entities)
-        {
-            html += "<div class=''>";
-            html += "<a href='javascript:void(0);' onclick='loadEntityAccesses(\"" + item.AccessKey + "\", \"" + item.Id
-                + "\")'>" + item.Title + "</a>";
-            html += "</div>";
-        }
-
-        return html;
+        return PartialView("_SectorEntityLinksPartial", entities);
     }
 
     [Authorize(Roles = "SuperAdmin")]
@@ -286,7 +271,7 @@ public class AccountController : BaseController
 
             if (!result.Succeeded)
             {
-                ModelState.AddModelError("error", "Opertion failed please try again");
+                ModelState.AddModelError("error", "Operation failed please try again");
                 return View("UserForm", user);
             }
 
@@ -454,50 +439,11 @@ public class AccountController : BaseController
         return Redirect("/");
     }
 
-    [AllowAnonymous]
-    [Route("/CreateSuperAdmin")]
-    public async Task<IActionResult> CreateSuperAdmin()
-    {
-        await _userManager.CreateAsync(new ApplicationUser
-        {
-            FirstName = "Admin",
-            LastName = "Tech",
-            BirthDate = Convert.ToDateTime("1989-01-19"),
-            PhoneNumber = "+905554443333",
-            Email = "admin@dibamagzin.com",
-            UserName = "admin@dibamagzin.com",
-            BusinessAddress = "",
-            HomeAddress = "",
-            IsAdminUser = true,
-            CreatedDT = DateTime.Now,
-            UpdatedDT = DateTime.Now,
-            IsApprove = true
-        }, "Tech2023%$HM-Ist");
-
-        var _user = await _userManager.FindByEmailAsync("admin@dibamagzin.com");
-        await _userManager.AddToRoleAsync(_user, "SuperAdmin");
-
-        return Content("Done");
-    }
-
     [Route("/BackOffice/Account/EntityAccesses/{id}")]
-    public string EntityAccesses(int id)
+    public IActionResult EntityAccesses(int id)
     {
         var entityAccesses = _entityAccessServices.GetEntityAccesses(id);
-
-        string html = string.Empty;
-
-        foreach (var item in entityAccesses)
-        {
-            html += "<div class='form-check form-checkbox-success'>";
-            html += "<input type='checkbox' onchange='setEntityAccessHideInput(\"" + item.Access + "\")' id='"
-                + item.Access + "' access='" + item.Access + "' class='form-check-input'>";
-            html += "<a href='javascript:void(0);' onclick='loadEntityAccesses(\"" + item.Access + "\")'>" + item.Access + "</a>";
-            html += "</div>";
-            //html += "<option value='" + item.Id + "'>" + item.Title + "</option>";
-        }
-
-        return html;
+        return PartialView("_EntityAccessCheckboxesPartial", entityAccesses);
     }
 
     [Route("/BackOffice/Account/Attachment")]

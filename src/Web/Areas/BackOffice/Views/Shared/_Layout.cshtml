@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -7,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
+    <meta name="request-verification-token" content="@Xsrf.GetAndStoreTokens(Context).RequestToken" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="/BackOffice/images/favicon.ico">
@@ -14,7 +16,8 @@
     <!-- Select2 css -->
     <link href="/BackOffice/vendor/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
 
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" id="theme-styles">
+    <!-- Protocol-relative URL would inherit http:// on a plain-http request; pin to https explicitly. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" id="theme-styles">
 
     <!-- Daterangepicker css -->
     <link rel="stylesheet" href="/BackOffice/vendor/daterangepicker/daterangepicker.css">
@@ -95,6 +98,8 @@
             padding: 10px;
         }
     </style>
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 
 <body>
@@ -136,12 +141,31 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 
     <!-- Vendor js -->
+    <!-- vendor.min.js bundles its own copy of jQuery, which replaces window.$/window.jQuery
+         entirely. Anything that configures $.ajaxSetup must run AFTER this script, or the
+         configuration is silently discarded along with the jQuery instance it was set on. -->
     <script src="/BackOffice/js/vendor.min.js"></script>
+
+    <!-- Anti-forgery token is attached to every state-changing AJAX call here so
+         individual pages/partials don't need to duplicate this logic. -->
+    <script>
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                var safeMethods = /^(GET|HEAD|OPTIONS|TRACE)$/i;
+                if (!safeMethods.test(settings.type)) {
+                    xhr.setRequestHeader(
+                        "X-CSRF-TOKEN",
+                        $('meta[name="request-verification-token"]').attr("content")
+                    );
+                }
+            }
+        });
+    </script>
 
     <!--  Select2 Plugin Js -->
     <script src="/BackOffice/vendor/select2/js/select2.min.js"></script>
 
-    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
 
     <!-- Daterangepicker js -->
     <script src="/BackOffice/vendor/daterangepicker/moment.min.js"></script>

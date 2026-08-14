@@ -1,0 +1,5 @@
+@model List<SectorEntityDto>
+@foreach (var item in Model)
+{
+    <option value="@item.Id">@item.Title</option>
+}

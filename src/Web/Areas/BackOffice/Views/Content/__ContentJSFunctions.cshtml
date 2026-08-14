@@ -38,12 +38,16 @@
     }
 
     function changeContentActiveMode(typeId, contentId, mode, btnId) {
+    var btnText = $("#" + btnId).html();
     setLoadingForBtn(btnId);
     $.ajax({
     url: `/BackOffice/Content/ChangeContentActiveMode/${typeId}/${contentId}/${mode}`,
-    type: "GET"
+    type: "POST"
     }).done(function (data) {
     location.reload();
+    }).fail(function () {
+    removeLoadingForBtn(btnId, `changeContentActiveMode(${typeId}, ${contentId}, ${mode}, '${btnId}')`, btnText);
+    messageBox("Error!", "Something went wrong, please reload the page and try again.", "error");
     });
     }
 
@@ -152,7 +156,7 @@
     if (result.isConfirmed) {
     $.ajax({
     url: '/BackOffice/Content/DeleteContent/' + id,
-    type: "GET"
+    type: "DELETE"
     }).done(function (data) {
     if (data === "Done") {
     messageBox("Deleted!", "Selected item has been deleted.", "success")

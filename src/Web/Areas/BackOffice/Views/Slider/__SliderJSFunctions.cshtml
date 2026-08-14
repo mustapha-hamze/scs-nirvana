@@ -123,7 +123,7 @@
     function deactiveSliderItem(sliderItemId) {
         $.ajax({
             url: '/BackOffice/Slider/DeactiveItem?sliderItemId=' + sliderItemId,
-            type: "GET"
+            type: "POST"
         }).done(function (data) {
             sliderItems($("#__sliderItem_FRM_SliderId").val());
         });
@@ -132,7 +132,7 @@
     function activeSliderItem(sliderItemId) {
         $.ajax({
             url: '/BackOffice/Slider/ActiveItem?sliderItemId=' + sliderItemId,
-            type: "GET"
+            type: "POST"
         }).done(function (data) {
             sliderItems($("#__sliderItem_FRM_SliderId").val());
         });
@@ -141,7 +141,7 @@
     function deleteSliderItem(sliderItemId) {
         $.ajax({
             url: '/BackOffice/Slider/DeleteItem?sliderItemId=' + sliderItemId,
-            type: "GET"
+            type: "DELETE"
         }).done(function (data) {
             sliderItems($("#__sliderItem_FRM_SliderId").val());
         });
