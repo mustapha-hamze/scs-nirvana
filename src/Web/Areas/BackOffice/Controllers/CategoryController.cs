@@ -27,7 +27,6 @@ public class CategoryController : BaseController
     #region methods
     public IActionResult Index()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
@@ -35,7 +34,6 @@ public class CategoryController : BaseController
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["Categories"] = _categoryServices.List(user.CurrentApplicationId);
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
@@ -53,7 +51,6 @@ public class CategoryController : BaseController
     public IActionResult List()
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        //TODO: Implement Realistic Implementation
         var categories = _categoryServices.List(user.CurrentApplicationId);
 
         return View(categories);

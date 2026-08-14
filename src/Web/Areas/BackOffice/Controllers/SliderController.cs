@@ -27,20 +27,17 @@ public class SliderController : BaseController
     // methods
     public IActionResult Index()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
     public IActionResult List()
     {
-        //TODO: Implement Realistic Implementation
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var slider = _sliderServices.GetSliders(user.CurrentApplicationId);
         return View(slider);
     }
     public IActionResult Create()
     {
-        //TODO: Implement Realistic Implementation
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["ApplicationId"] = user.CurrentApplicationId;
         return View();
@@ -50,7 +47,6 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Slider slider)
     {
-        //TODO: Implement Realistic Implementation
         slider.IsActive = true;
         await _sliderServices.Create(slider);
         return Ok();
@@ -66,7 +62,6 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateItem(SliderItem sliderItem)
     {
-        //TODO: Implement Realistic Implementation
         string imageName = Guid.NewGuid().ToString();
         sliderItem.ImageFileName = imageName + ".jpg";
         var _sliderItem = await _sliderServices.CreateSliderItem(sliderItem);
@@ -93,7 +88,6 @@ public class SliderController : BaseController
     [Route("/{area}/{controller}/SliderItems")]
     public IActionResult SliderItems()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
@@ -121,7 +115,6 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateItem(SliderItem model)
     {
-        //TODO: Implement Realistic Implementation
         await _sliderServices.UpdateSliderItem(model);
         return Ok();
     }
@@ -130,7 +123,6 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ActiveItem(int sliderItemId)
     {
-        //TODO: Implement Realistic Implementation
         await _sliderServices.ActiveSliderItem(sliderItemId);
         return Ok();
     }
@@ -139,7 +131,6 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeactiveItem(int sliderItemId)
     {
-        //TODO: Implement Realistic Implementation
         await _sliderServices.DeactiveSliderItem(sliderItemId);
         return Ok();
     }
@@ -148,7 +139,6 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteItem(int sliderItemId)
     {
-        //TODO: Implement Realistic Implementation
         await _sliderServices.DeleteSliderItem(sliderItemId);
         return Ok();
     }

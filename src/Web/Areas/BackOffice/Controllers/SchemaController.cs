@@ -32,7 +32,6 @@ public class SchemaController : BaseController
     #region methods
     public IActionResult Index()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
@@ -41,7 +40,6 @@ public class SchemaController : BaseController
     {
         if (id == 0)
         {
-            //TODO: Implement Realistic Implementation
             return View(new SchemaDto
             {
                 LogoFileName = Guid.NewGuid().ToString()
@@ -94,7 +92,6 @@ public class SchemaController : BaseController
     public IActionResult SchemaList()
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        //TODO: Implement Realistic Implementation
         return View(_schemaServices.List(user.CurrentApplicationId));
     }
 
@@ -114,14 +111,12 @@ public class SchemaController : BaseController
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["SchemaId"] = schemaId;
         ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.ContentSchema);
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
     [Route("/{area}/Schema/SchemaDetailsList/{schemaId}")]
     public IActionResult SchemaDetailsList(int schemaId)
     {
-        //TODO: Implement Realistic Implementation
         return View(_schemaServices.DetailsList(schemaId));
     }
 

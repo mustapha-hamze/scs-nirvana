@@ -106,7 +106,6 @@ public class ApplicationController : BaseController
     [Route("/WaitingForApproval")]
     public IActionResult WaitingForApproval()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 

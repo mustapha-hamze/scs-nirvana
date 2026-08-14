@@ -66,7 +66,6 @@ public class AccountController : BaseController
     [Route("/{area}/Account/AddUserToRole/{userId}/{roleName}")]
     public async Task<IActionResult> AddUserToRole(string userId, string roleName)
     {
-        //TODO: Implement Realistic Implementation
         var user = await _userManager.FindByIdAsync(userId);
         var result = await _userManager.AddToRoleAsync(user, roleName);
         if (result.Succeeded)
@@ -80,7 +79,6 @@ public class AccountController : BaseController
     [Route("/{area}/Account/RemoveUserFromRole/{userId}/{roleName}")]
     public async Task<IActionResult> RemoveUserFromRole(string userId, string roleName)
     {
-        //TODO: Implement Realistic Implementation
         var user = await _userManager.FindByIdAsync(userId);
         var result = await _userManager.RemoveFromRoleAsync(user, roleName);
         if (result.Succeeded)
@@ -94,7 +92,6 @@ public class AccountController : BaseController
     [Route("/{area}/Account/AddUserToApplication/{userId}/{applicationId}")]
     public async Task<IActionResult> AddUserToApplication(string userId, int applicationId)
     {
-        //TODO: Implement Realistic Implementation
         await _applicationServices.AddUserToApplication(userId, applicationId);
         return Content("Done");
     }
@@ -104,7 +101,6 @@ public class AccountController : BaseController
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
     public async Task<IActionResult> RemoveUserFromApplication(int relationId)
     {
-        //TODO: Implement Realistic Implementation
         await _applicationServices.RemoveUserFromApplication(relationId);
         return Content("Done");
     }
@@ -275,7 +271,7 @@ public class AccountController : BaseController
 
             if (!result.Succeeded)
             {
-                ModelState.AddModelError("error", "Opertion failed please try again");
+                ModelState.AddModelError("error", "Operation failed please try again");
                 return View("UserForm", user);
             }
 

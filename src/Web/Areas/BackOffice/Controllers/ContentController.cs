@@ -62,7 +62,6 @@ public class ContentController : BaseController
     [Route("/{area}/{controller}/Index/{id}")]
     public IActionResult Index(int id)
     {
-        //TODO: Implement Realistic Implementation
         ViewData["TypeId"] = id;
         return View();
     }
@@ -73,7 +72,6 @@ public class ContentController : BaseController
         ViewData["TypeId"] = typeId;
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
 
-        //TODO: Implement Realistic Implementation
         ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
 
         if (id != 0)
@@ -115,7 +113,6 @@ public class ContentController : BaseController
         ViewData["Categories"] = _categoryServices.GetAllFullPath(user.CurrentApplicationId);
         ViewData["Tags"] = _tagServices.FindTagsByTypeId(user.CurrentApplicationId, TypeId.Content);
         ViewData["Cultures"] = _cultureServices.List();
-        //TODO: Implement Realistic Implementation
         var content = await _contentServices.GetById(contentId);
         return View(content);
     }
@@ -123,7 +120,6 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ContentMetadata/{contentId}")]
     public IActionResult ContentMetadata(int contentId)
     {
-        //TODO: Implement Realistic Implementation
         var contentMetadata = _contentServices.GetContentMetadata(contentId);
         contentMetadata.ContentId = contentId;
 
@@ -133,7 +129,6 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ContentImages/{contentId}")]
     public IActionResult ContentImages(int contentId)
     {
-        //TODO: Implement Realistic Implementation
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["ContentImageAspectRatio"] = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1001);
         ViewData["ContentImageSizes"] = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
@@ -145,7 +140,6 @@ public class ContentController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentForm(ContentDto content)
     {
-        //TODO: Implement Realistic Implementation
         if (content.Id == 0)
         {
             var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
@@ -326,7 +320,6 @@ public class ContentController : BaseController
     [Route("/{area}/{controller}/{action}/{id}")]
     public IActionResult ContentList(int id)
     {
-        //TODO: Implement Realistic Implementation
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var contents = _contentServices.List(user.CurrentApplicationId).Where(c => c.TypeId == id).ToList();
         ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
@@ -366,7 +359,6 @@ public class ContentController : BaseController
     [Route("/{area}/Content/CreateContentSection/{schemaId}/{priority}")]
     public IActionResult CreateContentSection(int schemaId, int priority)
     {
-        //TODO: Implement Realistic Implementation
         ViewData["Priority"] = priority;
         var schemaDetails = _schemaServices.DetailsList(schemaId);
         return View(schemaDetails);
@@ -791,7 +783,6 @@ public class ContentController : BaseController
     [HttpDelete]
     public async Task<IActionResult> DeleteSection(int id)
     {
-        //TODO: Implement Realistic Implementation
         await _contentServices.DeleteSection(id);
         return Content("Done");
     }

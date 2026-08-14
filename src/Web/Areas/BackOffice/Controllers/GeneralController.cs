@@ -37,7 +37,6 @@ public class GeneralController : BaseController
 
     public IActionResult TagForm()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
@@ -55,7 +54,6 @@ public class GeneralController : BaseController
     public IActionResult TagList()
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        //TODO: Implement Realistic Implementation
         return View(_tagServices.List(user.CurrentApplicationId));
     }
     #endregion
@@ -63,12 +61,10 @@ public class GeneralController : BaseController
     #region  Cultures
     public IActionResult Cultures()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
     public IActionResult CultureForm()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
@@ -83,7 +79,6 @@ public class GeneralController : BaseController
 
     public IActionResult CultureList()
     {
-        //TODO: Implement Realistic Implementation
         return View(_cultureServices.List());
     }
     #endregion
@@ -91,7 +86,6 @@ public class GeneralController : BaseController
     #region System Logs
     public IActionResult Logs()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
     #endregion
@@ -99,7 +93,6 @@ public class GeneralController : BaseController
     #region Application Setting
     public IActionResult ApplicationSetting()
     {
-        //TODO: Implement Realistic Implementation
         return View();
     }
 
@@ -121,7 +114,6 @@ public class GeneralController : BaseController
     public IActionResult ApplicationSettingList()
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        //TODO: Implement Realistic Implementation
         return View(_applicationServices.GetApplicationSetting(user.CurrentApplicationId));
     }
     #endregion
