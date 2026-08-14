@@ -38,12 +38,16 @@
     }
 
     function changeContentActiveMode(typeId, contentId, mode, btnId) {
+    var btnText = $("#" + btnId).html();
     setLoadingForBtn(btnId);
     $.ajax({
     url: `/BackOffice/Content/ChangeContentActiveMode/${typeId}/${contentId}/${mode}`,
     type: "POST"
     }).done(function (data) {
     location.reload();
+    }).fail(function () {
+    removeLoadingForBtn(btnId, `changeContentActiveMode(${typeId}, ${contentId}, ${mode}, '${btnId}')`, btnText);
+    messageBox("Error!", "Something went wrong, please reload the page and try again.", "error");
     });
     }
 
