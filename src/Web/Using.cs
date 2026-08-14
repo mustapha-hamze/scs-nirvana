@@ -30,3 +30,4 @@ global using Domains.Entities.CustomModule;
 global using System.Security.Claims;
 global using System.ComponentModel.DataAnnotations;
 global using Infrastructure.CQRS.Queries.ContentManagement.Category;
+global using Web.Services.FileUpload;

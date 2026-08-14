@@ -10,14 +10,17 @@ public class SliderController : BaseController
     private readonly ISliderServices _sliderServices;
     private readonly IUserManagementServices _userManagementServices;
     private readonly IHostEnvironment _appEnvironment;
+    private readonly IFileUploadService _fileUploadService;
 
     // constructor
     public SliderController(ISliderServices sliderServices,
-        IUserManagementServices userManagementServices, IHostEnvironment appEnvironment)
+        IUserManagementServices userManagementServices, IHostEnvironment appEnvironment,
+        IFileUploadService fileUploadService)
     {
         _sliderServices = sliderServices;
         _userManagementServices = userManagementServices;
         _appEnvironment = appEnvironment;
+        _fileUploadService = fileUploadService;
     }
 
 
@@ -72,24 +75,19 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    public IActionResult UploadSliderItemImage(IFormFile file, int sliderId, string imageFileName)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadSliderItemImage(IFormFile file, int sliderId, string imageFileName)
     {
-        //TODO: Implement Realistic Implementation
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Slider/" + sliderId);
-        if (!Directory.Exists(savePath))
-        {
-            Directory.CreateDirectory(savePath);
-        }
+        var baseName = Path.GetFileNameWithoutExtension(imageFileName);
 
-        var _fileName = file.FileName.Split(".");
-        var fileExtension = _fileName[^1];
+        // Slider items are created with a hardcoded ".jpg" file name (see CreateItem/UpdateItem) before the
+        // image itself is uploaded, so the saved file must stay JPEG to match what was already persisted.
+        var uploadResult = await _fileUploadService.SaveImageAsync(file, savePath, baseName, ImageOutputFormat.Jpeg);
+        if (!uploadResult.Succeeded)
+            return BadRequest(uploadResult.Error);
 
-        // using var image = Image.Load(file.OpenReadStream());
-
-        // imageFileName = imageFileName.ToLower().Replace(".jpg", "");
-        // image.Save(savePath + "/" + imageFileName + "." + fileExtension);
-
-        return Ok();
+        return Ok(uploadResult.FileName);
     }
 
     [Route("/{area}/{controller}/SliderItems")]

@@ -12,11 +12,13 @@ public class ApplicationController : BaseController
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IUserManagementServices _userManagementServices;
+    private readonly IFileUploadService _fileUploadService;
 
     // constructor
     public ApplicationController(ILogger<ApplicationController> logger, IApplicationServices applicationServices,
         IHostEnvironment appEnvironment, UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager, IUserManagementServices userManagementServices)
+        SignInManager<ApplicationUser> signInManager, IUserManagementServices userManagementServices,
+        IFileUploadService fileUploadService)
     {
         _applicationServices = applicationServices;
         _logger = logger;
@@ -24,6 +26,7 @@ public class ApplicationController : BaseController
         _userManager = userManager;
         _signInManager = signInManager;
         _userManagementServices = userManagementServices;
+        _fileUploadService = fileUploadService;
     }
 
     // methods
@@ -56,7 +59,8 @@ public class ApplicationController : BaseController
     }
 
     [HttpPost]
-    public async Task<IActionResult> UploadApplicationLogo(IFormFile File, int EntityId, string Extension)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadApplicationLogo(IFormFile File, int EntityId)
     {
         var application = await _applicationServices.GetById(EntityId);
 
@@ -64,17 +68,16 @@ public class ApplicationController : BaseController
         application.ApplicationKey = codeGenerator.GenerateAppKey(application.Id);
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Application/Logos/");
+        var baseName = Path.GetFileNameWithoutExtension(application.LogoFileName);
 
-        var _extension = Extension.Split('/');
+        var uploadResult = await _fileUploadService.SaveImageAsync(File, savePath, baseName);
+        if (!uploadResult.Succeeded)
+            return Content("Failed");
 
-        application.LogoFileName = application.LogoFileName + "." + _extension[1];
-
+        application.LogoFileName = uploadResult.FileName;
         await _applicationServices.Update(application);
 
-        if (await UploadFile(File, savePath, application.LogoFileName))
-            return Content("Done");
-        else
-            return Content("Failed");
+        return Content("Done");
     }
 
     [Route("/BackOffice/Application/SelectAppToEnter/{applicationId}")]

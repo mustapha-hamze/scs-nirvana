@@ -63,6 +63,7 @@ builder.Services.AddTransient<ISectorEntityServices, SectorEntityServices>();
 builder.Services.AddScoped(typeof(IEntityAccessRepository), typeof(EntityAccessRepository));
 builder.Services.AddTransient<IEntityAccessServices, EntityAccessServices>();
 builder.Services.AddTransient<IContentTranslator, ContentTranslator>();
+builder.Services.AddTransient<IFileUploadService, FileUploadService>();
 
 builder.Services.AddScoped<BaseController>();
 

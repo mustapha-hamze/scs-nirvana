@@ -1,7 +1,6 @@
 using Application.ContentManagement;
 using Core.Services.TranslatorServices;
 using Domains.Entities.ContentManagement;
-using SkiaSharp;
 
 namespace Web.Areas.BackOffice.Controllers;
 
@@ -24,6 +23,7 @@ public class ContentController : BaseController
     private readonly ISystemTypeServices _systemTypeServices;
     private readonly IUserManagementServices _userManagementServices;
     private readonly IContentTranslator _contentTranslator;
+    private readonly IFileUploadService _fileUploadService;
 
     private static readonly JsonSerializerSettings _farsiJsonSettings = new JsonSerializerSettings
     {
@@ -39,7 +39,7 @@ public class ContentController : BaseController
         ITagServices tagServices, ICultureServices cultureServices, IHostEnvironment appEnvironment,
         IApplicationServices applicationServices, ISystemTypeServices systemTypeServices,
         IUserManagementServices userManagementServices, IContentTranslator contentTranslator,
-        IContentProvider contentProvider)
+        IContentProvider contentProvider, IFileUploadService fileUploadService)
     {
         _applicationServices = applicationServices;
         _contentServices = contentServices;
@@ -52,6 +52,7 @@ public class ContentController : BaseController
         _userManagementServices = userManagementServices;
         _contentTranslator = contentTranslator;
         _contentProvider = contentProvider;
+        _fileUploadService = fileUploadService;
     }
     #endregion
 
@@ -694,34 +695,33 @@ public class ContentController : BaseController
         return Ok("Done");
     }
 
+    private static readonly string[] AllowedBodyFileExtensions =
+        { "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip", "csv", "txt" };
+
     [HttpPost]
-    public async Task<IActionResult> UploadBodyImage(IFormFile File, string Extension)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadBodyImage(IFormFile File)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Images/");
 
-        var _extension = Extension.Split('/');
-        string ImageName = Guid.NewGuid().ToString();
+        var uploadResult = await _fileUploadService.SaveImageAsync(File, savePath, Guid.NewGuid().ToString());
 
-        if (await UploadImage(File, savePath, ImageName + "." + _extension[1]))
-            return Content("Done|" + ImageName + "." + _extension[1]);
-        else
-            return Content("Failed");
+        return uploadResult.Succeeded ? Content("Done|" + uploadResult.FileName) : Content("Failed");
     }
 
     [HttpPost]
-    public async Task<IActionResult> UploadBodyFile(IFormFile File, string FileName, string Extension)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadBodyFile(IFormFile File, string FileName)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Files/");
 
-        var _extension = Extension.Split('/');
+        var uploadResult = await _fileUploadService.SaveFileAsync(File, savePath, FileName, AllowedBodyFileExtensions);
 
-        if (await UploadFile(File, savePath, FileName + "." + _extension[1]))
-            return Content("Done|" + FileName + "." + _extension[1]);
-        else
-            return Content("Failed");
+        return uploadResult.Succeeded ? Content("Done|" + uploadResult.FileName) : Content("Failed");
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadBodyImageGallery()
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Gallery/");
@@ -730,92 +730,61 @@ public class ContentController : BaseController
         var uploadedImages = Request.Form.Files;
         foreach (var item in uploadedImages)
         {
-            string FileName = Guid.NewGuid().ToString();
-            var fileNameArray = item.FileName.ToString().Split(".");
-            string fileExtension = fileNameArray[fileNameArray.Length - 1];
-            if (await UploadImage(item, savePath, FileName + "." + fileExtension))
-                result += FileName + "." + fileExtension + ",";
+            var uploadResult = await _fileUploadService.SaveImageAsync(item, savePath, Guid.NewGuid().ToString());
+            if (uploadResult.Succeeded)
+                result += uploadResult.FileName + ",";
         }
 
         return Content("Done|" + result);
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadContentImage(IFormFile file, int contentId, int settingId)
     {
-        //TODO: Implement Realistic Implementation
-        if (file.Length == 0)
+        if (file == null || file.Length == 0)
             return Content("Failed");
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Content/Image/" + contentId);
-        if (!Directory.Exists(savePath))
-            Directory.CreateDirectory(savePath);
-        else
-        {
-            foreach (var item in Directory.GetFiles(savePath))
-                System.IO.File.Delete(item);
-        }
-
-        await _contentServices.DeleteAllContentImages(contentId);
-
-        var _fileName = file.FileName.Split(".");
-        var fileExtension = _fileName[_fileName.Length - 1];
-
-        string arrImagesName = string.Empty;
 
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var imageSettings = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
-
         var currentImageSettings = imageSettings.Single(s => s.Id == settingId);
 
-        using var memoryStream = new MemoryStream();
-        await file.CopyToAsync(memoryStream);
-
-        foreach (var item in currentImageSettings.Value.Split(","))
+        var targetSizes = currentImageSettings.Value.Split(",").Select(item =>
         {
             var sizes = item.Split("-");
-            int targetWidth = Convert.ToInt32(sizes[0]);
-            int targetHeight = Convert.ToInt32(sizes[1]);
+            return (Width: Convert.ToInt32(sizes[0]), Height: Convert.ToInt32(sizes[1]));
+        });
 
-            memoryStream.Position = 0;
-            using var original = SKBitmap.Decode(memoryStream);
-            using var resized = original.Resize(
-                new SKImageInfo(targetWidth, targetHeight),
-                SKSamplingOptions.Default
-            );
-            using var image = SKImage.FromBitmap(resized);
-            using var data = image.Encode(GetSKEncodedImageFormat(fileExtension), 90);
+        var uploadResult = await _fileUploadService.SaveImageVariantsAsync(file, savePath, targetSizes);
+        if (!uploadResult.Succeeded)
+            return Content("Failed");
 
-            string imageName = Guid.NewGuid().ToString();
-            string fullPath = Path.Combine(savePath, imageName + "." + fileExtension);
+        // Only remove the previous images/records once the new ones have been validated and written successfully.
+        await _contentServices.DeleteAllContentImages(contentId);
+        if (Directory.Exists(savePath))
+        {
+            var newFileNames = uploadResult.Variants.Select(v => v.FileName).ToHashSet();
+            foreach (var existingFile in Directory.GetFiles(savePath))
+            {
+                if (!newFileNames.Contains(Path.GetFileName(existingFile)))
+                    System.IO.File.Delete(existingFile);
+            }
+        }
 
-            // Use System.IO.File instead of File
-            using var fileStream = System.IO.File.OpenWrite(fullPath);
-            data.SaveTo(fileStream);
-
+        foreach (var variant in uploadResult.Variants)
+        {
             await _contentServices.CreateContentImage(new ContentImageDto
             {
                 ContentId = contentId,
-                ImageFileName = imageName + "." + fileExtension,
+                ImageFileName = variant.FileName,
                 IsActive = true,
-                Size = targetWidth
+                Size = variant.Width
             });
         }
 
-        return Content("Done," + arrImagesName);
-    }
-
-    private SKEncodedImageFormat GetSKEncodedImageFormat(string extension)
-    {
-        return extension.ToLower() switch
-        {
-            "jpg" or "jpeg" => SKEncodedImageFormat.Jpeg,
-            "png" => SKEncodedImageFormat.Png,
-            "gif" => SKEncodedImageFormat.Gif,
-            "bmp" => SKEncodedImageFormat.Bmp,
-            "webp" => SKEncodedImageFormat.Webp,
-            _ => SKEncodedImageFormat.Jpeg
-        };
+        return Content("Done,");
     }
 
     [Route("/{area}/Content/DeleteSection/{id}")]
