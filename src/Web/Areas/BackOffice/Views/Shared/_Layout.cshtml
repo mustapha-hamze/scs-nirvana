@@ -16,7 +16,8 @@
     <!-- Select2 css -->
     <link href="/BackOffice/vendor/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
 
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" id="theme-styles">
+    <!-- Protocol-relative URL would inherit http:// on a plain-http request; pin to https explicitly. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" id="theme-styles">
 
     <!-- Daterangepicker css -->
     <link rel="stylesheet" href="/BackOffice/vendor/daterangepicker/daterangepicker.css">
@@ -97,6 +98,8 @@
             padding: 10px;
         }
     </style>
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 
 <body>
@@ -159,7 +162,7 @@
     <!--  Select2 Plugin Js -->
     <script src="/BackOffice/vendor/select2/js/select2.min.js"></script>
 
-    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
 
     <!-- Daterangepicker js -->
     <script src="/BackOffice/vendor/daterangepicker/moment.min.js"></script>
