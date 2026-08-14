@@ -7,6 +7,7 @@ public class SliderController : ControllerBase
     {
         _sliderServices = sliderServices;
     }
+    [HttpGet]
     [Route("api/[controller]/GetSlider/{sliderId}")]
     public IActionResult GetSlider(int sliderId)
     {

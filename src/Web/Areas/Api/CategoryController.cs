@@ -7,7 +7,8 @@ public class CategoryController : ControllerBase
     {
         _sender = sender;
     }
-    [Route("api/[controller]/GetCategories/{applicationId}/{id?}")]
+    [HttpGet]
+    [Route("api/[controller]/GetCategories/{applicationId}/{parent?}")]
     public async Task<ActionResult> GetCategoris(int applicationId, int parent = 0)
     {
         var categories = await _sender.Send(new GetCategoriesQuery(applicationId, parent));
