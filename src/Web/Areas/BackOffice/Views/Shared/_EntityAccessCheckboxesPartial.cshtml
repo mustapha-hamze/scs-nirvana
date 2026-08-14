@@ -1,0 +1,8 @@
+@model List<EntityAccessDto>
+@foreach (var item in Model)
+{
+    <div class="form-check form-checkbox-success">
+        <input type="checkbox" onchange="setEntityAccessHideInput('@item.Access')" id="@item.Access" access="@item.Access" class="form-check-input" />
+        <a href="javascript:void(0);" onclick="loadEntityAccesses('@item.Access')">@item.Access</a>
+    </div>
+}

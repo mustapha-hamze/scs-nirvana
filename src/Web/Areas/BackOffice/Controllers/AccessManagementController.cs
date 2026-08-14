@@ -120,17 +120,10 @@ public class AccessManagementController : BaseController
     }
 
     [HttpGet("/{area}/{controller}/GetSectorEntities/{id}")]
-    public string GetSectorEntities(int id)
+    public IActionResult GetSectorEntities(int id)
     {
         var sectorEntities = _SectorEntityServices.GetSectorEntities(id);
-
-        string html = string.Empty;
-        foreach (var item in sectorEntities)
-        {
-            html += "<option value='" + item.Id + "'>" + item.Title + "</option>";
-        }
-
-        return html;
+        return PartialView("_SectorEntityOptionsPartial", sectorEntities);
     }
     public IActionResult AccessList()
     {

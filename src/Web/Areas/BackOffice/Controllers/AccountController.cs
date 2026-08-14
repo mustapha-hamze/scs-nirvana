@@ -148,18 +148,10 @@ public class AccountController : BaseController
     }
 
     [Route("/{area}/{controller}/GetApplicationSectors/{appId}")]
-    public string GetApplicationSectors(int appId)
+    public IActionResult GetApplicationSectors(int appId)
     {
-        string html = string.Empty;
-
         var sectors = _sectorServices.GetAllSector(appId);
-
-        foreach (var item in sectors)
-        {
-            html += "<option value='" + item.Id + "'>" + item.Title + "</option>";
-        }
-
-        return html;
+        return PartialView("_SectorOptionsPartial", sectors);
     }
 
     [Route("/{area}/{controller}/{action}/{userId}/{appId}")]
@@ -171,21 +163,10 @@ public class AccountController : BaseController
     }
 
     [Route("/{area}/{controller}/GetSectorEntities/{sectorId}")]
-    public string GetSectorEntities(int sectorId)
+    public IActionResult GetSectorEntities(int sectorId)
     {
-        string html = string.Empty;
-
         var entities = _SectorEntityServices.GetSectorEntities(sectorId);
-
-        foreach (var item in entities)
-        {
-            html += "<div class=''>";
-            html += "<a href='javascript:void(0);' onclick='loadEntityAccesses(\"" + item.AccessKey + "\", \"" + item.Id
-                + "\")'>" + item.Title + "</a>";
-            html += "</div>";
-        }
-
-        return html;
+        return PartialView("_SectorEntityLinksPartial", entities);
     }
 
     [Authorize(Roles = "SuperAdmin")]
@@ -463,23 +444,10 @@ public class AccountController : BaseController
     }
 
     [Route("/BackOffice/Account/EntityAccesses/{id}")]
-    public string EntityAccesses(int id)
+    public IActionResult EntityAccesses(int id)
     {
         var entityAccesses = _entityAccessServices.GetEntityAccesses(id);
-
-        string html = string.Empty;
-
-        foreach (var item in entityAccesses)
-        {
-            html += "<div class='form-check form-checkbox-success'>";
-            html += "<input type='checkbox' onchange='setEntityAccessHideInput(\"" + item.Access + "\")' id='"
-                + item.Access + "' access='" + item.Access + "' class='form-check-input'>";
-            html += "<a href='javascript:void(0);' onclick='loadEntityAccesses(\"" + item.Access + "\")'>" + item.Access + "</a>";
-            html += "</div>";
-            //html += "<option value='" + item.Id + "'>" + item.Title + "</option>";
-        }
-
-        return html;
+        return PartialView("_EntityAccessCheckboxesPartial", entityAccesses);
     }
 
     [Route("/BackOffice/Account/Attachment")]
