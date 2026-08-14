@@ -25,7 +25,8 @@
                     @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001_ACCESSITEMS_1001"))
                     {
                         <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
-                            data-bs-target="#sliderItem-modal" onclick="sliderItems('@item.Id')">
+                            data-bs-target="#sliderItem-modal" onclick="sliderItems('@item.Id')" title="Manage Items"
+                            aria-label="Manage items for @item.Title">
                             <i class="mdi mdi-menu"></i>
                         </a>
                     }

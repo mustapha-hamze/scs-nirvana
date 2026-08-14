@@ -7,7 +7,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>SCS</title>
+    <title>Sign In - Nirvana CMS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- App css -->
     @await Html.PartialAsync("_CSSAssets")
@@ -24,18 +24,17 @@
 
                     <!-- Logo -->
                     <div class="auth-brand text-center text-lg-start">
-                        <a class="logo-dark">
-                            @* <span><img src="/BackOffice/logo.png" alt="" height="98"></span> SCS Co. *@
-                        </a>
-                        <a class="logo-light">
-                            @* <span><img src="/BackOffice/logo.png" alt="" height="98"></span>*@ <h5
-                                class="text-white">SCS</h5>
+                        <a class="logo-light d-flex align-items-center justify-content-center justify-content-lg-start gap-2">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded"
+                                style="width:2.25rem;height:2.25rem;background:#727cf5;color:#fff;font-weight:700;">N</span>
+                            <h5 class="text-white m-0">Nirvana CMS</h5>
                         </a>
                     </div>
 
                     <!-- title-->
-                    <h4 class="mt-0">Sign In</h4>
-                    <p class="text-muted mb-4">Enter your email address and password to access account.</p>
+                    <h4 class="mt-0">Welcome back</h4>
+                    <p class="text-muted mb-4">Sign in to the Nirvana CMS BackOffice to manage content, schemas, and
+                        users.</p>
 
                     <!-- form -->
                     <form method="post">
@@ -45,7 +44,6 @@
                                 placeholder="Enter your email" asp-for="EmailAddress">
                         </div>
                         <div class="mb-3">
-                            <a href="pages-recoverpw-2.html" class="text-muted float-end"></a>
                             <label for="password" class="form-label">Password</label>
                             <input class="form-control" type="password" required="" id="password"
                                 placeholder="Enter your password" asp-for="Password">
@@ -66,7 +64,7 @@
 
                     <!-- Footer-->
                     <footer class="footer footer-alt">
-                        <p class="text-muted">SCS Application</p>
+                        <p class="text-muted">Nirvana CMS &middot; Sonic Core System</p>
                     </footer>
 
                 </div> <!-- end .card-body -->
@@ -77,15 +75,10 @@
         <!-- Auth fluid right content -->
         <div class="auth-fluid-right text-center">
             <div class="auth-user-testimonial" style="top: 26rem!important">
-                <h2 class="mb-3">MAKE YOUR DREAMS TRUE BEFORE THEY DIE</h2>
-                <p class="lead"><i class="mdi mdi-format-quote-open">
-                    </i>
-                    Most people will panic to find a charger before their phone dies. But won’t panic to find a plan
-                    before their dream dies.
-                    <i class="mdi mdi-format-quote-close"></i>
-                </p>
-                <p>
-                    - Elon Musk
+                <h2 class="mb-3">Nirvana CMS</h2>
+                <p class="lead">
+                    One BackOffice for content, categories, schemas, and access &mdash; built for the teams behind
+                    Sonic Core System's applications.
                 </p>
             </div> <!-- end auth-user-testimonial-->
         </div>

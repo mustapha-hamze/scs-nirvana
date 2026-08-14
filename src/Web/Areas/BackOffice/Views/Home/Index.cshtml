@@ -1,2 +1,122 @@
-﻿@{
+@inject Services.GeneralServices.IApplicationServices applicationServices
+@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+
+@{
+    ViewData["Title"] = "Dashboard";
+    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+    var app = await applicationServices.GetById(user.CurrentApplicationId);
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    if (accesses == string.Empty)
+        accesses = "NULL";
+    bool isSuperAdmin = User.IsInRole("SuperAdmin");
+    bool canCMS = isSuperAdmin || accesses.Contains("CMS1000_");
+    bool canSCM = isSuperAdmin || accesses.Contains("SCM3000_");
 }
+
+<div class="scs-page-header">
+    <div>
+        <h1 class="scs-page-title">Welcome back, @user.FirstName</h1>
+        <p class="scs-page-helper">@app.Title &middot; here's an overview of your BackOffice.</p>
+    </div>
+</div>
+
+<div class="row">
+    @if (canCMS)
+    {
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card scs-dash-card">
+                <div class="card-body">
+                    <div class="scs-dash-icon bg-soft-primary text-primary mb-2">
+                        <i class="uil-document-layout-right"></i>
+                    </div>
+                    <h5 class="card-title">Content Management</h5>
+                    <p class="text-muted font-13 mb-2">Create and manage articles, pages, and site content.</p>
+                    <a href="/BackOffice/Category/Index" class="fw-semibold">Manage content <i class="mdi mdi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card scs-dash-card">
+                <div class="card-body">
+                    <div class="scs-dash-icon bg-soft-success text-success mb-2">
+                        <i class="uil-folder-open"></i>
+                    </div>
+                    <h5 class="card-title">Categories</h5>
+                    <p class="text-muted font-13 mb-2">Organize content into categories and hierarchies.</p>
+                    <a href="/BackOffice/Category/Index" class="fw-semibold">Manage categories <i class="mdi mdi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card scs-dash-card">
+                <div class="card-body">
+                    <div class="scs-dash-icon bg-soft-warning text-warning mb-2">
+                        <i class="uil-schema"></i>
+                    </div>
+                    <h5 class="card-title">Schemas</h5>
+                    <p class="text-muted font-13 mb-2">Define structured data schemas for reusable content.</p>
+                    <a href="/BackOffice/Schema/Index" class="fw-semibold">Manage schemas <i class="mdi mdi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    }
+    @if (isSuperAdmin)
+    {
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="card scs-dash-card">
+                <div class="card-body">
+                    <div class="scs-dash-icon bg-soft-info text-info mb-2">
+                        <i class="dripicons-user-group"></i>
+                    </div>
+                    <h5 class="card-title">Users &amp; Access</h5>
+                    <p class="text-muted font-13 mb-2">Manage users, roles, and permission sectors.</p>
+                    <a href="/BackOffice/Account/Users" class="fw-semibold">Manage users <i class="mdi mdi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row">
+    <div class="col-xl-8 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Recent Activity</h5>
+                <div class="scs-empty-state">
+                    <i class="uil-history"></i>
+                    <p class="mb-0">Recent activity will appear here once available.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Quick Actions</h5>
+                <div class="d-flex flex-column gap-2">
+                    @if (canCMS)
+                    {
+                        <a href="/BackOffice/Category/Index" class="btn btn-outline-primary btn-sm text-start">
+                            <i class="uil uil-plus"></i> New Category
+                        </a>
+                        <a href="/BackOffice/Schema/Index" class="btn btn-outline-primary btn-sm text-start">
+                            <i class="uil uil-plus"></i> New Schema
+                        </a>
+                    }
+                    @if (canSCM)
+                    {
+                        <a href="/BackOffice/Slider/Index" class="btn btn-outline-primary btn-sm text-start">
+                            <i class="uil uil-plus"></i> Manage Sliders
+                        </a>
+                    }
+                    @if (isSuperAdmin)
+                    {
+                        <a href="/BackOffice/Account/Users" class="btn btn-outline-primary btn-sm text-start">
+                            <i class="uil uil-user-plus"></i> Invite / Manage Users
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

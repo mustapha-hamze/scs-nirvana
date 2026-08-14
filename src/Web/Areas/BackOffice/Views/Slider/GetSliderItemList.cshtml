@@ -32,12 +32,12 @@
                         @if (item.IsActive)
                         {
                             <button onclick="deactiveSliderItem(@item.Id)" type="button"
-                                class="btn btn-sm btn-success p-1">Active</button>
+                                class="btn btn-sm btn-success p-1" title="Active — click to deactivate">Active</button>
                         }
                         else
                         {
                             <button onclick="activeSliderItem(@item.Id)" type="button"
-                                class="btn btn-sm btn-danger p-1">Deactive</button>
+                                class="btn btn-sm btn-danger p-1" title="Inactive — click to activate">Inactive</button>
                         }
                     }
                     @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001_DELETE_1004"))

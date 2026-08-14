@@ -1,5 +1,18 @@
-<div class="row mt-2 mb-2">
-    <div class="col-md-12 p-0">
+@{
+    ViewData["Title"] = "Schemas";
+}
+
+<ul class="scs-breadcrumb">
+    <li><a href="/BackOffice/Home/Index">Dashboard</a></li>
+    <li>Content Management</li>
+    <li>Schemas</li>
+</ul>
+<div class="scs-page-header">
+    <div>
+        <h1 class="scs-page-title">Schemas</h1>
+        <p class="scs-page-helper">Define structured, reusable data schemas for your content types.</p>
+    </div>
+    <div>
         <button class="btn btn-primary" data-bs-toggle="modal" onclick="schemaForm()" data-bs-target="#schema-modal">
             <i class="uil uil-plus"></i>
             Create Schema
