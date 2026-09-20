@@ -6,6 +6,7 @@ using Application.Repository;
 using Application.SCMRepository;
 using Application.UserManagementRepository;
 using Application.UnitOfWork;
+using Application.UseCases.TranslatorServices;
 using Core.Services.TranslatorServices;
 using Infrastructure.AccessManagerRepository;
 using Infrastructure.CMSRepository;
@@ -14,6 +15,7 @@ using Infrastructure.GeneralRepository;
 using Infrastructure.Mapper;
 using Infrastructure.Repository;
 using Infrastructure.SCMRepository;
+using Infrastructure.TranslatorServices;
 using Infrastructure.UserManagementRepository;
 using Infrastructure.UnitOfWork;
 using Microsoft.AspNetCore.Http.Features;
@@ -72,7 +74,17 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ICategoryServices, CategoryServices>();
         services.AddTransient<IContentServices, ContentServices>();
         services.AddTransient<ISliderServices, SliderServices>();
+
+        services.AddOptions<OpenAiTranslationOptions>()
+            .Configure<IConfiguration>((options, configuration) =>
+            {
+                options.ApiKey = configuration["OPENAI_API_KEY"];
+            })
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddTransient<ITranslationPort, OpenAiTranslationPort>();
         services.AddTransient<IContentTranslator, ContentTranslator>();
+
         services.AddTransient<IContentProvider, ContentProvider>();
 
         return services;

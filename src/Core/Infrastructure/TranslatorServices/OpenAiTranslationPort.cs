@@ -1,40 +1,72 @@
 using System;
 using System.ClientModel;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using Domains.Entities.ContentManagement;
-using Microsoft.Extensions.Configuration;
+using Application.UseCases.TranslatorServices;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenAI;
 using OpenAI.Chat;
 
-namespace Core.Services.TranslatorServices;
+namespace Infrastructure.TranslatorServices;
 
-public class ContentTranslator : IContentTranslator
+// The only place the OpenAI SDK is touched. Never logs the API key or full request/response
+// content - only failure shapes (exception type, "not valid JSON") make it into TranslationResult.Error.
+public class OpenAiTranslationPort : ITranslationPort
 {
     private readonly ChatClient _client;
 
-    public ContentTranslator(IConfiguration configuration)
+    public OpenAiTranslationPort(IOptions<OpenAiTranslationOptions> options)
     {
-        // Full content graphs (all sections/HTML) can take well over the SDK's 100s
-        // default before the model responds, so the default NetworkTimeout is too short.
-        _client = new ChatClient("gpt-5.6-sol", new ApiKeyCredential(configuration["OPENAI_API_KEY"]),
-            new OpenAIClientOptions { NetworkTimeout = TimeSpan.FromMinutes(5) });
+        var settings = options.Value;
+        _client = new ChatClient(settings.Model, new ApiKeyCredential(settings.ApiKey),
+            new OpenAIClientOptions { NetworkTimeout = TimeSpan.FromMinutes(settings.NetworkTimeoutMinutes) });
     }
-    public async Task<string> Translate(Content content)
-    {
-        var settings = new JsonSerializerSettings
-        {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            NullValueHandling = NullValueHandling.Include
-        };
-        var contentStr = JsonConvert.SerializeObject(content, settings);
 
-        var messages = new List<ChatMessage>
+    public async Task<TranslationResult> TranslateAsync(TranslationRequest request, CancellationToken cancellationToken = default)
+    {
+        var messages = new List<ChatMessage> { new SystemChatMessage(BuildPrompt(request.ContentJson)) };
+
+        ChatCompletion response;
+        try
         {
-            new SystemChatMessage($@"
-                    You are a professional Persian (Farsi) translator specializing in content for a luxury international magazine focused on fashion, 
-                    design, art, culture and lifestyle. You have expert knowledge of all terminology and specialized expressions in fashion, design, 
+            response = await _client.CompleteChatAsync(messages, cancellationToken: cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return TranslationResult.Failed($"Translation request failed: {ex.GetType().Name}");
+        }
+
+        var translatedText = response.Content[0].Text;
+
+        if (!IsValidJson(translatedText))
+            return TranslationResult.Failed("Model response was not valid JSON.");
+
+        return TranslationResult.Ok(translatedText);
+    }
+
+    private static bool IsValidJson(string text)
+    {
+        try
+        {
+            JToken.Parse(text);
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static string BuildPrompt(string contentJson) => $@"
+                    You are a professional Persian (Farsi) translator specializing in content for a luxury international magazine focused on fashion,
+                    design, art, culture and lifestyle. You have expert knowledge of all terminology and specialized expressions in fashion, design,
                     architecture, art, and lifestyle, and you translate texts with precision, cultural nuance, and a high level of fluency for a Persian-speaking audience.
 
                     Translate all English user-facing text values in the provided JSON object into Persian (Farsi), while preserving the JSON structure exactly.
@@ -99,13 +131,6 @@ public class ContentTranslator : IContentTranslator
                     - Return only JSON.
 
                     JSON:
-                    {contentStr}
-                    ")
-        };
-
-        var response = await _client.CompleteChatAsync(messages);
-        var result = response.Value.Content[0].Text;
-
-        return result;
-    }
+                    {contentJson}
+                    ";
 }
