@@ -1,10 +1,13 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Application.CQRS.Command.UserManagement;
+using Application.Repository;
 using Application.UnitOfWork;
 using AutoMapper;
 using Domains.Entities.User;
-using Infrastructure.CQRS.Command.UserManagement;
-using Infrastructure.Repository;
+using MediatR;
 
-namespace Infrastructure.CQRS.Handlers.UserManagement;
+namespace Application.CQRS.Handlers.UserManagement;
 
 public class CreateUserAttachmentHandler : IRequestHandler<CreateUserAttachmentCommand, Unit>
 {

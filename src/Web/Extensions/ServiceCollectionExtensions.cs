@@ -45,6 +45,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISectorRepository, SectorRepository>();
         services.AddScoped<ISectorEntityRepository, SectorEntityRepository>();
         services.AddScoped<IEntityAccessRepository, EntityAccessRepository>();
+        services.AddScoped<IUserAttachmentRepository, UserAttachmentRepository>();
 
         return services;
     }
@@ -99,7 +100,7 @@ public static class ServiceCollectionExtensions
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        services.AddMediatR(typeof(ApplicationDbContext).Assembly);
+        services.AddMediatR(typeof(IUnitOfWork).Assembly);
 
         services.AddAutoMapper(new[] { typeof(MapperProfile).Assembly }, ServiceLifetime.Singleton);
 

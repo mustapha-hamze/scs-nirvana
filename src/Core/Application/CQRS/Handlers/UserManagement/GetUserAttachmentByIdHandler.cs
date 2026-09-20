@@ -1,10 +1,13 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Application.Contracts.UserManagement;
+using Application.CQRS.Queries.UserManagement;
+using Application.Repository;
 using AutoMapper;
 using Domains.Entities.User;
-using Infrastructure.CQRS.Queries.UserManagement;
-using Infrastructure.Dto.UserManagementDtos;
-using Infrastructure.Repository;
+using MediatR;
 
-namespace Infrastructure.CQRS.Handlers.UserManagement;
+namespace Application.CQRS.Handlers.UserManagement;
 
 public class GetUserAttachmentByIdHandler : IRequestHandler<GetUserAttachmentByIdQuery, UserAttachmentDto>
 {

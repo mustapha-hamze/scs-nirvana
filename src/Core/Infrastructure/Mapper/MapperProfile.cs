@@ -6,7 +6,6 @@ using Domains.Entities.User;
 using Infrastructure.Dto.AccessManagerDtos;
 using Infrastructure.Dto.CMSDtos;
 using Infrastructure.Dto.GeneralDtos;
-using Infrastructure.Dto.UserManagementDtos;
 
 namespace Infrastructure.Mapper
 {
