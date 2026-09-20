@@ -4,6 +4,7 @@ using AutoMapper;
 using Application.Contracts.General;
 using Domains.Entities.General;
 using Application.Repository;
+using Application.UnitOfWork;
 
 namespace Services.GeneralServices
 {
@@ -13,29 +14,34 @@ namespace Services.GeneralServices
         private readonly global::Application.GeneralRepository.IApplicationRepository _applicationRepository;
         private readonly IRepository<ApplicationSetting> _applicationSettingRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
         // cunstructor
-        public ApplicationServices(global::Application.GeneralRepository.IApplicationRepository applicationRepository, IRepository<ApplicationSetting> applicationSettingRepository, IMapper mapper)
+        public ApplicationServices(global::Application.GeneralRepository.IApplicationRepository applicationRepository, IRepository<ApplicationSetting> applicationSettingRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _applicationSettingRepository = applicationSettingRepository;
             _applicationRepository = applicationRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         // methods
         public async Task<ApplicationDto> Create(ApplicationDto application)
         {
             var _application = await _applicationRepository.Create(_mapper.Map<Domains.Entities.General.Application>(application));
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<ApplicationDto>(_application);
         }
         public async Task<ApplicationDto> Update(ApplicationDto application)
         {
             var _application = await _applicationRepository.Update(_mapper.Map<Domains.Entities.General.Application>(application));
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<ApplicationDto>(_application);
         }
         public async Task Delete(int id)
         {
             await _applicationRepository.Delete(id);
+            await _unitOfWork.SaveChangesAsync();
         }
         public async Task<ApplicationDto> GetById(int id)
         {
@@ -55,17 +61,21 @@ namespace Services.GeneralServices
         public async Task AddUserToApplication(string userId, int applicationId)
         {
             await _applicationRepository.AddUserToApplication(userId, applicationId);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task RemoveUserFromApplication(int relationId)
         {
             await _applicationRepository.RemoveUserFromApplication(relationId);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<ApplicationSettingDto> CreateApplicationSetting(ApplicationSettingDto applicationSetting)
         {
             applicationSetting.IsActive = true;
-            return _mapper.Map<ApplicationSettingDto>(await _applicationSettingRepository.Create(_mapper.Map<ApplicationSetting>(applicationSetting)));
+            var created = await _applicationSettingRepository.Create(_mapper.Map<ApplicationSetting>(applicationSetting));
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<ApplicationSettingDto>(created);
         }
 
         public List<ApplicationSettingDto> GetApplicationSetting(int applicationId, int settingId = 0)

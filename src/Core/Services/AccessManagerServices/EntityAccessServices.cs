@@ -4,6 +4,7 @@ using AutoMapper;
 using Domains.Entities.AccessManagement;
 using Application.AccessManagerRepository;
 using Application.Contracts.AccessManagement;
+using Application.UnitOfWork;
 
 namespace Services.AccessManagerServices
 {
@@ -12,12 +13,14 @@ namespace Services.AccessManagerServices
         private readonly IEntityAccessRepository _entityAccessRepository;
         private readonly ISectorEntityRepository _sectorEntityRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public EntityAccessServices(IEntityAccessRepository entityAccessRepository, ISectorEntityRepository sectorEntityRepository, IMapper mapper)
+        public EntityAccessServices(IEntityAccessRepository entityAccessRepository, ISectorEntityRepository sectorEntityRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _entityAccessRepository = entityAccessRepository;
             _sectorEntityRepository = sectorEntityRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task Create(EntityAccessDto access, int applicationId)
@@ -25,6 +28,7 @@ namespace Services.AccessManagerServices
             // The target SectorEntity must belong to this application before access can be granted on it.
             await _sectorEntityRepository.GetByIdForApplication(access.EntityId, applicationId);
             await _entityAccessRepository.Create(_mapper.Map<EntityAccess>(access));
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task Update(EntityAccessDto access, int applicationId)
@@ -32,6 +36,7 @@ namespace Services.AccessManagerServices
             await _entityAccessRepository.GetByIdForApplication(access.Id, applicationId);
             await _sectorEntityRepository.GetByIdForApplication(access.EntityId, applicationId);
             await _entityAccessRepository.Update(_mapper.Map<EntityAccess>(access));
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<EntityAccessDto> GetById(int id, int applicationId)

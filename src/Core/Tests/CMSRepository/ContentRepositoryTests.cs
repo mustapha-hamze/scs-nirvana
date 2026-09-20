@@ -139,6 +139,7 @@ public class ContentRepositoryTests
         var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
 
         await repository.UpdateFarsiContent(content.Id, "{\"title\":\"ترجمه\"}");
+        await context.SaveChangesAsync();
 
         await using var verifyContext = factory.CreateContext();
         var updated = await verifyContext.Contents.SingleAsync(c => c.Id == content.Id);
@@ -187,6 +188,7 @@ public class ContentRepositoryTests
         var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
 
         await repository.ActivateTranslatedContent(content.Id, "translated");
+        await context.SaveChangesAsync();
 
         await using var verifyContext = factory.CreateContext();
         var updated = await verifyContext.Contents.SingleAsync(c => c.Id == content.Id);

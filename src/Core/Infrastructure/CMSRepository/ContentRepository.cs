@@ -535,13 +535,13 @@ public class ContentRepository : Repository<Content>, IContentRepository
         });
     }
 
-    public async Task DeleteAllContentImages(int contentId)
+    public Task DeleteAllContentImages(int contentId)
     {
         _dbContext.ContentImages
             .RemoveRange(_dbContext.ContentImages
             .Where(c => c.ContentId == contentId)
             .AsEnumerable());
-        await _dbContext.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
     public List<ContentImage> GetAllContentImages(int contentId)
@@ -572,7 +572,6 @@ public class ContentRepository : Repository<Content>, IContentRepository
     {
         var section = await _dbContext.ContentSections.SingleAsync(cs => cs.Id == sectionId);
         section.Priority = priority;
-        await _dbContext.SaveChangesAsync();
     }
 
     public async Task UpdateFarsiContent(int contentId, string farsiContent)
@@ -583,7 +582,6 @@ public class ContentRepository : Repository<Content>, IContentRepository
         var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId);
         content.FarsiContent = farsiContent;
         content.UpdatedDT = DateTime.Now;
-        await _dbContext.SaveChangesAsync();
     }
 
     public async Task ActivateTranslatedContent(int contentId, string translatedContent)
@@ -592,6 +590,5 @@ public class ContentRepository : Repository<Content>, IContentRepository
         content.FarsiContent = translatedContent;
         content.IsActive = true;
         content.UpdatedDT = DateTime.Now;
-        await _dbContext.SaveChangesAsync();
     }
 }

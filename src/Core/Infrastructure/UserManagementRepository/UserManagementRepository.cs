@@ -64,21 +64,17 @@ public class UserManagementRepository : IUserManagementRepository
                 CreatedDT = DateTime.Now,
                 UpdatedDT = DateTime.Now
             });
-            await _dbContext.SaveChangesAsync();
         }
         else
         {
             userAccesses.Access = accesses;
-            await _dbContext.SaveChangesAsync();
         }
-
     }
 
     public async Task SetCurrentApplicationId(string email, int appId)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         user.CurrentApplicationId = appId;
-        await _dbContext.SaveChangesAsync();
     }
 
     public ApplicationUser GetUserByEmailAddress(string email)

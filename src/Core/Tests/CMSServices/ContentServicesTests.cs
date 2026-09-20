@@ -3,6 +3,7 @@ using Domains.Entities.ContentManagement;
 using Application.CMSRepository;
 using Application.GeneralRepository;
 using Application.Contracts.CMS;
+using Application.UnitOfWork;
 using Infrastructure.Mapper;
 using Application.Repository;
 using Moq;
@@ -24,7 +25,8 @@ public class ContentServicesTests
         Mock<ICategoryRepository> categoryRepository = null,
         Mock<ITagRepository> tagRepository = null,
         Mock<ICultureRepository> cultureRepository = null,
-        IMapper mapper = null)
+        IMapper mapper = null,
+        Mock<IUnitOfWork> unitOfWork = null)
     {
         return new ContentServices(
             contentRepository.Object,
@@ -35,7 +37,8 @@ public class ContentServicesTests
             (categoryRepository ?? new Mock<ICategoryRepository>()).Object,
             (tagRepository ?? new Mock<ITagRepository>()).Object,
             (cultureRepository ?? new Mock<ICultureRepository>()).Object,
-            mapper ?? CreateMapper());
+            mapper ?? CreateMapper(),
+            (unitOfWork ?? new Mock<IUnitOfWork>()).Object);
     }
 
     [Fact]
@@ -72,6 +75,46 @@ public class ContentServicesTests
 
         Assert.Equal("Updated Title", result.Title);
         contentRepository.Verify(r => r.Update(It.IsAny<Content>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Update_PreservesFieldsNotCarriedByDto()
+    {
+        // ContentDto has no FarsiContent property. Update must merge onto the loaded entity so
+        // this field (and anything else ContentDto doesn't expose) keeps its stored value instead
+        // of being wiped by the blind entity-wide write.
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository
+            .Setup(r => r.GetByIdForApplication(7, 1))
+            .ReturnsAsync(new Content { Id = 7, ApplicationId = 1, FarsiContent = "ترجمه موجود" });
+        contentRepository
+            .Setup(r => r.Update(It.IsAny<Content>()))
+            .ReturnsAsync((Content c) => c);
+
+        var sut = CreateSut(contentRepository);
+
+        await sut.Update(new ContentDto { Id = 7, Title = "Updated Title" }, applicationId: 1);
+
+        contentRepository.Verify(r => r.Update(It.Is<Content>(c => c.FarsiContent == "ترجمه موجود")), Times.Once);
+    }
+
+    [Fact]
+    public async Task Update_CommitsExactlyOnce()
+    {
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository
+            .Setup(r => r.GetByIdForApplication(7, 1))
+            .ReturnsAsync(new Content { Id = 7, ApplicationId = 1 });
+        contentRepository
+            .Setup(r => r.Update(It.IsAny<Content>()))
+            .ReturnsAsync((Content c) => c);
+
+        var unitOfWork = new Mock<IUnitOfWork>();
+        var sut = CreateSut(contentRepository, unitOfWork: unitOfWork);
+
+        await sut.Update(new ContentDto { Id = 7, Title = "Updated Title" }, applicationId: 1);
+
+        unitOfWork.Verify(u => u.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]

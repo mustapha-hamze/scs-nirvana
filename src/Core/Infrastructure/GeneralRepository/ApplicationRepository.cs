@@ -45,17 +45,15 @@ namespace Infrastructure.GeneralRepository
                 UpdatedDT = DateTime.Now,
                 CreatedDT = DateTime.Now
             });
-
-            await _dbContext.SaveChangesAsync();
         }
 
-        public async Task RemoveUserFromApplication(int relationId)
+        public Task RemoveUserFromApplication(int relationId)
         {
             var relation = _dbContext.UserInApplications.Single(u => u.Id == relationId);
             relation.IsDeleted = true;
             relation.UpdatedDT = DateTime.Now;
 
-            await _dbContext.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
         public List<ApplicationSetting> GetApplicationSetting(int applicationId, int settingId = 0)

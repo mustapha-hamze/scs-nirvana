@@ -20,7 +20,8 @@ namespace Infrastructure.Repository
             _entities = dbContext.Set<T>();
         }
 
-        public async Task<T> Create(T entity)
+        // Stages the change only; the calling use case owns SaveChangesAsync/ExecuteInTransactionAsync.
+        public Task<T> Create(T entity)
         {
             //entity.Id = Guid.NewGuid().ToString();
             entity.IsDeleted = false;
@@ -29,17 +30,16 @@ namespace Infrastructure.Repository
 
             _entities.Add(entity);
             _dbContext.Entry(entity).State = EntityState.Added;
-            await _dbContext.SaveChangesAsync();
-            return entity;
+            return Task.FromResult(entity);
         }
 
-        public async Task Delete(int id)
+        public Task Delete(int id)
         {
             var entity = _entities.Single(e => e.Id == id);
             entity.IsDeleted = true;
             entity.UpdatedDT = DateTime.Now;
             _dbContext.Entry(entity).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
         public async Task<T> GetById(int id)
@@ -47,14 +47,13 @@ namespace Infrastructure.Repository
             return await _entities.AsNoTracking().SingleAsync(s => s.Id == id);
         }
 
-        public async Task<T> Update(T entity)
+        public Task<T> Update(T entity)
         {
             entity.UpdatedDT = DateTime.Now;
 
             _entities.Update(entity);
             _dbContext.Entry(entity).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
-            return entity;
+            return Task.FromResult(entity);
         }
     }
 }

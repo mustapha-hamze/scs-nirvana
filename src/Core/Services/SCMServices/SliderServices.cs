@@ -3,35 +3,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Domains.Entities.CustomModule;
+using Application.UnitOfWork;
 
 namespace Services.SCMServices
 {
     public class SliderServices : ISliderServices
     {
         private readonly global::Application.SCMRepository.ISliderRepository _sliderRepository;
-        public SliderServices(global::Application.SCMRepository.ISliderRepository sliderRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public SliderServices(global::Application.SCMRepository.ISliderRepository sliderRepository, IUnitOfWork unitOfWork)
         {
             _sliderRepository = sliderRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Slider> Create(Slider slider)
         {
-            return await _sliderRepository.Create(slider);
+            var created = await _sliderRepository.Create(slider);
+            await _unitOfWork.SaveChangesAsync();
+            return created;
         }
 
         public async Task<SliderItem> CreateSliderItem(SliderItem sliderItem)
         {
-            return await _sliderRepository.CreateSliderItem(sliderItem);
+            var created = await _sliderRepository.CreateSliderItem(sliderItem);
+            await _unitOfWork.SaveChangesAsync();
+            return created;
         }
 
         public async Task DeactiveSliderItem(int sliderItemId)
         {
             await _sliderRepository.DeactiveSliderItem(sliderItemId);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task ActiveSliderItem(int sliderItemId)
         {
             await _sliderRepository.ActiveSliderItem(sliderItemId);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public List<Slider> GetSliders(int applicationId)
@@ -47,6 +56,7 @@ namespace Services.SCMServices
         public async Task DeleteSliderItem(int sliderItemId)
         {
             await _sliderRepository.DeleteSliderItem(sliderItemId);
+            await _unitOfWork.SaveChangesAsync();
         }
         public Slider GetSliderWithItems(int sliderId)
         {
@@ -60,7 +70,9 @@ namespace Services.SCMServices
 
         public async Task<SliderItem> UpdateSliderItem(SliderItem sliderItem)
         {
-            return await _sliderRepository.UpdateSliderItem(sliderItem);
+            var updated = await _sliderRepository.UpdateSliderItem(sliderItem);
+            await _unitOfWork.SaveChangesAsync();
+            return updated;
         }
     }
 }

@@ -4,6 +4,7 @@ using AutoMapper;
 using Domains.Entities.AccessManagement;
 using Application.AccessManagerRepository;
 using Application.Contracts.AccessManagement;
+using Application.UnitOfWork;
 
 namespace Services.AccessManagerServices
 {
@@ -12,18 +13,21 @@ namespace Services.AccessManagerServices
         // fields
         private readonly ISectorRepository _sectorRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
         // constructor
-        public SectorServices(ISectorRepository sectorRepository, IMapper mapper)
+        public SectorServices(ISectorRepository sectorRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _sectorRepository = sectorRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         // methods
         public async Task Create(SectorDto sector)
         {
             await _sectorRepository.Create(_mapper.Map<Sector>(sector));
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task Update(SectorDto sector, int applicationId)
@@ -34,6 +38,7 @@ namespace Services.AccessManagerServices
             await _sectorRepository.GetByIdForApplication(sector.Id, applicationId);
             sector.ApplicationId = applicationId;
             await _sectorRepository.Update(_mapper.Map<Sector>(sector));
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<SectorDto> GetById(int id, int applicationId)
@@ -45,6 +50,7 @@ namespace Services.AccessManagerServices
         {
             await _sectorRepository.GetByIdForApplication(id, applicationId);
             await _sectorRepository.Delete(id);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public List<SectorDto> GetAllSector(int applicationId)

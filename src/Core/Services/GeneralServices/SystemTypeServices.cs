@@ -4,6 +4,7 @@ using AutoMapper;
 using Domains.Entities.General;
 using Application.GeneralRepository;
 using Application.Contracts.General;
+using Application.UnitOfWork;
 
 namespace Services.GeneralServices
 {
@@ -11,16 +12,19 @@ namespace Services.GeneralServices
     {
         private readonly ISystemTypeRepository _systemTypeRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public SystemTypeServices(ISystemTypeRepository systemTypeRepository, IMapper mapper)
+        public SystemTypeServices(ISystemTypeRepository systemTypeRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _systemTypeRepository = systemTypeRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task Create(SystemTypeDto systemType)
         {
             await _systemTypeRepository.Create(_mapper.Map<SystemType>(systemType));
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public List<SystemTypeDto> List(int applicationId)

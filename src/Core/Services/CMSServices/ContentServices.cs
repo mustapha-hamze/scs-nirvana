@@ -9,6 +9,7 @@ using Domains.Entities.ContentManagement;
 using Application.Repository;
 using Application.CMSRepository;
 using Application.GeneralRepository;
+using Application.UnitOfWork;
 
 namespace Services.CMSServices
 {
@@ -24,12 +25,13 @@ namespace Services.CMSServices
         private readonly ITagRepository _tagRepository;
         private readonly ICultureRepository _cultureRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
         // constructor
         public ContentServices(IContentRepository contentRepository, IRepository<ContentSection> contentSectionRepository,
         IRepository<SectionElement> sectionElementRepository, IRepository<ContentMetadata> contentMetadataRepository, IRepository<ContentImage> contentImageRepository,
         ICategoryRepository categoryRepository, ITagRepository tagRepository, ICultureRepository cultureRepository,
-        IMapper mapper)
+        IMapper mapper, IUnitOfWork unitOfWork)
         {
             _contentRepository = contentRepository;
             _contentSectionRepository = contentSectionRepository;
@@ -40,12 +42,15 @@ namespace Services.CMSServices
             _tagRepository = tagRepository;
             _cultureRepository = cultureRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         // methods
         public async Task<ContentDto> Create(ContentDto content)
         {
-            return _mapper.Map<ContentDto>(await _contentRepository.Create(_mapper.Map<Content>(content)));
+            var created = await _contentRepository.Create(_mapper.Map<Content>(content));
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<ContentDto>(created);
         }
 
         public async Task Delete(int id, int applicationId)
@@ -53,6 +58,7 @@ namespace Services.CMSServices
             // Throws if id doesn't exist or belongs to another application, before any delete happens.
             await _contentRepository.GetByIdForApplication(id, applicationId);
             await _contentRepository.Delete(id);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public List<ContentApiDto> GetContentByIdFull(int id)
@@ -85,6 +91,7 @@ namespace Services.CMSServices
             var content = await _contentRepository.GetByIdForApplication(id, applicationId);
             content.IsActive = mode;
             await _contentRepository.Update(content);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task UpdateTranslate(int contentId, string translatedContent, int applicationId)
@@ -95,22 +102,29 @@ namespace Services.CMSServices
             // conflicting with it — see IContentProvider.GetContentForTranslate.
             await _contentRepository.GetByIdForApplication(contentId, applicationId);
             await _contentRepository.UpdateFarsiContent(contentId, translatedContent);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task ActivateTranslatedContent(int contentId, string translatedContent, int applicationId)
         {
             await _contentRepository.GetByIdForApplication(contentId, applicationId);
             await _contentRepository.ActivateTranslatedContent(contentId, translatedContent);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<ContentDto> Update(ContentDto content, int applicationId)
         {
             // Confirms the content being edited already belongs to this application, and
             // re-pins ApplicationId server-side so this call can't be used to move content into
-            // a different application.
-            await _contentRepository.GetByIdForApplication(content.Id, applicationId);
+            // a different application. Maps onto the loaded entity (not a fresh one) so fields
+            // ContentDto doesn't carry — e.g. FarsiContent — keep their existing value instead of
+            // being cleared by the blind entity-wide update.
+            var existing = await _contentRepository.GetByIdForApplication(content.Id, applicationId);
             content.ApplicationId = applicationId;
-            return _mapper.Map<ContentDto>(await _contentRepository.Update(_mapper.Map<Content>(content)));
+            _mapper.Map(content, existing);
+            var updated = await _contentRepository.Update(existing);
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<ContentDto>(updated);
         }
 
         public async Task<ContentDto> GetById(int id, int applicationId)
@@ -135,12 +149,16 @@ namespace Services.CMSServices
 
         public async Task<SectionDto> CreateSection(SectionDto section)
         {
-            return _mapper.Map<SectionDto>(await _contentSectionRepository.Create(_mapper.Map<ContentSection>(section)));
+            var created = await _contentSectionRepository.Create(_mapper.Map<ContentSection>(section));
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<SectionDto>(created);
         }
 
         public async Task<SectionElementDto> CreateSectionElement(SectionElementDto sectionElement)
         {
-            return _mapper.Map<SectionElementDto>(await _sectionElementRepository.Create(_mapper.Map<SectionElement>(sectionElement)));
+            var created = await _sectionElementRepository.Create(_mapper.Map<SectionElement>(sectionElement));
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<SectionElementDto>(created);
         }
 
         public async Task UpdateSectionElement(SectionElementDto sectionElement)
@@ -155,6 +173,7 @@ namespace Services.CMSServices
             element.UpdatedDT = DateTime.Now;
 
             await _sectionElementRepository.Update(element);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<List<SectionDto>> GetSections(int contentId, int applicationId)
@@ -242,23 +261,29 @@ namespace Services.CMSServices
         public async Task<ContentMetadataDto> CreateContentMetadata(ContentMetadataDto contentMetadata)
         {
             contentMetadata.IsActive = true;
-            return _mapper.Map<ContentMetadataDto>(await _contentMetadataRepository.Create(_mapper.Map<ContentMetadata>(contentMetadata)));
+            var created = await _contentMetadataRepository.Create(_mapper.Map<ContentMetadata>(contentMetadata));
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<ContentMetadataDto>(created);
         }
 
         public async Task<ContentMetadataDto> UpdateContentMetadata(ContentMetadataDto contentMetadata)
         {
-            return _mapper.Map<ContentMetadataDto>(await _contentMetadataRepository.Update(_mapper.Map<ContentMetadata>(contentMetadata)));
+            var updated = await _contentMetadataRepository.Update(_mapper.Map<ContentMetadata>(contentMetadata));
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<ContentMetadataDto>(updated);
         }
 
         public async Task CreateContentImage(ContentImageDto contentImage)
         {
             await _contentImageRepository.Create(_mapper.Map<ContentImage>(contentImage));
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAllContentImages(int contentId, int applicationId)
         {
             await _contentRepository.GetByIdForApplication(contentId, applicationId);
             await _contentRepository.DeleteAllContentImages(contentId);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<List<ContentImageDto>> GetAllContentImages(int contentId, int applicationId)
@@ -270,6 +295,7 @@ namespace Services.CMSServices
         public async Task DeleteSection(int sectionId)
         {
             await _contentSectionRepository.Delete(sectionId);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId)
@@ -285,6 +311,7 @@ namespace Services.CMSServices
         public async Task UpdateSectionPriority(int sectionId, int priority)
         {
             await _contentRepository.UpdateSectionPriority(sectionId, priority);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

@@ -4,6 +4,7 @@ using AutoMapper;
 using Application.Contracts.CMS;
 using Domains.Entities.ContentManagement;
 using Application.CMSRepository;
+using Application.UnitOfWork;
 
 namespace Services.CMSServices
 {
@@ -12,24 +13,29 @@ namespace Services.CMSServices
         // fields
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
         // constructor
-        public CategoryServices(ICategoryRepository categoryRepository, IMapper mapper)
+        public CategoryServices(ICategoryRepository categoryRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _categoryRepository = categoryRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         // methods
         public async Task<CategoryDto> Create(CategoryDto category)
         {
             category.IsActive = true;
-            return _mapper.Map<CategoryDto>(await _categoryRepository.Create(_mapper.Map<Category>(category)));
+            var created = await _categoryRepository.Create(_mapper.Map<Category>(category));
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<CategoryDto>(created);
         }
 
         public async Task Delete(int id)
         {
             await _categoryRepository.Delete(id);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public List<CategoryDto> List(int applicationId)

@@ -6,6 +6,7 @@ using AutoMapper;
 using Domains.Entities.AccessManagement;
 using Application.AccessManagerRepository;
 using Application.Contracts.AccessManagement;
+using Application.UnitOfWork;
 
 namespace Services.AccessManagerServices
 {
@@ -15,13 +16,15 @@ namespace Services.AccessManagerServices
         private readonly ISectorEntityRepository _sectorEntityRepository;
         private readonly ISectorRepository _sectorRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
         // constructor
-        public SectorEntityServices(ISectorEntityRepository sectorEntityRepository, ISectorRepository sectorRepository, IMapper mapper)
+        public SectorEntityServices(ISectorEntityRepository sectorEntityRepository, ISectorRepository sectorRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _sectorEntityRepository = sectorEntityRepository;
             _sectorRepository = sectorRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         // methods
@@ -30,6 +33,7 @@ namespace Services.AccessManagerServices
             // The parent Sector must belong to this application before an entity can be filed under it.
             await _sectorRepository.GetByIdForApplication(sectorEntity.SectorId, applicationId);
             await _sectorEntityRepository.Create(_mapper.Map<SectorEntity>(sectorEntity));
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task Update(SectorEntityDto sectorEntity, int applicationId)
@@ -37,6 +41,7 @@ namespace Services.AccessManagerServices
             await _sectorEntityRepository.GetByIdForApplication(sectorEntity.Id, applicationId);
             await _sectorRepository.GetByIdForApplication(sectorEntity.SectorId, applicationId);
             await _sectorEntityRepository.Update(_mapper.Map<SectorEntity>(sectorEntity));
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public List<SectorEntityDto> GetSectorEntities(int sectorId, int applicationId)

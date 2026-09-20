@@ -35,7 +35,7 @@ namespace Infrastructure.SCMRepository
             return await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
         }
 
-        public async Task<SliderItem> CreateSliderItem(SliderItem sliderItem)
+        public Task<SliderItem> CreateSliderItem(SliderItem sliderItem)
         {
             sliderItem.CreatedDT = DateTime.Now;
             sliderItem.UpdatedDT = DateTime.Now;
@@ -43,16 +43,14 @@ namespace Infrastructure.SCMRepository
             sliderItem.IsActive = true;
 
             _dbContext.SliderItems.Add(sliderItem);
-            await _dbContext.SaveChangesAsync();
 
-            return sliderItem;
+            return Task.FromResult(sliderItem);
         }
         public async Task DeactiveSliderItem(int sliderItemId)
         {
             var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
             sliderItem.IsActive = false;
             _dbContext.Entry(sliderItem).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
         }
 
         public async Task ActiveSliderItem(int sliderItemId)
@@ -60,7 +58,6 @@ namespace Infrastructure.SCMRepository
             var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
             sliderItem.IsActive = true;
             _dbContext.Entry(sliderItem).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
         }
 
         public async Task DeleteSliderItem(int sliderItemId)
@@ -68,7 +65,6 @@ namespace Infrastructure.SCMRepository
             var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
             sliderItem.IsDeleted = true;
             _dbContext.Entry(sliderItem).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
         }
 
         public Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId)
@@ -83,14 +79,13 @@ namespace Infrastructure.SCMRepository
             return new Domains.Entities.CustomModule.Slider();
         }
 
-        public async Task<SliderItem> UpdateSliderItem(SliderItem sliderItem)
+        public Task<SliderItem> UpdateSliderItem(SliderItem sliderItem)
         {
             sliderItem.UpdatedDT = DateTime.Now;
             _dbContext.SliderItems.Update(sliderItem);
             _dbContext.Entry(sliderItem).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
 
-            return sliderItem;
+            return Task.FromResult(sliderItem);
         }
     }
 }
