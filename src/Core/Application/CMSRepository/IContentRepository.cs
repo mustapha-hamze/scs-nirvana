@@ -25,13 +25,18 @@ public interface IContentRepository : IRepository<Content>
     // GetContentForTranslate) instead of creating a second, conflicting tracked instance.
     Task UpdateFarsiContent(int contentId, string farsiContent);
     Task ActivateTranslatedContent(int contentId, string translatedContent);
-    Task CreateContentCategories(string data, string entity, int contentId);
-    Task CreateContentTags(string data, string entity, int contentId);
-    Task CreateContentCultures(string data, string entity, int contentId);
+    Task CreateContentCategories(int contentId, List<int> categoryIds);
+    Task CreateContentTags(int contentId, List<int> tagIds);
+    Task CreateContentCultures(int contentId, List<int> cultureIds);
     ContentMetadata GetContentMetadata(int contentId);
     Task DeleteAllContentImages(int contentId);
     List<ContentImage> GetAllContentImages(int contentId);
     int ContentCount(int applicationId);
+
+    // Application-scoped lookup: throws (SingleAsync) rather than returning null when the id
+    // doesn't exist or belongs to a different application, so the two cases are indistinguishable
+    // to the caller and no cross-application data can leak through a "not found" response.
+    Task<Content> GetByIdForApplication(int id, int applicationId);
     Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId);
     List<ContentApiDto> GetContentByIdFull(int id);
     List<ContentApiDto> GetContentByTypeId(int typeId);

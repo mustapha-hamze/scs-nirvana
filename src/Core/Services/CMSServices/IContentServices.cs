@@ -9,10 +9,10 @@ namespace Services.CMSServices
     public interface IContentServices
     {
         Task<ContentDto> Create(ContentDto content);
-        Task Delete(int id);
-        Task ChangeContentActiveMode(int id, bool mode);
-        Task<ContentDto> Update(ContentDto content);
-        Task<ContentDto> GetById(int id);
+        Task Delete(int id, int applicationId);
+        Task ChangeContentActiveMode(int id, bool mode, int applicationId);
+        Task<ContentDto> Update(ContentDto content, int applicationId);
+        Task<ContentDto> GetById(int id, int applicationId);
         List<ContentDto> List(int applicationId);
         List<ContentDto> List(int applicationId, int pageIndex);
         List<ContentDto> OurBlogBoxList(int applicationId);
@@ -21,26 +21,26 @@ namespace Services.CMSServices
         Task<SectionDto> CreateSection(SectionDto section);
         Task<SectionElementDto> CreateSectionElement(SectionElementDto sectionElement);
         Task UpdateSectionElement(SectionElementDto sectionElement);
-        List<SectionDto> GetSections(int contentId);
+        Task<List<SectionDto>> GetSections(int contentId, int applicationId);
         Task UpdateSectionPriority(int sectionId, int priority);
 
-        Task CreateContentCategories(string data, string entity, int contentId);
-        Task CreateContentTags(string data, string entity, int contentId);
-        Task CreateContentCultures(string data, string entity, int contentId);
+        Task CreateContentCategories(List<int> categoryIds, int contentId, int applicationId);
+        Task CreateContentTags(List<int> tagIds, int contentId, int applicationId);
+        Task CreateContentCultures(List<int> cultureIds, int contentId, int applicationId);
 
-        ContentMetadataDto GetContentMetadata(int contentId);
+        Task<ContentMetadataDto> GetContentMetadata(int contentId, int applicationId);
         Task<ContentMetadataDto> CreateContentMetadata(ContentMetadataDto contentMetadata);
         Task<ContentMetadataDto> UpdateContentMetadata(ContentMetadataDto contentMetadata);
 
         Task CreateContentImage(ContentImageDto contentImage);
-        Task DeleteAllContentImages(int contentId);
-        List<ContentImageDto> GetAllContentImages(int contentId);
+        Task DeleteAllContentImages(int contentId, int applicationId);
+        Task<List<ContentImageDto>> GetAllContentImages(int contentId, int applicationId);
         Task DeleteSection(int sectionId);
 
         Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId);
 
-        Task UpdateTranslate(int contentId, string translatedContent);
-        Task ActivateTranslatedContent(int contentId, string translatedContent);
+        Task UpdateTranslate(int contentId, string translatedContent, int applicationId);
+        Task ActivateTranslatedContent(int contentId, string translatedContent, int applicationId);
 
         List<ContentApiDto> GetContentByIdFull(int id);
         List<ContentApiDto> GetContentByTypeId(int typeId);

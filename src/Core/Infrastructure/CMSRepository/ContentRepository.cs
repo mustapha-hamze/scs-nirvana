@@ -195,8 +195,13 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
     public BlogIndexApiDto GetContentByCategoryId(int categoryId, int pageIndex = 1, int pageSize = 40)
     {
-        // NOTE: PagesCount/PageIndex are intentionally left at their default (0) below, matching
-        // the pre-existing behavior of this endpoint — it has never computed pagination metadata.
+        // One-based paging: page 0 is kept as a backward-compatible alias for page 1 (the
+        // first page); any page >= 2 skips (page - 1) * pageSize rows.
+        if (pageSize <= 0 || pageSize > 200)
+            pageSize = 40;
+        var normalizedPage = pageIndex <= 1 ? 1 : pageIndex;
+        var skipCount = (normalizedPage - 1) * pageSize;
+
         var result = new BlogIndexApiDto();
 
         var query = from contentCategory in _dbContext.ContentInCategories
@@ -204,7 +209,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
                     where contentCategory.CategoryId == categoryId
                           && content.IsActive == true
                           && content.IsDeleted == false
-                    orderby contentCategory.CreatedDt descending
+                    orderby contentCategory.CreatedDt descending, contentCategory.Id descending
                     select new
                     {
                         contentCategory.ContentId,
@@ -221,8 +226,10 @@ public class ContentRepository : Repository<Content>, IContentRepository
                         content.TypeId,
                     };
 
+        var totalCount = query.Count();
+
         var _result = query
-            .Skip(pageIndex * pageSize)
+            .Skip(skipCount)
             .Take(pageSize)
             .ToList();
 
@@ -260,6 +267,8 @@ public class ContentRepository : Repository<Content>, IContentRepository
         }
 
         result.Contents = contents.OrderByDescending(c => c.CreatedDT).ToList();
+        result.PageIndex = normalizedPage;
+        result.PagesCount = (int)Math.Ceiling(totalCount / (double)pageSize);
 
         return result;
     }
@@ -405,6 +414,12 @@ public class ContentRepository : Repository<Content>, IContentRepository
             .Count(c => !c.IsDeleted && c.ApplicationId == applicationId);
     }
 
+    public async Task<Content> GetByIdForApplication(int id, int applicationId)
+    {
+        return await _dbContext.Contents.AsNoTracking()
+            .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId);
+    }
+
     public List<ContentSection> GetContentSections(int contentId)
     {
         return _dbContext.ContentSections
@@ -434,13 +449,16 @@ public class ContentRepository : Repository<Content>, IContentRepository
             return new ContentMetadata();
     }
 
-    public async Task CreateContentCategories(string data, string entity, int contentId)
+    // categoryIds is expected to already be a validated, de-duplicated set (see
+    // ContentServices.CreateContentCategories) — this method's only job is to replace the join
+    // rows and the legacy pipe-delimited compatibility field atomically, in one transaction.
+    public async Task CreateContentCategories(int contentId, List<int> categoryIds)
     {
         await _unitOfWork.ExecuteInTransactionAsync(() =>
         {
             var content = _dbContext.Contents.Single(c => c.Id == contentId);
 
-            content.Categories = data;
+            content.Categories = string.Join("|", categoryIds);
             content.UpdatedDT = DateTime.Now;
             _dbContext.Entry(content).State = EntityState.Modified;
 
@@ -449,33 +467,26 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 .Where(c => c.ContentId == contentId)
                 .AsEnumerable());
 
-            if (data != "" && data != null && data != string.Empty)
+            foreach (var categoryId in categoryIds)
             {
-                var categories = data.Split('|');
-                foreach (var item in categories)
+                _dbContext.ContentInCategories.Add(new ContentInCategory
                 {
-                    if (item != null && item != "" && item != string.Empty)
-                    {
-                        _dbContext.ContentInCategories.Add(new ContentInCategory
-                        {
-                            ContentId = contentId,
-                            CategoryId = Convert.ToInt32(item),
-                            CreatedDt = DateTime.Now
-                        });
-                    }
-                }
+                    ContentId = contentId,
+                    CategoryId = categoryId,
+                    CreatedDt = DateTime.Now
+                });
             }
 
             return Task.CompletedTask;
         });
     }
 
-    public async Task CreateContentTags(string data, string entity, int contentId)
+    public async Task CreateContentTags(int contentId, List<int> tagIds)
     {
         await _unitOfWork.ExecuteInTransactionAsync(() =>
         {
             var content = _dbContext.Contents.Single(c => c.Id == contentId);
-            content.Tags = data;
+            content.Tags = string.Join("|", tagIds);
             content.UpdatedDT = DateTime.Now;
             _dbContext.Entry(content).State = EntityState.Modified;
 
@@ -484,33 +495,25 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 .Where(c => c.ContentId == contentId)
                 .AsEnumerable());
 
-            if (data != "" && data != null && data != string.Empty)
+            foreach (var tagId in tagIds)
             {
-                var tags = data.Split('|');
-
-                foreach (var item in tags)
+                _dbContext.ContentInTags.Add(new ContentInTag
                 {
-                    if (item != null && item != "" && item != string.Empty)
-                    {
-                        _dbContext.ContentInTags.Add(new ContentInTag
-                        {
-                            ContentId = contentId,
-                            TagId = Convert.ToInt32(item)
-                        });
-                    }
-                }
+                    ContentId = contentId,
+                    TagId = tagId
+                });
             }
 
             return Task.CompletedTask;
         });
     }
 
-    public async Task CreateContentCultures(string data, string entity, int contentId)
+    public async Task CreateContentCultures(int contentId, List<int> cultureIds)
     {
         await _unitOfWork.ExecuteInTransactionAsync(() =>
         {
             var content = _dbContext.Contents.Single(c => c.Id == contentId);
-            content.Cultures = data;
+            content.Cultures = string.Join("|", cultureIds);
             content.UpdatedDT = DateTime.Now;
             _dbContext.Entry(content).State = EntityState.Modified;
 
@@ -519,21 +522,13 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 .Where(c => c.ContentId == contentId)
                 .AsEnumerable());
 
-            if (data != "" && data != null && data != string.Empty)
+            foreach (var cultureId in cultureIds)
             {
-                var Cultures = data.Split('|');
-
-                foreach (var item in Cultures)
+                _dbContext.ContentInCultures.Add(new ContentInCulture
                 {
-                    if (item != null && item != "" && item != string.Empty)
-                    {
-                        _dbContext.ContentInCultures.Add(new ContentInCulture
-                        {
-                            ContentId = contentId,
-                            CultureId = Convert.ToInt32(item)
-                        });
-                    }
-                }
+                    ContentId = contentId,
+                    CultureId = cultureId
+                });
             }
 
             return Task.CompletedTask;

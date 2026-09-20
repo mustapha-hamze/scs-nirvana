@@ -76,7 +76,7 @@ public class ContentController : BaseController
 
         if (id != 0)
         {
-            var content = await _contentServices.GetById(id);
+            var content = await _contentServices.GetById(id, user.CurrentApplicationId);
             var appSetting = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 5000);
             ViewData["WebsiteUrl"] = appSetting[0].Value;
             return View(content);
@@ -92,7 +92,7 @@ public class ContentController : BaseController
     }
 
     [Route("/{area}/Content/ContentSections/{contentId}/{typeId}")]
-    public IActionResult ContentSections(int contentId, int typeId)
+    public async Task<IActionResult> ContentSections(int contentId, int typeId)
     {
         int schemaTypeId = 0;
         if (typeId >= 1111)
@@ -102,7 +102,7 @@ public class ContentController : BaseController
 
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["Schemas"] = _schemaServices.List(user.CurrentApplicationId, schemaTypeId);
-        ViewData["Sections"] = _contentServices.GetSections(contentId);
+        ViewData["Sections"] = await _contentServices.GetSections(contentId, user.CurrentApplicationId);
         return View();
     }
 
@@ -113,26 +113,27 @@ public class ContentController : BaseController
         ViewData["Categories"] = _categoryServices.GetAllFullPath(user.CurrentApplicationId);
         ViewData["Tags"] = _tagServices.FindTagsByTypeId(user.CurrentApplicationId, TypeId.Content);
         ViewData["Cultures"] = _cultureServices.List();
-        var content = await _contentServices.GetById(contentId);
+        var content = await _contentServices.GetById(contentId, user.CurrentApplicationId);
         return View(content);
     }
 
     [Route("/{area}/Content/ContentMetadata/{contentId}")]
-    public IActionResult ContentMetadata(int contentId)
+    public async Task<IActionResult> ContentMetadata(int contentId)
     {
-        var contentMetadata = _contentServices.GetContentMetadata(contentId);
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var contentMetadata = await _contentServices.GetContentMetadata(contentId, user.CurrentApplicationId);
         contentMetadata.ContentId = contentId;
 
         return View(contentMetadata);
     }
 
     [Route("/{area}/Content/ContentImages/{contentId}")]
-    public IActionResult ContentImages(int contentId)
+    public async Task<IActionResult> ContentImages(int contentId)
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["ContentImageAspectRatio"] = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1001);
         ViewData["ContentImageSizes"] = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
-        ViewData["ContentImage"] = _contentServices.GetAllContentImages(contentId);
+        ViewData["ContentImage"] = await _contentServices.GetAllContentImages(contentId, user.CurrentApplicationId);
         return View();
     }
 
@@ -140,20 +141,20 @@ public class ContentController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentForm(ContentDto content)
     {
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         if (content.Id == 0)
         {
-            var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
             content.ApplicationId = user.CurrentApplicationId;
             var _content = await _contentServices.Create(content);
             return RedirectToAction("ContentForm", new { id = _content.Id, typeId = _content.TypeId });
         }
         else
         {
-            var _content = await _contentServices.GetById(content.Id);
+            var _content = await _contentServices.GetById(content.Id, user.CurrentApplicationId);
             content.Categories = _content.Categories;
             content.Tags = _content.Tags;
             content.Cultures = _content.Cultures;
-            await _contentServices.Update(content);
+            await _contentServices.Update(content, user.CurrentApplicationId);
 
             return RedirectToAction("ContentForm", new { id = content.Id, typeId = _content.TypeId });
         }
@@ -162,7 +163,8 @@ public class ContentController : BaseController
     [Route("/{area}/{controller}/FarsiContentForm/{id}/{typeId}")]
     public async Task<IActionResult> FarsiContentForm(int id, int typeId)
     {
-        var englishContent = await _contentProvider.GetContentForTranslate(id);
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var englishContent = await _contentProvider.GetContentForTranslate(id, user.CurrentApplicationId);
         if (englishContent == null)
             return NotFound();
 
@@ -181,7 +183,8 @@ public class ContentController : BaseController
         if (model == null || model.Id == 0)
             return Content("Failed");
 
-        var englishContent = await _contentProvider.GetContentForTranslate(model.Id);
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var englishContent = await _contentProvider.GetContentForTranslate(model.Id, user.CurrentApplicationId);
         if (englishContent == null)
             return NotFound();
 
@@ -241,7 +244,7 @@ public class ContentController : BaseController
 
         // UpdateTranslate now queries without AsNoTracking, so it safely resolves to the
         // already-tracked `englishContent` instance instead of conflicting with it.
-        await _contentServices.UpdateTranslate(model.Id, farsiJson);
+        await _contentServices.UpdateTranslate(model.Id, farsiJson, user.CurrentApplicationId);
 
         return Content("Done");
     }
@@ -331,21 +334,24 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ChangeContentActiveMode/{typeId}/{contentId}/{mode}")]
     public async Task<IActionResult> ChangeContentActiveMode(int typeId, int contentId, bool mode)
     {
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+
         if (mode)
         {
-            var content = await _contentProvider.GetContentForTranslate(contentId);
+            var content = await _contentProvider.GetContentForTranslate(contentId, user.CurrentApplicationId);
+            if (content == null)
+                return NotFound();
+
             if (string.IsNullOrEmpty(content.FarsiContent))
             {
                 var result = await _contentTranslator.Translate(content);
-                await _contentServices.ActivateTranslatedContent(contentId, result);
+                await _contentServices.ActivateTranslatedContent(contentId, result, user.CurrentApplicationId);
             }
         }
         else
         {
-            await _contentServices.ChangeContentActiveMode(contentId, mode);
+            await _contentServices.ChangeContentActiveMode(contentId, mode, user.CurrentApplicationId);
         }
-
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
 
         var frontContentTypes = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1002);
         if (frontContentTypes.Any(x => x.Value.Contains(typeId.ToString())))
@@ -371,7 +377,8 @@ public class ContentController : BaseController
     [Route("/{area}/Content/DeleteContent/{id}")]
     public async Task<IActionResult> DeleteContent(int id)
     {
-        await _contentServices.Delete(id);
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        await _contentServices.Delete(id, user.CurrentApplicationId);
         return Content("Done");
     }
 
@@ -379,22 +386,39 @@ public class ContentController : BaseController
     [Route("/{area}/Content/SaveRelation/{Entity}/{contentId}")]
     public async Task<IActionResult> SaveRelation([FromForm] string Data, string Entity, int contentId)
     {
-        if (Data != "" && Data != string.Empty && Data != null)
-            Data = Data[..^1];
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var ids = ParseRelationIds(Data);
         switch (Entity)
         {
             case "Category":
-                await _contentServices.CreateContentCategories(Data, Entity, contentId);
+                await _contentServices.CreateContentCategories(ids, contentId, user.CurrentApplicationId);
                 break;
             case "Tag":
-                await _contentServices.CreateContentTags(Data, Entity, contentId);
+                await _contentServices.CreateContentTags(ids, contentId, user.CurrentApplicationId);
                 break;
             case "Culture":
-                await _contentServices.CreateContentCultures(Data, Entity, contentId);
+                await _contentServices.CreateContentCultures(ids, contentId, user.CurrentApplicationId);
                 break;
         }
 
         return Content("Done");
+    }
+
+    // The client always appends a trailing '|' to the pipe-delimited id list; strips it, then
+    // parses each remaining token as an id (same as the previous Convert.ToInt32 per-token
+    // behavior — malformed input still throws rather than being silently dropped).
+    private static List<int> ParseRelationIds(string data)
+    {
+        if (string.IsNullOrEmpty(data))
+            return new List<int>();
+
+        var trimmed = data[..^1];
+        if (trimmed.Length == 0)
+            return new List<int>();
+
+        return trimmed.Split('|', StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToList();
     }
 
     [HttpPost]
@@ -756,7 +780,7 @@ public class ContentController : BaseController
             return Content("Failed");
 
         // Only remove the previous images/records once the new ones have been validated and written successfully.
-        await _contentServices.DeleteAllContentImages(contentId);
+        await _contentServices.DeleteAllContentImages(contentId, user.CurrentApplicationId);
         if (Directory.Exists(savePath))
         {
             var newFileNames = uploadResult.Variants.Select(v => v.FileName).ToHashSet();

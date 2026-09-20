@@ -8,6 +8,7 @@ using Application.Contracts.CMSApi;
 using Domains.Entities.ContentManagement;
 using Application.Repository;
 using Application.CMSRepository;
+using Application.GeneralRepository;
 
 namespace Services.CMSServices
 {
@@ -19,11 +20,15 @@ namespace Services.CMSServices
         private readonly IRepository<SectionElement> _sectionElementRepository;
         private readonly IRepository<ContentMetadata> _contentMetadataRepository;
         private readonly IRepository<ContentImage> _contentImageRepository;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly ITagRepository _tagRepository;
+        private readonly ICultureRepository _cultureRepository;
         private readonly IMapper _mapper;
 
         // constructor
         public ContentServices(IContentRepository contentRepository, IRepository<ContentSection> contentSectionRepository,
         IRepository<SectionElement> sectionElementRepository, IRepository<ContentMetadata> contentMetadataRepository, IRepository<ContentImage> contentImageRepository,
+        ICategoryRepository categoryRepository, ITagRepository tagRepository, ICultureRepository cultureRepository,
         IMapper mapper)
         {
             _contentRepository = contentRepository;
@@ -31,6 +36,9 @@ namespace Services.CMSServices
             _sectionElementRepository = sectionElementRepository;
             _contentMetadataRepository = contentMetadataRepository;
             _contentImageRepository = contentImageRepository;
+            _categoryRepository = categoryRepository;
+            _tagRepository = tagRepository;
+            _cultureRepository = cultureRepository;
             _mapper = mapper;
         }
 
@@ -40,8 +48,10 @@ namespace Services.CMSServices
             return _mapper.Map<ContentDto>(await _contentRepository.Create(_mapper.Map<Content>(content)));
         }
 
-        public async Task Delete(int id)
+        public async Task Delete(int id, int applicationId)
         {
+            // Throws if id doesn't exist or belongs to another application, before any delete happens.
+            await _contentRepository.GetByIdForApplication(id, applicationId);
             await _contentRepository.Delete(id);
         }
 
@@ -70,36 +80,42 @@ namespace Services.CMSServices
             return _contentRepository.GetContentByCategoryIdByDate(categoryId, startDate, endDate, pageIndex);
         }
 
-        public async Task ChangeContentActiveMode(int id, bool mode)
+        public async Task ChangeContentActiveMode(int id, bool mode, int applicationId)
         {
-            var content = await _contentRepository.GetById(id);
+            var content = await _contentRepository.GetByIdForApplication(id, applicationId);
             content.IsActive = mode;
             await _contentRepository.Update(content);
         }
 
-        public async Task UpdateTranslate(int contentId, string translatedContent)
+        public async Task UpdateTranslate(int contentId, string translatedContent, int applicationId)
         {
-            // Was: GetById (AsNoTracking) + Update, which throws if the caller already holds a
-            // tracked Content instance for this id in the same request (e.g. from
-            // IContentProvider.GetContentForTranslate) — EF refuses to track a second instance
-            // with the same key. UpdateFarsiContent queries without AsNoTracking, so it resolves
-            // to the already-tracked instance instead of conflicting with it.
+            // Confirms application ownership first. UpdateFarsiContent itself still queries
+            // without AsNoTracking (rather than going through GetByIdForApplication, which is
+            // AsNoTracking), so it resolves to a caller's already-tracked instance instead of
+            // conflicting with it — see IContentProvider.GetContentForTranslate.
+            await _contentRepository.GetByIdForApplication(contentId, applicationId);
             await _contentRepository.UpdateFarsiContent(contentId, translatedContent);
         }
 
-        public async Task ActivateTranslatedContent(int contentId, string translatedContent)
+        public async Task ActivateTranslatedContent(int contentId, string translatedContent, int applicationId)
         {
+            await _contentRepository.GetByIdForApplication(contentId, applicationId);
             await _contentRepository.ActivateTranslatedContent(contentId, translatedContent);
         }
 
-        public async Task<ContentDto> Update(ContentDto content)
+        public async Task<ContentDto> Update(ContentDto content, int applicationId)
         {
+            // Confirms the content being edited already belongs to this application, and
+            // re-pins ApplicationId server-side so this call can't be used to move content into
+            // a different application.
+            await _contentRepository.GetByIdForApplication(content.Id, applicationId);
+            content.ApplicationId = applicationId;
             return _mapper.Map<ContentDto>(await _contentRepository.Update(_mapper.Map<Content>(content)));
         }
 
-        public async Task<ContentDto> GetById(int id)
+        public async Task<ContentDto> GetById(int id, int applicationId)
         {
-            return _mapper.Map<ContentDto>(await _contentRepository.GetById(id));
+            return _mapper.Map<ContentDto>(await _contentRepository.GetByIdForApplication(id, applicationId));
         }
 
         public List<ContentDto> List(int applicationId)
@@ -141,8 +157,10 @@ namespace Services.CMSServices
             await _sectionElementRepository.Update(element);
         }
 
-        public List<SectionDto> GetSections(int contentId)
+        public async Task<List<SectionDto>> GetSections(int contentId, int applicationId)
         {
+            await _contentRepository.GetByIdForApplication(contentId, applicationId);
+
             var sections = _contentRepository.GetContentSections(contentId);
 
             var elementsBySectionId = _contentRepository.GetSectionElements(sections.Select(s => s.Id).ToList())
@@ -167,23 +185,57 @@ namespace Services.CMSServices
             return _contentRepository.ContentCount(applicationId);
         }
 
-        public async Task CreateContentCategories(string data, string entity, int contentId)
+        public async Task CreateContentCategories(List<int> categoryIds, int contentId, int applicationId)
         {
-            await _contentRepository.CreateContentCategories(data, entity, contentId);
+            await _contentRepository.GetByIdForApplication(contentId, applicationId);
+
+            var distinctIds = (categoryIds ?? new List<int>()).Distinct().ToList();
+            if (distinctIds.Count > 0)
+            {
+                var validIds = _categoryRepository.List(applicationId).Select(c => c.Id).ToHashSet();
+                if (distinctIds.Any(id => !validIds.Contains(id)))
+                    throw new ArgumentException("One or more category ids are invalid or belong to a different application.");
+            }
+
+            await _contentRepository.CreateContentCategories(contentId, distinctIds);
         }
 
-        public async Task CreateContentTags(string data, string entity, int contentId)
+        public async Task CreateContentTags(List<int> tagIds, int contentId, int applicationId)
         {
-            await _contentRepository.CreateContentTags(data, entity, contentId);
+            await _contentRepository.GetByIdForApplication(contentId, applicationId);
+
+            var distinctIds = (tagIds ?? new List<int>()).Distinct().ToList();
+            if (distinctIds.Count > 0)
+            {
+                var validIds = _tagRepository.List(applicationId).Select(t => t.Id).ToHashSet();
+                if (distinctIds.Any(id => !validIds.Contains(id)))
+                    throw new ArgumentException("One or more tag ids are invalid or belong to a different application.");
+            }
+
+            await _contentRepository.CreateContentTags(contentId, distinctIds);
         }
 
-        public async Task CreateContentCultures(string data, string entity, int contentId)
+        public async Task CreateContentCultures(List<int> cultureIds, int contentId, int applicationId)
         {
-            await _contentRepository.CreateContentCultures(data, entity, contentId);
+            await _contentRepository.GetByIdForApplication(contentId, applicationId);
+
+            var distinctIds = (cultureIds ?? new List<int>()).Distinct().ToList();
+            if (distinctIds.Count > 0)
+            {
+                // Culture is a global lookup in this codebase today (not scoped to an
+                // application anywhere else — see CultureServices.List()), so this only rejects
+                // ids that don't exist, without an application-match requirement.
+                var validIds = _cultureRepository.List().Select(c => c.Id).ToHashSet();
+                if (distinctIds.Any(id => !validIds.Contains(id)))
+                    throw new ArgumentException("One or more culture ids are invalid.");
+            }
+
+            await _contentRepository.CreateContentCultures(contentId, distinctIds);
         }
 
-        public ContentMetadataDto GetContentMetadata(int contentId)
+        public async Task<ContentMetadataDto> GetContentMetadata(int contentId, int applicationId)
         {
+            await _contentRepository.GetByIdForApplication(contentId, applicationId);
             return _mapper.Map<ContentMetadataDto>(_contentRepository.GetContentMetadata(contentId));
         }
 
@@ -203,13 +255,15 @@ namespace Services.CMSServices
             await _contentImageRepository.Create(_mapper.Map<ContentImage>(contentImage));
         }
 
-        public async Task DeleteAllContentImages(int contentId)
+        public async Task DeleteAllContentImages(int contentId, int applicationId)
         {
+            await _contentRepository.GetByIdForApplication(contentId, applicationId);
             await _contentRepository.DeleteAllContentImages(contentId);
         }
 
-        public List<ContentImageDto> GetAllContentImages(int contentId)
+        public async Task<List<ContentImageDto>> GetAllContentImages(int contentId, int applicationId)
         {
+            await _contentRepository.GetByIdForApplication(contentId, applicationId);
             return _mapper.Map<List<ContentImageDto>>(_contentRepository.GetAllContentImages(contentId));
         }
 

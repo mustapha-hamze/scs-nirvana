@@ -240,11 +240,10 @@ public class ContentApiReadTests
     }
 
     [Fact]
-    public void GetContentByCategoryId_PagesCountAndPageIndex_StayAtDefault()
+    public void GetContentByCategoryId_PagesCountAndPageIndex_AreComputed()
     {
-        // Preserves a pre-existing bug on purpose: this endpoint has never computed pagination
-        // metadata. Fixing it would change the current response shape, which the hard
-        // constraints for this pass explicitly say to avoid.
+        // GetContentByCategoryId now normalizes to one-based paging and reports real pagination
+        // metadata (see ContentRepositoryTests for the full page 0 / page 1 / page 2 contract).
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         var contentId = SeedFullContent(context, typeId: 5100, categories: "9");
@@ -254,8 +253,8 @@ public class ContentApiReadTests
         var repository = CreateRepository(context);
         var result = repository.GetContentByCategoryId(9);
 
-        Assert.Equal(0, result.PagesCount);
-        Assert.Equal(0, result.PageIndex);
+        Assert.Equal(1, result.PagesCount);
+        Assert.Equal(1, result.PageIndex);
     }
 
     // ---- GetContentByCategoryIdByDate/{categoryId}/{startDate}/{endDate}/{pageIndex} ----

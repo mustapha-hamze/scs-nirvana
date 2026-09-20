@@ -23,7 +23,7 @@ public class ContentRepositoryTests
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
         var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
 
-        await repository.CreateContentCategories("3|4|5", "category", content.Id);
+        await repository.CreateContentCategories(content.Id, new List<int> { 3, 4, 5 });
 
         await using var verifyContext = factory.CreateContext();
         var relations = await verifyContext.ContentInCategories.Where(c => c.ContentId == content.Id).ToListAsync();
@@ -31,6 +31,26 @@ public class ContentRepositoryTests
 
         Assert.Equal(new[] { 3, 4, 5 }, relations.Select(r => r.CategoryId).OrderBy(id => id));
         Assert.Equal("3|4|5", updatedContent.Categories);
+    }
+
+    [Fact]
+    public async Task CreateContentCategories_DuplicateIdsInInput_ViolatesUniqueConstraint()
+    {
+        // Defense in depth: the composite-unique index on (ContentId, CategoryId) added to the
+        // EF model means even a caller that bypasses ContentServices' own de-duplication can't
+        // land two rows for the same (content, category) pair.
+        using var factory = new SqliteContextFactory();
+        await using var context = factory.CreateContext();
+
+        var content = new Content { TypeId = 1000, Title = "Sample" };
+        context.Contents.Add(content);
+        await context.SaveChangesAsync();
+
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
+
+        await Assert.ThrowsAnyAsync<Exception>(
+            () => repository.CreateContentCategories(content.Id, new List<int> { 3, 3 }));
     }
 
     [Fact]
@@ -48,7 +68,7 @@ public class ContentRepositoryTests
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
         var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
 
-        await repository.CreateContentCategories("", "category", content.Id);
+        await repository.CreateContentCategories(content.Id, new List<int>());
 
         await using var verifyContext = factory.CreateContext();
         var relations = await verifyContext.ContentInCategories.Where(c => c.ContentId == content.Id).ToListAsync();
@@ -192,5 +212,147 @@ public class ContentRepositoryTests
 
         Assert.Null(exception);
         Assert.True(alreadyTracked.IsActive);
+    }
+
+    [Fact]
+    public async Task GetByIdForApplication_SameApplication_ReturnsContent()
+    {
+        using var factory = new SqliteContextFactory();
+        await using var context = factory.CreateContext();
+
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Sample" };
+        context.Contents.Add(content);
+        await context.SaveChangesAsync();
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var result = await repository.GetByIdForApplication(content.Id, 1);
+
+        Assert.Equal(content.Id, result.Id);
+    }
+
+    [Fact]
+    public async Task GetByIdForApplication_DifferentApplication_Throws()
+    {
+        using var factory = new SqliteContextFactory();
+        await using var context = factory.CreateContext();
+
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Sample" };
+        context.Contents.Add(content);
+        await context.SaveChangesAsync();
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(content.Id, 2));
+    }
+
+    [Fact]
+    public async Task GetByIdForApplication_IgnoredApplicationId_DoesNotFallBackToAnyApplication()
+    {
+        // A caller passing applicationId: 0 (e.g. an uninitialized/ignored value) must not be
+        // treated as "any application" — it must behave like any other wrong application.
+        using var factory = new SqliteContextFactory();
+        await using var context = factory.CreateContext();
+
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Sample" };
+        context.Contents.Add(content);
+        await context.SaveChangesAsync();
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(content.Id, 0));
+    }
+
+    private static void SeedCategoryContents(Infrastructure.Data.ApplicationDbContext context, int categoryId, int count)
+    {
+        var baseTime = DateTime.Now;
+        for (var i = 0; i < count; i++)
+        {
+            var content = new Content { ApplicationId = 1, TypeId = 1000, Title = $"Content {i}", IsActive = true, CreatedDT = baseTime.AddMinutes(i) };
+            context.Contents.Add(content);
+            context.SaveChanges();
+            context.ContentInCategories.Add(new ContentInCategory { ContentId = content.Id, CategoryId = categoryId, CreatedDt = baseTime.AddMinutes(i) });
+        }
+        context.SaveChanges();
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_Page0_ReturnsFirstPage()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        SeedCategoryContents(context, categoryId: 5, count: 5);
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var result = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 0, pageSize: 3);
+
+        Assert.Equal(3, result.Contents.Count);
+        Assert.Equal(1, result.PageIndex);
+        Assert.Equal(2, result.PagesCount);
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_DefaultPage_ReturnsFirstPage()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        SeedCategoryContents(context, categoryId: 5, count: 5);
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var page0 = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 0, pageSize: 3);
+        var page1 = repository.GetContentByCategoryId(categoryId: 5, pageSize: 3); // pageIndex defaults to 1
+
+        Assert.Equal(page0.Contents.Select(c => c.Id), page1.Contents.Select(c => c.Id));
+        Assert.Equal(1, page1.PageIndex);
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_Page2_SkipsFirstPage()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        SeedCategoryContents(context, categoryId: 5, count: 5);
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var firstPage = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 1, pageSize: 3);
+        var secondPage = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 2, pageSize: 3);
+
+        Assert.Equal(3, firstPage.Contents.Count);
+        Assert.Equal(2, secondPage.Contents.Count);
+        Assert.Equal(2, secondPage.PageIndex);
+        Assert.Empty(firstPage.Contents.Select(c => c.Id).Intersect(secondPage.Contents.Select(c => c.Id)));
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_InvalidPageSize_FallsBackToDefault()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        SeedCategoryContents(context, categoryId: 5, count: 5);
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var result = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 1, pageSize: 0);
+
+        Assert.Equal(5, result.Contents.Count); // all 5 fit within the 40-item default page size
+        Assert.Equal(1, result.PagesCount);
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_EmptyResult_ReturnsZeroPagesAndNoContents()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var result = repository.GetContentByCategoryId(categoryId: 999, pageIndex: 1, pageSize: 10);
+
+        Assert.Empty(result.Contents);
+        Assert.Equal(0, result.PagesCount);
+        Assert.Equal(1, result.PageIndex);
     }
 }

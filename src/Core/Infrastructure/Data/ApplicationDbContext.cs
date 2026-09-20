@@ -47,9 +47,33 @@ namespace Infrastructure.Data
             modelBuilder.Entity<Schema>().ToTable("CMS_Schema");
             modelBuilder.Entity<SchemaDetails>().ToTable("CMS_SchemaDetails");
             modelBuilder.Entity<SectionElement>().ToTable("CMS_SectionElements");
-            modelBuilder.Entity<ContentInCategory>().ToTable("CMS_ContentInCategories");
-            modelBuilder.Entity<ContentInTag>().ToTable("CMS_ContentInTags");
-            modelBuilder.Entity<ContentInCulture>().ToTable("CMS_ContentInCultures");
+            modelBuilder.Entity<ContentInCategory>(b =>
+            {
+                b.ToTable("CMS_ContentInCategories");
+                b.Property(x => x.ContentId).IsRequired();
+                b.Property(x => x.CategoryId).IsRequired();
+                b.HasIndex(x => new { x.ContentId, x.CategoryId }).IsUnique();
+                b.HasOne<Content>().WithMany().HasForeignKey(x => x.ContentId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne<Category>().WithMany().HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<ContentInTag>(b =>
+            {
+                b.ToTable("CMS_ContentInTags");
+                b.Property(x => x.ContentId).IsRequired();
+                b.Property(x => x.TagId).IsRequired();
+                b.HasIndex(x => new { x.ContentId, x.TagId }).IsUnique();
+                b.HasOne<Content>().WithMany().HasForeignKey(x => x.ContentId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne<Domains.Entities.General.Tag>().WithMany().HasForeignKey(x => x.TagId).OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<ContentInCulture>(b =>
+            {
+                b.ToTable("CMS_ContentInCultures");
+                b.Property(x => x.ContentId).IsRequired();
+                b.Property(x => x.CultureId).IsRequired();
+                b.HasIndex(x => new { x.ContentId, x.CultureId }).IsUnique();
+                b.HasOne<Content>().WithMany().HasForeignKey(x => x.ContentId).OnDelete(DeleteBehavior.Cascade);
+                b.HasOne<Culture>().WithMany().HasForeignKey(x => x.CultureId).OnDelete(DeleteBehavior.Cascade);
+            });
             modelBuilder.Entity<ContentAttachment>().ToTable("CMS_ContentAttachments");
             modelBuilder.Entity<ContentAttachmentItem>().ToTable("CMS_ContentAttachmentItems");
 
