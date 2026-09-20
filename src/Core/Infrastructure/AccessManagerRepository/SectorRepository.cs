@@ -36,7 +36,7 @@ namespace Infrastructure.AccessManagerRepository
         public async Task<Sector> GetByIdForApplication(int id, int applicationId)
         {
             return await _dbContext.Sectors.AsNoTracking()
-                .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId);
+                .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted);
         }
     }
 }

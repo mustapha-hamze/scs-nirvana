@@ -76,4 +76,20 @@ public class SectorRepositoryTests
 
         Assert.Equal(sector.Id, result.Id);
     }
+
+    [Fact]
+    public async Task GetByIdForApplication_SoftDeletedSameApplication_Throws()
+    {
+        // A deleted resource must behave as not found - same outcome as a cross-application id.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var sector = new Sector { ApplicationId = 1, Title = "Deleted Sector", IsDeleted = true };
+        context.Sectors.Add(sector);
+        context.SaveChanges();
+
+        var repository = new SectorRepository(context);
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(sector.Id, applicationId: 1));
+    }
 }

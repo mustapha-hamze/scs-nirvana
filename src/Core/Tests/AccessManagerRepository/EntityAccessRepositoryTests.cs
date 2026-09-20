@@ -100,4 +100,74 @@ public class EntityAccessRepositoryTests
 
         Assert.Equal(access.Id, result.Id);
     }
+
+    [Fact]
+    public async Task GetByIdForApplication_SoftDeletedSameApplication_Throws()
+    {
+        // A deleted resource must behave as not found - same outcome as a cross-application id.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var (_, entity) = SeedSectorTree(context, applicationId: 1);
+        var access = new EntityAccess { EntityId = entity.Id, Access = "read", IsDeleted = true };
+        context.EntityAccesses.Add(access);
+        context.SaveChanges();
+
+        var repository = new EntityAccessRepository(context);
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(access.Id, applicationId: 1));
+    }
+
+    [Fact]
+    public async Task GetByIdForApplication_ParentSectorEntitySoftDeleted_Throws()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var (_, entity) = SeedSectorTree(context, applicationId: 1);
+        entity.IsDeleted = true;
+        var access = new EntityAccess { EntityId = entity.Id, Access = "read" };
+        context.EntityAccesses.Add(access);
+        context.SaveChanges();
+
+        var repository = new EntityAccessRepository(context);
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(access.Id, applicationId: 1));
+    }
+
+    [Fact]
+    public async Task GetByIdForApplication_GrandparentSectorSoftDeleted_Throws()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var (sector, entity) = SeedSectorTree(context, applicationId: 1);
+        sector.IsDeleted = true;
+        var access = new EntityAccess { EntityId = entity.Id, Access = "read" };
+        context.EntityAccesses.Add(access);
+        context.SaveChanges();
+
+        var repository = new EntityAccessRepository(context);
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(access.Id, applicationId: 1));
+    }
+
+    [Fact]
+    public void GetEntityAccesses_ExcludesSoftDeletedRows()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var (_, entity) = SeedSectorTree(context, applicationId: 1);
+        context.EntityAccesses.Add(new EntityAccess { EntityId = entity.Id, Access = "active", IsDeleted = false });
+        context.EntityAccesses.Add(new EntityAccess { EntityId = entity.Id, Access = "deleted", IsDeleted = true });
+        context.SaveChanges();
+
+        var repository = new EntityAccessRepository(context);
+
+        var result = repository.GetEntityAccesses(entity.Id);
+
+        var access = Assert.Single(result);
+        Assert.Equal("active", access.Access);
+    }
 }

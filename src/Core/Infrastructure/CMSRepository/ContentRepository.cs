@@ -419,7 +419,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
     public async Task<Content> GetByIdForApplication(int id, int applicationId)
     {
         return await _dbContext.Contents.AsNoTracking()
-            .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId);
+            .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted);
     }
 
     public async Task<ContentSection> GetSectionForApplication(int sectionId, int applicationId)

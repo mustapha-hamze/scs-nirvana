@@ -279,6 +279,22 @@ public class ContentRepositoryTests
     }
 
     [Fact]
+    public async Task GetByIdForApplication_SoftDeletedSameApplication_Throws()
+    {
+        // A deleted resource must behave as not found - same outcome as a cross-application id.
+        using var factory = new SqliteContextFactory();
+        await using var context = factory.CreateContext();
+
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Deleted", IsDeleted = true };
+        context.Contents.Add(content);
+        await context.SaveChangesAsync();
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(content.Id, 1));
+    }
+
+    [Fact]
     public async Task GetByIdForApplication_IgnoredApplicationId_DoesNotFallBackToAnyApplication()
     {
         // A caller passing applicationId: 0 (e.g. an uninitialized/ignored value) must not be

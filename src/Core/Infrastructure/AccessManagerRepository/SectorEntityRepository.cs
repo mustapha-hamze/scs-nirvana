@@ -33,10 +33,12 @@ namespace Infrastructure.AccessManagerRepository
         }
 
         // SectorEntity has no ApplicationId column; it's resolved through SectorId -> Sector.
+        // A soft-deleted entity, or one whose parent Sector is soft-deleted, must not resolve.
         public async Task<SectorEntity> GetByIdForApplication(int id, int applicationId)
         {
             return await _dbContext.SectorEntities.AsNoTracking()
-                .SingleAsync(s => s.Id == id && s.Sector.ApplicationId == applicationId);
+                .SingleAsync(s => s.Id == id && !s.IsDeleted
+                    && s.Sector.ApplicationId == applicationId && !s.Sector.IsDeleted);
         }
     }
 }
