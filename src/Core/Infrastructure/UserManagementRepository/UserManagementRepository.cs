@@ -1,4 +1,6 @@
+using Application.Contracts.UserManagement;
 using Application.UserManagementRepository;
+using AutoMapper;
 using Domains.Entities.User;
 using Domains.Entities.General;
 
@@ -6,18 +8,21 @@ namespace Infrastructure.UserManagementRepository;
 public class UserManagementRepository : IUserManagementRepository
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly IMapper _mapper;
 
-    public UserManagementRepository(ApplicationDbContext dbContext)
+    public UserManagementRepository(ApplicationDbContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
+        _mapper = mapper;
     }
-    public List<ApplicationUser> List(bool isAdminUser, string email = "")
+    public List<UserDto> List(bool isAdminUser, string email = "")
     {
         var user = _dbContext.Users.ToList();
-        if (email?.Length == 0)
-            return user.Where(u => u.IsAdminUser).ToList();
-        else
-            return user.Where(u => u.IsAdminUser == isAdminUser && u.Email.Contains(email)).ToList();
+        var filtered = email?.Length == 0
+            ? user.Where(u => u.IsAdminUser)
+            : user.Where(u => u.IsAdminUser == isAdminUser && u.Email.Contains(email));
+
+        return _mapper.Map<List<UserDto>>(filtered.ToList());
     }
 
     public async Task<string> GetUserAccesses(string email)
@@ -77,9 +82,9 @@ public class UserManagementRepository : IUserManagementRepository
         user.CurrentApplicationId = appId;
     }
 
-    public ApplicationUser GetUserByEmailAddress(string email)
+    public UserDto GetUserByEmailAddress(string email)
     {
-        return _dbContext.Users.FirstOrDefault(u => u.Email == email);
+        return _mapper.Map<UserDto>(_dbContext.Users.FirstOrDefault(u => u.Email == email));
     }
 
     // public async Task CreateUserAttachment(UserAttachment userAttachment)

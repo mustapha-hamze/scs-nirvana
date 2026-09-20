@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AutoMapper;
-using Domains.Entities.User;
 using Application.Contracts.UserManagement;
 using Application.UserManagementRepository;
 using Application.UnitOfWork;
@@ -11,23 +9,21 @@ namespace Services.UserManagementServices
     public class UserManagementServices : IUserManagementServices
     {
         private readonly IUserManagementRepository _userManagementRepository;
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UserManagementServices(IUserManagementRepository userManagementRepository, IMapper mapper, IUnitOfWork unitOfWork)
+        public UserManagementServices(IUserManagementRepository userManagementRepository, IUnitOfWork unitOfWork)
         {
             _userManagementRepository = userManagementRepository;
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
         public List<UserDto> List(bool isAdminUser, string email = "")
         {
-            return _mapper.Map<List<UserDto>>(_userManagementRepository.List(isAdminUser, email));
+            return _userManagementRepository.List(isAdminUser, email);
         }
 
         public UserDto GetUserByEmailAddress(string email)
         {
-            return _mapper.Map<UserDto>(_userManagementRepository.GetUserByEmailAddress(email));
+            return _userManagementRepository.GetUserByEmailAddress(email);
         }
 
         public async Task<string> GetUserAccesses(string email)

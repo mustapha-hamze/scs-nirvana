@@ -1,11 +1,11 @@
-using Domains.Entities.User;
+using Application.Contracts.UserManagement;
 
 namespace Application.UserManagementRepository
 {
     public interface IUserManagementRepository
     {
-        List<ApplicationUser> List(bool isAdminUser, string email);
-        ApplicationUser GetUserByEmailAddress(string email);
+        List<UserDto> List(bool isAdminUser, string email);
+        UserDto GetUserByEmailAddress(string email);
         Task<string> GetUserAccesses(string email);
         Task<string> GetUserAccesses(string email, int appId);
         Task SetCurrentApplicationId(string email, int appId);

@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace Domains.Entities.User;
+namespace Infrastructure.Identity;
 
-// Identity integration concern: this type is coupled to ASP.NET Core Identity (IdentityUser)
-// rather than being a persistence-agnostic domain type. Kept here to avoid disrupting
-// IdentityDbContext<ApplicationUser> and the many repositories/services that depend on it.
+// The ASP.NET Identity user type. Kept in Infrastructure (not Domain) since it's coupled to
+// IdentityUser, IdentityDbContext<ApplicationUser>, UserManager<ApplicationUser> and
+// SignInManager<ApplicationUser> — all framework/persistence concerns.
 public class ApplicationUser : IdentityUser
 {
     public ApplicationUser()
@@ -41,4 +42,3 @@ public class ApplicationUser : IdentityUser
     public DateTime CreatedDT { get; set; }
     public DateTime UpdatedDT { get; set; }
 }
-

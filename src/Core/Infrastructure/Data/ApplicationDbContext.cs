@@ -1,6 +1,7 @@
 ﻿using Domains.Entities.ContentManagement;
 using Domains.Entities.General;
 using Domains.Entities.User;
+using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;

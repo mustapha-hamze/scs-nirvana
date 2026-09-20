@@ -13,6 +13,7 @@ global using Application.Contracts.General;
 global using Application.Contracts.UserManagement;
 global using Services.UserManagementServices;
 global using Domains.Entities.User;
+global using Infrastructure.Identity;
 global using Application.CQRS.Queries.UserManagement;
 global using Infrastructure.Dto.UserManagementDtos;
 global using Microsoft.AspNetCore.Identity;
