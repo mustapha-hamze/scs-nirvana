@@ -25,6 +25,7 @@ public class ContentServicesTests
         Mock<ICategoryRepository> categoryRepository = null,
         Mock<ITagRepository> tagRepository = null,
         Mock<ICultureRepository> cultureRepository = null,
+        Mock<IRepository<ContentMetadata>> contentMetadataRepository = null,
         IMapper mapper = null,
         Mock<IUnitOfWork> unitOfWork = null)
     {
@@ -32,13 +33,20 @@ public class ContentServicesTests
             contentRepository.Object,
             Mock.Of<IRepository<ContentSection>>(),
             Mock.Of<IRepository<SectionElement>>(),
-            Mock.Of<IRepository<ContentMetadata>>(),
+            (contentMetadataRepository ?? DefaultContentMetadataRepository()).Object,
             Mock.Of<IRepository<ContentImage>>(),
             (categoryRepository ?? new Mock<ICategoryRepository>()).Object,
             (tagRepository ?? new Mock<ITagRepository>()).Object,
             (cultureRepository ?? new Mock<ICultureRepository>()).Object,
             mapper ?? CreateMapper(),
             (unitOfWork ?? new Mock<IUnitOfWork>()).Object);
+    }
+
+    private static Mock<IRepository<ContentMetadata>> DefaultContentMetadataRepository()
+    {
+        var repository = new Mock<IRepository<ContentMetadata>>();
+        repository.Setup(r => r.Update(It.IsAny<ContentMetadata>())).ReturnsAsync((ContentMetadata m) => m);
+        return repository;
     }
 
     [Fact]
@@ -278,5 +286,150 @@ public class ContentServicesTests
 
         categoryRepository.Verify(r => r.List(It.IsAny<int>()), Times.Never);
         contentRepository.Verify(r => r.CreateContentCategories(It.IsAny<int>(), It.IsAny<List<int>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateSection_ContentBelongsToApplication_Creates()
+    {
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetByIdForApplication(3, 1)).ReturnsAsync(new Content { Id = 3, ApplicationId = 1 });
+
+        var sut = CreateSut(contentRepository);
+
+        await sut.CreateSection(new SectionDto { ContentId = 3, Priority = 1 }, applicationId: 1);
+
+        contentRepository.Verify(r => r.GetByIdForApplication(3, 1), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateSection_ContentBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
+    {
+        // Never trust ContentId from the DTO: a section can't be attached to another
+        // application's content just because the caller supplied that ContentId.
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetByIdForApplication(3, 1)).ThrowsAsync(new KeyNotFoundException());
+
+        var sut = CreateSut(contentRepository);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.CreateSection(new SectionDto { ContentId = 3, Priority = 1 }, applicationId: 1));
+    }
+
+    [Fact]
+    public async Task CreateSectionElement_SectionBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
+    {
+        // Never trust SectionId from the DTO.
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetSectionForApplication(4, 1)).ThrowsAsync(new KeyNotFoundException());
+
+        var sut = CreateSut(contentRepository);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.CreateSectionElement(new SectionElementDto { SectionId = 4 }, applicationId: 1));
+    }
+
+    [Fact]
+    public async Task UpdateSectionElement_ElementBelongsToApplication_MergesFieldsOntoLoadedEntity()
+    {
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetElementForApplication(8, 1))
+            .ReturnsAsync(new SectionElement { Id = 8, SectionId = 4, TinyText = "old" });
+
+        var sut = CreateSut(contentRepository);
+
+        await sut.UpdateSectionElement(new SectionElementDto { Id = 8, TinyText = "new" }, applicationId: 1);
+
+        contentRepository.Verify(r => r.GetElementForApplication(8, 1), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateSectionElement_ElementBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
+    {
+        // Never trust the element's own Id without resolving element -> section -> content ->
+        // application first: a caller in application 1 must not edit application 2's element.
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetElementForApplication(8, 1)).ThrowsAsync(new KeyNotFoundException());
+
+        var sut = CreateSut(contentRepository);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.UpdateSectionElement(new SectionElementDto { Id = 8, TinyText = "hijacked" }, applicationId: 1));
+    }
+
+    [Fact]
+    public async Task DeleteSection_SectionBelongsToDifferentApplication_ThrowsAndDoesNotDelete()
+    {
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetSectionForApplication(4, 1)).ThrowsAsync(new KeyNotFoundException());
+
+        var sut = CreateSut(contentRepository);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.DeleteSection(4, applicationId: 1));
+    }
+
+    [Fact]
+    public async Task UpdateSectionPriority_SectionBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
+    {
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetSectionForApplication(4, 1)).ThrowsAsync(new KeyNotFoundException());
+
+        var sut = CreateSut(contentRepository);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.UpdateSectionPriority(4, 2, applicationId: 1));
+
+        contentRepository.Verify(r => r.UpdateSectionPriority(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateContentMetadata_ContentBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
+    {
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetByIdForApplication(3, 1)).ThrowsAsync(new KeyNotFoundException());
+
+        var sut = CreateSut(contentRepository);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.CreateContentMetadata(new ContentMetadataDto { ContentId = 3 }, applicationId: 1));
+    }
+
+    [Fact]
+    public async Task UpdateContentMetadata_MetadataBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
+    {
+        // Never trust contentMetadata.ContentId from the DTO: ownership is resolved from the
+        // existing row (by its own Id), not from whatever ContentId the caller supplied.
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetContentMetadataForApplication(6, 1)).ThrowsAsync(new KeyNotFoundException());
+
+        var sut = CreateSut(contentRepository);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.UpdateContentMetadata(new ContentMetadataDto { Id = 6, ContentId = 999 }, applicationId: 1));
+    }
+
+    [Fact]
+    public async Task UpdateContentMetadata_RepinsContentIdToVerifiedValue()
+    {
+        // Even though the caller's DTO claims ContentId 999, the verified/loaded value must win.
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetContentMetadataForApplication(6, 1))
+            .ReturnsAsync(new ContentMetadata { Id = 6, ContentId = 3, Title = "Old" });
+
+        var sut = CreateSut(contentRepository);
+
+        var result = await sut.UpdateContentMetadata(new ContentMetadataDto { Id = 6, ContentId = 999, Title = "New" }, applicationId: 1);
+
+        Assert.Equal(3, result.ContentId);
+    }
+
+    [Fact]
+    public async Task CreateContentImage_ContentBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
+    {
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository.Setup(r => r.GetByIdForApplication(3, 1)).ThrowsAsync(new KeyNotFoundException());
+
+        var sut = CreateSut(contentRepository);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.CreateContentImage(new ContentImageDto { ContentId = 3 }, applicationId: 1));
     }
 }

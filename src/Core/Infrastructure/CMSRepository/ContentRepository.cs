@@ -422,6 +422,28 @@ public class ContentRepository : Repository<Content>, IContentRepository
             .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId);
     }
 
+    public async Task<ContentSection> GetSectionForApplication(int sectionId, int applicationId)
+    {
+        return await _dbContext.ContentSections.AsNoTracking()
+            .SingleAsync(s => s.Id == sectionId && !s.IsDeleted
+                && s.Content.ApplicationId == applicationId && !s.Content.IsDeleted);
+    }
+
+    public async Task<SectionElement> GetElementForApplication(int elementId, int applicationId)
+    {
+        return await _dbContext.SectionElements.AsNoTracking()
+            .SingleAsync(e => e.Id == elementId && !e.IsDeleted
+                && !e.Section.IsDeleted
+                && e.Section.Content.ApplicationId == applicationId && !e.Section.Content.IsDeleted);
+    }
+
+    public async Task<ContentMetadata> GetContentMetadataForApplication(int metadataId, int applicationId)
+    {
+        return await _dbContext.ContentMetadatas.AsNoTracking()
+            .SingleAsync(m => m.Id == metadataId
+                && m.Content.ApplicationId == applicationId && !m.Content.IsDeleted);
+    }
+
     public List<ContentSection> GetContentSections(int contentId)
     {
         return _dbContext.ContentSections

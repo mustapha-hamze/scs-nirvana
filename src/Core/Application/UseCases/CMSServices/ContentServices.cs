@@ -147,23 +147,33 @@ namespace Services.CMSServices
             return _mapper.Map<List<ContentDto>>(_contentRepository.OurBlogBoxList(applicationId));
         }
 
-        public async Task<SectionDto> CreateSection(SectionDto section)
+        public async Task<SectionDto> CreateSection(SectionDto section, int applicationId)
         {
+            // Never trust ContentId from the DTO — verify it belongs to this application first.
+            await _contentRepository.GetByIdForApplication(section.ContentId, applicationId);
+
             var created = await _contentSectionRepository.Create(_mapper.Map<ContentSection>(section));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<SectionDto>(created);
         }
 
-        public async Task<SectionElementDto> CreateSectionElement(SectionElementDto sectionElement)
+        public async Task<SectionElementDto> CreateSectionElement(SectionElementDto sectionElement, int applicationId)
         {
+            // Never trust SectionId from the DTO — verify the section and its content belong to
+            // this application (and neither is soft-deleted) first.
+            await _contentRepository.GetSectionForApplication(sectionElement.SectionId, applicationId);
+
             var created = await _sectionElementRepository.Create(_mapper.Map<SectionElement>(sectionElement));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<SectionElementDto>(created);
         }
 
-        public async Task UpdateSectionElement(SectionElementDto sectionElement)
+        public async Task UpdateSectionElement(SectionElementDto sectionElement, int applicationId)
         {
-            var element = await _sectionElementRepository.GetById(sectionElement.Id);
+            // Resolves ownership through the actual chain (element -> section -> content ->
+            // application) rather than trusting the DTO or a bare GetById; throws if the element,
+            // its section, or its content is missing, soft-deleted, or belongs to another application.
+            var element = await _contentRepository.GetElementForApplication(sectionElement.Id, applicationId);
 
             element.EditorText = sectionElement.EditorText;
             element.FileNameText = sectionElement.FileNameText;
@@ -258,23 +268,37 @@ namespace Services.CMSServices
             return _mapper.Map<ContentMetadataDto>(_contentRepository.GetContentMetadata(contentId));
         }
 
-        public async Task<ContentMetadataDto> CreateContentMetadata(ContentMetadataDto contentMetadata)
+        public async Task<ContentMetadataDto> CreateContentMetadata(ContentMetadataDto contentMetadata, int applicationId)
         {
+            // Never trust ContentId from the DTO — verify it belongs to this application first.
+            await _contentRepository.GetByIdForApplication(contentMetadata.ContentId, applicationId);
+
             contentMetadata.IsActive = true;
             var created = await _contentMetadataRepository.Create(_mapper.Map<ContentMetadata>(contentMetadata));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<ContentMetadataDto>(created);
         }
 
-        public async Task<ContentMetadataDto> UpdateContentMetadata(ContentMetadataDto contentMetadata)
+        public async Task<ContentMetadataDto> UpdateContentMetadata(ContentMetadataDto contentMetadata, int applicationId)
         {
-            var updated = await _contentMetadataRepository.Update(_mapper.Map<ContentMetadata>(contentMetadata));
+            // Resolves the existing row through the application-scoped chain (metadata -> content
+            // -> application) rather than trusting contentMetadata.ContentId from the DTO, and
+            // re-pins ContentId to the verified value so this call can't be used to reattach the
+            // metadata to a different content.
+            var existing = await _contentRepository.GetContentMetadataForApplication(contentMetadata.Id, applicationId);
+            contentMetadata.ContentId = existing.ContentId;
+            _mapper.Map(contentMetadata, existing);
+
+            var updated = await _contentMetadataRepository.Update(existing);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<ContentMetadataDto>(updated);
         }
 
-        public async Task CreateContentImage(ContentImageDto contentImage)
+        public async Task CreateContentImage(ContentImageDto contentImage, int applicationId)
         {
+            // Never trust ContentId from the DTO — verify it belongs to this application first.
+            await _contentRepository.GetByIdForApplication(contentImage.ContentId, applicationId);
+
             await _contentImageRepository.Create(_mapper.Map<ContentImage>(contentImage));
             await _unitOfWork.SaveChangesAsync();
         }
@@ -292,8 +316,9 @@ namespace Services.CMSServices
             return _mapper.Map<List<ContentImageDto>>(_contentRepository.GetAllContentImages(contentId));
         }
 
-        public async Task DeleteSection(int sectionId)
+        public async Task DeleteSection(int sectionId, int applicationId)
         {
+            await _contentRepository.GetSectionForApplication(sectionId, applicationId);
             await _contentSectionRepository.Delete(sectionId);
             await _unitOfWork.SaveChangesAsync();
         }
@@ -308,8 +333,9 @@ namespace Services.CMSServices
             return _contentRepository.GetContentInCategoryAsBox(categoryId, applicationId);
         }
 
-        public async Task UpdateSectionPriority(int sectionId, int priority)
+        public async Task UpdateSectionPriority(int sectionId, int priority, int applicationId)
         {
+            await _contentRepository.GetSectionForApplication(sectionId, applicationId);
             await _contentRepository.UpdateSectionPriority(sectionId, priority);
             await _unitOfWork.SaveChangesAsync();
         }

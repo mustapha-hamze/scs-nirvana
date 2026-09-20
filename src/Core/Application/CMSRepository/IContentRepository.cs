@@ -39,6 +39,14 @@ public interface IContentRepository : IRepository<Content>
     Task<Content> GetByIdForApplication(int id, int applicationId);
     Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId);
 
+    // Ownership-chain resolution for CMS child mutations: each throws (SingleAsync) unless the
+    // resource, and every ancestor up to Content, exists, is not soft-deleted, and the resolved
+    // Content belongs to applicationId. Callers must resolve through these rather than trusting a
+    // DTO's own ContentId/SectionId.
+    Task<ContentSection> GetSectionForApplication(int sectionId, int applicationId);
+    Task<SectionElement> GetElementForApplication(int elementId, int applicationId);
+    Task<ContentMetadata> GetContentMetadataForApplication(int metadataId, int applicationId);
+
     // Every public-API read below requires applicationId and filters on it — none of these ever
     // fall back to an unscoped query. A missing, deleted, or wrong-application id must produce
     // the same empty/not-found shape as any other id that doesn't exist.

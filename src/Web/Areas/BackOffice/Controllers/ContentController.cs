@@ -425,10 +425,12 @@ public class ContentController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentMetadata(ContentMetadataDto contentMetadata)
     {
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+
         if (contentMetadata.Id == 0)
-            await _contentServices.CreateContentMetadata(contentMetadata);
+            await _contentServices.CreateContentMetadata(contentMetadata, user.CurrentApplicationId);
         else
-            await _contentServices.UpdateContentMetadata(contentMetadata);
+            await _contentServices.UpdateContentMetadata(contentMetadata, user.CurrentApplicationId);
 
         return Content("Done");
     }
@@ -436,6 +438,8 @@ public class ContentController : BaseController
     [HttpPost]
     public async Task<IActionResult> SaveSection([FromBody] SaveContentBodyDto section)
     {
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+
         if (section != null)
         {
             if (section.SectionId != 0)
@@ -450,7 +454,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1001:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -458,7 +462,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 FileNameText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1002:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -466,7 +470,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 EditorText = item.Value.Replace("<p></p>", "").Replace("<p> </p>", "").Replace("\n", ""),
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1003:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -474,7 +478,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 GalleryImages = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1004:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -482,7 +486,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 FileNameText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1005:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -490,7 +494,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 EditorText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1006:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -498,7 +502,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1007:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -506,7 +510,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1008:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -514,7 +518,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1009:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -522,7 +526,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1010:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -530,7 +534,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1011:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -538,7 +542,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                     }
                 }
@@ -551,7 +555,7 @@ public class ContentController : BaseController
                     ContentId = section.ContentId,
                     Priority = section.Priority,
                     IsActive = true
-                });
+                }, user.CurrentApplicationId);
 
                 foreach (var item in section.Elements)
                 {
@@ -566,7 +570,7 @@ public class ContentController : BaseController
                                 ElementType = 1000,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1001:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -577,7 +581,7 @@ public class ContentController : BaseController
                                 ElementType = 1001,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1002:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -588,7 +592,7 @@ public class ContentController : BaseController
                                 ElementType = 1002,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1003:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -599,7 +603,7 @@ public class ContentController : BaseController
                                 ElementType = 1003,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1004:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -610,7 +614,7 @@ public class ContentController : BaseController
                                 ElementType = 1004,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1005:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -621,7 +625,7 @@ public class ContentController : BaseController
                                 ElementType = 1005,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1006:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -632,7 +636,7 @@ public class ContentController : BaseController
                                 ElementType = 1006,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1007:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -643,7 +647,7 @@ public class ContentController : BaseController
                                 ElementType = 1007,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1008:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -654,7 +658,7 @@ public class ContentController : BaseController
                                 ElementType = 1008,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1009:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -665,7 +669,7 @@ public class ContentController : BaseController
                                 ElementType = 1009,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1010:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -676,7 +680,7 @@ public class ContentController : BaseController
                                 ElementType = 1010,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                         case 1011:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -687,7 +691,7 @@ public class ContentController : BaseController
                                 ElementType = 1011,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, user.CurrentApplicationId);
                             break;
                     }
                 }
@@ -704,10 +708,12 @@ public class ContentController : BaseController
     [HttpPost]
     public async Task<IActionResult> UpdateSectionsLayoutOrder([FromBody] string sectionsOrder)
     {
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+
         var sectionsOrderArray = sectionsOrder.Split(',');
         for (int i = 0; i < sectionsOrderArray.Length - 1; i++)
         {
-            await _contentServices.UpdateSectionPriority(Convert.ToInt32(sectionsOrderArray[i]), i + 1);
+            await _contentServices.UpdateSectionPriority(Convert.ToInt32(sectionsOrderArray[i]), i + 1, user.CurrentApplicationId);
         }
 
         return Ok("Done");
@@ -799,7 +805,7 @@ public class ContentController : BaseController
                 ImageFileName = variant.FileName,
                 IsActive = true,
                 Size = variant.Width
-            });
+            }, user.CurrentApplicationId);
         }
 
         return Content("Done,");
@@ -809,7 +815,8 @@ public class ContentController : BaseController
     [HttpDelete]
     public async Task<IActionResult> DeleteSection(int id)
     {
-        await _contentServices.DeleteSection(id);
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        await _contentServices.DeleteSection(id, user.CurrentApplicationId);
         return Content("Done");
     }
     #endregion

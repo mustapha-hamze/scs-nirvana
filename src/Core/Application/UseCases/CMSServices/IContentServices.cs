@@ -18,24 +18,24 @@ namespace Services.CMSServices
         List<ContentDto> OurBlogBoxList(int applicationId);
         int ContentCount(int applicationId);
 
-        Task<SectionDto> CreateSection(SectionDto section);
-        Task<SectionElementDto> CreateSectionElement(SectionElementDto sectionElement);
-        Task UpdateSectionElement(SectionElementDto sectionElement);
+        Task<SectionDto> CreateSection(SectionDto section, int applicationId);
+        Task<SectionElementDto> CreateSectionElement(SectionElementDto sectionElement, int applicationId);
+        Task UpdateSectionElement(SectionElementDto sectionElement, int applicationId);
         Task<List<SectionDto>> GetSections(int contentId, int applicationId);
-        Task UpdateSectionPriority(int sectionId, int priority);
+        Task UpdateSectionPriority(int sectionId, int priority, int applicationId);
 
         Task CreateContentCategories(List<int> categoryIds, int contentId, int applicationId);
         Task CreateContentTags(List<int> tagIds, int contentId, int applicationId);
         Task CreateContentCultures(List<int> cultureIds, int contentId, int applicationId);
 
         Task<ContentMetadataDto> GetContentMetadata(int contentId, int applicationId);
-        Task<ContentMetadataDto> CreateContentMetadata(ContentMetadataDto contentMetadata);
-        Task<ContentMetadataDto> UpdateContentMetadata(ContentMetadataDto contentMetadata);
+        Task<ContentMetadataDto> CreateContentMetadata(ContentMetadataDto contentMetadata, int applicationId);
+        Task<ContentMetadataDto> UpdateContentMetadata(ContentMetadataDto contentMetadata, int applicationId);
 
-        Task CreateContentImage(ContentImageDto contentImage);
+        Task CreateContentImage(ContentImageDto contentImage, int applicationId);
         Task DeleteAllContentImages(int contentId, int applicationId);
         Task<List<ContentImageDto>> GetAllContentImages(int contentId, int applicationId);
-        Task DeleteSection(int sectionId);
+        Task DeleteSection(int sectionId, int applicationId);
 
         Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId);
 
