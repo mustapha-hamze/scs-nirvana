@@ -38,10 +38,14 @@ public interface IContentRepository : IRepository<Content>
     // to the caller and no cross-application data can leak through a "not found" response.
     Task<Content> GetByIdForApplication(int id, int applicationId);
     Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId);
-    List<ContentApiDto> GetContentByIdFull(int id);
-    List<ContentApiDto> GetContentByTypeId(int typeId);
-    BlogIndexApiDto GetContentByTypeId(int typeId, int pageIndex = 1);
-    BlogIndexApiDto GetContentByCategoryId(int categoryId, int pageIndex = 1, int pageSize = 40);
-    BlogIndexApiDto GetContentByCategoryIdByDate(int categoryId, DateTime startDate, DateTime endDate, int pageIndex);
-    List<ContentApiDto> GetContentInCategoryAsBox(int categoryId);
+
+    // Every public-API read below requires applicationId and filters on it — none of these ever
+    // fall back to an unscoped query. A missing, deleted, or wrong-application id must produce
+    // the same empty/not-found shape as any other id that doesn't exist.
+    List<ContentApiDto> GetContentByIdFull(int id, int applicationId);
+    List<ContentApiDto> GetContentByTypeId(int typeId, int applicationId);
+    BlogIndexApiDto GetContentByTypeId(int typeId, int applicationId, int pageIndex = 1);
+    BlogIndexApiDto GetContentByCategoryId(int categoryId, int applicationId, int pageIndex = 1, int pageSize = 40);
+    BlogIndexApiDto GetContentByCategoryIdByDate(int categoryId, int applicationId, DateTime startDate, DateTime endDate, int pageIndex);
+    List<ContentApiDto> GetContentInCategoryAsBox(int categoryId, int applicationId);
 }

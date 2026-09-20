@@ -26,10 +26,11 @@ public class ContentApiReadTests
     // matches what ASP.NET Core actually uses to serialize controller responses today.
     private static readonly JsonSerializerOptions ProdLikeJsonOptions = new();
 
-    private static int SeedFullContent(ApplicationDbContext context, int typeId = 1000, string categories = "1")
+    private static int SeedFullContent(ApplicationDbContext context, int typeId = 1000, string categories = "1", int applicationId = 1)
     {
         var content = new Content
         {
+            ApplicationId = applicationId,
             TypeId = typeId,
             Title = "Sample Content",
             HeadLine = "Sample Headline",
@@ -71,7 +72,7 @@ public class ContentApiReadTests
         var contentId = SeedFullContent(context);
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByIdFull(contentId);
+        var result = repository.GetContentByIdFull(contentId, applicationId: 1);
 
         var json = JsonSerializer.Serialize(result, ProdLikeJsonOptions);
         Assert.NotEmpty(json);
@@ -85,7 +86,7 @@ public class ContentApiReadTests
         var contentId = SeedFullContent(context);
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByIdFull(contentId);
+        var result = repository.GetContentByIdFull(contentId, applicationId: 1);
 
         var dto = Assert.Single(result);
         Assert.Equal("Sample Content", dto.Title);
@@ -111,7 +112,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByIdFull(contentId));
+        var dto = Assert.Single(repository.GetContentByIdFull(contentId, applicationId: 1));
 
         Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted.jpg");
         Assert.Single(dto.Sections);
@@ -127,7 +128,21 @@ public class ContentApiReadTests
         using var context = factory.CreateContext();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByIdFull(999);
+        var result = repository.GetContentByIdFull(999, applicationId: 1);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void GetContentByIdFull_ContentBelongsToDifferentApplication_ReturnsEmptyList()
+    {
+        // Matching content id, wrong application: must be indistinguishable from a missing id.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context, applicationId: 2);
+
+        var repository = CreateRepository(context);
+        var result = repository.GetContentByIdFull(contentId, applicationId: 1);
 
         Assert.Empty(result);
     }
@@ -142,7 +157,7 @@ public class ContentApiReadTests
         SeedFullContent(context, typeId: 2000);
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByTypeId(2000);
+        var result = repository.GetContentByTypeId(2000, applicationId: 1);
 
         var json = JsonSerializer.Serialize(result, ProdLikeJsonOptions);
         Assert.NotEmpty(json);
@@ -169,9 +184,24 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByTypeId(2001));
+        var dto = Assert.Single(repository.GetContentByTypeId(2001, applicationId: 1));
 
         Assert.Contains(dto.Images, i => i.ImageFileName == "deleted.jpg");
+    }
+
+    [Fact]
+    public void GetContentByTypeId_NoPage_MatchingTypeIdDifferentApplication_ExcludesOtherApplication()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        SeedFullContent(context, typeId: 2002, applicationId: 1);
+        SeedFullContent(context, typeId: 2002, applicationId: 2);
+
+        var repository = CreateRepository(context);
+        var result = repository.GetContentByTypeId(2002, applicationId: 1);
+
+        var dto = Assert.Single(result);
+        Assert.Equal(1, dto.ApplicationId);
     }
 
     // ---- GetContentByTypeId/{typeId}/{pageIndex}  (BlogIndexApiDto) ----
@@ -184,7 +214,7 @@ public class ContentApiReadTests
         SeedFullContent(context, typeId: 3000, categories: "5");
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByTypeId(3000, pageIndex: 1);
+        var result = repository.GetContentByTypeId(3000, applicationId: 1, pageIndex: 1);
 
         var dto = Assert.Single(result.Contents);
         Assert.Equal("Sample Content", dto.Title);
@@ -212,7 +242,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByTypeId(4000, pageIndex: 1);
+        var result = repository.GetContentByTypeId(4000, applicationId: 0, pageIndex: 1);
 
         // 16 rows at 15/page => 2 pages (regression guard for the off-by-one page-count bug).
         Assert.Equal(2, result.PagesCount);
@@ -233,10 +263,28 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryId(1, pageIndex: 0, pageSize: 40);
+        var result = repository.GetContentByCategoryId(1, applicationId: 1, pageIndex: 0, pageSize: 40);
 
         var dto = Assert.Single(result.Contents);
         Assert.Equal(matching, dto.Id);
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_SameCategoryIdDifferentApplication_ExcludesOtherApplication()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var ownApp = SeedFullContent(context, typeId: 5050, categories: "1", applicationId: 1);
+        var otherApp = SeedFullContent(context, typeId: 5050, categories: "1", applicationId: 2);
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = ownApp, CategoryId = 50, CreatedDt = DateTime.Now });
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = otherApp, CategoryId = 50, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var result = repository.GetContentByCategoryId(50, applicationId: 1, pageIndex: 0, pageSize: 40);
+
+        var dto = Assert.Single(result.Contents);
+        Assert.Equal(ownApp, dto.Id);
     }
 
     [Fact]
@@ -251,7 +299,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryId(9);
+        var result = repository.GetContentByCategoryId(9, applicationId: 1);
 
         Assert.Equal(1, result.PagesCount);
         Assert.Equal(1, result.PageIndex);
@@ -271,7 +319,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryIdByDate(1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
+        var result = repository.GetContentByCategoryIdByDate(1, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
 
         Assert.Empty(result.Contents);
     }
@@ -282,8 +330,8 @@ public class ContentApiReadTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        var inRange = new Content { TypeId = 6100, Title = "In range", Categories = "7", IsActive = true, CreatedDT = DateTime.Now };
-        var outOfRange = new Content { TypeId = 6100, Title = "Out of range", Categories = "7", IsActive = true, CreatedDT = DateTime.Now.AddDays(-30) };
+        var inRange = new Content { ApplicationId = 1, TypeId = 6100, Title = "In range", Categories = "7", IsActive = true, CreatedDT = DateTime.Now };
+        var outOfRange = new Content { ApplicationId = 1, TypeId = 6100, Title = "Out of range", Categories = "7", IsActive = true, CreatedDT = DateTime.Now.AddDays(-30) };
         context.Contents.AddRange(inRange, outOfRange);
         context.SaveChanges();
         context.ContentInCategories.Add(new ContentInCategory { ContentId = inRange.Id, CategoryId = 7, CreatedDt = DateTime.Now });
@@ -291,10 +339,28 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryIdByDate(7, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
+        var result = repository.GetContentByCategoryIdByDate(7, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
 
         var dto = Assert.Single(result.Contents);
         Assert.Equal("In range", dto.Title);
+    }
+
+    [Fact]
+    public void GetContentByCategoryIdByDate_SameCategoryIdDifferentApplication_ExcludesOtherApplication()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var ownApp = SeedFullContent(context, typeId: 6200, categories: "8", applicationId: 1);
+        var otherApp = SeedFullContent(context, typeId: 6200, categories: "8", applicationId: 2);
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = ownApp, CategoryId = 8, CreatedDt = DateTime.Now });
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = otherApp, CategoryId = 8, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var result = repository.GetContentByCategoryIdByDate(8, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
+
+        var dto = Assert.Single(result.Contents);
+        Assert.Equal(ownApp, dto.Id);
     }
 
     // ---- GetContentInCategoryAsBox/{categoryId} ----
@@ -311,11 +377,29 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentInCategoryAsBox(3);
+        var result = repository.GetContentInCategoryAsBox(3, applicationId: 1);
 
         var dto = Assert.Single(result);
         Assert.Equal(matching, dto.Id);
         Assert.Single(dto.Images);
+    }
+
+    [Fact]
+    public void GetContentInCategoryAsBox_SameCategoryIdDifferentApplication_ExcludesOtherApplication()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var ownApp = SeedFullContent(context, typeId: 7100, categories: "4", applicationId: 1);
+        var otherApp = SeedFullContent(context, typeId: 7100, categories: "4", applicationId: 2);
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = ownApp, CategoryId = 40, CreatedDt = DateTime.Now });
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = otherApp, CategoryId = 40, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var result = repository.GetContentInCategoryAsBox(40, applicationId: 1);
+
+        var dto = Assert.Single(result);
+        Assert.Equal(ownApp, dto.Id);
     }
 
     // ---- Cross-endpoint JSON shape checks (Part 1 baseline) ----

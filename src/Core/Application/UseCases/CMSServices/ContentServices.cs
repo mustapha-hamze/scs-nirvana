@@ -61,29 +61,29 @@ namespace Services.CMSServices
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public List<ContentApiDto> GetContentByIdFull(int id)
+        public List<ContentApiDto> GetContentByIdFull(int id, int applicationId)
         {
-            return _contentRepository.GetContentByIdFull(id);
+            return _contentRepository.GetContentByIdFull(id, applicationId);
         }
 
-        public List<ContentApiDto> GetContentByTypeId(int typeId)
+        public List<ContentApiDto> GetContentByTypeId(int typeId, int applicationId)
         {
-            return _contentRepository.GetContentByTypeId(typeId);
+            return _contentRepository.GetContentByTypeId(typeId, applicationId);
         }
 
-        public BlogIndexApiDto GetContentByTypeId(int typeId, int pageIndex = 1)
+        public BlogIndexApiDto GetContentByTypeId(int typeId, int applicationId, int pageIndex = 1)
         {
-            return _contentRepository.GetContentByTypeId(typeId, pageIndex);
+            return _contentRepository.GetContentByTypeId(typeId, applicationId, pageIndex);
         }
 
-        public BlogIndexApiDto GetContentByCategoryId(int categoryId, int pageIndex = 1, int pageSize = 40)
+        public BlogIndexApiDto GetContentByCategoryId(int categoryId, int applicationId, int pageIndex = 1, int pageSize = 40)
         {
-            return _contentRepository.GetContentByCategoryId(categoryId, pageIndex, pageSize);
+            return _contentRepository.GetContentByCategoryId(categoryId, applicationId, pageIndex, pageSize);
         }
 
-        public BlogIndexApiDto GetContentByCategoryIdByDate(int categoryId, DateTime startDate, DateTime endDate, int pageIndex)
+        public BlogIndexApiDto GetContentByCategoryIdByDate(int categoryId, int applicationId, DateTime startDate, DateTime endDate, int pageIndex)
         {
-            return _contentRepository.GetContentByCategoryIdByDate(categoryId, startDate, endDate, pageIndex);
+            return _contentRepository.GetContentByCategoryIdByDate(categoryId, applicationId, startDate, endDate, pageIndex);
         }
 
         public async Task ChangeContentActiveMode(int id, bool mode, int applicationId)
@@ -303,9 +303,9 @@ namespace Services.CMSServices
             return await _contentRepository.GetContentsInCategory(categoryId, applicationId);
         }
 
-        public List<ContentApiDto> GetContentInCategoryAsBox(int categoryId)
+        public List<ContentApiDto> GetContentInCategoryAsBox(int categoryId, int applicationId)
         {
-            return _contentRepository.GetContentInCategoryAsBox(categoryId);
+            return _contentRepository.GetContentInCategoryAsBox(categoryId, applicationId);
         }
 
         public async Task UpdateSectionPriority(int sectionId, int priority)

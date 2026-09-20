@@ -20,9 +20,9 @@ public class ContentRepository : Repository<Content>, IContentRepository
     }
 
     // methods
-    public List<ContentApiDto> GetContentByIdFull(int id)
+    public List<ContentApiDto> GetContentByIdFull(int id, int applicationId)
     {
-        return _dbContext.Contents.Where(c => c.Id == id)
+        return _dbContext.Contents.Where(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted)
             .Select(c => new ContentApiDto
             {
                 Id = c.Id,
@@ -85,9 +85,9 @@ public class ContentRepository : Repository<Content>, IContentRepository
             })
             .ToList();
     }
-    public List<ContentApiDto> GetContentByTypeId(int typeId)
+    public List<ContentApiDto> GetContentByTypeId(int typeId, int applicationId)
     {
-        return _dbContext.Contents.Where(c => c.TypeId == typeId && !c.IsDeleted && c.IsActive)
+        return _dbContext.Contents.Where(c => c.TypeId == typeId && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive)
             .Select(c => new ContentApiDto
             {
                 Id = c.Id,
@@ -149,7 +149,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
             })
             .ToList();
     }
-    public BlogIndexApiDto GetContentByTypeId(int typeId, int pageIndex = 1)
+    public BlogIndexApiDto GetContentByTypeId(int typeId, int applicationId, int pageIndex = 1)
     {
         var result = new BlogIndexApiDto();
         int skipCount = 0;
@@ -157,7 +157,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
             skipCount = 15 * (pageIndex - 1);
 
         result.Contents = _dbContext.Contents
-            .Where(c => c.TypeId == typeId && !c.IsDeleted && c.IsActive)
+            .Where(c => c.TypeId == typeId && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive)
             .Select(c => new ContentApiDto
             {
                 Id = c.Id,
@@ -182,7 +182,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
             .OrderByDescending(c => c.CreatedDT)
             .Skip(skipCount).Take(15).ToList();
 
-        var rowsCount = _dbContext.Contents.Count(c => c.TypeId == typeId && !c.IsDeleted && c.IsActive);
+        var rowsCount = _dbContext.Contents.Count(c => c.TypeId == typeId && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive);
         var pageCount = rowsCount / 15;
         if ((rowsCount % 15) > 0)
             pageCount++;
@@ -193,7 +193,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
         return result;
     }
 
-    public BlogIndexApiDto GetContentByCategoryId(int categoryId, int pageIndex = 1, int pageSize = 40)
+    public BlogIndexApiDto GetContentByCategoryId(int categoryId, int applicationId, int pageIndex = 1, int pageSize = 40)
     {
         // One-based paging: page 0 is kept as a backward-compatible alias for page 1 (the
         // first page); any page >= 2 skips (page - 1) * pageSize rows.
@@ -207,6 +207,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
         var query = from contentCategory in _dbContext.ContentInCategories
                     join content in _dbContext.Contents on contentCategory.ContentId equals content.Id
                     where contentCategory.CategoryId == categoryId
+                          && content.ApplicationId == applicationId
                           && content.IsActive == true
                           && content.IsDeleted == false
                     orderby contentCategory.CreatedDt descending, contentCategory.Id descending
@@ -273,11 +274,12 @@ public class ContentRepository : Repository<Content>, IContentRepository
         return result;
     }
 
-    public List<ContentApiDto> GetContentInCategoryAsBox(int categoryId)
+    public List<ContentApiDto> GetContentInCategoryAsBox(int categoryId, int applicationId)
     {
         var query = (from ccc in _dbContext.ContentInCategories
                      join cc in _dbContext.Contents on ccc.ContentId equals cc.Id
                      where cc.IsDeleted == false && cc.IsActive == true && ccc.CategoryId == categoryId
+                           && cc.ApplicationId == applicationId
                      orderby ccc.CreatedDt descending
                      select new
                      {
@@ -327,7 +329,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
         return contents;
     }
 
-    public BlogIndexApiDto GetContentByCategoryIdByDate(int categoryId, DateTime startDate, DateTime endDate, int pageIndex = 1)
+    public BlogIndexApiDto GetContentByCategoryIdByDate(int categoryId, int applicationId, DateTime startDate, DateTime endDate, int pageIndex = 1)
     {
         var result = new BlogIndexApiDto();
         int skipCount = 0;
@@ -340,7 +342,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
         var categoryFilter = _dbContext.ContentInCategories.Where(cc => cc.CategoryId == categoryId).Select(cc => cc.ContentId);
 
         result.Contents = _dbContext.Contents
-            .Where(c => categoryFilter.Contains(c.Id) && !c.IsDeleted && c.IsActive
+            .Where(c => categoryFilter.Contains(c.Id) && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive
                 && c.CreatedDT > startDate && c.CreatedDT < endDate)
             .Select(c => new ContentApiDto
             {
@@ -367,7 +369,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
             .Skip(skipCount).Take(15).ToList();
 
         var rowsCount = _dbContext.Contents
-            .Count(c => categoryFilter.Contains(c.Id) && !c.IsDeleted && c.IsActive
+            .Count(c => categoryFilter.Contains(c.Id) && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive
                 && c.CreatedDT > startDate && c.CreatedDT < endDate);
         var pageCount = rowsCount / 15;
         if ((rowsCount % 15) > 0)

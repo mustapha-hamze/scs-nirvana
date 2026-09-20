@@ -287,7 +287,7 @@ public class ContentRepositoryTests
 
         var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
 
-        var result = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 0, pageSize: 3);
+        var result = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 0, pageSize: 3);
 
         Assert.Equal(3, result.Contents.Count);
         Assert.Equal(1, result.PageIndex);
@@ -303,8 +303,8 @@ public class ContentRepositoryTests
 
         var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
 
-        var page0 = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 0, pageSize: 3);
-        var page1 = repository.GetContentByCategoryId(categoryId: 5, pageSize: 3); // pageIndex defaults to 1
+        var page0 = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 0, pageSize: 3);
+        var page1 = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageSize: 3); // pageIndex defaults to 1
 
         Assert.Equal(page0.Contents.Select(c => c.Id), page1.Contents.Select(c => c.Id));
         Assert.Equal(1, page1.PageIndex);
@@ -319,8 +319,8 @@ public class ContentRepositoryTests
 
         var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
 
-        var firstPage = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 1, pageSize: 3);
-        var secondPage = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 2, pageSize: 3);
+        var firstPage = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 3);
+        var secondPage = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 2, pageSize: 3);
 
         Assert.Equal(3, firstPage.Contents.Count);
         Assert.Equal(2, secondPage.Contents.Count);
@@ -337,7 +337,7 @@ public class ContentRepositoryTests
 
         var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
 
-        var result = repository.GetContentByCategoryId(categoryId: 5, pageIndex: 1, pageSize: 0);
+        var result = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 0);
 
         Assert.Equal(5, result.Contents.Count); // all 5 fit within the 40-item default page size
         Assert.Equal(1, result.PagesCount);
@@ -351,10 +351,31 @@ public class ContentRepositoryTests
 
         var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
 
-        var result = repository.GetContentByCategoryId(categoryId: 999, pageIndex: 1, pageSize: 10);
+        var result = repository.GetContentByCategoryId(categoryId: 999, applicationId: 1, pageIndex: 1, pageSize: 10);
 
         Assert.Empty(result.Contents);
         Assert.Equal(0, result.PagesCount);
         Assert.Equal(1, result.PageIndex);
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_MatchingCategoryIdDifferentApplication_ExcludesOtherApplication()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        SeedCategoryContents(context, categoryId: 5, count: 5);
+
+        var otherAppContent = new Content { ApplicationId = 2, TypeId = 1000, Title = "Other app", IsActive = true, CreatedDT = DateTime.Now };
+        context.Contents.Add(otherAppContent);
+        context.SaveChanges();
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = otherAppContent.Id, CategoryId = 5, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var result = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 40);
+
+        Assert.Equal(5, result.Contents.Count); // the app-1 seeded rows only, not the 6th (app 2) row
+        Assert.DoesNotContain(result.Contents, c => c.Id == otherAppContent.Id);
     }
 }
