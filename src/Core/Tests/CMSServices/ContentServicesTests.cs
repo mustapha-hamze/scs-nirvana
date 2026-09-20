@@ -67,6 +67,25 @@ public class ContentServicesTests
     }
 
     [Fact]
+    public async Task Create_IgnoresCategoriesTagsCulturesFromDto()
+    {
+        // ContentInCategory/Tag/Culture are canonical; a normal create must never let a client
+        // set these compatibility strings directly — only the dedicated
+        // CreateContentCategories/Tags/Cultures commands may, and only alongside the join rows.
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository
+            .Setup(r => r.Create(It.IsAny<Content>()))
+            .ReturnsAsync((Content c) => { c.Id = 1; return c; });
+
+        var sut = CreateSut(contentRepository);
+
+        await sut.Create(new ContentDto { Title = "New", TypeId = 1000, Categories = "1|2", Tags = "3", Cultures = "4" });
+
+        contentRepository.Verify(r => r.Create(It.Is<Content>(
+            c => c.Categories == null && c.Tags == null && c.Cultures == null)), Times.Once);
+    }
+
+    [Fact]
     public async Task Update_ContentBelongsToApplication_MapsDtoToEntity_AndReturnsMappedResult()
     {
         var contentRepository = new Mock<IContentRepository>();
@@ -104,6 +123,33 @@ public class ContentServicesTests
         await sut.Update(new ContentDto { Id = 7, Title = "Updated Title" }, applicationId: 1);
 
         contentRepository.Verify(r => r.Update(It.Is<Content>(c => c.FarsiContent == "ترجمه موجود")), Times.Once);
+    }
+
+    [Fact]
+    public async Task Update_DoesNotDesyncCategoriesTagsCultures_EvenWhenDtoCarriesDifferentValues()
+    {
+        // Categories/Tags/Cultures are canonical via the join tables; a normal update — including
+        // a partial DTO that only means to change Title — must never let a different (stale or
+        // malicious) compatibility string from the DTO win over what's actually stored.
+        var contentRepository = new Mock<IContentRepository>();
+        contentRepository
+            .Setup(r => r.GetByIdForApplication(7, 1))
+            .ReturnsAsync(new Content { Id = 7, ApplicationId = 1, Categories = "1|2", Tags = "5", Cultures = "9" });
+        contentRepository
+            .Setup(r => r.Update(It.IsAny<Content>()))
+            .ReturnsAsync((Content c) => c);
+
+        var sut = CreateSut(contentRepository);
+
+        var result = await sut.Update(
+            new ContentDto { Id = 7, Title = "Updated", Categories = "99", Tags = "99", Cultures = "99" },
+            applicationId: 1);
+
+        Assert.Equal("1|2", result.Categories);
+        Assert.Equal("5", result.Tags);
+        Assert.Equal("9", result.Cultures);
+        contentRepository.Verify(r => r.Update(It.Is<Content>(
+            c => c.Categories == "1|2" && c.Tags == "5" && c.Cultures == "9")), Times.Once);
     }
 
     [Fact]

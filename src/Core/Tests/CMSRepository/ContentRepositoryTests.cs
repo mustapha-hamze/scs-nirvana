@@ -54,6 +54,36 @@ public class ContentRepositoryTests
     }
 
     [Fact]
+    public async Task CreateContentCategories_FailurePartwayThrough_RollsBackCompatStringAndRelations()
+    {
+        // The whole replace (compat string + join rows) runs in one transaction: a failure on
+        // the last insert must leave both the string and the rows exactly as they were, not a
+        // half-applied mix of the old rows and the new string (or vice versa).
+        using var factory = new SqliteContextFactory();
+        await using var context = factory.CreateContext();
+
+        var content = new Content { TypeId = 1000, Title = "Sample", Categories = "1" };
+        context.Contents.Add(content);
+        await context.SaveChangesAsync();
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = content.Id, CategoryId = 1, CreatedDt = DateTime.Now });
+        await context.SaveChangesAsync();
+
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
+
+        await Assert.ThrowsAnyAsync<Exception>(
+            () => repository.CreateContentCategories(content.Id, new List<int> { 3, 3 }));
+
+        await using var verifyContext = factory.CreateContext();
+        var relations = await verifyContext.ContentInCategories.Where(c => c.ContentId == content.Id).ToListAsync();
+        var unchangedContent = await verifyContext.Contents.SingleAsync(c => c.Id == content.Id);
+
+        Assert.Equal("1", unchangedContent.Categories);
+        var relation = Assert.Single(relations);
+        Assert.Equal(1, relation.CategoryId);
+    }
+
+    [Fact]
     public async Task CreateContentCategories_EmptyData_RemovesExistingRelationsAndClearsField()
     {
         using var factory = new SqliteContextFactory();

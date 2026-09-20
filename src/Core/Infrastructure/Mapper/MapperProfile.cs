@@ -22,7 +22,15 @@ namespace Infrastructure.Mapper
             CreateMap<CategoryDto, Category>();
 
             CreateMap<Content, ContentDto>();
-            CreateMap<ContentDto, Content>();
+            // Categories/Tags/Cultures are legacy pipe-delimited compatibility strings whose
+            // canonical source of truth is the ContentInCategory/Tag/Culture join tables. A
+            // normal content create/update must never set them directly — only the dedicated
+            // CreateContentCategories/Tags/Cultures commands (which replace both the join rows
+            // and the compatibility string together, in one transaction) may.
+            CreateMap<ContentDto, Content>()
+                .ForMember(dest => dest.Categories, opt => opt.Ignore())
+                .ForMember(dest => dest.Tags, opt => opt.Ignore())
+                .ForMember(dest => dest.Cultures, opt => opt.Ignore());
 
             CreateMap<ContentSection, SectionDto>();
             CreateMap<SectionDto, ContentSection>();
