@@ -1,8 +1,11 @@
+using System;
+using System.ClientModel;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domains.Entities.ContentManagement;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using OpenAI;
 using OpenAI.Chat;
 
 namespace Core.Services.TranslatorServices;
@@ -13,7 +16,10 @@ public class ContentTranslator : IContentTranslator
 
     public ContentTranslator(IConfiguration configuration)
     {
-        _client = new ChatClient("gpt-5.6-sol", configuration["OPENAI_API_KEY"]);
+        // Full content graphs (all sections/HTML) can take well over the SDK's 100s
+        // default before the model responds, so the default NetworkTimeout is too short.
+        _client = new ChatClient("gpt-5.6-sol", new ApiKeyCredential(configuration["OPENAI_API_KEY"]),
+            new OpenAIClientOptions { NetworkTimeout = TimeSpan.FromMinutes(5) });
     }
     public async Task<string> Translate(Content content)
     {

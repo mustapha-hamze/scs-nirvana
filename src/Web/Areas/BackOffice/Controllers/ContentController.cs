@@ -334,9 +334,11 @@ public class ContentController : BaseController
         if (mode)
         {
             var content = await _contentProvider.GetContentForTranslate(contentId);
-            content.FarsiContent = "";
-            var result = await _contentTranslator.Translate(content);
-            await _contentServices.ActivateTranslatedContent(contentId, result);
+            if (string.IsNullOrEmpty(content.FarsiContent))
+            {
+                var result = await _contentTranslator.Translate(content);
+                await _contentServices.ActivateTranslatedContent(contentId, result);
+            }
         }
         else
         {

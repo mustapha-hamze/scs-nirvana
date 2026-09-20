@@ -158,7 +158,7 @@ public sealed class FileUploadService : IFileUploadService
 
     private static string ResolveSafePath(string directory, string fileName)
     {
-        var fullDirectory = Path.GetFullPath(directory);
+        var fullDirectory = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var fullPath = Path.GetFullPath(Path.Combine(fullDirectory, fileName));
 
         if (!fullPath.StartsWith(fullDirectory + Path.DirectorySeparatorChar, StringComparison.Ordinal))
