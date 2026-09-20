@@ -8,9 +8,9 @@ namespace Services.AccessManagerServices
     public interface ISectorServices
     {
         Task Create(SectorDto sector);
-        Task Update(SectorDto sector);
-        Task<SectorDto> GetById(int id);
-        Task Delete(int id);
+        Task Update(SectorDto sector, int applicationId);
+        Task<SectorDto> GetById(int id, int applicationId);
+        Task Delete(int id, int applicationId);
         List<SectorDto> GetAllSector(int applicationId);
         List<SectorDto> GetAllSector();
     }

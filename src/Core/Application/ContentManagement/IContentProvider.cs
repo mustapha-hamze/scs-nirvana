@@ -14,6 +14,11 @@ public interface IContentProvider
     // else.
     Task<Content> GetContentForTranslate(int contentId);
 
+    // Application-scoped overload: used by the authenticated BackOffice Farsi translation flow,
+    // where the caller's applicationId is known and a cross-application contentId must be
+    // rejected rather than silently translating/activating another application's content.
+    Task<Content> GetContentForTranslate(int contentId, int applicationId);
+
     ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en");
     ContentListResultModel GetContentsListByTagId(int applicationId, int tagId, int pageIndex = 0, int pageSize = 20);
 }

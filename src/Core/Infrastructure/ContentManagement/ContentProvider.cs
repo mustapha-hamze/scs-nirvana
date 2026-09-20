@@ -26,6 +26,16 @@ public class ContentProvider : IContentProvider
             .FirstOrDefaultAsync(c => c.Id == contentId && !c.IsDeleted);
     }
 
+    public async Task<Content> GetContentForTranslate(int contentId, int applicationId)
+    {
+        return await _dbContext.Contents
+            .Include(c => c.Images.Where(i => !i.IsDeleted))
+            .Include(c => c.Metadata)
+            .Include(c => c.Sections.Where(s => !s.IsDeleted))
+                .ThenInclude(s => s.Elements)
+            .FirstOrDefaultAsync(c => c.Id == contentId && c.ApplicationId == applicationId && !c.IsDeleted);
+    }
+
     public ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en")
     {
         // Was: c.Categories.Contains(categoryId.ToString()), a substring match that also matched

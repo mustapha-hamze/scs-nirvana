@@ -4,7 +4,7 @@ using Domains.Entities.General;
 namespace Domains.Entities.AccessManagement;
 public class Sector : BaseEntity
 {
-    // public int ApplicationId { get; set; }
+    public int ApplicationId { get; set; }
     [StringLength(64)]
     public string Title { get; set; }
     // relation

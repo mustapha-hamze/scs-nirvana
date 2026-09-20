@@ -6,10 +6,10 @@ namespace Services.AccessManagerServices
 {
     public interface IEntityAccessServices
     {
-        Task Create(EntityAccessDto access);
-        Task Update(EntityAccessDto access);
+        Task Create(EntityAccessDto access, int applicationId);
+        Task Update(EntityAccessDto access, int applicationId);
         List<EntityAccessDto> List(int applicationId);
-        Task<EntityAccessDto> GetById(int id);
+        Task<EntityAccessDto> GetById(int id, int applicationId);
         List<EntityAccessDto> GetEntityAccesses(int entityId);
     }
 }
