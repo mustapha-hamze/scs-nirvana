@@ -3,6 +3,7 @@ using System.ClientModel;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.UseCases.TranslatorServices;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenAI;
 using OpenAI.Chat;
@@ -10,16 +11,19 @@ using OpenAI.Chat;
 namespace Infrastructure.TranslatorServices;
 
 // The only place the OpenAI SDK is touched. Never logs the API key or full request/response
-// content - only failure shapes (exception type, "not valid JSON") make it into TranslationResult.Error.
+// content - only failure shapes (exception type, "not valid JSON") make it into TranslationResult.Error
+// and into the logs below.
 public class OpenAiTranslationPort : ITranslationPort
 {
     private readonly ChatClient _client;
+    private readonly ILogger<OpenAiTranslationPort> _logger;
 
-    public OpenAiTranslationPort(IOptions<OpenAiTranslationOptions> options)
+    public OpenAiTranslationPort(IOptions<OpenAiTranslationOptions> options, ILogger<OpenAiTranslationPort> logger)
     {
         var settings = options.Value;
         _client = new ChatClient(settings.Model, new ApiKeyCredential(settings.ApiKey),
             new OpenAIClientOptions { NetworkTimeout = TimeSpan.FromMinutes(settings.NetworkTimeoutMinutes) });
+        _logger = logger;
     }
 
     public async Task<TranslationResult> TranslateAsync(TranslationRequest request, CancellationToken cancellationToken = default)
@@ -37,6 +41,7 @@ public class OpenAiTranslationPort : ITranslationPort
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Translation request failed with {ExceptionType}", ex.GetType().Name);
             return TranslationResult.Failed($"Translation request failed: {ex.GetType().Name}");
         }
 
@@ -44,7 +49,10 @@ public class OpenAiTranslationPort : ITranslationPort
         // model returns no choices, or a moderation/refusal response) - guard before indexing
         // instead of letting that throw an unhandled IndexOutOfRangeException.
         if (response.Content == null || response.Content.Count == 0)
+        {
+            _logger.LogWarning("Translation response contained no content");
             return TranslationResult.Failed("Translation response contained no content.");
+        }
 
         var translatedText = response.Content[0].Text;
 

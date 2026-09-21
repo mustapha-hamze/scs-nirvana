@@ -24,7 +24,7 @@ public class SchemaServicesTests
 
     private static SchemaServices CreateSut(Infrastructure.Data.ApplicationDbContext context)
     {
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
         return new SchemaServices(
             new SchemaRepository(context),
             CreateMapper(),

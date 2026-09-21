@@ -50,7 +50,7 @@ public class AsyncCancellationAndErrorBoundaryTests
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
 
         context.Categories.Add(new Category { ApplicationId = 1, Title = "Staged" });
 

@@ -1,29 +1,32 @@
+using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Application.UseCases.Utilities.ApplicationFunctions
 {
     public class SlugGenerator
     {
+        // Keeps letters/digits of any script (Persian included) instead of an ASCII-only
+        // whitelist, which previously dropped non-Latin titles to a near-empty slug.
         public string GenerateSlug(string strTitle)
         {
-            string result = string.Empty;
-            StringBuilder sb = new StringBuilder();
-            foreach (char c in strTitle)
+            if (string.IsNullOrEmpty(strTitle))
+                return string.Empty;
+
+            string normalized = strTitle.Normalize(NormalizationForm.FormC);
+
+            var sb = new StringBuilder();
+            foreach (char c in normalized)
             {
-                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ' || c == '-')
-                {
-                    sb.Append(c);
-                }
+                if (char.IsLetterOrDigit(c))
+                    sb.Append(char.ToLower(c, CultureInfo.InvariantCulture));
+                else
+                    sb.Append('-');
             }
 
-            result = sb.ToString();
-            result = result.Replace(" ", "-");
+            string result = Regex.Replace(sb.ToString(), "-+", "-").Trim('-');
 
-            result = result.Replace("----", "-");
-            result = result.Replace("---", "-");
-            result = result.Replace("--", "-");
-
-            return result.ToLower();
+            return result;
         }
     }
 }

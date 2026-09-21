@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography;
 
 namespace Application.UseCases.Utilities.ApplicationFunctions
 {
@@ -6,11 +7,11 @@ namespace Application.UseCases.Utilities.ApplicationFunctions
     {
         public string GenerateAppKey(int applicationInternalId)
         {
-            string strDateTime = DateTime.Now.ToString("yyyy") + DateTime.Now.Month.ToString("mm") + DateTime.Now.Day.ToString("dd");
-            strDateTime += DateTime.Now.Hour.ToString("hh") + DateTime.Now.Minute.ToString("mm") + DateTime.Now.Second.ToString("ss");
+            string strDateTime = DateTime.UtcNow.ToString("yyyy") + DateTime.UtcNow.Month.ToString("mm") + DateTime.UtcNow.Day.ToString("dd");
+            strDateTime += DateTime.UtcNow.Hour.ToString("hh") + DateTime.UtcNow.Minute.ToString("mm") + DateTime.UtcNow.Second.ToString("ss");
 
-            Random random = new Random(123456789);
-            string appKey = "APP-KEY-NIRVANA-CMS-" + strDateTime + "-" + applicationInternalId + "-" + random.Next().ToString();
+            // Fixed-seed System.Random previously made this component identical on every call.
+            string appKey = "APP-KEY-NIRVANA-CMS-" + strDateTime + "-" + applicationInternalId + "-" + RandomNumberGenerator.GetInt32(int.MaxValue);
 
             return appKey;
         }

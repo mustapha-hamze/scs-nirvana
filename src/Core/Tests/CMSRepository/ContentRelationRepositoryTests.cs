@@ -22,7 +22,7 @@ public class ContentRelationRepositoryTests
 
         // The repository only stages the replace; the Application layer is what wraps it in a
         // transaction (exactly how ContentServices.CreateContentCategories composes it).
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
         var repository = new ContentRelationRepository(context);
 
         await unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int> { 3, 4, 5 }));
@@ -48,7 +48,7 @@ public class ContentRelationRepositoryTests
         context.Contents.Add(content);
         await context.SaveChangesAsync();
 
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
         var repository = new ContentRelationRepository(context);
 
         await Assert.ThrowsAnyAsync<Exception>(
@@ -72,7 +72,7 @@ public class ContentRelationRepositoryTests
         context.ContentInCategories.Add(new ContentInCategory { ContentId = content.Id, CategoryId = 1, CreatedDt = DateTime.Now });
         await context.SaveChangesAsync();
 
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
         var repository = new ContentRelationRepository(context);
 
         await Assert.ThrowsAnyAsync<Exception>(
@@ -99,7 +99,7 @@ public class ContentRelationRepositoryTests
         context.ContentInCategories.Add(new ContentInCategory { ContentId = content.Id, CategoryId = 1, CreatedDt = DateTime.Now });
         await context.SaveChangesAsync();
 
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
         var repository = new ContentRelationRepository(context);
 
         await unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int>()));
