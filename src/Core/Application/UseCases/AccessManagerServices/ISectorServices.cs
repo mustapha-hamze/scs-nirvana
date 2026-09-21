@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Domains.Entities.AccessManagement;
 using Application.Contracts.AccessManagement;
 
-namespace Services.AccessManagerServices
+namespace Application.UseCases.AccessManagerServices
 {
     public interface ISectorServices
     {

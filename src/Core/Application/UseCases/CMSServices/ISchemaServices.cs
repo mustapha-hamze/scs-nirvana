@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Contracts.CMS;
 
-namespace Services.CMSServices
+namespace Application.UseCases.CMSServices
 {
     public interface ISchemaServices
     {

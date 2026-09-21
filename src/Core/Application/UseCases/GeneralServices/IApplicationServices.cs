@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Contracts.General;
 
-namespace Services.GeneralServices
+namespace Application.UseCases.GeneralServices
 {
     public interface IApplicationServices
     {

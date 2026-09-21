@@ -8,7 +8,7 @@ using Application.AccessManagerRepository;
 using Application.Contracts.AccessManagement;
 using Application.UnitOfWork;
 
-namespace Services.AccessManagerServices
+namespace Application.UseCases.AccessManagerServices
 {
     public class SectorEntityServices : ISectorEntityServices
     {

@@ -6,7 +6,6 @@ using Application.SCMRepository;
 using Application.UserManagementRepository;
 using Application.UnitOfWork;
 using Application.UseCases.TranslatorServices;
-using Core.Services.TranslatorServices;
 using Infrastructure.AccessManagerRepository;
 using Infrastructure.CMSRepository;
 using Infrastructure.ContentManagement;
@@ -118,7 +117,7 @@ public static class ServiceCollectionExtensions
 
         services.AddMediatR(typeof(IUnitOfWork).Assembly);
 
-        services.AddAutoMapper(new[] { typeof(MapperProfile).Assembly }, ServiceLifetime.Singleton);
+        services.AddAutoMapper(new[] { typeof(MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
 
         services.AddHttpContextAccessor();
 

@@ -6,7 +6,7 @@ using Domains.Entities.General;
 using Application.GeneralRepository;
 using Application.UnitOfWork;
 
-namespace Services.GeneralServices
+namespace Application.UseCases.GeneralServices
 {
     public class CultureServices : ICultureServices
     {

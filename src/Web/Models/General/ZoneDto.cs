@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using Infrastructure.Dto;
 
-namespace Infrastructure.Dto.GeneralDtos
+namespace Web.Models.General
 {
     public class ZoneDto : BaseEntity
     {

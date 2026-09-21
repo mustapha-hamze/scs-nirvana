@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Infrastructure.Dto.CMSDtos
+namespace Web.Models.CMS
 {
     public class FarsiSectionElementEditDto
     {

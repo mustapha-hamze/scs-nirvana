@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace Infrastructure.Dto.UserManagementDtos
+namespace Web.Models.UserManagement
 {
     public class CreateUserDto
     {

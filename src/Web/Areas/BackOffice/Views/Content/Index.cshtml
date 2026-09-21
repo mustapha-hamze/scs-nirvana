@@ -1,9 +1,9 @@
-@using Services.Utilities.ApplicationConst
+@using Application.UseCases.Utilities.ApplicationConst
 @model Application.Contracts.CMS.ContentDto
 
-@inject Services.GeneralServices.ISystemTypeServices systemTypeServices
-@inject Services.GeneralServices.IApplicationServices applicationServices
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices
+@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
 
 @{
     int typeId = Convert.ToInt32(ViewData["TypeId"]);

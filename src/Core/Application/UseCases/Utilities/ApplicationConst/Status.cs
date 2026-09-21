@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Services.Utilities.ApplicationConst
+namespace Application.UseCases.Utilities.ApplicationConst
 {
     public class Status
     {

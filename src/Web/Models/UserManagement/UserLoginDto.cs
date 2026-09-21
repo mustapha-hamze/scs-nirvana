@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication;
 
-namespace Infrastructure.Dto.UserManagementDtos
+namespace Web.Models.UserManagement
 {
     public class UserLoginDto
     {

@@ -1,4 +1,4 @@
-namespace Services.Utilities.ApplicationConst
+namespace Application.UseCases.Utilities.ApplicationConst
 {
     public static class ApplicationSettingId
     {

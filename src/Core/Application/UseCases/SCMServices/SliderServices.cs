@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Domains.Entities.CustomModule;
 using Application.UnitOfWork;
 
-namespace Services.SCMServices
+namespace Application.UseCases.SCMServices
 {
     public class SliderServices : ISliderServices
     {

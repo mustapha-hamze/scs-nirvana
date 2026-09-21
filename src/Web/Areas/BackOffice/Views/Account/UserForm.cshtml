@@ -1,7 +1,7 @@
 @{
     Layout = null;
 }
-@model Infrastructure.Dto.UserManagementDtos.CreateUserDto
+@model Web.Models.UserManagement.CreateUserDto
 <form class="needs-validation row" novalidate id="frmUser" method="POST">
     <input type="hidden" asp-for="UserId" />
     <div asp-validation-summary="All" class="text-danger">

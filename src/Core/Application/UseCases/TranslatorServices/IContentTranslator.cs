@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Domains.Entities.ContentManagement;
 
-namespace Core.Services.TranslatorServices;
+namespace Application.UseCases.TranslatorServices;
 
 // Compatibility surface kept exactly as existing Web callers use it (Translate(content), no
 // token) while adding an optional CancellationToken for callers that migrate to pass one.

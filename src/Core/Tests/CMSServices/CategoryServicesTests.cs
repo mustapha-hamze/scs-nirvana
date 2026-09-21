@@ -4,8 +4,9 @@ using Application.CMSRepository;
 using Application.Contracts.CMS;
 using Application.UnitOfWork;
 using Infrastructure.Mapper;
+using Application.Mapper;
 using Moq;
-using Services.CMSServices;
+using Application.UseCases.CMSServices;
 using Xunit;
 
 namespace Core.Tests.CMSServices;
@@ -14,7 +15,7 @@ public class CategoryServicesTests
 {
     private static IMapper CreateMapper()
     {
-        var config = new MapperConfiguration(cfg => cfg.AddProfile(new MapperProfile()));
+        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); });
         return config.CreateMapper();
     }
 

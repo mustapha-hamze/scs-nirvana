@@ -6,7 +6,7 @@ using Application.GeneralRepository;
 using Application.Contracts.General;
 using Application.UnitOfWork;
 
-namespace Services.GeneralServices
+namespace Application.UseCases.GeneralServices
 {
     public class SystemTypeServices : ISystemTypeServices
     {

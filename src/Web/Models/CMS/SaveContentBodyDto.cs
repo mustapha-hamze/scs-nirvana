@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Infrastructure.Dto.CMSDtos
+namespace Web.Models.CMS
 {
     public class SaveContentBodyDto
     {

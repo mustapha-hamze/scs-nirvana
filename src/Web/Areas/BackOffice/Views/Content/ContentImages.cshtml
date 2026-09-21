@@ -12,7 +12,7 @@
         accesses = "NULL";
 }
 
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
 
 <div class="row mt-2">
     @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_UPLOAD_IMAGES_1009"))

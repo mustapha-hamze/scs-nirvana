@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Infrastructure.Dto.CMSDtos
+namespace Web.Models.CMS
 {
     public class FarsiSectionEditDto
     {

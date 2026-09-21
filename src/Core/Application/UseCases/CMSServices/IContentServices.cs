@@ -4,7 +4,7 @@ using Application.Contracts.CMS;
 using Application.Contracts.CMSApi;
 using System;
 
-namespace Services.CMSServices
+namespace Application.UseCases.CMSServices
 {
     public interface IContentServices
     {

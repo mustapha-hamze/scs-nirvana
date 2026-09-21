@@ -6,7 +6,7 @@ using Domains.Entities.ContentManagement;
 using Application.CMSRepository;
 using Application.UnitOfWork;
 
-namespace Services.CMSServices
+namespace Application.UseCases.CMSServices
 {
     public class CategoryServices : ICategoryServices
     {

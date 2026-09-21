@@ -3,7 +3,7 @@
     if (accesses == string.Empty)
         accesses = "NULL";
 }
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
 
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_"))
 {

@@ -6,7 +6,7 @@
 
     var _version = Guid.NewGuid();
 }
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
 @model Domains.Entities.CustomModule.SliderItem
 <form action="" method="post" id="__frmCreateSliderItemForm__">
     @Html.AntiForgeryToken()

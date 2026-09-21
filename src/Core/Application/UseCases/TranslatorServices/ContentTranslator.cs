@@ -1,11 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.UseCases.TranslatorServices;
 using Domains.Entities.ContentManagement;
 using Newtonsoft.Json;
 
-namespace Core.Services.TranslatorServices;
+namespace Application.UseCases.TranslatorServices;
 
 // Compatibility adapter: existing Web callers still get Translate(content) -> string exactly as
 // before. Internally it now serializes content and delegates to the Application-level
@@ -22,12 +21,12 @@ public class ContentTranslator : IContentTranslator
 
     public async Task<string> Translate(Content content, CancellationToken cancellationToken = default)
     {
+        var document = ContentTranslationDocument.FromContent(content);
         var settings = new JsonSerializerSettings
         {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             NullValueHandling = NullValueHandling.Include
         };
-        var contentJson = JsonConvert.SerializeObject(content, settings);
+        var contentJson = JsonConvert.SerializeObject(document, settings);
 
         var result = await _translationPort.TranslateAsync(new TranslationRequest(contentJson), cancellationToken);
 

@@ -1,4 +1,4 @@
-@using Services.Utilities.ApplicationConst;
+@using Application.UseCases.Utilities.ApplicationConst;
 
 @{
     var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
@@ -10,9 +10,9 @@
 
     var appPages = applicationServices.GetApplicationSetting(user.CurrentApplicationId, 6000).OrderBy(ap => ap.Value);
 }
-@inject Services.GeneralServices.ISystemTypeServices systemTypeServices
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
-@inject Services.GeneralServices.IApplicationServices applicationServices;
+@inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices;
 
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_"))
 {

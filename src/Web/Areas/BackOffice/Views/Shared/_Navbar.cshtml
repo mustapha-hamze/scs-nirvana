@@ -1,5 +1,5 @@
-@inject Services.GeneralServices.IApplicationServices applicationServices;
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices;
+@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices;
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices;
 
 @{
     var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);

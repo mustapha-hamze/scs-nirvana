@@ -2,6 +2,7 @@ using AutoMapper;
 using Core.Tests.TestSupport;
 using Domains.Entities.General;
 using Infrastructure.Mapper;
+using Application.Mapper;
 using Infrastructure.UserManagementRepository;
 using Xunit;
 
@@ -11,7 +12,7 @@ public class UserManagementRepositoryTests
 {
     private static IMapper CreateMapper()
     {
-        var config = new MapperConfiguration(cfg => cfg.AddProfile(new MapperProfile()));
+        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); });
         return config.CreateMapper();
     }
 

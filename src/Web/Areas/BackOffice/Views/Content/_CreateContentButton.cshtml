@@ -5,7 +5,7 @@
         accesses = "NULL";
 }
 
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
 
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_ADD_1000"))
 {

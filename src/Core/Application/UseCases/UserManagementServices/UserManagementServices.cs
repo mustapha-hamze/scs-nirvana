@@ -5,7 +5,7 @@ using Application.GeneralRepository;
 using Application.UserManagementRepository;
 using Application.UnitOfWork;
 
-namespace Services.UserManagementServices
+namespace Application.UseCases.UserManagementServices
 {
     public class UserManagementServices : IUserManagementServices
     {

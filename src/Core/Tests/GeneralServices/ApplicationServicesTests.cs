@@ -4,8 +4,9 @@ using Application.GeneralRepository;
 using Application.Contracts.General;
 using Application.UnitOfWork;
 using Infrastructure.Mapper;
+using Application.Mapper;
 using Moq;
-using Services.GeneralServices;
+using Application.UseCases.GeneralServices;
 using Xunit;
 
 namespace Core.Tests.GeneralServices;
@@ -14,7 +15,7 @@ public class ApplicationServicesTests
 {
     private static IMapper CreateMapper()
     {
-        var config = new MapperConfiguration(cfg => cfg.AddProfile(new MapperProfile()));
+        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); });
         return config.CreateMapper();
     }
 

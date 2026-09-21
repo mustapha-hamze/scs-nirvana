@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domains.Entities.CustomModule;
 
-namespace Services.SCMServices
+namespace Application.UseCases.SCMServices
 {
     public interface ISliderServices
     {

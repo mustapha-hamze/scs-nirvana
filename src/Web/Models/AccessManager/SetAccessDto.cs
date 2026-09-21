@@ -1,4 +1,4 @@
-namespace Infrastructure.Dto.AccessManagerDtos
+namespace Web.Models.AccessManager
 {
     public class SetAccessDto
     {

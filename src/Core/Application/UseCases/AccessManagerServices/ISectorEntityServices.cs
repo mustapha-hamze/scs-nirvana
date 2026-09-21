@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Contracts.AccessManagement;
 
-namespace Services.AccessManagerServices
+namespace Application.UseCases.AccessManagerServices
 {
     public interface ISectorEntityServices
     {

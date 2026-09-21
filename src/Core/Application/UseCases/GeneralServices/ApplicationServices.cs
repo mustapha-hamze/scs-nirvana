@@ -5,7 +5,7 @@ using Application.Contracts.General;
 using Domains.Entities.General;
 using Application.UnitOfWork;
 
-namespace Services.GeneralServices
+namespace Application.UseCases.GeneralServices
 {
     public class ApplicationServices : IApplicationServices
     {

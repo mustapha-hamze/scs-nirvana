@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Contracts.UserManagement;
 
-namespace Services.UserManagementServices
+namespace Application.UseCases.UserManagementServices
 {
     public interface IUserManagementServices
     {

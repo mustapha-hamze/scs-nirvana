@@ -10,7 +10,7 @@ using Application.CMSRepository;
 using Application.GeneralRepository;
 using Application.UnitOfWork;
 
-namespace Services.CMSServices
+namespace Application.UseCases.CMSServices
 {
     public class ContentServices : IContentServices
     {

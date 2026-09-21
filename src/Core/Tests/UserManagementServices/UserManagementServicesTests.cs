@@ -5,7 +5,7 @@ using Application.GeneralRepository;
 using Application.UnitOfWork;
 using Application.UserManagementRepository;
 using Moq;
-using Services.UserManagementServices;
+using Application.UseCases.UserManagementServices;
 using Xunit;
 
 namespace Core.Tests.UserManagement;

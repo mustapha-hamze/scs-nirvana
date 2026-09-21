@@ -1,4 +1,4 @@
-namespace Services.Utilities.ApplicationFunctions
+namespace Application.UseCases.Utilities.ApplicationFunctions
 {
     public class GetDistrict
     {

@@ -1,5 +1,5 @@
 using Application.ContentManagement;
-using Core.Services.TranslatorServices;
+using Application.UseCases.TranslatorServices;
 using Domains.Entities.ContentManagement;
 
 namespace Web.Areas.BackOffice.Controllers;

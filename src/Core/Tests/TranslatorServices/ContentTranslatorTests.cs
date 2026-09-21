@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.UseCases.TranslatorServices;
-using Core.Services.TranslatorServices;
 using Domains.Entities.ContentManagement;
 using Xunit;
 

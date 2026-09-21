@@ -6,7 +6,7 @@
 
     var _version = Guid.NewGuid();
 }
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
 @model List<Domains.Entities.CustomModule.SliderItem>
 <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
     <thead>

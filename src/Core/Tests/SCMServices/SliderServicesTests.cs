@@ -1,7 +1,7 @@
 using Core.Tests.TestSupport;
 using Domains.Entities.CustomModule;
 using Infrastructure.SCMRepository;
-using Services.SCMServices;
+using Application.UseCases.SCMServices;
 using Xunit;
 
 namespace Core.Tests.SCMServices;
