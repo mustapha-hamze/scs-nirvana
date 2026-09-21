@@ -13,5 +13,9 @@ public class UserInApplicationConfiguration : IEntityTypeConfiguration<UserInApp
 
         builder.Property(x => x.UserId).HasMaxLength(450);
         builder.Property(x => x.ApplicationId).IsRequired();
+
+        // One membership row per (user, application) - AddUserToApplication restores an existing
+        // soft-deleted row instead of inserting a duplicate specifically to respect this.
+        builder.HasIndex(x => new { x.UserId, x.ApplicationId }).IsUnique();
     }
 }

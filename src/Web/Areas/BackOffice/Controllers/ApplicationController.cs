@@ -80,18 +80,27 @@ public class ApplicationController : BaseController
         return Content("Done");
     }
 
+    // Selecting an application changes the caller's server-side session state, so this must be a
+    // state-changing POST with a CSRF token - not a plain GET link a page could trigger silently.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/BackOffice/Application/SelectAppToEnter/{applicationId}")]
     public async Task<IActionResult> SelectAppToEnter(int applicationId)
     {
         if (!await CheckUserApproval())
             return Redirect("/WaitingForApproval");
 
-        // HttpContext.Session.SetInt32("AppKey", applicationId);
-        // CookieOptions option = new();
-        // option.Expires = DateTime.Now.AddDays(1);
-        // Response.Cookies.Append("AppKey", applicationId.ToString(), option);
-        // 
-        await _userManagementServices.SetCurrentApplicationId(User.Identity.Name, applicationId);
+        try
+        {
+            await _userManagementServices.SetCurrentApplicationId(User.Identity.Name, applicationId);
+        }
+        catch (KeyNotFoundException)
+        {
+            // Core rejected the selection (missing/unauthorized/deleted application or
+            // membership - deliberately indistinguishable). Send the user back to their real,
+            // legitimate list rather than surfacing an error.
+            return Redirect("/BackOffice/Application/SelectApp");
+        }
 
         return Redirect("/BackOffice/Home/Index");
     }

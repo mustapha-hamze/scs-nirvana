@@ -14,5 +14,9 @@ public class UserAccessConfiguration : IEntityTypeConfiguration<UserAccess>
         builder.Property(x => x.UserId).HasMaxLength(450);
         builder.Property(x => x.ApplicationId).IsRequired();
         builder.Property(x => x.Access).HasMaxLength(4096);
+
+        // One access row per (user, application) - SetUserAccesses already updates an existing
+        // row (regardless of soft-delete state) instead of inserting a duplicate.
+        builder.HasIndex(x => new { x.UserId, x.ApplicationId }).IsUnique();
     }
 }

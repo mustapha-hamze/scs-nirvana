@@ -12,5 +12,8 @@ namespace Application.GeneralRepository
         Task AddUserToApplication(string userId, int applicationId);
         Task RemoveUserFromApplication(int relationId);
         List<ApplicationSetting> GetApplicationSetting(int applicationId, int settingId = 0);
+
+        // True only when the application exists, is active, and is not soft-deleted.
+        Task<bool> ExistsActiveApplication(int applicationId);
     }
 }

@@ -30,13 +30,27 @@ namespace Infrastructure.GeneralRepository
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == email);
 
             return _dbContext.UserInApplications
-                .Where(u => u.UserId == user.Id && !u.IsDeleted)
+                .Where(u => u.UserId == user.Id && u.IsActive && !u.IsDeleted)
                 .OrderByDescending(u => u.CreatedDT)
                 .ToList();
         }
 
+        // Idempotent: restores an existing soft-deleted membership row instead of inserting a
+        // duplicate, since (UserId, ApplicationId) is unique - a second insert for the same pair
+        // would violate that constraint once it's enforced at the database level.
         public async Task AddUserToApplication(string userId, int applicationId)
         {
+            var existing = await _dbContext.UserInApplications
+                .SingleOrDefaultAsync(m => m.UserId == userId && m.ApplicationId == applicationId);
+
+            if (existing != null)
+            {
+                existing.IsDeleted = false;
+                existing.IsActive = true;
+                existing.UpdatedDT = DateTime.Now;
+                return;
+            }
+
             await _dbContext.UserInApplications.AddAsync(new UserInApplication
             {
                 UserId = userId,
@@ -54,6 +68,12 @@ namespace Infrastructure.GeneralRepository
             relation.UpdatedDT = DateTime.Now;
 
             return Task.CompletedTask;
+        }
+
+        public async Task<bool> ExistsActiveApplication(int applicationId)
+        {
+            return await _dbContext.Applications.AnyAsync(a =>
+                a.Id == applicationId && a.IsActive && !a.IsDeleted);
         }
 
         public List<ApplicationSetting> GetApplicationSetting(int applicationId, int settingId = 0)

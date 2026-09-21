@@ -36,22 +36,35 @@
 
                         <div class="card-body p-2">
                             <div class="row">
-                                @if (User.IsInRole("SuperAdmin"))
+                                @* Selection is always driven by the caller's own memberships
+                                   (userApplications) - never the full application list - so this
+                                   page never implies access to an application the user isn't
+                                   actually a member of. Model is used only to look up display
+                                   details (title/description/logo) for the apps the user already
+                                   belongs to. *@
+                                @foreach (var item in userApplications)
                                 {
-                                    @foreach (var item in Model)
+                                    var app = Model.SingleOrDefault(a => a.Id == item.ApplicationId);
+                                    if (app == null)
                                     {
-                                        <div class="col-md-3">
-                                            <div class="card d-block">
-                                                <img class="card-img-top" src="/Storage/Application/Logos/@item.LogoFileName" />
-                                                <div class="card-body">
-                                                    <h5 class="card-title">@item.Title</h5>
-                                                    @* <p class="card-text">@description</p> *@
-                                                    <a href="/BackOffice/Application/SelectAppToEnter/@item.Id"
-                                                        class="btn btn-primary w-100">Select</a>
-                                                </div>
+                                        continue;
+                                    }
+                                    <div class="col-md-3 m-2">
+                                        <div class="card d-block">
+                                            <img class="card-img-top" src="/Storage/Application/Logos/@app.LogoFileName" />
+                                            <div class="card-body">
+                                                <h5 class="card-title">@app.Title</h5>
+                                                <p class="card-text">@app.Description</p>
+                                                <form method="post" action="/BackOffice/Application/SelectAppToEnter/@app.Id">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-primary w-100">Select</button>
+                                                </form>
                                             </div>
                                         </div>
-                                    }
+                                    </div>
+                                }
+                                @if (User.IsInRole("SuperAdmin"))
+                                {
                                     <div class="col-md-2">
                                         <button class="btn btn-info pt-3 pb-3 h-100" data-bs-toggle="modal"
                                             data-bs-target="#application-modal" onclick="newApplicationForm()">
@@ -61,30 +74,6 @@
                                         </button>
                                     </div>
                                 }
-                                else
-                                {
-                                    @foreach (var item in userApplications)
-                                    {
-                                        var app = Model.SingleOrDefault(a => a.Id == item.ApplicationId);
-                                        <div class="col-md-3 m-2">
-                                            <div class="card d-block">
-                                                <img class="card-img-top" src="/Storage/Application/Logos/@app.LogoFileName" />
-                                                <div class="card-body">
-                                                    <h5 class="card-title">@app.Title</h5>
-                                                    <p class="card-text">@app.Description</p>
-                                                    <a href="/BackOffice/Application/SelectAppToEnter/@app.Id"
-                                                        class="btn btn-primary w-100">Select</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
-                                }
-                                @* <button class="col-md-2 m-2 btn btn-info pt-3 pb-3 h-100" data-bs-toggle="modal"
-                                    data-bs-target="#application-modal" onclick="newApplicationForm()">
-                                    <i class="uil uil-plus h1"></i>
-                                    <br />
-                                    <h5 class="fw-normal">New Application</h4>
-                                    </button> *@
                             </div>
                         </div>
 

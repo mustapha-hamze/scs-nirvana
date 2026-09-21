@@ -87,6 +87,12 @@ public class UserManagementRepository : IUserManagementRepository
         return _mapper.Map<UserDto>(_dbContext.Users.FirstOrDefault(u => u.Email == email));
     }
 
+    public async Task<bool> HasActiveMembership(string userId, int applicationId)
+    {
+        return await _dbContext.UserInApplications.AnyAsync(m =>
+            m.UserId == userId && m.ApplicationId == applicationId && m.IsActive && !m.IsDeleted);
+    }
+
     // public async Task CreateUserAttachment(UserAttachment userAttachment)
     // {
     //     throw new NotImplementedException();
