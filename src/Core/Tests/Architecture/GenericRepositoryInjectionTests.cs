@@ -4,8 +4,8 @@ using Xunit;
 namespace Core.Tests.Architecture;
 
 // Application use-case services must depend on narrow, aggregate-specific repository ports
-// (e.g. ISchemaRepository, IContentRepository) rather than the generic IRepository<T>, since a
-// bare generic dependency has no way to express application-scoped ownership. This scans
+// (e.g. ISchemaRepository, IContentQueryRepository) rather than the generic IRepository<T>,
+// since a bare generic dependency has no way to express application-scoped ownership. This scans
 // compiled service types rather than source, so it catches a violation regardless of which file
 // (re)introduces the dependency.
 public class GenericRepositoryInjectionTests

@@ -38,7 +38,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICultureRepository, CultureRepository>();
         services.AddScoped<ISchemaRepository, SchemaRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
-        services.AddScoped<IContentRepository, ContentRepository>();
+        services.AddScoped<IContentQueryRepository, ContentQueryRepository>();
+        services.AddScoped<IContentCommandRepository, ContentCommandRepository>();
+        services.AddScoped<IContentRelationRepository, ContentRelationRepository>();
+        services.AddScoped<IContentsInCategoryQueryAdapter, ContentsInCategoryQueryAdapter>();
         services.AddScoped<ISliderRepository, SliderRepository>();
         services.AddScoped<ISystemTypeRepository, SystemTypeRepository>();
         services.AddScoped<ISectorRepository, SectorRepository>();

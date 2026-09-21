@@ -1,43 +1,29 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.Contracts.CMS;
 using Application.Contracts.CMSApi;
-using Application.Repository;
 using Domains.Entities.ContentManagement;
 
 namespace Application.CMSRepository;
 
-public interface IContentRepository : IRepository<Content>
+// EF read projections only: no write operations, and every returned entity is AsNoTracking (or
+// a DTO/projection), so nothing here can be mutated and saved back through this port.
+public interface IContentQueryRepository
 {
     List<Content> List(int applicationId);
     List<Content> List(int applicationId, int pageIndex);
     List<Content> OurBlogBoxList(int applicationId);
+    int ContentCount(int applicationId);
     List<ContentSection> GetContentSections(int contentId);
     List<SectionElement> GetSectionElements(int sectionId);
     List<SectionElement> GetSectionElements(List<int> sectionIds);
-    Task UpdateSectionPriority(int sectionId, int priority);
-
-    // Purpose-specific, entity-free update paths for the Farsi translation/activation flow.
-    // Unlike IRepository<T>.GetById (AsNoTracking), these query the content without
-    // AsNoTracking, so EF's change tracker resolves to an already-tracked instance if the
-    // caller obtained one earlier in the same request (e.g. via IContentProvider's
-    // GetContentForTranslate) instead of creating a second, conflicting tracked instance.
-    Task UpdateFarsiContent(int contentId, string farsiContent);
-    Task ActivateTranslatedContent(int contentId, string translatedContent);
-    Task CreateContentCategories(int contentId, List<int> categoryIds);
-    Task CreateContentTags(int contentId, List<int> tagIds);
-    Task CreateContentCultures(int contentId, List<int> cultureIds);
     ContentMetadata GetContentMetadata(int contentId);
-    Task DeleteAllContentImages(int contentId);
     List<ContentImage> GetAllContentImages(int contentId);
-    int ContentCount(int applicationId);
 
     // Application-scoped lookup: throws (SingleAsync) rather than returning null when the id
     // doesn't exist or belongs to a different application, so the two cases are indistinguishable
     // to the caller and no cross-application data can leak through a "not found" response.
     Task<Content> GetByIdForApplication(int id, int applicationId);
-    Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId);
 
     // Ownership-chain resolution for CMS child mutations: each throws (SingleAsync) unless the
     // resource, and every ancestor up to Content, exists, is not soft-deleted, and the resolved
@@ -46,17 +32,6 @@ public interface IContentRepository : IRepository<Content>
     Task<ContentSection> GetSectionForApplication(int sectionId, int applicationId);
     Task<SectionElement> GetElementForApplication(int elementId, int applicationId);
     Task<ContentMetadata> GetContentMetadataForApplication(int metadataId, int applicationId);
-
-    // Staging-only, purpose-specific CRUD for Content's child entities (replaces generic
-    // IRepository<T> injections for ContentSection/SectionElement/ContentMetadata/ContentImage).
-    // Callers must resolve/verify ownership via the *ForApplication methods above first.
-    Task<ContentSection> CreateSection(ContentSection section);
-    Task DeleteSection(int sectionId);
-    Task<SectionElement> CreateSectionElement(SectionElement element);
-    Task<SectionElement> UpdateElement(SectionElement element);
-    Task<ContentMetadata> CreateContentMetadata(ContentMetadata metadata);
-    Task<ContentMetadata> UpdateContentMetadata(ContentMetadata metadata);
-    Task<ContentImage> CreateContentImage(ContentImage image);
 
     // Every public-API read below requires applicationId and filters on it — none of these ever
     // fall back to an unscoped query. A missing, deleted, or wrong-application id must produce

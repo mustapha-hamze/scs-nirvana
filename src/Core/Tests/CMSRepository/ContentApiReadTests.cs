@@ -15,9 +15,9 @@ namespace Core.Tests.CMSRepository;
 // longer throw on serialization, and category filtering no longer substring-matches.
 public class ContentApiReadTests
 {
-    private static ContentRepository CreateRepository(ApplicationDbContext context)
+    private static ContentQueryRepository CreateRepository(ApplicationDbContext context)
     {
-        return new ContentRepository(context, TestConfiguration.Create());
+        return new ContentQueryRepository(context);
     }
 
     // Default System.Text.Json options — the app registers no custom JSON configuration

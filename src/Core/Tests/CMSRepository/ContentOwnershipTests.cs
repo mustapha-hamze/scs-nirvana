@@ -11,9 +11,9 @@ namespace Core.Tests.CMSRepository;
 // "not found" outcome (SingleAsync throws) either way.
 public class ContentOwnershipTests
 {
-    private static ContentRepository CreateRepository(Infrastructure.Data.ApplicationDbContext context)
+    private static ContentQueryRepository CreateRepository(Infrastructure.Data.ApplicationDbContext context)
     {
-        return new ContentRepository(context, TestConfiguration.Create());
+        return new ContentQueryRepository(context);
     }
 
     private static (int contentId, int sectionId, int elementId, int metadataId) SeedFullChain(

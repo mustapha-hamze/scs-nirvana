@@ -1,30 +1,16 @@
-﻿using Application.CMSRepository;
-using Microsoft.Extensions.Configuration;
+using Application.CMSRepository;
 
 namespace Infrastructure.CMSRepository;
 
-public class ContentRepository : Repository<Content>, IContentRepository
+public class ContentQueryRepository : IContentQueryRepository
 {
-    // fields
     private readonly ApplicationDbContext _dbContext;
-    private readonly string _connectionString;
-    private readonly Repository<ContentSection> _sectionRepository;
-    private readonly Repository<SectionElement> _elementRepository;
-    private readonly Repository<ContentMetadata> _contentMetadataRepository;
-    private readonly Repository<ContentImage> _contentImageChildRepository;
 
-    // constructor
-    public ContentRepository(ApplicationDbContext dbContext, IConfiguration configuration) : base(dbContext)
+    public ContentQueryRepository(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
-        _connectionString = configuration.GetConnectionString("DefaultConnection");
-        _sectionRepository = new Repository<ContentSection>(dbContext);
-        _elementRepository = new Repository<SectionElement>(dbContext);
-        _contentMetadataRepository = new Repository<ContentMetadata>(dbContext);
-        _contentImageChildRepository = new Repository<ContentImage>(dbContext);
     }
 
-    // methods
     public List<ContentApiDto> GetContentByIdFull(int id, int applicationId)
     {
         return _dbContext.Contents.Where(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted)
@@ -511,152 +497,10 @@ public class ContentRepository : Repository<Content>, IContentRepository
             return new ContentMetadata();
     }
 
-    // categoryIds is expected to already be a validated, de-duplicated set (see
-    // ContentServices.CreateContentCategories). This only stages the join-row replace and the
-    // legacy pipe-delimited compatibility field update; the caller (Application layer) is
-    // responsible for running it inside one transaction/SaveChanges so both change together.
-    public Task CreateContentCategories(int contentId, List<int> categoryIds)
-    {
-        var content = _dbContext.Contents.Single(c => c.Id == contentId);
-
-        content.Categories = string.Join("|", categoryIds);
-        content.UpdatedDT = DateTime.Now;
-        _dbContext.Entry(content).State = EntityState.Modified;
-
-        _dbContext.ContentInCategories
-            .RemoveRange(_dbContext.ContentInCategories
-            .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
-
-        foreach (var categoryId in categoryIds)
-        {
-            _dbContext.ContentInCategories.Add(new ContentInCategory
-            {
-                ContentId = contentId,
-                CategoryId = categoryId,
-                CreatedDt = DateTime.Now
-            });
-        }
-
-        return Task.CompletedTask;
-    }
-
-    public Task CreateContentTags(int contentId, List<int> tagIds)
-    {
-        var content = _dbContext.Contents.Single(c => c.Id == contentId);
-        content.Tags = string.Join("|", tagIds);
-        content.UpdatedDT = DateTime.Now;
-        _dbContext.Entry(content).State = EntityState.Modified;
-
-        _dbContext.ContentInTags
-            .RemoveRange(_dbContext.ContentInTags
-            .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
-
-        foreach (var tagId in tagIds)
-        {
-            _dbContext.ContentInTags.Add(new ContentInTag
-            {
-                ContentId = contentId,
-                TagId = tagId
-            });
-        }
-
-        return Task.CompletedTask;
-    }
-
-    public Task CreateContentCultures(int contentId, List<int> cultureIds)
-    {
-        var content = _dbContext.Contents.Single(c => c.Id == contentId);
-        content.Cultures = string.Join("|", cultureIds);
-        content.UpdatedDT = DateTime.Now;
-        _dbContext.Entry(content).State = EntityState.Modified;
-
-        _dbContext.ContentInCultures
-            .RemoveRange(_dbContext.ContentInCultures
-            .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
-
-        foreach (var cultureId in cultureIds)
-        {
-            _dbContext.ContentInCultures.Add(new ContentInCulture
-            {
-                ContentId = contentId,
-                CultureId = cultureId
-            });
-        }
-
-        return Task.CompletedTask;
-    }
-
-    public Task DeleteAllContentImages(int contentId)
-    {
-        _dbContext.ContentImages
-            .RemoveRange(_dbContext.ContentImages
-            .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
-        return Task.CompletedTask;
-    }
-
     public List<ContentImage> GetAllContentImages(int contentId)
     {
         return _dbContext.ContentImages
             .Where(i => i.ContentId == contentId && !i.IsDeleted && i.IsActive)
             .ToList();
     }
-
-    public async Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId)
-    {
-        DynamicParameters parameters = new DynamicParameters();
-        parameters.Add("@P_CategoryId", categoryId);
-        parameters.Add("@P_ApplicationId", applicationId);
-
-        // Short-lived connection, disposed even if the query throws, instead of a long-lived
-        // field opened/closed by hand (which leaked an open connection on any exception between
-        // Open() and Close(), and hid real failures behind an empty-list catch-all).
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        var queryResult = await connection.QueryAsync<ContentDto>(
-            "SP_ContentsInCategory", parameters, commandType: CommandType.StoredProcedure);
-
-        return queryResult.ToList();
-    }
-
-    public async Task UpdateSectionPriority(int sectionId, int priority)
-    {
-        var section = await _dbContext.ContentSections.SingleAsync(cs => cs.Id == sectionId);
-        section.Priority = priority;
-    }
-
-    public async Task UpdateFarsiContent(int contentId, string farsiContent)
-    {
-        // No AsNoTracking: if the content is already tracked in this DbContext (e.g. the
-        // Farsi-translation flow fetched it earlier via IContentProvider.GetContentForTranslate),
-        // this resolves to that same tracked instance instead of creating a conflicting second one.
-        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId);
-        content.FarsiContent = farsiContent;
-        content.UpdatedDT = DateTime.Now;
-    }
-
-    public async Task ActivateTranslatedContent(int contentId, string translatedContent)
-    {
-        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId);
-        content.FarsiContent = translatedContent;
-        content.IsActive = true;
-        content.UpdatedDT = DateTime.Now;
-    }
-
-    public Task<ContentSection> CreateSection(ContentSection section) => _sectionRepository.Create(section);
-
-    public Task DeleteSection(int sectionId) => _sectionRepository.Delete(sectionId);
-
-    public Task<SectionElement> CreateSectionElement(SectionElement element) => _elementRepository.Create(element);
-
-    public Task<SectionElement> UpdateElement(SectionElement element) => _elementRepository.Update(element);
-
-    public Task<ContentMetadata> CreateContentMetadata(ContentMetadata metadata) => _contentMetadataRepository.Create(metadata);
-
-    public Task<ContentMetadata> UpdateContentMetadata(ContentMetadata metadata) => _contentMetadataRepository.Update(metadata);
-
-    public Task<ContentImage> CreateContentImage(ContentImage image) => _contentImageChildRepository.Create(image);
 }
