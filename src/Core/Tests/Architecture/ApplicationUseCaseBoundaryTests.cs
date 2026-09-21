@@ -77,11 +77,9 @@ public class ApplicationUseCaseBoundaryTests
     [Fact]
     public void MapperConfiguration_BuildsAndMaps_AcrossApplicationAndInfrastructureProfiles()
     {
-        // AutoMapper's strict AssertConfigurationIsValid() flags the reverse Dto->Entity maps'
-        // unmapped EF navigation/collection properties (Contents, Application, SectorEntities,
-        // etc.) - that's pre-existing on every one of these maps from before the profile split,
-        // not something this split introduced, so it isn't asserted here. What matters for the
-        // split is that configuration still builds and a representative map from each profile
+        // AssertConfigurationIsValid() is asserted separately, in
+        // Core.Tests.Architecture.MappingConfigurationTests. What matters for the profile split
+        // itself is that configuration still builds and a representative map from each profile
         // still produces the same field values it did as one profile.
         var config = new MapperConfiguration(cfg =>
         {
