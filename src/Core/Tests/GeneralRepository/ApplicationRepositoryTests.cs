@@ -148,8 +148,10 @@ public class ApplicationRepositoryTests
         await repository.RemoveUserFromApplication(relation.Id, applicationId: 5);
         await context.SaveChangesAsync();
 
+        // Administrative/audit case: verifying the soft-delete actually took effect requires
+        // seeing past the global "exclude soft-deleted rows" filter.
         await using var verifyContext = factory.CreateContext();
-        Assert.True(verifyContext.UserInApplications.Single(u => u.Id == relation.Id).IsDeleted);
+        Assert.True(verifyContext.UserInApplications.IgnoreQueryFilters().Single(u => u.Id == relation.Id).IsDeleted);
     }
 
     [Fact]

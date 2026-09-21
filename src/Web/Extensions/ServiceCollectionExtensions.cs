@@ -26,6 +26,10 @@ public static class ServiceCollectionExtensions
     /// <summary>Data access: the EF Core context, the unit of work, and every aggregate-specific repository.</summary>
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
+        // Injected into ApplicationDbContext so it can stamp CreatedDT/UpdatedDT centrally
+        // (UTC) at SaveChanges time instead of every repository calling DateTime.Now by hand.
+        services.AddSingleton(TimeProvider.System);
+
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
         services.AddDatabaseDeveloperPageExceptionFilter();

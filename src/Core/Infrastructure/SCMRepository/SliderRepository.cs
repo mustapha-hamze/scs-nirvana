@@ -48,9 +48,6 @@ namespace Infrastructure.SCMRepository
 
         public Task<SliderItem> CreateSliderItem(SliderItem sliderItem)
         {
-            sliderItem.CreatedDT = DateTime.Now;
-            sliderItem.UpdatedDT = DateTime.Now;
-            sliderItem.IsDeleted = false;
             sliderItem.IsActive = true;
 
             _dbContext.SliderItems.Add(sliderItem);
@@ -74,8 +71,7 @@ namespace Infrastructure.SCMRepository
         public async Task DeleteSliderItem(int sliderItemId)
         {
             var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
-            sliderItem.IsDeleted = true;
-            _dbContext.Entry(sliderItem).State = EntityState.Modified;
+            _dbContext.SliderItems.Remove(sliderItem);
         }
 
         public Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId, int applicationId)
@@ -93,7 +89,6 @@ namespace Infrastructure.SCMRepository
 
         public Task<SliderItem> UpdateSliderItem(SliderItem sliderItem)
         {
-            sliderItem.UpdatedDT = DateTime.Now;
             _dbContext.SliderItems.Update(sliderItem);
             _dbContext.Entry(sliderItem).State = EntityState.Modified;
 

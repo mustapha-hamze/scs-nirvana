@@ -40,16 +40,20 @@ namespace Infrastructure.GeneralRepository
         // Idempotent: restores an existing soft-deleted membership row instead of inserting a
         // duplicate, since (UserId, ApplicationId) is unique - a second insert for the same pair
         // would violate that constraint once it's enforced at the database level.
+        //
+        // Administrative opt-out: this is the one place in the codebase that must see a
+        // soft-deleted row on purpose (to restore it instead of colliding with the unique
+        // index), so it explicitly bypasses the global soft-delete filter.
         public async Task AddUserToApplication(string userId, int applicationId)
         {
             var existing = await _dbContext.UserInApplications
+                .IgnoreQueryFilters()
                 .SingleOrDefaultAsync(m => m.UserId == userId && m.ApplicationId == applicationId);
 
             if (existing != null)
             {
                 existing.IsDeleted = false;
                 existing.IsActive = true;
-                existing.UpdatedDT = DateTime.Now;
                 return;
             }
 
@@ -57,17 +61,14 @@ namespace Infrastructure.GeneralRepository
             {
                 UserId = userId,
                 ApplicationId = applicationId,
-                IsActive = true,
-                UpdatedDT = DateTime.Now,
-                CreatedDT = DateTime.Now
+                IsActive = true
             });
         }
 
         public Task RemoveUserFromApplication(int relationId, int applicationId)
         {
             var relation = _dbContext.UserInApplications.Single(u => u.Id == relationId && u.ApplicationId == applicationId);
-            relation.IsDeleted = true;
-            relation.UpdatedDT = DateTime.Now;
+            _dbContext.UserInApplications.Remove(relation);
 
             return Task.CompletedTask;
         }

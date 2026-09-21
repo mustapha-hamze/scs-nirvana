@@ -177,8 +177,6 @@ namespace Services.CMSServices
             element.GalleryImages = sectionElement.GalleryImages;
             element.TinyText = sectionElement.TinyText;
 
-            element.UpdatedDT = DateTime.Now;
-
             await _contentCommandRepository.UpdateElement(element);
             await _unitOfWork.SaveChangesAsync();
         }

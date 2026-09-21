@@ -18,5 +18,15 @@ public static class EntityTypeBuilderExtensions
         builder.Property(x => x.IsActive).IsRequired();
         builder.Property(x => x.UpdatedDT).IsRequired();
         builder.Property(x => x.CreatedDT).IsRequired();
+
+        // Global soft-delete filter: every BaseEntity-derived query (including navigations
+        // reached via Include/lazy-loading) excludes soft-deleted rows by default. A query that
+        // must see soft-deleted rows on purpose (e.g. AddUserToApplication's restore check) has
+        // to opt out explicitly with IgnoreQueryFilters() - and every one of those left in the
+        // codebase must say why in a comment.
+        //
+        // Dapper/stored-procedure reads (e.g. SP_ContentsInCategory) run outside EF entirely and
+        // are not affected by this filter - see IContentsInCategoryQueryAdapter.
+        builder.HasQueryFilter(x => !x.IsDeleted);
     }
 }

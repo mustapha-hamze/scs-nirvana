@@ -21,24 +21,21 @@ namespace Infrastructure.Repository
         }
 
         // Stages the change only; the calling use case owns SaveChangesAsync/ExecuteInTransactionAsync.
+        // CreatedDT/UpdatedDT/IsDeleted are not set here - ApplicationDbContext stamps them
+        // centrally (UTC, via TimeProvider) at SaveChanges time for every BaseEntity.
         public Task<T> Create(T entity)
         {
-            //entity.Id = Guid.NewGuid().ToString();
-            entity.IsDeleted = false;
-            entity.CreatedDT = DateTime.Now;
-            entity.UpdatedDT = DateTime.Now;
-
             _entities.Add(entity);
             _dbContext.Entry(entity).State = EntityState.Added;
             return Task.FromResult(entity);
         }
 
+        // A physical Remove(); ApplicationDbContext converts this into a soft delete
+        // (IsDeleted = true, State = Modified) at SaveChanges time - see ApplyLifecyclePolicy.
         public Task Delete(int id)
         {
             var entity = _entities.Single(e => e.Id == id);
-            entity.IsDeleted = true;
-            entity.UpdatedDT = DateTime.Now;
-            _dbContext.Entry(entity).State = EntityState.Modified;
+            _entities.Remove(entity);
             return Task.CompletedTask;
         }
 
@@ -49,8 +46,6 @@ namespace Infrastructure.Repository
 
         public Task<T> Update(T entity)
         {
-            entity.UpdatedDT = DateTime.Now;
-
             _entities.Update(entity);
             _dbContext.Entry(entity).State = EntityState.Modified;
             return Task.FromResult(entity);

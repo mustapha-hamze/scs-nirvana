@@ -20,7 +20,6 @@ public class ContentRelationRepository : IContentRelationRepository
         var content = _dbContext.Contents.Single(c => c.Id == contentId);
 
         content.Categories = string.Join("|", categoryIds);
-        content.UpdatedDT = DateTime.Now;
         _dbContext.Entry(content).State = EntityState.Modified;
 
         _dbContext.ContentInCategories
@@ -45,7 +44,6 @@ public class ContentRelationRepository : IContentRelationRepository
     {
         var content = _dbContext.Contents.Single(c => c.Id == contentId);
         content.Tags = string.Join("|", tagIds);
-        content.UpdatedDT = DateTime.Now;
         _dbContext.Entry(content).State = EntityState.Modified;
 
         _dbContext.ContentInTags
@@ -69,7 +67,6 @@ public class ContentRelationRepository : IContentRelationRepository
     {
         var content = _dbContext.Contents.Single(c => c.Id == contentId);
         content.Cultures = string.Join("|", cultureIds);
-        content.UpdatedDT = DateTime.Now;
         _dbContext.Entry(content).State = EntityState.Modified;
 
         _dbContext.ContentInCultures

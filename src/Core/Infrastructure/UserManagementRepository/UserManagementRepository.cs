@@ -65,9 +65,7 @@ public class UserManagementRepository : IUserManagementRepository
                 IsActive = true,
                 Access = accesses,
                 UserId = userId,
-                ApplicationId = appId,
-                CreatedDT = DateTime.Now,
-                UpdatedDT = DateTime.Now
+                ApplicationId = appId
             });
         }
         else

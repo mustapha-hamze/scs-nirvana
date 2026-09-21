@@ -4,7 +4,17 @@ using Microsoft.Extensions.Configuration;
 namespace Infrastructure.CMSRepository;
 
 // The only place in Content's persistence layer that touches Dapper/a raw SqlConnection/the
-// connection string - everything else here is EF Core.
+// connection string - everything here is EF Core.
+//
+// EF Core's global soft-delete query filter (ConfigureAudit<T> -> HasQueryFilter) does not, and
+// cannot, apply here: SP_ContentsInCategory runs as raw SQL against SQL Server, entirely outside
+// EF's query pipeline. Any soft-delete/active gating for the rows it returns has to live in the
+// stored procedure itself (production schema is externally managed - not something this codebase
+// can inspect or change) or be re-checked by the caller. ContentServices.GetContentsInCategory
+// already gates the category itself (must be active/not-deleted/owned by applicationId) before
+// calling this; it does not re-check each returned Content row, so if the stored procedure ever
+// stops filtering IsDeleted/IsActive on Content internally, a soft-deleted Content could leak
+// through undetected. See the Phase 5 schema-readiness doc for auditing the procedure itself.
 public class ContentsInCategoryQueryAdapter : IContentsInCategoryQueryAdapter
 {
     private readonly string _connectionString;

@@ -28,13 +28,15 @@ public sealed class SqliteContextFactory : IDisposable
         context.Database.EnsureCreated();
     }
 
-    public ApplicationDbContext CreateContext()
+    // timeProvider defaults to the real clock; pass a fake (e.g. Core.Tests.TestSupport.FakeTimeProvider)
+    // to assert on the exact CreatedDT/UpdatedDT ApplicationDbContext stamps at SaveChanges time.
+    public ApplicationDbContext CreateContext(TimeProvider timeProvider = null)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseSqlite(_connection)
             .Options;
 
-        return new ApplicationDbContext(options);
+        return new ApplicationDbContext(options, timeProvider ?? TimeProvider.System);
     }
 
     public void Dispose() => _connection.Dispose();

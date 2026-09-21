@@ -41,7 +41,6 @@ public class ContentCommandRepository : Repository<Content>, IContentCommandRepo
         // this resolves to that same tracked instance instead of creating a conflicting second one.
         var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId);
         content.FarsiContent = farsiContent;
-        content.UpdatedDT = DateTime.Now;
     }
 
     public async Task ActivateTranslatedContent(int contentId, string translatedContent)
@@ -49,7 +48,6 @@ public class ContentCommandRepository : Repository<Content>, IContentCommandRepo
         var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId);
         content.FarsiContent = translatedContent;
         content.IsActive = true;
-        content.UpdatedDT = DateTime.Now;
     }
 
     public Task<ContentSection> CreateSection(ContentSection section) => _sectionRepository.Create(section);

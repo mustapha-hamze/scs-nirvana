@@ -39,8 +39,10 @@ public class RepositoryTests
         await repository.Delete(created.Id);
         await context.SaveChangesAsync();
 
+        // Administrative/audit case: proving the row still physically exists (soft delete, not
+        // a hard delete) requires seeing past the global "exclude soft-deleted rows" filter.
         await using var verifyContext = factory.CreateContext();
-        var stored = await verifyContext.Set<Culture>().SingleOrDefaultAsync(c => c.Id == created.Id);
+        var stored = await verifyContext.Set<Culture>().IgnoreQueryFilters().SingleOrDefaultAsync(c => c.Id == created.Id);
 
         Assert.NotNull(stored); // row was not physically removed
         Assert.True(stored.IsDeleted);
