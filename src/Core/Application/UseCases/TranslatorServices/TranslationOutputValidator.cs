@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using System.Text.RegularExpressions;
+using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -114,19 +114,107 @@ public static class TranslationOutputValidator
 
         if (original.Type == JTokenType.String)
         {
-            var originalTags = ExtractHtmlTags((string)original);
-            var translatedTags = ExtractHtmlTags((string)translated);
-            if (!originalTags.SequenceEqual(translatedTags, StringComparer.Ordinal))
-                return $"HTML markup changed in field '{fieldName}'.";
+            var htmlError = CompareHtml((string)original, (string)translated);
+            if (htmlError != null)
+                return $"HTML markup changed in field '{fieldName}': {htmlError}";
         }
 
         return null;
     }
 
-    private static string[] ExtractHtmlTags(string text)
+    // Parses both strings as HTML fragments (via HtmlAgilityPack, a lenient real parser - never
+    // regex) and compares their markup structure while allowing text-node content to differ.
+    // Element names, attributes/values, nesting/order, void/empty elements, and comments must
+    // all be identical; only the visible text inside elements may have been translated.
+    private static string CompareHtml(string originalHtml, string translatedHtml)
     {
-        return Regex.Matches(text, "<[^>]+>")
-            .Select(m => Regex.Replace(m.Value, "\\s+", " ").Trim())
-            .ToArray();
+        HtmlNodeCollection originalNodes;
+        HtmlNodeCollection translatedNodes;
+        try
+        {
+            var originalDoc = new HtmlDocument();
+            originalDoc.LoadHtml(originalHtml);
+            originalNodes = originalDoc.DocumentNode.ChildNodes;
+
+            var translatedDoc = new HtmlDocument();
+            translatedDoc.LoadHtml(translatedHtml);
+            translatedNodes = translatedDoc.DocumentNode.ChildNodes;
+        }
+        catch (Exception)
+        {
+            return "could not parse HTML.";
+        }
+
+        return CompareNodeSequences(originalNodes, translatedNodes);
+    }
+
+    private static string CompareNodeSequences(HtmlNodeCollection original, HtmlNodeCollection translated)
+    {
+        if (original.Count != translated.Count)
+            return $"child count changed (expected {original.Count}, got {translated.Count}).";
+
+        for (var i = 0; i < original.Count; i++)
+        {
+            var error = CompareNodes(original[i], translated[i]);
+            if (error != null)
+                return error;
+        }
+
+        return null;
+    }
+
+    private static string CompareNodes(HtmlNode original, HtmlNode translated)
+    {
+        if (original.NodeType != translated.NodeType)
+            return $"node type changed (expected {original.NodeType}, got {translated.NodeType}).";
+
+        switch (original.NodeType)
+        {
+            case HtmlNodeType.Text:
+                // Visible text is exactly what translation is allowed to change.
+                return null;
+
+            case HtmlNodeType.Comment:
+                // Treated conservatively: comments and any other non-element/non-text markup
+                // must remain byte-for-byte unchanged.
+                return original.OuterHtml == translated.OuterHtml
+                    ? null
+                    : "comment or non-text markup changed.";
+
+            case HtmlNodeType.Element:
+                if (!string.Equals(original.Name, translated.Name, StringComparison.OrdinalIgnoreCase))
+                    return $"element renamed from '{original.Name}' to '{translated.Name}'.";
+
+                var attributeError = CompareAttributes(original, translated);
+                if (attributeError != null)
+                    return $"attributes changed on '<{original.Name}>': {attributeError}";
+
+                return CompareNodeSequences(original.ChildNodes, translated.ChildNodes);
+
+            default:
+                return null;
+        }
+    }
+
+    private static string CompareAttributes(HtmlNode original, HtmlNode translated)
+    {
+        var originalAttrs = original.Attributes.ToDictionary(a => a.Name, a => a.Value, StringComparer.OrdinalIgnoreCase);
+        var translatedAttrs = translated.Attributes.ToDictionary(a => a.Name, a => a.Value, StringComparer.OrdinalIgnoreCase);
+
+        var missing = originalAttrs.Keys.Except(translatedAttrs.Keys, StringComparer.OrdinalIgnoreCase).ToList();
+        if (missing.Count > 0)
+            return $"missing attribute(s) {string.Join(", ", missing)}.";
+
+        var extra = translatedAttrs.Keys.Except(originalAttrs.Keys, StringComparer.OrdinalIgnoreCase).ToList();
+        if (extra.Count > 0)
+            return $"unexpected attribute(s) {string.Join(", ", extra)}.";
+
+        foreach (var (name, value) in originalAttrs)
+        {
+            if (translatedAttrs[name] != value)
+                return $"value of attribute '{name}' changed.";
+        }
+
+        return null;
     }
 }

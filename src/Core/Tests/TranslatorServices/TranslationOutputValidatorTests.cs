@@ -125,6 +125,114 @@ public class TranslationOutputValidatorTests
     }
 
     [Fact]
+    public void Validate_PlainTextNoMarkup_ReturnsNull()
+    {
+        var original = "{\"EditorText\":\"Hello world\"}";
+        var translated = "{\"EditorText\":\"سلام دنیا\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public void Validate_ChangedAttributeValue_ReturnsError()
+    {
+        var original = "{\"EditorText\":\"<a href=\\\"https://a.example\\\">Hello</a>\"}";
+        var translated = "{\"EditorText\":\"<a href=\\\"https://b.example\\\">سلام</a>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
+    public void Validate_ChangedNesting_ReturnsError()
+    {
+        // "B" moves from being a sibling of <p> to being reparented inside it.
+        var original = "{\"EditorText\":\"<div><p>A</p><span>B</span></div>\"}";
+        var translated = "{\"EditorText\":\"<div><p>A<span>B</span></p></div>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
+    public void Validate_RemovedVoidElement_ReturnsError()
+    {
+        var original = "{\"EditorText\":\"<p>Hello<br></p>\"}";
+        var translated = "{\"EditorText\":\"<p>سلام</p>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
+    public void Validate_AddedVoidElement_ReturnsError()
+    {
+        var original = "{\"EditorText\":\"<p>Hello</p>\"}";
+        var translated = "{\"EditorText\":\"<p>سلام<br></p>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
+    public void Validate_GreaterThanInsideQuotedAttribute_UnchangedMarkup_ReturnsNull()
+    {
+        // The exact case a naive regex tag-matcher gets wrong: a '>' embedded in a quoted
+        // attribute value must not be mistaken for the end of the tag.
+        var original = "{\"EditorText\":\"<a title=\\\"a > b\\\">Hello</a>\"}";
+        var translated = "{\"EditorText\":\"<a title=\\\"a > b\\\">سلام</a>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public void Validate_GreaterThanInsideQuotedAttribute_ChangedValue_ReturnsError()
+    {
+        var original = "{\"EditorText\":\"<a title=\\\"a > b\\\">Hello</a>\"}";
+        var translated = "{\"EditorText\":\"<a title=\\\"a > c\\\">سلام</a>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
+    public void Validate_UnchangedComment_ReturnsNull()
+    {
+        var original = "{\"EditorText\":\"<p>Hello<!-- note --></p>\"}";
+        var translated = "{\"EditorText\":\"<p>سلام<!-- note --></p>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public void Validate_ChangedComment_ReturnsError()
+    {
+        var original = "{\"EditorText\":\"<p>Hello<!-- note --></p>\"}";
+        var translated = "{\"EditorText\":\"<p>سلام<!-- changed --></p>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
     public void Validate_NullFieldBecomesNonNull_ReturnsError()
     {
         var original = "{\"Title\":null}";
