@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
@@ -20,6 +21,13 @@ public static class TranslationOutputValidator
     private static readonly string[] TranslatableFields =
     {
         "Title", "HeadLine", "Abstract", "Description", "TinyText", "EditorText"
+    };
+
+    // script/style content is executable/stylesheet payload, never visible text - it must be
+    // byte-for-byte unchanged even inside an otherwise-translatable field.
+    private static readonly HashSet<string> RawTextElements = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "script", "style"
     };
 
     // Returns null when the translated document is valid, otherwise a human-readable (and
@@ -123,39 +131,45 @@ public static class TranslationOutputValidator
     }
 
     // Parses both strings as HTML fragments (via HtmlAgilityPack, a lenient real parser - never
-    // regex) and compares their markup structure while allowing text-node content to differ.
-    // Element names, attributes/values, nesting/order, void/empty elements, and comments must
-    // all be identical; only the visible text inside elements may have been translated.
+    // regex) and compares their markup structure while allowing visible text-node content to
+    // differ. Element names, attributes/values, nesting/order, void/empty elements, and comments
+    // must all be identical; only the visible text inside elements may have been translated.
     private static string CompareHtml(string originalHtml, string translatedHtml)
     {
-        HtmlNodeCollection originalNodes;
-        HtmlNodeCollection translatedNodes;
+        HtmlDocument originalDoc;
+        HtmlDocument translatedDoc;
         try
         {
-            var originalDoc = new HtmlDocument();
+            originalDoc = new HtmlDocument();
             originalDoc.LoadHtml(originalHtml);
-            originalNodes = originalDoc.DocumentNode.ChildNodes;
 
-            var translatedDoc = new HtmlDocument();
+            translatedDoc = new HtmlDocument();
             translatedDoc.LoadHtml(translatedHtml);
-            translatedNodes = translatedDoc.DocumentNode.ChildNodes;
         }
         catch (Exception)
         {
             return "could not parse HTML.";
         }
 
-        return CompareNodeSequences(originalNodes, translatedNodes);
+        // The parser recovers from malformed markup (auto-closing/reparenting tags) so a
+        // structural comparison could pass even though the raw input itself was invalid. Reject
+        // on parse errors before ever comparing the recovered trees.
+        if (originalDoc.ParseErrors.Any())
+            return "original markup is malformed.";
+        if (translatedDoc.ParseErrors.Any())
+            return "translated markup is malformed.";
+
+        return CompareNodeSequences(originalDoc.DocumentNode.ChildNodes, translatedDoc.DocumentNode.ChildNodes, requireExactText: false);
     }
 
-    private static string CompareNodeSequences(HtmlNodeCollection original, HtmlNodeCollection translated)
+    private static string CompareNodeSequences(HtmlNodeCollection original, HtmlNodeCollection translated, bool requireExactText)
     {
         if (original.Count != translated.Count)
             return $"child count changed (expected {original.Count}, got {translated.Count}).";
 
         for (var i = 0; i < original.Count; i++)
         {
-            var error = CompareNodes(original[i], translated[i]);
+            var error = CompareNodes(original[i], translated[i], requireExactText);
             if (error != null)
                 return error;
         }
@@ -163,7 +177,7 @@ public static class TranslationOutputValidator
         return null;
     }
 
-    private static string CompareNodes(HtmlNode original, HtmlNode translated)
+    private static string CompareNodes(HtmlNode original, HtmlNode translated, bool requireExactText)
     {
         if (original.NodeType != translated.NodeType)
             return $"node type changed (expected {original.NodeType}, got {translated.NodeType}).";
@@ -171,7 +185,10 @@ public static class TranslationOutputValidator
         switch (original.NodeType)
         {
             case HtmlNodeType.Text:
-                // Visible text is exactly what translation is allowed to change.
+                // Visible text is exactly what translation is allowed to change - except inside
+                // script/style, where this is executable/stylesheet payload, not visible text.
+                if (requireExactText && original.InnerHtml != translated.InnerHtml)
+                    return "script/style content was changed.";
                 return null;
 
             case HtmlNodeType.Comment:
@@ -189,7 +206,8 @@ public static class TranslationOutputValidator
                 if (attributeError != null)
                     return $"attributes changed on '<{original.Name}>': {attributeError}";
 
-                return CompareNodeSequences(original.ChildNodes, translated.ChildNodes);
+                var isRawTextElement = RawTextElements.Contains(original.Name);
+                return CompareNodeSequences(original.ChildNodes, translated.ChildNodes, isRawTextElement);
 
             default:
                 return null;

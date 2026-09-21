@@ -233,6 +233,67 @@ public class TranslationOutputValidatorTests
     }
 
     [Fact]
+    public void Validate_MalformedTranslatedHtml_ReturnsError()
+    {
+        // Unclosed <p>: the parser would recover/auto-close it, so this must be rejected on the
+        // raw parse errors rather than after structural comparison of the recovered tree.
+        var original = "{\"EditorText\":\"<p>Hello</p>\"}";
+        var translated = "{\"EditorText\":\"<p>سلام\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
+    public void Validate_MalformedOriginalHtml_ReturnsError()
+    {
+        var original = "{\"EditorText\":\"<p>Hello\"}";
+        var translated = "{\"EditorText\":\"<p>سلام</p>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
+    public void Validate_ModifiedScriptText_ReturnsError()
+    {
+        var original = "{\"EditorText\":\"<p>Hello</p><script>alert('a');</script>\"}";
+        var translated = "{\"EditorText\":\"<p>سلام</p><script>alert('b');</script>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
+    public void Validate_ModifiedStyleText_ReturnsError()
+    {
+        var original = "{\"EditorText\":\"<p>Hello</p><style>.a{color:red;}</style>\"}";
+        var translated = "{\"EditorText\":\"<p>سلام</p><style>.a{color:blue;}</style>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.NotNull(error);
+        Assert.Contains("EditorText", error);
+    }
+
+    [Fact]
+    public void Validate_UnchangedScriptAndStyle_WithTranslatedSurroundingText_ReturnsNull()
+    {
+        var original = "{\"EditorText\":\"<p>Hello</p><script>alert('a');</script><style>.a{color:red;}</style><p>World</p>\"}";
+        var translated = "{\"EditorText\":\"<p>سلام</p><script>alert('a');</script><style>.a{color:red;}</style><p>دنیا</p>\"}";
+
+        var error = TranslationOutputValidator.Validate(original, translated);
+
+        Assert.Null(error);
+    }
+
+    [Fact]
     public void Validate_NullFieldBecomesNonNull_ReturnsError()
     {
         var original = "{\"Title\":null}";
