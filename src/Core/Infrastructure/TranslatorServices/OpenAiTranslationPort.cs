@@ -5,8 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Application.UseCases.TranslatorServices;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using OpenAI;
 using OpenAI.Chat;
 
@@ -45,23 +43,15 @@ public class OpenAiTranslationPort : ITranslationPort
 
         var translatedText = response.Content[0].Text;
 
-        if (!IsValidJson(translatedText))
-            return TranslationResult.Failed("Model response was not valid JSON.");
+        // Structural validation against the submitted document - not just "is this valid JSON?"
+        // but "did the model actually follow the prompt's own contract?" (no added/missing/
+        // renamed fields, protected fields byte-for-byte unchanged, translatable fields still
+        // string/null with HTML structure intact).
+        var validationError = TranslationOutputValidator.Validate(request.ContentJson, translatedText);
+        if (validationError != null)
+            return TranslationResult.Failed(validationError);
 
         return TranslationResult.Ok(translatedText);
-    }
-
-    private static bool IsValidJson(string text)
-    {
-        try
-        {
-            JToken.Parse(text);
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
     }
 
     private static string BuildPrompt(string contentJson) => $@"
