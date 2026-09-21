@@ -313,6 +313,9 @@ public class ContentRepositoryTests
 
     private static void SeedCategoryContents(Infrastructure.Data.ApplicationDbContext context, int categoryId, int count)
     {
+        if (!context.Categories.Any(c => c.Id == categoryId))
+            context.Categories.Add(new Category { Id = categoryId, ApplicationId = 1, Title = $"Category {categoryId}", IsActive = true });
+
         var baseTime = DateTime.Now;
         for (var i = 0; i < count; i++)
         {

@@ -193,6 +193,14 @@ public class ContentRepository : Repository<Content>, IContentRepository
         return result;
     }
 
+    // A category/tag id must belong to applicationId and be active/not-deleted before its join
+    // rows are trusted — this also protects against a historical ContentInCategory/Tag row that
+    // links a category/tag from a different application to this application's content.
+    private bool IsCategoryOwnedByApplication(int categoryId, int applicationId)
+    {
+        return _dbContext.Categories.Any(c => c.Id == categoryId && c.ApplicationId == applicationId && c.IsActive && !c.IsDeleted);
+    }
+
     public BlogIndexApiDto GetContentByCategoryId(int categoryId, int applicationId, int pageIndex = 1, int pageSize = 40)
     {
         // One-based paging: page 0 is kept as a backward-compatible alias for page 1 (the
@@ -203,6 +211,16 @@ public class ContentRepository : Repository<Content>, IContentRepository
         var skipCount = (normalizedPage - 1) * pageSize;
 
         var result = new BlogIndexApiDto();
+
+        // Missing, deleted, or wrong-application category: same empty result as "no content
+        // matched" — never distinguishable from a category that just has no content.
+        if (!IsCategoryOwnedByApplication(categoryId, applicationId))
+        {
+            result.Contents = new List<ContentApiDto>();
+            result.PageIndex = normalizedPage;
+            result.PagesCount = 0;
+            return result;
+        }
 
         var query = from contentCategory in _dbContext.ContentInCategories
                     join content in _dbContext.Contents on contentCategory.ContentId equals content.Id
@@ -276,6 +294,11 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
     public List<ContentApiDto> GetContentInCategoryAsBox(int categoryId, int applicationId)
     {
+        // Missing, deleted, or wrong-application category: same empty result as "no content
+        // matched" — never distinguishable from a category that just has no content.
+        if (!IsCategoryOwnedByApplication(categoryId, applicationId))
+            return new List<ContentApiDto>();
+
         var query = (from ccc in _dbContext.ContentInCategories
                      join cc in _dbContext.Contents on ccc.ContentId equals cc.Id
                      where cc.IsDeleted == false && cc.IsActive == true && ccc.CategoryId == categoryId
@@ -335,6 +358,16 @@ public class ContentRepository : Repository<Content>, IContentRepository
         int skipCount = 0;
         if (pageIndex > 1)
             skipCount = 15 * (pageIndex - 1);
+
+        // Missing, deleted, or wrong-application category: same empty result as "no content
+        // matched" — never distinguishable from a category that just has no content.
+        if (!IsCategoryOwnedByApplication(categoryId, applicationId))
+        {
+            result.Contents = new List<ContentApiDto>();
+            result.PageIndex = pageIndex;
+            result.PagesCount = 0;
+            return result;
+        }
 
         // Was: c.Categories.Contains(categoryId.ToString()), a substring match that also matched e.g.
         // category "1" against a content tagged "11". Now uses the ContentInCategories join table,

@@ -50,6 +50,20 @@ public class ContentProvider : IContentProvider
 
     public ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en")
     {
+        // Missing, deleted, or wrong-application category: same empty result as "no content
+        // matched" — never distinguishable from a category that just has no content.
+        var category = _dbContext.Categories.SingleOrDefault(c => c.Id == categoryId && c.ApplicationId == applicationId && c.IsActive && !c.IsDeleted);
+        if (category == null)
+        {
+            return new ContentListResultModel
+            {
+                CurrentPage = pageIndex,
+                PageCount = 0,
+                Contents = new List<Content>(),
+                Title = null
+            };
+        }
+
         // Was: c.Categories.Contains(categoryId.ToString()), a substring match that also matched
         // e.g. category "1" against a content tagged "11". Now uses the ContentInCategories join
         // table, which matches on the exact category relation instead.
@@ -69,8 +83,6 @@ public class ContentProvider : IContentProvider
                 .Skip(skipSize)
                 .Take(pageSize)
                 .Include(c => c.Images.Where(i => !i.IsDeleted));
-
-            var category = _dbContext.Categories.Single(c => c.Id == categoryId);
 
             var result = new ContentListResultModel();
             result.CurrentPage = pageIndex;
@@ -95,8 +107,6 @@ public class ContentProvider : IContentProvider
                 .Take(pageSize)
                 .Include(c => c.Images.Where(i => !i.IsDeleted));
 
-            var category = _dbContext.Categories.Single(c => c.Id == categoryId);
-
             var result = new ContentListResultModel();
             result.CurrentPage = pageIndex;
             result.PageCount = pageCount;
@@ -109,6 +119,20 @@ public class ContentProvider : IContentProvider
 
     public ContentListResultModel GetContentsListByTagId(int applicationId, int tagId, int pageIndex = 0, int pageSize = 20)
     {
+        // Missing, deleted, or wrong-application tag: same empty result as "no content matched"
+        // — never distinguishable from a tag that just has no content.
+        var tag = _dbContext.Tags.SingleOrDefault(t => t.Id == tagId && t.ApplicationId == applicationId && t.IsActive && !t.IsDeleted);
+        if (tag == null)
+        {
+            return new ContentListResultModel
+            {
+                CurrentPage = pageIndex,
+                PageCount = 0,
+                Contents = new List<Content>(),
+                Title = null
+            };
+        }
+
         // Was: c.Tags.Contains(tagId.ToString()), a substring match that also matched e.g. tag
         // "1" against a content tagged "11". Now uses the ContentInTags join table, which matches
         // on the exact tag relation instead.
@@ -126,8 +150,6 @@ public class ContentProvider : IContentProvider
             .Skip(skipSize)
             .Take(pageSize)
             .Include(c => c.Images.Where(i => !i.IsDeleted));
-
-        var tag = _dbContext.Tags.Single(c => c.Id == tagId);
 
         var result = new ContentListResultModel();
         result.CurrentPage = pageIndex;

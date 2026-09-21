@@ -120,7 +120,7 @@ public class ContentProviderTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Categories.Add(new Category { Id = 1, ApplicationId = 1, Title = "Category One" });
+        context.Categories.Add(new Category { Id = 1, ApplicationId = 1, Title = "Category One", IsActive = true });
         var wronglyMatchedBefore = new Content { ApplicationId = 1, TypeId = 1000, Title = "Tagged 11", Categories = "11", IsActive = true };
         context.Contents.Add(wronglyMatchedBefore);
         context.SaveChanges();
@@ -136,12 +136,70 @@ public class ContentProviderTests
     }
 
     [Fact]
+    public void GetContentsListByCategoryId_MissingCategory_ReturnsEmptyResultWithoutThrowing()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var provider = new ContentProvider(context);
+        var result = provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 999);
+
+        Assert.Empty(result.Contents);
+        Assert.Equal(0, result.PageCount);
+        Assert.Null(result.Title);
+    }
+
+    [Fact]
+    public void GetContentsListByCategoryId_SoftDeletedCategory_ReturnsEmptyResult()
+    {
+        // A deleted category must produce the same empty result as a missing one — never
+        // distinguishable, even though its join rows still technically exist.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Categories.Add(new Category { Id = 5, ApplicationId = 1, Title = "Deleted", IsActive = true, IsDeleted = true });
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Content", Categories = "5", IsActive = true };
+        context.Contents.Add(content);
+        context.SaveChanges();
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = content.Id, CategoryId = 5, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+        var result = provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 5);
+
+        Assert.Empty(result.Contents);
+        Assert.Null(result.Title);
+    }
+
+    [Fact]
+    public void GetContentsListByCategoryId_MalformedCrossApplicationRelation_ReturnsEmptyResult()
+    {
+        // Historical/corrupt data: a ContentInCategory row links a category that belongs to a
+        // different application to this application's own content. The category ownership check
+        // must reject this regardless of what the join row says.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Categories.Add(new Category { Id = 6, ApplicationId = 2, Title = "Other App Category", IsActive = true });
+        var ownContent = new Content { ApplicationId = 1, TypeId = 1000, Title = "Own Content", Categories = "6", IsActive = true };
+        context.Contents.Add(ownContent);
+        context.SaveChanges();
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = ownContent.Id, CategoryId = 6, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+        var result = provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 6);
+
+        Assert.Empty(result.Contents);
+    }
+
+    [Fact]
     public void GetContentsListByCategoryId_ReturnsExactMatch_AndPreservesResultShape()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Categories.Add(new Category { Id = 2, ApplicationId = 1, Title = "Category Two" });
+        context.Categories.Add(new Category { Id = 2, ApplicationId = 1, Title = "Category Two", IsActive = true });
         var matching = new Content { ApplicationId = 1, TypeId = 1000, Title = "In category two", Categories = "2", IsActive = true, UpdatedDT = DateTime.Now };
         context.Contents.Add(matching);
         context.SaveChanges();
@@ -166,7 +224,7 @@ public class ContentProviderTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Categories.Add(new Category { Id = 3, ApplicationId = 1, Title = "Category Three" });
+        context.Categories.Add(new Category { Id = 3, ApplicationId = 1, Title = "Category Three", IsActive = true });
         var wronglyMatchedBefore = new Content { ApplicationId = 1, TypeId = 1000, Title = "Tagged 13", Categories = "13", IsActive = true };
         context.Contents.Add(wronglyMatchedBefore);
         context.SaveChanges();
@@ -190,7 +248,7 @@ public class ContentProviderTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Categories.Add(new Category { Id = 20, ApplicationId = 1, Title = "Category Twenty" });
+        context.Categories.Add(new Category { Id = 20, ApplicationId = 1, Title = "Category Twenty", IsActive = true });
         var baseTime = DateTime.Now;
         var contents = new List<Content>();
         for (var i = 1; i <= 25; i++)
@@ -223,7 +281,7 @@ public class ContentProviderTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Tags.Add(new Tag { Id = 1, ApplicationId = 1, Title = "Tag One" });
+        context.Tags.Add(new Tag { Id = 1, ApplicationId = 1, Title = "Tag One", IsActive = true });
         var wronglyMatchedBefore = new Content { ApplicationId = 1, TypeId = 1000, Title = "Tagged 11", Tags = "11", IsActive = true };
         context.Contents.Add(wronglyMatchedBefore);
         context.SaveChanges();
@@ -238,12 +296,67 @@ public class ContentProviderTests
     }
 
     [Fact]
+    public void GetContentsListByTagId_MissingTag_ReturnsEmptyResultWithoutThrowing()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var provider = new ContentProvider(context);
+        var result = provider.GetContentsListByTagId(applicationId: 1, tagId: 999);
+
+        Assert.Empty(result.Contents);
+        Assert.Equal(0, result.PageCount);
+        Assert.Null(result.Title);
+    }
+
+    [Fact]
+    public void GetContentsListByTagId_SoftDeletedTag_ReturnsEmptyResult()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Tags.Add(new Tag { Id = 5, ApplicationId = 1, Title = "Deleted", IsActive = true, IsDeleted = true });
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Content", Tags = "5", IsActive = true };
+        context.Contents.Add(content);
+        context.SaveChanges();
+        context.ContentInTags.Add(new ContentInTag { ContentId = content.Id, TagId = 5 });
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+        var result = provider.GetContentsListByTagId(applicationId: 1, tagId: 5);
+
+        Assert.Empty(result.Contents);
+        Assert.Null(result.Title);
+    }
+
+    [Fact]
+    public void GetContentsListByTagId_MalformedCrossApplicationRelation_ReturnsEmptyResult()
+    {
+        // Historical/corrupt data: a ContentInTag row links a tag that belongs to a different
+        // application to this application's own content.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Tags.Add(new Tag { Id = 6, ApplicationId = 2, Title = "Other App Tag", IsActive = true });
+        var ownContent = new Content { ApplicationId = 1, TypeId = 1000, Title = "Own Content", Tags = "6", IsActive = true };
+        context.Contents.Add(ownContent);
+        context.SaveChanges();
+        context.ContentInTags.Add(new ContentInTag { ContentId = ownContent.Id, TagId = 6 });
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+        var result = provider.GetContentsListByTagId(applicationId: 1, tagId: 6);
+
+        Assert.Empty(result.Contents);
+    }
+
+    [Fact]
     public void GetContentsListByTagId_ReturnsExactMatch_AndPreservesResultShape()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Tags.Add(new Tag { Id = 4, ApplicationId = 1, Title = "Tag Four" });
+        context.Tags.Add(new Tag { Id = 4, ApplicationId = 1, Title = "Tag Four", IsActive = true });
         var matching = new Content { ApplicationId = 1, TypeId = 1000, Title = "Tagged four", Tags = "4", IsActive = true, UpdatedDT = DateTime.Now };
         context.Contents.Add(matching);
         context.SaveChanges();
@@ -266,7 +379,7 @@ public class ContentProviderTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Tags.Add(new Tag { Id = 30, ApplicationId = 1, Title = "Tag Thirty" });
+        context.Tags.Add(new Tag { Id = 30, ApplicationId = 1, Title = "Tag Thirty", IsActive = true });
         var baseTime = DateTime.Now;
         var contents = new List<Content>();
         for (var i = 1; i <= 25; i++)

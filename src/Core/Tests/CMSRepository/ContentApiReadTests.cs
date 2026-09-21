@@ -57,6 +57,15 @@ public class ContentApiReadTests
         return content.Id;
     }
 
+    // Category-based reads now require the category itself to belong to applicationId and be
+    // active/not deleted before its join rows are trusted.
+    private static void SeedCategory(ApplicationDbContext context, int categoryId, int applicationId = 1)
+    {
+        if (!context.Categories.Any(c => c.Id == categoryId))
+            context.Categories.Add(new Category { Id = categoryId, ApplicationId = applicationId, Title = $"Category {categoryId}", IsActive = true });
+        context.SaveChanges();
+    }
+
     // ---- GetContent/{id}  (backed by GetContentByIdFull) ----
 
     [Fact]
@@ -320,6 +329,8 @@ public class ContentApiReadTests
         using var context = factory.CreateContext();
         var matching = SeedFullContent(context, typeId: 5000, categories: "1");
         var nonMatching = SeedFullContent(context, typeId: 5000, categories: "11");
+        SeedCategory(context, categoryId: 1);
+        SeedCategory(context, categoryId: 11);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = matching, CategoryId = 1, CreatedDt = DateTime.Now });
         context.ContentInCategories.Add(new ContentInCategory { ContentId = nonMatching, CategoryId = 11, CreatedDt = DateTime.Now });
         context.SaveChanges();
@@ -338,6 +349,7 @@ public class ContentApiReadTests
         using var context = factory.CreateContext();
         var ownApp = SeedFullContent(context, typeId: 5050, categories: "1", applicationId: 1);
         var otherApp = SeedFullContent(context, typeId: 5050, categories: "1", applicationId: 2);
+        SeedCategory(context, categoryId: 50, applicationId: 1);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = ownApp, CategoryId = 50, CreatedDt = DateTime.Now });
         context.ContentInCategories.Add(new ContentInCategory { ContentId = otherApp, CategoryId = 50, CreatedDt = DateTime.Now });
         context.SaveChanges();
@@ -355,6 +367,7 @@ public class ContentApiReadTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         var contentId = SeedFullContent(context, typeId: 5060, categories: "1");
+        SeedCategory(context, categoryId: 60);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = contentId, CategoryId = 60, CreatedDt = DateTime.Now });
         context.ContentImages.Add(new ContentImage { ContentId = contentId, ImageFileName = "deleted-640.jpg", Size = 640, IsDeleted = true });
         context.SaveChanges();
@@ -373,6 +386,7 @@ public class ContentApiReadTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         var contentId = SeedFullContent(context, typeId: 5100, categories: "9");
+        SeedCategory(context, categoryId: 9);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = contentId, CategoryId = 9, CreatedDt = DateTime.Now });
         context.SaveChanges();
 
@@ -381,6 +395,60 @@ public class ContentApiReadTests
 
         Assert.Equal(1, result.PagesCount);
         Assert.Equal(1, result.PageIndex);
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_SoftDeletedCategory_ReturnsEmptyResult()
+    {
+        // A deleted category must produce the same empty result as a missing one — never
+        // distinguishable, even though its join rows still technically exist.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context, typeId: 5070, categories: "1");
+        context.Categories.Add(new Category { Id = 70, ApplicationId = 1, Title = "Deleted Category", IsActive = true, IsDeleted = true });
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = contentId, CategoryId = 70, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var result = repository.GetContentByCategoryId(70, applicationId: 1);
+
+        Assert.Empty(result.Contents);
+        Assert.Equal(0, result.PagesCount);
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_InactiveCategory_ReturnsEmptyResult()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context, typeId: 5071, categories: "1");
+        context.Categories.Add(new Category { Id = 71, ApplicationId = 1, Title = "Inactive Category", IsActive = false });
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = contentId, CategoryId = 71, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var result = repository.GetContentByCategoryId(71, applicationId: 1);
+
+        Assert.Empty(result.Contents);
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_MalformedCrossApplicationRelation_ReturnsEmptyResult()
+    {
+        // Historical/corrupt data: a ContentInCategory row links a category that belongs to a
+        // different application to this application's own content. The category ownership check
+        // must reject this regardless of what the join row says.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var ownContentId = SeedFullContent(context, typeId: 5080, categories: "1", applicationId: 1);
+        context.Categories.Add(new Category { Id = 80, ApplicationId = 2, Title = "Other App Category", IsActive = true });
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = ownContentId, CategoryId = 80, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var result = repository.GetContentByCategoryId(80, applicationId: 1);
+
+        Assert.Empty(result.Contents);
     }
 
     // ---- GetContentByCategoryIdByDate/{categoryId}/{startDate}/{endDate}/{pageIndex} ----
@@ -393,6 +461,8 @@ public class ContentApiReadTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         var wronglyMatchedBefore = SeedFullContent(context, typeId: 6000, categories: "11");
+        SeedCategory(context, categoryId: 1);
+        SeedCategory(context, categoryId: 11);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = wronglyMatchedBefore, CategoryId = 11, CreatedDt = DateTime.Now });
         context.SaveChanges();
 
@@ -412,6 +482,7 @@ public class ContentApiReadTests
         var outOfRange = new Content { ApplicationId = 1, TypeId = 6100, Title = "Out of range", Categories = "7", IsActive = true, CreatedDT = DateTime.Now.AddDays(-30) };
         context.Contents.AddRange(inRange, outOfRange);
         context.SaveChanges();
+        SeedCategory(context, categoryId: 7);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = inRange.Id, CategoryId = 7, CreatedDt = DateTime.Now });
         context.ContentInCategories.Add(new ContentInCategory { ContentId = outOfRange.Id, CategoryId = 7, CreatedDt = DateTime.Now });
         context.SaveChanges();
@@ -430,6 +501,7 @@ public class ContentApiReadTests
         using var context = factory.CreateContext();
         var ownApp = SeedFullContent(context, typeId: 6200, categories: "8", applicationId: 1);
         var otherApp = SeedFullContent(context, typeId: 6200, categories: "8", applicationId: 2);
+        SeedCategory(context, categoryId: 8, applicationId: 1);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = ownApp, CategoryId = 8, CreatedDt = DateTime.Now });
         context.ContentInCategories.Add(new ContentInCategory { ContentId = otherApp, CategoryId = 8, CreatedDt = DateTime.Now });
         context.SaveChanges();
@@ -447,6 +519,7 @@ public class ContentApiReadTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         var contentId = SeedFullContent(context, typeId: 6300, categories: "8");
+        SeedCategory(context, categoryId: 63);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = contentId, CategoryId = 63, CreatedDt = DateTime.Now });
         context.ContentImages.Add(new ContentImage { ContentId = contentId, ImageFileName = "deleted-640.jpg", Size = 640, IsDeleted = true });
         context.SaveChanges();
@@ -466,6 +539,8 @@ public class ContentApiReadTests
         using var context = factory.CreateContext();
         var matching = SeedFullContent(context, typeId: 7000, categories: "3");
         var nonMatching = SeedFullContent(context, typeId: 7000, categories: "13");
+        SeedCategory(context, categoryId: 3);
+        SeedCategory(context, categoryId: 13);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = matching, CategoryId = 3, CreatedDt = DateTime.Now });
         context.ContentInCategories.Add(new ContentInCategory { ContentId = nonMatching, CategoryId = 13, CreatedDt = DateTime.Now });
         context.SaveChanges();
@@ -485,6 +560,7 @@ public class ContentApiReadTests
         using var context = factory.CreateContext();
         var ownApp = SeedFullContent(context, typeId: 7100, categories: "4", applicationId: 1);
         var otherApp = SeedFullContent(context, typeId: 7100, categories: "4", applicationId: 2);
+        SeedCategory(context, categoryId: 40, applicationId: 1);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = ownApp, CategoryId = 40, CreatedDt = DateTime.Now });
         context.ContentInCategories.Add(new ContentInCategory { ContentId = otherApp, CategoryId = 40, CreatedDt = DateTime.Now });
         context.SaveChanges();
@@ -502,6 +578,7 @@ public class ContentApiReadTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         var contentId = SeedFullContent(context, typeId: 7200, categories: "4");
+        SeedCategory(context, categoryId: 72);
         context.ContentInCategories.Add(new ContentInCategory { ContentId = contentId, CategoryId = 72, CreatedDt = DateTime.Now });
         context.ContentImages.Add(new ContentImage { ContentId = contentId, ImageFileName = "deleted-640.jpg", Size = 640, IsDeleted = true });
         context.SaveChanges();

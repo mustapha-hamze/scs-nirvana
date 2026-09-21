@@ -325,6 +325,13 @@ namespace Services.CMSServices
 
         public async Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId)
         {
+            // Missing, deleted, or wrong-application category: same empty result as "no content
+            // matched" — the stored procedure this delegates to has no application/category
+            // ownership check of its own, so it's gated here instead.
+            var isOwnedByApplication = _categoryRepository.List(applicationId).Any(c => c.Id == categoryId && c.IsActive);
+            if (!isOwnedByApplication)
+                return new List<ContentDto>();
+
             return await _contentRepository.GetContentsInCategory(categoryId, applicationId);
         }
 
