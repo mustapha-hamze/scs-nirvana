@@ -15,24 +15,8 @@ public class ContentProvider : IContentProvider
     }
 
     // See IContentProvider.GetContentForTranslate — legacy/internal path for the Farsi
-    // translation/activation flow only.
-    public async Task<Content> GetContentForTranslate(int contentId)
-    {
-        var content = await _dbContext.Contents
-            .Include(c => c.Images.Where(i => !i.IsDeleted))
-            .Include(c => c.Metadata)
-            .Include(c => c.Sections.Where(s => !s.IsDeleted))
-                .ThenInclude(s => s.Elements.Where(e => !e.IsDeleted))
-            .FirstOrDefaultAsync(c => c.Id == contentId && !c.IsDeleted);
-
-        // Metadata is a single reference, not a collection, so EF's filtered Include can't
-        // exclude a soft-deleted row directly — null it out here instead.
-        if (content?.Metadata?.IsDeleted == true)
-            content.Metadata = null;
-
-        return content;
-    }
-
+    // translation/activation flow only. applicationId is required; there is deliberately no
+    // bare-contentId overload, so a cross-application id can never resolve.
     public async Task<Content> GetContentForTranslate(int contentId, int applicationId)
     {
         var content = await _dbContext.Contents
@@ -42,6 +26,8 @@ public class ContentProvider : IContentProvider
                 .ThenInclude(s => s.Elements.Where(e => !e.IsDeleted))
             .FirstOrDefaultAsync(c => c.Id == contentId && c.ApplicationId == applicationId && !c.IsDeleted);
 
+        // Metadata is a single reference, not a collection, so EF's filtered Include can't
+        // exclude a soft-deleted row directly — null it out here instead.
         if (content?.Metadata?.IsDeleted == true)
             content.Metadata = null;
 

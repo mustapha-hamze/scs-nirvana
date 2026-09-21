@@ -6,17 +6,13 @@ namespace Application.ContentManagement;
 public interface IContentProvider
 {
     // Internal/legacy escape hatch: returns the full tracked Content entity graph (images,
-    // metadata, sections, elements) rather than a DTO. Kept deliberately, for the admin Farsi
-    // translation/activation flow in Web/Areas/BackOffice/Controllers/ContentController.cs
-    // (FarsiContentForm, SaveFarsiContentForm, ChangeContentActiveMode) and
-    // Web/Controllers/HomeController.cs, which mutate the entity in place and save it back. Do
-    // not add new callers of this outside that flow — prefer DTO-returning reads for anything
-    // else.
-    Task<Content> GetContentForTranslate(int contentId);
-
-    // Application-scoped overload: used by the authenticated BackOffice Farsi translation flow,
-    // where the caller's applicationId is known and a cross-application contentId must be
-    // rejected rather than silently translating/activating another application's content.
+    // metadata, sections, elements) rather than a DTO, for the admin Farsi translation/
+    // activation flow in Web/Areas/BackOffice/Controllers/ContentController.cs
+    // (FarsiContentForm, SaveFarsiContentForm, ChangeContentActiveMode), which mutates the
+    // entity in place and saves it back. Do not add new callers of this outside that flow —
+    // prefer DTO-returning reads for anything else. applicationId is required: a cross-
+    // application contentId must be rejected rather than silently translating/activating
+    // another application's content. There is deliberately no bare-contentId overload.
     Task<Content> GetContentForTranslate(int contentId, int applicationId);
 
     ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en");

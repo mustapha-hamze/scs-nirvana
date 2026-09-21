@@ -32,7 +32,7 @@ public class ContentProviderTests
         context.SaveChanges();
 
         var provider = new ContentProvider(context);
-        var result = await provider.GetContentForTranslate(content.Id);
+        var result = await provider.GetContentForTranslate(content.Id, applicationId: 1);
 
         Assert.NotNull(result);
         Assert.Equal("Translate me", result.Title);
@@ -58,8 +58,8 @@ public class ContentProviderTests
 
         var provider = new ContentProvider(context);
 
-        Assert.NotNull(await provider.GetContentForTranslate(inactiveContent.Id));
-        Assert.Null(await provider.GetContentForTranslate(deletedContent.Id));
+        Assert.NotNull(await provider.GetContentForTranslate(inactiveContent.Id, applicationId: 1));
+        Assert.Null(await provider.GetContentForTranslate(deletedContent.Id, applicationId: 1));
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class ContentProviderTests
         // fixup re-attach the already-tracked deleted element regardless of the query filter.
         using var context = factory.CreateContext();
         var provider = new ContentProvider(context);
-        var result = await provider.GetContentForTranslate(contentId);
+        var result = await provider.GetContentForTranslate(contentId, applicationId: 1);
 
         var resultSection = Assert.Single(result.Sections);
         var element = Assert.Single(resultSection.Elements);
@@ -109,9 +109,26 @@ public class ContentProviderTests
 
         using var context = factory.CreateContext();
         var provider = new ContentProvider(context);
-        var result = await provider.GetContentForTranslate(contentId);
+        var result = await provider.GetContentForTranslate(contentId, applicationId: 1);
 
         Assert.Null(result.Metadata);
+    }
+
+    [Fact]
+    public async Task GetContentForTranslate_CrossApplicationId_ReturnsNull()
+    {
+        // Same not-found semantics as a missing id: a cross-application contentId must not
+        // resolve, and must be indistinguishable from an id that doesn't exist at all.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Owned by app 1" };
+        context.Contents.Add(content);
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+
+        Assert.Null(await provider.GetContentForTranslate(content.Id, applicationId: 2));
     }
 
     [Fact]
