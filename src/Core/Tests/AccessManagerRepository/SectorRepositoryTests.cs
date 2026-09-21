@@ -8,7 +8,7 @@ namespace Core.Tests.AccessManagerRepository;
 public class SectorRepositoryTests
 {
     [Fact]
-    public void GetAllSector_IgnoredApplicationId_OnlyReturnsThatApplicationsSectors()
+    public async Task GetAllSector_IgnoredApplicationId_OnlyReturnsThatApplicationsSectors()
     {
         // Regression guard: GetAllSector(applicationId) used to ignore its parameter entirely
         // and return every application's sectors.
@@ -21,14 +21,14 @@ public class SectorRepositoryTests
 
         var repository = new SectorRepository(context);
 
-        var result = repository.GetAllSector(applicationId: 1);
+        var result = await repository.GetAllSector(applicationId: 1);
 
         Assert.Single(result);
         Assert.Equal("App1 Sector", result[0].Title);
     }
 
     [Fact]
-    public void GetAllSector_ExcludesSoftDeletedRows()
+    public async Task GetAllSector_ExcludesSoftDeletedRows()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -39,7 +39,7 @@ public class SectorRepositoryTests
 
         var repository = new SectorRepository(context);
 
-        var result = repository.GetAllSector(applicationId: 1);
+        var result = await repository.GetAllSector(applicationId: 1);
 
         Assert.Single(result);
         Assert.Equal("Active", result[0].Title);

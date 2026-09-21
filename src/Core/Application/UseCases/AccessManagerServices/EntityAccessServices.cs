@@ -23,34 +23,34 @@ namespace Application.UseCases.AccessManagerServices
             _unitOfWork = unitOfWork;
         }
 
-        public async Task Create(EntityAccessDto access, int applicationId)
+        public async Task Create(EntityAccessDto access, int applicationId, CancellationToken cancellationToken = default)
         {
             // The target SectorEntity must belong to this application before access can be granted on it.
-            await _sectorEntityRepository.GetByIdForApplication(access.EntityId, applicationId);
+            await _sectorEntityRepository.GetByIdForApplication(access.EntityId, applicationId, cancellationToken);
             await _entityAccessRepository.Create(_mapper.Map<EntityAccess>(access));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task Update(EntityAccessDto access, int applicationId)
+        public async Task Update(EntityAccessDto access, int applicationId, CancellationToken cancellationToken = default)
         {
-            await _entityAccessRepository.GetByIdForApplication(access.Id, applicationId);
-            await _sectorEntityRepository.GetByIdForApplication(access.EntityId, applicationId);
+            await _entityAccessRepository.GetByIdForApplication(access.Id, applicationId, cancellationToken);
+            await _sectorEntityRepository.GetByIdForApplication(access.EntityId, applicationId, cancellationToken);
             await _entityAccessRepository.Update(_mapper.Map<EntityAccess>(access));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<EntityAccessDto> GetById(int id, int applicationId)
+        public async Task<EntityAccessDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<EntityAccessDto>(await _entityAccessRepository.GetByIdForApplication(id, applicationId));
+            return _mapper.Map<EntityAccessDto>(await _entityAccessRepository.GetByIdForApplication(id, applicationId, cancellationToken));
         }
 
-        public List<EntityAccessDto> List(int applicationId)
+        public async Task<List<EntityAccessDto>> List(int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<EntityAccessDto>>(_entityAccessRepository.List(applicationId));
+            return _mapper.Map<List<EntityAccessDto>>(await _entityAccessRepository.List(applicationId, cancellationToken));
         }
-        public List<EntityAccessDto> GetEntityAccesses(int entityId)
+        public async Task<List<EntityAccessDto>> GetEntityAccesses(int entityId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<EntityAccessDto>>(_entityAccessRepository.GetEntityAccesses(entityId));
+            return _mapper.Map<List<EntityAccessDto>>(await _entityAccessRepository.GetEntityAccesses(entityId, cancellationToken));
         }
     }
 }

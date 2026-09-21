@@ -1,5 +1,6 @@
 global using MediatR;
 global using System.ComponentModel.DataAnnotations;
+global using System.Threading;
 global using Infrastructure.Dto.CMSDtos;
 global using Domains.Entities.ContentManagement;
 global using Infrastructure.Repository;

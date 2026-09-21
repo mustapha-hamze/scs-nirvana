@@ -42,17 +42,17 @@ public class AccessManagementController : BaseController
         return View();
     }
 
-    public IActionResult SectorList()
+    public async Task<IActionResult> SectorList()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_sectorServices.GetAllSector(user.CurrentApplicationId));
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        return View(await _sectorServices.GetAllSector(user.CurrentApplicationId));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSector(SectorDto sector)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         sector.ApplicationId = user.CurrentApplicationId;
         if (sector.Id == 0)
             await _sectorServices.Create(sector);
@@ -67,7 +67,7 @@ public class AccessManagementController : BaseController
     public async Task<IActionResult> EntityForm(int sectorId)
     {
         ViewData["SectorId"] = sectorId;
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var sector = await _sectorServices.GetById(sectorId, user.CurrentApplicationId);
         ViewData["SectorTitle"] = sector.Title;
         var entity = new SectorEntityDto
@@ -78,17 +78,17 @@ public class AccessManagementController : BaseController
     }
 
     [HttpGet("/{area}/{controller}/EntityList/{sectorId}")]
-    public IActionResult EntityList(int sectorId)
+    public async Task<IActionResult> EntityList(int sectorId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_SectorEntityServices.GetSectorEntities(sectorId, user.CurrentApplicationId));
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        return View(await _SectorEntityServices.GetSectorEntities(sectorId, user.CurrentApplicationId));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveEntity(SectorEntityDto entity)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         if (entity.Id == 0)
             await _SectorEntityServices.Create(entity, user.CurrentApplicationId);
         else
@@ -105,10 +105,10 @@ public class AccessManagementController : BaseController
     }
     public async Task<IActionResult> AccessForm(int id = 0)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var sectors = _sectorServices.GetAllSector(user.CurrentApplicationId);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var sectors = await _sectorServices.GetAllSector(user.CurrentApplicationId);
         ViewData["Sectors"] = sectors;
-        ViewData["SectorEntities"] = _SectorEntityServices.GetSectorEntities(sectors[0].Id, user.CurrentApplicationId);
+        ViewData["SectorEntities"] = await _SectorEntityServices.GetSectorEntities(sectors[0].Id, user.CurrentApplicationId);
 
         if (id != 0)
         {
@@ -123,24 +123,24 @@ public class AccessManagementController : BaseController
     }
 
     [HttpGet("/{area}/{controller}/GetSectorEntities/{id}")]
-    public IActionResult GetSectorEntities(int id)
+    public async Task<IActionResult> GetSectorEntities(int id)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var sectorEntities = _SectorEntityServices.GetSectorEntities(id, user.CurrentApplicationId);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var sectorEntities = await _SectorEntityServices.GetSectorEntities(id, user.CurrentApplicationId);
         return PartialView("_SectorEntityOptionsPartial", sectorEntities);
     }
-    public IActionResult AccessList()
+    public async Task<IActionResult> AccessList()
     {
-        ViewData["SectorEntities"] = _SectorEntityServices.GetAllEntities();
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_entityAccessServices.List(user.CurrentApplicationId));
+        ViewData["SectorEntities"] = await _SectorEntityServices.GetAllEntities();
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        return View(await _entityAccessServices.List(user.CurrentApplicationId));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveAccess(EntityAccessDto accessModel)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         if (accessModel.Id == 0)
         {
             await _entityAccessServices.Create(accessModel, user.CurrentApplicationId);

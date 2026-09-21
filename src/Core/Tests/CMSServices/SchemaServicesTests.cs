@@ -230,7 +230,7 @@ public class SchemaServicesTests
     }
 
     [Fact]
-    public void DetailsList_CrossApplicationSchema_ReturnsEmpty()
+    public async Task DetailsList_CrossApplicationSchema_ReturnsEmpty()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -242,13 +242,13 @@ public class SchemaServicesTests
 
         var sut = CreateSut(context);
 
-        var result = sut.DetailsList(schema.Id, applicationId: 1);
+        var result = await sut.DetailsList(schema.Id, applicationId: 1);
 
         Assert.Empty(result);
     }
 
     [Fact]
-    public void DetailsList_SoftDeletedParentSchema_ReturnsEmpty()
+    public async Task DetailsList_SoftDeletedParentSchema_ReturnsEmpty()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -260,13 +260,13 @@ public class SchemaServicesTests
 
         var sut = CreateSut(context);
 
-        var result = sut.DetailsList(schema.Id, applicationId: 1);
+        var result = await sut.DetailsList(schema.Id, applicationId: 1);
 
         Assert.Empty(result);
     }
 
     [Fact]
-    public void DetailsList_SoftDeletedDetail_ExcludedFromSameApplicationSchema()
+    public async Task DetailsList_SoftDeletedDetail_ExcludedFromSameApplicationSchema()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -279,7 +279,7 @@ public class SchemaServicesTests
 
         var sut = CreateSut(context);
 
-        var result = sut.DetailsList(schema.Id, applicationId: 1);
+        var result = await sut.DetailsList(schema.Id, applicationId: 1);
 
         var detail = Assert.Single(result);
         Assert.Equal("Active Detail", detail.Title);

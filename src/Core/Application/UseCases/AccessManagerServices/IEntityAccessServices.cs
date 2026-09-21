@@ -6,10 +6,10 @@ namespace Application.UseCases.AccessManagerServices
 {
     public interface IEntityAccessServices
     {
-        Task Create(EntityAccessDto access, int applicationId);
-        Task Update(EntityAccessDto access, int applicationId);
-        List<EntityAccessDto> List(int applicationId);
-        Task<EntityAccessDto> GetById(int id, int applicationId);
-        List<EntityAccessDto> GetEntityAccesses(int entityId);
+        Task Create(EntityAccessDto access, int applicationId, CancellationToken cancellationToken = default);
+        Task Update(EntityAccessDto access, int applicationId, CancellationToken cancellationToken = default);
+        Task<List<EntityAccessDto>> List(int applicationId, CancellationToken cancellationToken = default);
+        Task<EntityAccessDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default);
+        Task<List<EntityAccessDto>> GetEntityAccesses(int entityId, CancellationToken cancellationToken = default);
     }
 }

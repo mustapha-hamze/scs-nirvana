@@ -9,7 +9,7 @@ namespace Application.CMSRepository;
 // so the join rows and the compatibility string always change together.
 public interface IContentRelationRepository
 {
-    Task CreateContentCategories(int contentId, List<int> categoryIds);
-    Task CreateContentTags(int contentId, List<int> tagIds);
-    Task CreateContentCultures(int contentId, List<int> cultureIds);
+    Task CreateContentCategories(int contentId, List<int> categoryIds, CancellationToken cancellationToken = default);
+    Task CreateContentTags(int contentId, List<int> tagIds, CancellationToken cancellationToken = default);
+    Task CreateContentCultures(int contentId, List<int> cultureIds, CancellationToken cancellationToken = default);
 }

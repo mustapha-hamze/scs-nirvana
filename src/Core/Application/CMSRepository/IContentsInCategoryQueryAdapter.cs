@@ -9,5 +9,5 @@ namespace Application.CMSRepository;
 // write ports.
 public interface IContentsInCategoryQueryAdapter
 {
-    Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId);
+    Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId, CancellationToken cancellationToken = default);
 }

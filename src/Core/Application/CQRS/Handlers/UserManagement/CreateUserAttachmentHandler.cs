@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Threading.Tasks;
 using Application.CQRS.Command.UserManagement;
 using Application.Repository;
@@ -25,7 +24,7 @@ public class CreateUserAttachmentHandler : IRequestHandler<CreateUserAttachmentC
     public async Task<Unit> Handle(CreateUserAttachmentCommand request, CancellationToken cancellationToken)
     {
         await _repository.Create(_mapper.Map<UserAttachment>(request.UserAttachment));
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Unit.Value;
     }
 }

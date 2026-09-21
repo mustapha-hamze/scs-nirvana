@@ -24,28 +24,28 @@ namespace Application.UseCases.GeneralServices
         }
 
         // methods
-        public async Task<CultureDto> Create(CultureDto culture)
+        public async Task<CultureDto> Create(CultureDto culture, CancellationToken cancellationToken = default)
         {
             culture.IsActive = true;
             var created = await _cultureRepository.Create(_mapper.Map<Culture>(culture));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return _mapper.Map<CultureDto>(created);
         }
 
-        public async Task Delete(int id)
+        public async Task Delete(int id, CancellationToken cancellationToken = default)
         {
-            await _cultureRepository.Delete(id);
-            await _unitOfWork.SaveChangesAsync();
+            await _cultureRepository.Delete(id, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public List<CultureDto> List()
+        public async Task<List<CultureDto>> List(CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<CultureDto>>(_cultureRepository.List());
+            return _mapper.Map<List<CultureDto>>(await _cultureRepository.List(cancellationToken));
         }
 
-        public async Task<CultureDto> GetById(int id)
+        public async Task<CultureDto> GetById(int id, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<CultureDto>(await _cultureRepository.GetById(id));
+            return _mapper.Map<CultureDto>(await _cultureRepository.GetById(id, cancellationToken));
         }
     }
 }

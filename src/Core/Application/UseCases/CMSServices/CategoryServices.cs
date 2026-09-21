@@ -24,36 +24,36 @@ namespace Application.UseCases.CMSServices
         }
 
         // methods
-        public async Task<CategoryDto> Create(CategoryDto category, int applicationId)
+        public async Task<CategoryDto> Create(CategoryDto category, int applicationId, CancellationToken cancellationToken = default)
         {
             category.IsActive = true;
             // Never trust ApplicationId from the DTO - server-pin it.
             category.ApplicationId = applicationId;
             var created = await _categoryRepository.Create(_mapper.Map<Category>(category));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return _mapper.Map<CategoryDto>(created);
         }
 
-        public async Task Delete(int id, int applicationId)
+        public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
         {
-            await _categoryRepository.GetByIdForApplication(id, applicationId);
-            await _categoryRepository.Delete(id);
-            await _unitOfWork.SaveChangesAsync();
+            await _categoryRepository.GetByIdForApplication(id, applicationId, cancellationToken);
+            await _categoryRepository.Delete(id, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public List<CategoryDto> List(int applicationId)
+        public async Task<List<CategoryDto>> List(int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<CategoryDto>>(_categoryRepository.List(applicationId));
+            return _mapper.Map<List<CategoryDto>>(await _categoryRepository.List(applicationId, cancellationToken));
         }
 
-        public async Task<CategoryDto> GetById(int id, int applicationId)
+        public async Task<CategoryDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<CategoryDto>(await _categoryRepository.GetByIdForApplication(id, applicationId));
+            return _mapper.Map<CategoryDto>(await _categoryRepository.GetByIdForApplication(id, applicationId, cancellationToken));
         }
 
-        public List<CategoryDto> GetAllFullPath(int applicationId)
+        public async Task<List<CategoryDto>> GetAllFullPath(int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<CategoryDto>>(_categoryRepository.GetAllFullPath(applicationId));
+            return _mapper.Map<List<CategoryDto>>(await _categoryRepository.GetAllFullPath(applicationId, cancellationToken));
         }
     }
 }

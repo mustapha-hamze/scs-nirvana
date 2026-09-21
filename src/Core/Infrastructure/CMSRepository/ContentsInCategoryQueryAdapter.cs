@@ -24,7 +24,7 @@ public class ContentsInCategoryQueryAdapter : IContentsInCategoryQueryAdapter
         _connectionString = configuration.GetConnectionString("DefaultConnection");
     }
 
-    public async Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId)
+    public async Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId, CancellationToken cancellationToken = default)
     {
         DynamicParameters parameters = new DynamicParameters();
         parameters.Add("@P_CategoryId", categoryId);
@@ -34,9 +34,10 @@ public class ContentsInCategoryQueryAdapter : IContentsInCategoryQueryAdapter
         // field opened/closed by hand (which leaked an open connection on any exception between
         // Open() and Close(), and hid real failures behind an empty-list catch-all).
         await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        var queryResult = await connection.QueryAsync<ContentDto>(
-            "SP_ContentsInCategory", parameters, commandType: CommandType.StoredProcedure);
+        await connection.OpenAsync(cancellationToken);
+        var command = new CommandDefinition(
+            "SP_ContentsInCategory", parameters, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+        var queryResult = await connection.QueryAsync<ContentDto>(command);
 
         return queryResult.ToList();
     }

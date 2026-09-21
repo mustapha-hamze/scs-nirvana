@@ -32,16 +32,15 @@ namespace Infrastructure.Repository
 
         // A physical Remove(); ApplicationDbContext converts this into a soft delete
         // (IsDeleted = true, State = Modified) at SaveChanges time - see ApplyLifecyclePolicy.
-        public Task Delete(int id)
+        public async Task Delete(int id, CancellationToken cancellationToken = default)
         {
-            var entity = _entities.Single(e => e.Id == id);
+            var entity = await _entities.SingleAsync(e => e.Id == id, cancellationToken);
             _entities.Remove(entity);
-            return Task.CompletedTask;
         }
 
-        public async Task<T> GetById(int id)
+        public async Task<T> GetById(int id, CancellationToken cancellationToken = default)
         {
-            return await _entities.AsNoTracking().SingleAsync(s => s.Id == id);
+            return await _entities.AsNoTracking().SingleAsync(s => s.Id == id, cancellationToken);
         }
 
         public Task<T> Update(T entity)

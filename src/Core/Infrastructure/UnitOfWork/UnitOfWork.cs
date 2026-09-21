@@ -14,23 +14,23 @@ namespace Infrastructure.UnitOfWork
             _dbContext = dbContext;
         }
 
-        public Task<int> SaveChangesAsync() => _dbContext.SaveChangesAsync();
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => _dbContext.SaveChangesAsync(cancellationToken);
 
-        public async Task ExecuteInTransactionAsync(Func<Task> operation)
+        public async Task ExecuteInTransactionAsync(Func<Task> operation, CancellationToken cancellationToken = default)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     await operation();
-                    await _dbContext.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                 }
                 catch
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(cancellationToken);
                     throw;
                 }
             });

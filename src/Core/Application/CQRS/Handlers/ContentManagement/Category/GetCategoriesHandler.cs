@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Application.Contracts.CMS;
 using Application.CQRS.Queries.ContentManagement.Category;
@@ -21,12 +20,10 @@ public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, List<Cat
         _categoryServices = categoryServices;
     }
 
-    public Task<List<CategoryDto>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
+    public async Task<List<CategoryDto>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
     {
-        var categories = _categoryServices.List(request.ApplicationId)
-            .Where(c => c.ParentId == request.ParentId)
-            .ToList();
+        var categories = await _categoryServices.List(request.ApplicationId, cancellationToken);
 
-        return Task.FromResult(categories);
+        return categories.Where(c => c.ParentId == request.ParentId).ToList();
     }
 }

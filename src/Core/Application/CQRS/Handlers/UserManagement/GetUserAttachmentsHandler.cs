@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Application.Contracts.UserManagement;
 using Application.CQRS.Queries.UserManagement;
@@ -22,7 +21,7 @@ public class GetUserAttachmentsHandler : IRequestHandler<GetUserAttachmentsQuery
 
     public async Task<List<UserAttachmentDto>> Handle(GetUserAttachmentsQuery request, CancellationToken cancellationToken)
     {
-        var attachments = await _repository.List(request.UserId);
+        var attachments = await _repository.List(request.UserId, cancellationToken);
         return _mapper.Map<List<UserAttachmentDto>>(attachments);
     }
 }

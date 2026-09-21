@@ -30,15 +30,15 @@ public class SliderController : BaseController
         return View();
     }
 
-    public IActionResult List()
+    public async Task<IActionResult> List()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var slider = _sliderServices.GetSliders(user.CurrentApplicationId);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var slider = await _sliderServices.GetSliders(user.CurrentApplicationId);
         return View(slider);
     }
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["ApplicationId"] = user.CurrentApplicationId;
         return View();
     }
@@ -47,7 +47,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Slider slider)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         slider.IsActive = true;
         await _sliderServices.Create(slider, user.CurrentApplicationId);
         return Ok();
@@ -63,7 +63,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateItem(SliderItem sliderItem)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         string imageName = Guid.NewGuid().ToString();
         sliderItem.ImageFileName = imageName + ".jpg";
         var _sliderItem = await _sliderServices.CreateSliderItem(sliderItem, user.CurrentApplicationId);
@@ -94,10 +94,10 @@ public class SliderController : BaseController
     }
 
     [Route("/{area}/{controller}/GetSliderItemList/{sliderId}")]
-    public IActionResult GetSliderItemList(int sliderId)
+    public async Task<IActionResult> GetSliderItemList(int sliderId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var sliderItems = _sliderServices.GetSliderItems(sliderId, user.CurrentApplicationId);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var sliderItems = await _sliderServices.GetSliderItems(sliderId, user.CurrentApplicationId);
         return View(sliderItems);
     }
 
@@ -106,7 +106,7 @@ public class SliderController : BaseController
     {
         if (sliderItemId != 0)
         {
-            var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+            var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
             return View(await _sliderServices.GetSliderItem(sliderItemId, user.CurrentApplicationId));
         }
         else
@@ -119,7 +119,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateItem(SliderItem model)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _sliderServices.UpdateSliderItem(model, user.CurrentApplicationId);
         return Ok();
     }
@@ -128,7 +128,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ActiveItem(int sliderItemId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _sliderServices.ActiveSliderItem(sliderItemId, user.CurrentApplicationId);
         return Ok();
     }
@@ -137,7 +137,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeactiveItem(int sliderItemId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _sliderServices.DeactiveSliderItem(sliderItemId, user.CurrentApplicationId);
         return Ok();
     }
@@ -146,7 +146,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteItem(int sliderItemId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _sliderServices.DeleteSliderItem(sliderItemId, user.CurrentApplicationId);
         return Ok();
     }

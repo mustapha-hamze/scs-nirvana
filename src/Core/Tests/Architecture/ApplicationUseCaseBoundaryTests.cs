@@ -56,7 +56,7 @@ public class ApplicationUseCaseBoundaryTests
         };
 
         var repository = new Mock<ICategoryRepository>();
-        repository.Setup(r => r.List(10)).Returns(categories);
+        repository.Setup(r => r.List(10, It.IsAny<CancellationToken>())).ReturnsAsync(categories);
 
         var services = new ServiceCollection();
         services.AddSingleton(repository.Object);

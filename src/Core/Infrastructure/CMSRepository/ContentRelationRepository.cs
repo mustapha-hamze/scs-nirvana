@@ -15,17 +15,17 @@ public class ContentRelationRepository : IContentRelationRepository
     // ContentServices.CreateContentCategories). This only stages the join-row replace and the
     // legacy pipe-delimited compatibility field update; the caller (Application layer) is
     // responsible for running it inside one transaction/SaveChanges so both change together.
-    public Task CreateContentCategories(int contentId, List<int> categoryIds)
+    public async Task CreateContentCategories(int contentId, List<int> categoryIds, CancellationToken cancellationToken = default)
     {
-        var content = _dbContext.Contents.Single(c => c.Id == contentId);
+        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId, cancellationToken);
 
         content.Categories = string.Join("|", categoryIds);
         _dbContext.Entry(content).State = EntityState.Modified;
 
-        _dbContext.ContentInCategories
-            .RemoveRange(_dbContext.ContentInCategories
+        var existing = await _dbContext.ContentInCategories
             .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
+            .ToListAsync(cancellationToken);
+        _dbContext.ContentInCategories.RemoveRange(existing);
 
         foreach (var categoryId in categoryIds)
         {
@@ -36,20 +36,18 @@ public class ContentRelationRepository : IContentRelationRepository
                 CreatedDt = DateTime.Now
             });
         }
-
-        return Task.CompletedTask;
     }
 
-    public Task CreateContentTags(int contentId, List<int> tagIds)
+    public async Task CreateContentTags(int contentId, List<int> tagIds, CancellationToken cancellationToken = default)
     {
-        var content = _dbContext.Contents.Single(c => c.Id == contentId);
+        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId, cancellationToken);
         content.Tags = string.Join("|", tagIds);
         _dbContext.Entry(content).State = EntityState.Modified;
 
-        _dbContext.ContentInTags
-            .RemoveRange(_dbContext.ContentInTags
+        var existing = await _dbContext.ContentInTags
             .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
+            .ToListAsync(cancellationToken);
+        _dbContext.ContentInTags.RemoveRange(existing);
 
         foreach (var tagId in tagIds)
         {
@@ -59,20 +57,18 @@ public class ContentRelationRepository : IContentRelationRepository
                 TagId = tagId
             });
         }
-
-        return Task.CompletedTask;
     }
 
-    public Task CreateContentCultures(int contentId, List<int> cultureIds)
+    public async Task CreateContentCultures(int contentId, List<int> cultureIds, CancellationToken cancellationToken = default)
     {
-        var content = _dbContext.Contents.Single(c => c.Id == contentId);
+        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId, cancellationToken);
         content.Cultures = string.Join("|", cultureIds);
         _dbContext.Entry(content).State = EntityState.Modified;
 
-        _dbContext.ContentInCultures
-            .RemoveRange(_dbContext.ContentInCultures
+        var existing = await _dbContext.ContentInCultures
             .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
+            .ToListAsync(cancellationToken);
+        _dbContext.ContentInCultures.RemoveRange(existing);
 
         foreach (var cultureId in cultureIds)
         {
@@ -82,7 +78,5 @@ public class ContentRelationRepository : IContentRelationRepository
                 CultureId = cultureId
             });
         }
-
-        return Task.CompletedTask;
     }
 }

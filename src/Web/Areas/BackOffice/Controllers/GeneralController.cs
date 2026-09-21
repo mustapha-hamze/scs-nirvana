@@ -45,15 +45,15 @@ public class GeneralController : BaseController
     public async Task<IActionResult> SaveTagForm(TagDto tag)
     {
         //TODO: Implement Realistic Implementation
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _tagServices.Create(tag, user.CurrentApplicationId);
         return Content(tag.TypeId.ToString());
     }
 
-    public IActionResult TagList()
+    public async Task<IActionResult> TagList()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_tagServices.List(user.CurrentApplicationId));
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        return View(await _tagServices.List(user.CurrentApplicationId));
     }
     #endregion
 
@@ -76,9 +76,9 @@ public class GeneralController : BaseController
         return Content("Done");
     }
 
-    public IActionResult CultureList()
+    public async Task<IActionResult> CultureList()
     {
-        return View(_cultureServices.List());
+        return View(await _cultureServices.List());
     }
     #endregion
 
@@ -104,15 +104,15 @@ public class GeneralController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApplicationSettingForm(ApplicationSettingDto applicationSetting)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _applicationServices.CreateApplicationSetting(applicationSetting, user.CurrentApplicationId);
         return Content("Done");
     }
 
-    public IActionResult ApplicationSettingList()
+    public async Task<IActionResult> ApplicationSettingList()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_applicationServices.GetApplicationSetting(user.CurrentApplicationId));
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        return View(await _applicationServices.GetApplicationSetting(user.CurrentApplicationId));
     }
     #endregion
 
@@ -129,17 +129,17 @@ public class GeneralController : BaseController
     [HttpPost]
     public async Task<IActionResult> SaveSystemTypeForm(SystemTypeDto systemType)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         systemType.ApplicationId = user.CurrentApplicationId;
         systemType.IsActive = true;
         await _systemTypeServices.Create(systemType);
         // return View();
         return Content("Done");
     }
-    public IActionResult SystemTypesList()
+    public async Task<IActionResult> SystemTypesList()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_systemTypeServices.List(user.CurrentApplicationId));
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        return View(await _systemTypeServices.List(user.CurrentApplicationId));
     }
     #endregion
 }

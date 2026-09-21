@@ -42,7 +42,7 @@ public class TagServicesTests
     public async Task GetById_CrossApplication_Throws()
     {
         var tagRepository = new Mock<ITagRepository>();
-        tagRepository.Setup(r => r.GetByIdForApplication(5, 1)).ThrowsAsync(new KeyNotFoundException());
+        tagRepository.Setup(r => r.GetByIdForApplication(5, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(tagRepository);
 
@@ -53,12 +53,12 @@ public class TagServicesTests
     public async Task Delete_CrossApplication_ThrowsAndDoesNotDelete()
     {
         var tagRepository = new Mock<ITagRepository>();
-        tagRepository.Setup(r => r.GetByIdForApplication(5, 1)).ThrowsAsync(new KeyNotFoundException());
+        tagRepository.Setup(r => r.GetByIdForApplication(5, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(tagRepository);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.Delete(5, applicationId: 1));
 
-        tagRepository.Verify(r => r.Delete(It.IsAny<int>()), Times.Never);
+        tagRepository.Verify(r => r.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

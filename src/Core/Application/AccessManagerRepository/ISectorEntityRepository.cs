@@ -7,8 +7,8 @@ namespace Application.AccessManagerRepository
 {
     public interface ISectorEntityRepository : IRepository<SectorEntity>
     {
-        List<SectorEntity> GetSectorEntities(int sectorId);
-        List<SectorEntity> GetAllEntities();
-        Task<SectorEntity> GetByIdForApplication(int id, int applicationId);
+        Task<List<SectorEntity>> GetSectorEntities(int sectorId, CancellationToken cancellationToken = default);
+        Task<List<SectorEntity>> GetAllEntities(CancellationToken cancellationToken = default);
+        Task<SectorEntity> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default);
     }
 }

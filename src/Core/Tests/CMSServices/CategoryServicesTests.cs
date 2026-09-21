@@ -42,7 +42,7 @@ public class CategoryServicesTests
     public async Task GetById_CrossApplication_Throws()
     {
         var categoryRepository = new Mock<ICategoryRepository>();
-        categoryRepository.Setup(r => r.GetByIdForApplication(5, 1)).ThrowsAsync(new KeyNotFoundException());
+        categoryRepository.Setup(r => r.GetByIdForApplication(5, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(categoryRepository);
 
@@ -53,12 +53,12 @@ public class CategoryServicesTests
     public async Task Delete_CrossApplication_ThrowsAndDoesNotDelete()
     {
         var categoryRepository = new Mock<ICategoryRepository>();
-        categoryRepository.Setup(r => r.GetByIdForApplication(5, 1)).ThrowsAsync(new KeyNotFoundException());
+        categoryRepository.Setup(r => r.GetByIdForApplication(5, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(categoryRepository);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.Delete(5, applicationId: 1));
 
-        categoryRepository.Verify(r => r.Delete(It.IsAny<int>()), Times.Never);
+        categoryRepository.Verify(r => r.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

@@ -30,10 +30,10 @@ public class CategoryController : BaseController
         return View();
     }
 
-    public IActionResult Form()
+    public async Task<IActionResult> Form()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["Categories"] = _categoryServices.List(user.CurrentApplicationId);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        ViewData["Categories"] = await _categoryServices.List(user.CurrentApplicationId);
         return View();
     }
 
@@ -41,16 +41,16 @@ public class CategoryController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveForm(CategoryDto category)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _categoryServices.Create(category, user.CurrentApplicationId);
         //TODO: Implement Realistic Implementation
         return Content("Done");
     }
 
-    public IActionResult List()
+    public async Task<IActionResult> List()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var categories = _categoryServices.List(user.CurrentApplicationId);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var categories = await _categoryServices.List(user.CurrentApplicationId);
 
         return View(categories);
     }

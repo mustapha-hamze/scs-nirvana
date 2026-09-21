@@ -6,10 +6,10 @@ namespace Application.UseCases.CMSServices
 {
     public interface ICategoryServices
     {
-        Task<CategoryDto> Create(CategoryDto category, int applicationId);
-        Task Delete(int id, int applicationId);
-        List<CategoryDto> List(int applicationId);
-        Task<CategoryDto> GetById(int id, int applicationId);
-        List<CategoryDto> GetAllFullPath(int applicationId);
+        Task<CategoryDto> Create(CategoryDto category, int applicationId, CancellationToken cancellationToken = default);
+        Task Delete(int id, int applicationId, CancellationToken cancellationToken = default);
+        Task<List<CategoryDto>> List(int applicationId, CancellationToken cancellationToken = default);
+        Task<CategoryDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default);
+        Task<List<CategoryDto>> GetAllFullPath(int applicationId, CancellationToken cancellationToken = default);
     }
 }

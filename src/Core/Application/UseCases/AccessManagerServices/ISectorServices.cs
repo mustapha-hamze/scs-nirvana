@@ -7,11 +7,11 @@ namespace Application.UseCases.AccessManagerServices
 {
     public interface ISectorServices
     {
-        Task Create(SectorDto sector);
-        Task Update(SectorDto sector, int applicationId);
-        Task<SectorDto> GetById(int id, int applicationId);
-        Task Delete(int id, int applicationId);
-        List<SectorDto> GetAllSector(int applicationId);
-        List<SectorDto> GetAllSector();
+        Task Create(SectorDto sector, CancellationToken cancellationToken = default);
+        Task Update(SectorDto sector, int applicationId, CancellationToken cancellationToken = default);
+        Task<SectorDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default);
+        Task Delete(int id, int applicationId, CancellationToken cancellationToken = default);
+        Task<List<SectorDto>> GetAllSector(int applicationId, CancellationToken cancellationToken = default);
+        Task<List<SectorDto>> GetAllSector(CancellationToken cancellationToken = default);
     }
 }

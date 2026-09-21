@@ -1,14 +1,14 @@
 @using Application.UseCases.Utilities.ApplicationConst;
 
 @{
-    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+    var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
     var accesses = await userManagementServices.GetUserAccesses(user.Email);
     if (accesses == string.Empty)
         accesses = "NULL";
 
     int appId = user.CurrentApplicationId;
 
-    var appPages = applicationServices.GetApplicationSetting(user.CurrentApplicationId, 6000).OrderBy(ap => ap.Value);
+    var appPages = (await applicationServices.GetApplicationSetting(user.CurrentApplicationId, 6000)).OrderBy(ap => ap.Value);
 }
 @inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices
 @inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
@@ -36,7 +36,7 @@
                         <div class="collapse" id="sidebarSecondLevel">
                             <ul class="side-nav-third-level">
                                 @{
-                                    var contentTypes = systemTypeServices.GetTypesInTypeGroup(appId, TypeId.Content);
+                                    var contentTypes = await systemTypeServices.GetTypesInTypeGroup(appId, TypeId.Content);
                                 }
                                 @foreach (var item in contentTypes)
                                 {

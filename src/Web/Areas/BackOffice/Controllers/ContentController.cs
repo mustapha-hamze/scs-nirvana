@@ -70,14 +70,14 @@ public class ContentController : BaseController
     public async Task<IActionResult> ContentForm(int id = 0, int typeId = 0)
     {
         ViewData["TypeId"] = typeId;
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
 
-        ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
+        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
 
         if (id != 0)
         {
             var content = await _contentServices.GetById(id, user.CurrentApplicationId);
-            var appSetting = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 5000);
+            var appSetting = await _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 5000);
             ViewData["WebsiteUrl"] = appSetting[0].Value;
             return View(content);
         }
@@ -100,8 +100,8 @@ public class ContentController : BaseController
         else
             schemaTypeId = 1001;
 
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["Schemas"] = _schemaServices.List(user.CurrentApplicationId, schemaTypeId);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        ViewData["Schemas"] = await _schemaServices.List(user.CurrentApplicationId, schemaTypeId);
         ViewData["Sections"] = await _contentServices.GetSections(contentId, user.CurrentApplicationId);
         return View();
     }
@@ -109,10 +109,10 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ContentRelations/{contentId}")]
     public async Task<IActionResult> ContentRelations(int contentId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["Categories"] = _categoryServices.GetAllFullPath(user.CurrentApplicationId);
-        ViewData["Tags"] = _tagServices.FindTagsByTypeId(user.CurrentApplicationId, TypeId.Content);
-        ViewData["Cultures"] = _cultureServices.List();
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        ViewData["Categories"] = await _categoryServices.GetAllFullPath(user.CurrentApplicationId);
+        ViewData["Tags"] = await _tagServices.FindTagsByTypeId(user.CurrentApplicationId, TypeId.Content);
+        ViewData["Cultures"] = await _cultureServices.List();
         var content = await _contentServices.GetById(contentId, user.CurrentApplicationId);
         return View(content);
     }
@@ -120,7 +120,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ContentMetadata/{contentId}")]
     public async Task<IActionResult> ContentMetadata(int contentId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var contentMetadata = await _contentServices.GetContentMetadata(contentId, user.CurrentApplicationId);
         contentMetadata.ContentId = contentId;
 
@@ -130,9 +130,9 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ContentImages/{contentId}")]
     public async Task<IActionResult> ContentImages(int contentId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["ContentImageAspectRatio"] = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1001);
-        ViewData["ContentImageSizes"] = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        ViewData["ContentImageAspectRatio"] = await _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1001);
+        ViewData["ContentImageSizes"] = await _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
         ViewData["ContentImage"] = await _contentServices.GetAllContentImages(contentId, user.CurrentApplicationId);
         return View();
     }
@@ -141,7 +141,7 @@ public class ContentController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentForm(ContentDto content)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         if (content.Id == 0)
         {
             content.ApplicationId = user.CurrentApplicationId;
@@ -163,7 +163,7 @@ public class ContentController : BaseController
     [Route("/{area}/{controller}/FarsiContentForm/{id}/{typeId}")]
     public async Task<IActionResult> FarsiContentForm(int id, int typeId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var englishContent = await _contentProvider.GetContentForTranslate(id, user.CurrentApplicationId);
         if (englishContent == null)
             return NotFound();
@@ -183,7 +183,7 @@ public class ContentController : BaseController
         if (model == null || model.Id == 0)
             return Content("Failed");
 
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var englishContent = await _contentProvider.GetContentForTranslate(model.Id, user.CurrentApplicationId);
         if (englishContent == null)
             return NotFound();
@@ -321,11 +321,11 @@ public class ContentController : BaseController
     }
 
     [Route("/{area}/{controller}/{action}/{id}")]
-    public IActionResult ContentList(int id)
+    public async Task<IActionResult> ContentList(int id)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var contents = _contentServices.List(user.CurrentApplicationId).Where(c => c.TypeId == id).ToList();
-        ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var contents = (await _contentServices.List(user.CurrentApplicationId)).Where(c => c.TypeId == id).ToList();
+        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
         return View(contents);
     }
 
@@ -334,7 +334,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ChangeContentActiveMode/{typeId}/{contentId}/{mode}")]
     public async Task<IActionResult> ChangeContentActiveMode(int typeId, int contentId, bool mode)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
 
         if (mode)
         {
@@ -353,7 +353,7 @@ public class ContentController : BaseController
             await _contentServices.ChangeContentActiveMode(contentId, mode, user.CurrentApplicationId);
         }
 
-        var frontContentTypes = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1002);
+        var frontContentTypes = await _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1002);
         if (frontContentTypes.Any(x => x.Value.Contains(typeId.ToString())))
         {
             var frontContentTypeIds = new List<int>();
@@ -365,11 +365,11 @@ public class ContentController : BaseController
     }
 
     [Route("/{area}/Content/CreateContentSection/{schemaId}/{priority}")]
-    public IActionResult CreateContentSection(int schemaId, int priority)
+    public async Task<IActionResult> CreateContentSection(int schemaId, int priority)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["Priority"] = priority;
-        var schemaDetails = _schemaServices.DetailsList(schemaId, user.CurrentApplicationId);
+        var schemaDetails = await _schemaServices.DetailsList(schemaId, user.CurrentApplicationId);
         return View(schemaDetails);
     }
 
@@ -378,7 +378,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/DeleteContent/{id}")]
     public async Task<IActionResult> DeleteContent(int id)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _contentServices.Delete(id, user.CurrentApplicationId);
         return Content("Done");
     }
@@ -387,7 +387,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/SaveRelation/{Entity}/{contentId}")]
     public async Task<IActionResult> SaveRelation([FromForm] string Data, string Entity, int contentId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var ids = ParseRelationIds(Data);
         switch (Entity)
         {
@@ -426,7 +426,7 @@ public class ContentController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentMetadata(ContentMetadataDto contentMetadata)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
 
         if (contentMetadata.Id == 0)
             await _contentServices.CreateContentMetadata(contentMetadata, user.CurrentApplicationId);
@@ -439,7 +439,7 @@ public class ContentController : BaseController
     [HttpPost]
     public async Task<IActionResult> SaveSection([FromBody] SaveContentBodyDto section)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
 
         if (section != null)
         {
@@ -709,7 +709,7 @@ public class ContentController : BaseController
     [HttpPost]
     public async Task<IActionResult> UpdateSectionsLayoutOrder([FromBody] string sectionsOrder)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
 
         var sectionsOrderArray = sectionsOrder.Split(',');
         for (int i = 0; i < sectionsOrderArray.Length - 1; i++)
@@ -772,8 +772,8 @@ public class ContentController : BaseController
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Content/Image/" + contentId);
 
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var imageSettings = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var imageSettings = await _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
         var currentImageSettings = imageSettings.Single(s => s.Id == settingId);
 
         var targetSizes = currentImageSettings.Value.Split(",").Select(item =>
@@ -816,7 +816,7 @@ public class ContentController : BaseController
     [HttpDelete]
     public async Task<IActionResult> DeleteSection(int id)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _contentServices.DeleteSection(id, user.CurrentApplicationId);
         return Content("Done");
     }

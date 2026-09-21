@@ -2,7 +2,7 @@
 @inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices;
 
 @{
-    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+    var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
     var app = await applicationServices.GetById(user.CurrentApplicationId);
 }
 

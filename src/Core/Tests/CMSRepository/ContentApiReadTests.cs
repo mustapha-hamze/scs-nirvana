@@ -68,7 +68,7 @@ public class ContentApiReadTests
     // ---- GetContent/{id}  (backed by GetContentByIdFull) ----
 
     [Fact]
-    public void GetContentByIdFull_WithSectionsAndImages_SerializesWithoutThrowing()
+    public async Task GetContentByIdFull_WithSectionsAndImages_SerializesWithoutThrowing()
     {
         // Regression guard: the old raw-Content response threw JsonException ("A possible object
         // cycle was detected") for any content with a section or image, because EF's relationship
@@ -80,21 +80,21 @@ public class ContentApiReadTests
         var contentId = SeedFullContent(context);
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByIdFull(contentId, applicationId: 1);
+        var result = await repository.GetContentByIdFull(contentId, applicationId: 1);
 
         var json = JsonSerializer.Serialize(result, ProdLikeJsonOptions);
         Assert.NotEmpty(json);
     }
 
     [Fact]
-    public void GetContentByIdFull_PopulatesNestedSectionsElementsAndImages()
+    public async Task GetContentByIdFull_PopulatesNestedSectionsElementsAndImages()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         var contentId = SeedFullContent(context);
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByIdFull(contentId, applicationId: 1);
+        var result = await repository.GetContentByIdFull(contentId, applicationId: 1);
 
         var dto = Assert.Single(result);
         Assert.Equal("Sample Content", dto.Title);
@@ -110,7 +110,7 @@ public class ContentApiReadTests
     }
 
     [Fact]
-    public void GetContentByIdFull_ExcludesDeletedImagesAndSections()
+    public async Task GetContentByIdFull_ExcludesDeletedImagesAndSections()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -120,14 +120,14 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByIdFull(contentId, applicationId: 1));
+        var dto = Assert.Single(await repository.GetContentByIdFull(contentId, applicationId: 1));
 
         Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted.jpg");
         Assert.Single(dto.Sections);
     }
 
     [Fact]
-    public void GetContentByIdFull_ExcludesDeletedSectionElements()
+    public async Task GetContentByIdFull_ExcludesDeletedSectionElements()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -137,7 +137,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByIdFull(contentId, applicationId: 1));
+        var dto = Assert.Single(await repository.GetContentByIdFull(contentId, applicationId: 1));
 
         var resultSection = Assert.Single(dto.Sections);
         var element = Assert.Single(resultSection.Elements);
@@ -145,7 +145,7 @@ public class ContentApiReadTests
     }
 
     [Fact]
-    public void GetContentByIdFull_NotFound_ReturnsEmptyList()
+    public async Task GetContentByIdFull_NotFound_ReturnsEmptyList()
     {
         // The controller relies on this: Ok(content[0]) when found, Ok(content) — an empty
         // array — when not found. That branch must keep working, so the method must keep
@@ -154,13 +154,13 @@ public class ContentApiReadTests
         using var context = factory.CreateContext();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByIdFull(999, applicationId: 1);
+        var result = await repository.GetContentByIdFull(999, applicationId: 1);
 
         Assert.Empty(result);
     }
 
     [Fact]
-    public void GetContentByIdFull_ContentBelongsToDifferentApplication_ReturnsEmptyList()
+    public async Task GetContentByIdFull_ContentBelongsToDifferentApplication_ReturnsEmptyList()
     {
         // Matching content id, wrong application: must be indistinguishable from a missing id.
         using var factory = new SqliteContextFactory();
@@ -168,7 +168,7 @@ public class ContentApiReadTests
         var contentId = SeedFullContent(context, applicationId: 2);
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByIdFull(contentId, applicationId: 1);
+        var result = await repository.GetContentByIdFull(contentId, applicationId: 1);
 
         Assert.Empty(result);
     }
@@ -176,14 +176,14 @@ public class ContentApiReadTests
     // ---- GetContentByTypeId/{typeId}  (no page) ----
 
     [Fact]
-    public void GetContentByTypeId_NoPage_SerializesWithoutThrowing_AndPopulatesMetadata()
+    public async Task GetContentByTypeId_NoPage_SerializesWithoutThrowing_AndPopulatesMetadata()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         SeedFullContent(context, typeId: 2000);
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByTypeId(2000, applicationId: 1);
+        var result = await repository.GetContentByTypeId(2000, applicationId: 1, CancellationToken.None);
 
         var json = JsonSerializer.Serialize(result, ProdLikeJsonOptions);
         Assert.NotEmpty(json);
@@ -199,7 +199,7 @@ public class ContentApiReadTests
     }
 
     [Fact]
-    public void GetContentByTypeId_NoPage_ExcludesDeletedImages()
+    public async Task GetContentByTypeId_NoPage_ExcludesDeletedImages()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -208,13 +208,13 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByTypeId(2001, applicationId: 1));
+        var dto = Assert.Single(await repository.GetContentByTypeId(2001, applicationId: 1, CancellationToken.None));
 
         Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted.jpg");
     }
 
     [Fact]
-    public void GetContentByTypeId_NoPage_ExcludesDeletedSections()
+    public async Task GetContentByTypeId_NoPage_ExcludesDeletedSections()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -223,13 +223,13 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByTypeId(2003, applicationId: 1));
+        var dto = Assert.Single(await repository.GetContentByTypeId(2003, applicationId: 1, CancellationToken.None));
 
         Assert.Single(dto.Sections);
     }
 
     [Fact]
-    public void GetContentByTypeId_NoPage_ExcludesDeletedMetadata()
+    public async Task GetContentByTypeId_NoPage_ExcludesDeletedMetadata()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -239,13 +239,13 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByTypeId(2004, applicationId: 1));
+        var dto = Assert.Single(await repository.GetContentByTypeId(2004, applicationId: 1, CancellationToken.None));
 
         Assert.Null(dto.Metadata);
     }
 
     [Fact]
-    public void GetContentByTypeId_NoPage_MatchingTypeIdDifferentApplication_ExcludesOtherApplication()
+    public async Task GetContentByTypeId_NoPage_MatchingTypeIdDifferentApplication_ExcludesOtherApplication()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -253,7 +253,7 @@ public class ContentApiReadTests
         SeedFullContent(context, typeId: 2002, applicationId: 2);
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByTypeId(2002, applicationId: 1);
+        var result = await repository.GetContentByTypeId(2002, applicationId: 1, CancellationToken.None);
 
         var dto = Assert.Single(result);
         Assert.Equal(1, dto.ApplicationId);
@@ -262,14 +262,14 @@ public class ContentApiReadTests
     // ---- GetContentByTypeId/{typeId}/{pageIndex}  (BlogIndexApiDto) ----
 
     [Fact]
-    public void GetContentByTypeId_Paged_ReturnsOnlyDocumentedFields()
+    public async Task GetContentByTypeId_Paged_ReturnsOnlyDocumentedFields()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         SeedFullContent(context, typeId: 3000, categories: "5");
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByTypeId(3000, applicationId: 1, pageIndex: 1);
+        var result = await repository.GetContentByTypeId(3000, applicationId: 1, pageIndex: 1);
 
         var dto = Assert.Single(result.Contents);
         Assert.Equal("Sample Content", dto.Title);
@@ -286,7 +286,7 @@ public class ContentApiReadTests
     }
 
     [Fact]
-    public void GetContentByTypeId_Paged_ComputesPageCount()
+    public async Task GetContentByTypeId_Paged_ComputesPageCount()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -297,7 +297,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByTypeId(4000, applicationId: 0, pageIndex: 1);
+        var result = await repository.GetContentByTypeId(4000, applicationId: 0, pageIndex: 1);
 
         // 16 rows at 15/page => 2 pages (regression guard for the off-by-one page-count bug).
         Assert.Equal(2, result.PagesCount);
@@ -305,7 +305,7 @@ public class ContentApiReadTests
     }
 
     [Fact]
-    public void GetContentByTypeId_Paged_ExcludesDeletedImages()
+    public async Task GetContentByTypeId_Paged_ExcludesDeletedImages()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -314,7 +314,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByTypeId(4100, applicationId: 1, pageIndex: 1).Contents);
+        var dto = Assert.Single((await repository.GetContentByTypeId(4100, applicationId: 1, pageIndex: 1)).Contents);
 
         Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted-640.jpg");
     }
@@ -322,7 +322,7 @@ public class ContentApiReadTests
     // ---- GetContentByCategoryId/{categoryId}/{pageIndex}/{pageSize} ----
 
     [Fact]
-    public void GetContentByCategoryId_UsesJoinTable_ExactMatchOnly()
+    public async Task GetContentByCategoryId_UsesJoinTable_ExactMatchOnly()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -335,14 +335,14 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryId(1, applicationId: 1, pageIndex: 0, pageSize: 40);
+        var result = await repository.GetContentByCategoryId(1, applicationId: 1, pageIndex: 0, pageSize: 40);
 
         var dto = Assert.Single(result.Contents);
         Assert.Equal(matching, dto.Id);
     }
 
     [Fact]
-    public void GetContentByCategoryId_SameCategoryIdDifferentApplication_ExcludesOtherApplication()
+    public async Task GetContentByCategoryId_SameCategoryIdDifferentApplication_ExcludesOtherApplication()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -354,14 +354,14 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryId(50, applicationId: 1, pageIndex: 0, pageSize: 40);
+        var result = await repository.GetContentByCategoryId(50, applicationId: 1, pageIndex: 0, pageSize: 40);
 
         var dto = Assert.Single(result.Contents);
         Assert.Equal(ownApp, dto.Id);
     }
 
     [Fact]
-    public void GetContentByCategoryId_ExcludesDeletedImages()
+    public async Task GetContentByCategoryId_ExcludesDeletedImages()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -372,13 +372,13 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByCategoryId(60, applicationId: 1, pageIndex: 0, pageSize: 40).Contents);
+        var dto = Assert.Single((await repository.GetContentByCategoryId(60, applicationId: 1, pageIndex: 0, pageSize: 40)).Contents);
 
         Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted-640.jpg");
     }
 
     [Fact]
-    public void GetContentByCategoryId_PagesCountAndPageIndex_AreComputed()
+    public async Task GetContentByCategoryId_PagesCountAndPageIndex_AreComputed()
     {
         // GetContentByCategoryId now normalizes to one-based paging and reports real pagination
         // metadata (see ContentRepositoryTests for the full page 0 / page 1 / page 2 contract).
@@ -390,14 +390,14 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryId(9, applicationId: 1);
+        var result = await repository.GetContentByCategoryId(9, applicationId: 1);
 
         Assert.Equal(1, result.PagesCount);
         Assert.Equal(1, result.PageIndex);
     }
 
     [Fact]
-    public void GetContentByCategoryId_SoftDeletedCategory_ReturnsEmptyResult()
+    public async Task GetContentByCategoryId_SoftDeletedCategory_ReturnsEmptyResult()
     {
         // A deleted category must produce the same empty result as a missing one — never
         // distinguishable, even though its join rows still technically exist.
@@ -409,14 +409,14 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryId(70, applicationId: 1);
+        var result = await repository.GetContentByCategoryId(70, applicationId: 1);
 
         Assert.Empty(result.Contents);
         Assert.Equal(0, result.PagesCount);
     }
 
     [Fact]
-    public void GetContentByCategoryId_InactiveCategory_ReturnsEmptyResult()
+    public async Task GetContentByCategoryId_InactiveCategory_ReturnsEmptyResult()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -426,13 +426,13 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryId(71, applicationId: 1);
+        var result = await repository.GetContentByCategoryId(71, applicationId: 1);
 
         Assert.Empty(result.Contents);
     }
 
     [Fact]
-    public void GetContentByCategoryId_MalformedCrossApplicationRelation_ReturnsEmptyResult()
+    public async Task GetContentByCategoryId_MalformedCrossApplicationRelation_ReturnsEmptyResult()
     {
         // Historical/corrupt data: a ContentInCategory row links a category that belongs to a
         // different application to this application's own content. The category ownership check
@@ -445,7 +445,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryId(80, applicationId: 1);
+        var result = await repository.GetContentByCategoryId(80, applicationId: 1);
 
         Assert.Empty(result.Contents);
     }
@@ -453,7 +453,7 @@ public class ContentApiReadTests
     // ---- GetContentByCategoryIdByDate/{categoryId}/{startDate}/{endDate}/{pageIndex} ----
 
     [Fact]
-    public void GetContentByCategoryIdByDate_CategoryOneDoesNotMatchCategoryEleven()
+    public async Task GetContentByCategoryIdByDate_CategoryOneDoesNotMatchCategoryEleven()
     {
         // The exact bug named in the task: Categories.Contains("1") used to also match a content
         // item whose category string was "11". Now backed by the ContentInCategories join table.
@@ -466,13 +466,13 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryIdByDate(1, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
+        var result = await repository.GetContentByCategoryIdByDate(1, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
 
         Assert.Empty(result.Contents);
     }
 
     [Fact]
-    public void GetContentByCategoryIdByDate_FiltersByDateRangeAndReturnsExactMatch()
+    public async Task GetContentByCategoryIdByDate_FiltersByDateRangeAndReturnsExactMatch()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -487,14 +487,14 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryIdByDate(7, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
+        var result = await repository.GetContentByCategoryIdByDate(7, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
 
         var dto = Assert.Single(result.Contents);
         Assert.Equal("In range", dto.Title);
     }
 
     [Fact]
-    public void GetContentByCategoryIdByDate_SameCategoryIdDifferentApplication_ExcludesOtherApplication()
+    public async Task GetContentByCategoryIdByDate_SameCategoryIdDifferentApplication_ExcludesOtherApplication()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -506,14 +506,14 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentByCategoryIdByDate(8, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
+        var result = await repository.GetContentByCategoryIdByDate(8, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1);
 
         var dto = Assert.Single(result.Contents);
         Assert.Equal(ownApp, dto.Id);
     }
 
     [Fact]
-    public void GetContentByCategoryIdByDate_ExcludesDeletedImages()
+    public async Task GetContentByCategoryIdByDate_ExcludesDeletedImages()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -524,7 +524,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentByCategoryIdByDate(63, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1).Contents);
+        var dto = Assert.Single((await repository.GetContentByCategoryIdByDate(63, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1)).Contents);
 
         Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted-640.jpg");
     }
@@ -532,7 +532,7 @@ public class ContentApiReadTests
     // ---- GetContentInCategoryAsBox/{categoryId} ----
 
     [Fact]
-    public void GetContentInCategoryAsBox_ExactMatchOnly()
+    public async Task GetContentInCategoryAsBox_ExactMatchOnly()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -545,7 +545,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentInCategoryAsBox(3, applicationId: 1);
+        var result = await repository.GetContentInCategoryAsBox(3, applicationId: 1);
 
         var dto = Assert.Single(result);
         Assert.Equal(matching, dto.Id);
@@ -553,7 +553,7 @@ public class ContentApiReadTests
     }
 
     [Fact]
-    public void GetContentInCategoryAsBox_SameCategoryIdDifferentApplication_ExcludesOtherApplication()
+    public async Task GetContentInCategoryAsBox_SameCategoryIdDifferentApplication_ExcludesOtherApplication()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -565,14 +565,14 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var result = repository.GetContentInCategoryAsBox(40, applicationId: 1);
+        var result = await repository.GetContentInCategoryAsBox(40, applicationId: 1);
 
         var dto = Assert.Single(result);
         Assert.Equal(ownApp, dto.Id);
     }
 
     [Fact]
-    public void GetContentInCategoryAsBox_ExcludesDeletedImages()
+    public async Task GetContentInCategoryAsBox_ExcludesDeletedImages()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -583,7 +583,7 @@ public class ContentApiReadTests
         context.SaveChanges();
 
         var repository = CreateRepository(context);
-        var dto = Assert.Single(repository.GetContentInCategoryAsBox(72, applicationId: 1));
+        var dto = Assert.Single(await repository.GetContentInCategoryAsBox(72, applicationId: 1));
 
         Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted-640.jpg");
     }

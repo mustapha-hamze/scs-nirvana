@@ -11,9 +11,9 @@ public class ContentQueryRepository : IContentQueryRepository
         _dbContext = dbContext;
     }
 
-    public List<ContentApiDto> GetContentByIdFull(int id, int applicationId)
+    public async Task<List<ContentApiDto>> GetContentByIdFull(int id, int applicationId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Contents.Where(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted)
+        return await _dbContext.Contents.Where(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted)
             .Select(c => new ContentApiDto
             {
                 Id = c.Id,
@@ -74,11 +74,11 @@ public class ContentQueryRepository : IContentQueryRepository
                     }).ToList()
                 }).ToList()
             })
-            .ToList();
+            .ToListAsync(cancellationToken);
     }
-    public List<ContentApiDto> GetContentByTypeId(int typeId, int applicationId)
+    public async Task<List<ContentApiDto>> GetContentByTypeId(int typeId, int applicationId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Contents.Where(c => c.TypeId == typeId && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive)
+        return await _dbContext.Contents.Where(c => c.TypeId == typeId && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive)
             .Select(c => new ContentApiDto
             {
                 Id = c.Id,
@@ -138,16 +138,16 @@ public class ContentQueryRepository : IContentQueryRepository
                     Description = c.Metadata.Description
                 }
             })
-            .ToList();
+            .ToListAsync(cancellationToken);
     }
-    public BlogIndexApiDto GetContentByTypeId(int typeId, int applicationId, int pageIndex = 1)
+    public async Task<BlogIndexApiDto> GetContentByTypeId(int typeId, int applicationId, int pageIndex = 1, CancellationToken cancellationToken = default)
     {
         var result = new BlogIndexApiDto();
         int skipCount = 0;
         if (pageIndex > 1)
             skipCount = 15 * (pageIndex - 1);
 
-        result.Contents = _dbContext.Contents
+        result.Contents = await _dbContext.Contents
             .Where(c => c.TypeId == typeId && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive)
             .Select(c => new ContentApiDto
             {
@@ -171,9 +171,9 @@ public class ContentQueryRepository : IContentQueryRepository
                 }).ToList()
             })
             .OrderByDescending(c => c.CreatedDT)
-            .Skip(skipCount).Take(15).ToList();
+            .Skip(skipCount).Take(15).ToListAsync(cancellationToken);
 
-        var rowsCount = _dbContext.Contents.Count(c => c.TypeId == typeId && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive);
+        var rowsCount = await _dbContext.Contents.CountAsync(c => c.TypeId == typeId && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive, cancellationToken);
         var pageCount = rowsCount / 15;
         if ((rowsCount % 15) > 0)
             pageCount++;
@@ -187,12 +187,12 @@ public class ContentQueryRepository : IContentQueryRepository
     // A category/tag id must belong to applicationId and be active/not-deleted before its join
     // rows are trusted — this also protects against a historical ContentInCategory/Tag row that
     // links a category/tag from a different application to this application's content.
-    private bool IsCategoryOwnedByApplication(int categoryId, int applicationId)
+    private Task<bool> IsCategoryOwnedByApplication(int categoryId, int applicationId, CancellationToken cancellationToken)
     {
-        return _dbContext.Categories.Any(c => c.Id == categoryId && c.ApplicationId == applicationId && c.IsActive && !c.IsDeleted);
+        return _dbContext.Categories.AnyAsync(c => c.Id == categoryId && c.ApplicationId == applicationId && c.IsActive && !c.IsDeleted, cancellationToken);
     }
 
-    public BlogIndexApiDto GetContentByCategoryId(int categoryId, int applicationId, int pageIndex = 1, int pageSize = 40)
+    public async Task<BlogIndexApiDto> GetContentByCategoryId(int categoryId, int applicationId, int pageIndex = 1, int pageSize = 40, CancellationToken cancellationToken = default)
     {
         // One-based paging: page 0 is kept as a backward-compatible alias for page 1 (the
         // first page); any page >= 2 skips (page - 1) * pageSize rows.
@@ -205,7 +205,7 @@ public class ContentQueryRepository : IContentQueryRepository
 
         // Missing, deleted, or wrong-application category: same empty result as "no content
         // matched" — never distinguishable from a category that just has no content.
-        if (!IsCategoryOwnedByApplication(categoryId, applicationId))
+        if (!await IsCategoryOwnedByApplication(categoryId, applicationId, cancellationToken))
         {
             result.Contents = new List<ContentApiDto>();
             result.PageIndex = normalizedPage;
@@ -236,17 +236,17 @@ public class ContentQueryRepository : IContentQueryRepository
                         content.TypeId,
                     };
 
-        var totalCount = query.Count();
+        var totalCount = await query.CountAsync(cancellationToken);
 
-        var _result = query
+        var _result = await query
             .Skip(skipCount)
             .Take(pageSize)
-            .ToList();
+            .ToListAsync(cancellationToken);
 
         var contentIds = _result.Select(r => r.ContentId).ToList();
-        var imagesByContentId = _dbContext.ContentImages
+        var imagesByContentId = (await _dbContext.ContentImages
             .Where(i => contentIds.Contains(i.ContentId) && (i.Size == 640 || i.Size == 430 || i.Size == 860) && !i.IsDeleted)
-            .ToList()
+            .ToListAsync(cancellationToken))
             .GroupBy(i => i.ContentId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ContentImageApiDto
             {
@@ -283,11 +283,11 @@ public class ContentQueryRepository : IContentQueryRepository
         return result;
     }
 
-    public List<ContentApiDto> GetContentInCategoryAsBox(int categoryId, int applicationId)
+    public async Task<List<ContentApiDto>> GetContentInCategoryAsBox(int categoryId, int applicationId, CancellationToken cancellationToken = default)
     {
         // Missing, deleted, or wrong-application category: same empty result as "no content
         // matched" — never distinguishable from a category that just has no content.
-        if (!IsCategoryOwnedByApplication(categoryId, applicationId))
+        if (!await IsCategoryOwnedByApplication(categoryId, applicationId, cancellationToken))
             return new List<ContentApiDto>();
 
         var query = (from ccc in _dbContext.ContentInCategories
@@ -306,12 +306,12 @@ public class ContentQueryRepository : IContentQueryRepository
                          Abstract = cc.Abstract
                      }).Take(10);
 
-        var result = query.ToList();
+        var result = await query.ToListAsync(cancellationToken);
 
         var contentIds = result.Select(r => r.ContentId).ToList();
-        var imagesByContentId = _dbContext.ContentImages
+        var imagesByContentId = (await _dbContext.ContentImages
             .Where(i => contentIds.Contains(i.ContentId) && i.Size == 640 && !i.IsDeleted)
-            .ToList()
+            .ToListAsync(cancellationToken))
             .GroupBy(i => i.ContentId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ContentImageApiDto
             {
@@ -343,7 +343,7 @@ public class ContentQueryRepository : IContentQueryRepository
         return contents;
     }
 
-    public BlogIndexApiDto GetContentByCategoryIdByDate(int categoryId, int applicationId, DateTime startDate, DateTime endDate, int pageIndex = 1)
+    public async Task<BlogIndexApiDto> GetContentByCategoryIdByDate(int categoryId, int applicationId, DateTime startDate, DateTime endDate, int pageIndex = 1, CancellationToken cancellationToken = default)
     {
         var result = new BlogIndexApiDto();
         int skipCount = 0;
@@ -352,7 +352,7 @@ public class ContentQueryRepository : IContentQueryRepository
 
         // Missing, deleted, or wrong-application category: same empty result as "no content
         // matched" — never distinguishable from a category that just has no content.
-        if (!IsCategoryOwnedByApplication(categoryId, applicationId))
+        if (!await IsCategoryOwnedByApplication(categoryId, applicationId, cancellationToken))
         {
             result.Contents = new List<ContentApiDto>();
             result.PageIndex = pageIndex;
@@ -365,7 +365,7 @@ public class ContentQueryRepository : IContentQueryRepository
         // which matches on the exact category relation instead.
         var categoryFilter = _dbContext.ContentInCategories.Where(cc => cc.CategoryId == categoryId).Select(cc => cc.ContentId);
 
-        result.Contents = _dbContext.Contents
+        result.Contents = await _dbContext.Contents
             .Where(c => categoryFilter.Contains(c.Id) && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive
                 && c.CreatedDT > startDate && c.CreatedDT < endDate)
             .Select(c => new ContentApiDto
@@ -390,11 +390,11 @@ public class ContentQueryRepository : IContentQueryRepository
                 }).ToList()
             })
             .OrderByDescending(c => c.CreatedDT)
-            .Skip(skipCount).Take(15).ToList();
+            .Skip(skipCount).Take(15).ToListAsync(cancellationToken);
 
-        var rowsCount = _dbContext.Contents
-            .Count(c => categoryFilter.Contains(c.Id) && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive
-                && c.CreatedDT > startDate && c.CreatedDT < endDate);
+        var rowsCount = await _dbContext.Contents
+            .CountAsync(c => categoryFilter.Contains(c.Id) && c.ApplicationId == applicationId && !c.IsDeleted && c.IsActive
+                && c.CreatedDT > startDate && c.CreatedDT < endDate, cancellationToken);
         var pageCount = rowsCount / 15;
         if ((rowsCount % 15) > 0)
             pageCount++;
@@ -405,102 +405,97 @@ public class ContentQueryRepository : IContentQueryRepository
         return result;
     }
 
-    public List<Content> List(int applicationId)
+    public async Task<List<Content>> List(int applicationId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Contents
+        return await _dbContext.Contents
             .Where(c => !c.IsDeleted && c.ApplicationId == applicationId)
-            .OrderByDescending(c => c.CreatedDT).ToList();
+            .OrderByDescending(c => c.CreatedDT).ToListAsync(cancellationToken);
     }
 
-    public List<Content> OurBlogBoxList(int applicationId)
+    public async Task<List<Content>> OurBlogBoxList(int applicationId, CancellationToken cancellationToken = default)
     {
-        var contents = _dbContext.Contents
+        return await _dbContext.Contents
             .Where(c => !c.IsDeleted && c.ApplicationId == applicationId)
-            .OrderByDescending(c => c.CreatedDT).Take(3).ToList();
-
-        return contents;
+            .OrderByDescending(c => c.CreatedDT).Take(3).ToListAsync(cancellationToken);
     }
 
-    public List<Content> List(int applicationId, int pageIndex)
+    public async Task<List<Content>> List(int applicationId, int pageIndex, CancellationToken cancellationToken = default)
     {
         // Was: Skip/Take ran before the Where filter, so pagination was computed over every
         // application's content and only filtered down afterward — content from other
         // applications could fill (or empty out) the requested page.
-        var contents = _dbContext.Contents
+        return await _dbContext.Contents
             .Where(c => !c.IsDeleted && c.ApplicationId == applicationId)
             .OrderByDescending(c => c.CreatedDT)
             .Skip(pageIndex * 20).Take(20)
-            .ToList();
-        return contents;
+            .ToListAsync(cancellationToken);
     }
 
-    public int ContentCount(int applicationId)
+    public Task<int> ContentCount(int applicationId, CancellationToken cancellationToken = default)
     {
         return _dbContext.Contents
-            .Count(c => !c.IsDeleted && c.ApplicationId == applicationId);
+            .CountAsync(c => !c.IsDeleted && c.ApplicationId == applicationId, cancellationToken);
     }
 
-    public async Task<Content> GetByIdForApplication(int id, int applicationId)
+    public async Task<Content> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Contents.AsNoTracking()
-            .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted);
+            .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted, cancellationToken);
     }
 
-    public async Task<ContentSection> GetSectionForApplication(int sectionId, int applicationId)
+    public async Task<ContentSection> GetSectionForApplication(int sectionId, int applicationId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.ContentSections.AsNoTracking()
             .SingleAsync(s => s.Id == sectionId && !s.IsDeleted
-                && s.Content.ApplicationId == applicationId && !s.Content.IsDeleted);
+                && s.Content.ApplicationId == applicationId && !s.Content.IsDeleted, cancellationToken);
     }
 
-    public async Task<SectionElement> GetElementForApplication(int elementId, int applicationId)
+    public async Task<SectionElement> GetElementForApplication(int elementId, int applicationId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.SectionElements.AsNoTracking()
             .SingleAsync(e => e.Id == elementId && !e.IsDeleted
                 && !e.Section.IsDeleted
-                && e.Section.Content.ApplicationId == applicationId && !e.Section.Content.IsDeleted);
+                && e.Section.Content.ApplicationId == applicationId && !e.Section.Content.IsDeleted, cancellationToken);
     }
 
-    public async Task<ContentMetadata> GetContentMetadataForApplication(int metadataId, int applicationId)
+    public async Task<ContentMetadata> GetContentMetadataForApplication(int metadataId, int applicationId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.ContentMetadatas.AsNoTracking()
             .SingleAsync(m => m.Id == metadataId
-                && m.Content.ApplicationId == applicationId && !m.Content.IsDeleted);
+                && m.Content.ApplicationId == applicationId && !m.Content.IsDeleted, cancellationToken);
     }
 
-    public List<ContentSection> GetContentSections(int contentId)
+    public Task<List<ContentSection>> GetContentSections(int contentId, CancellationToken cancellationToken = default)
     {
         return _dbContext.ContentSections
             .Where(s => !s.IsDeleted && s.ContentId == contentId)
-            .OrderBy(s => s.Priority).ToList();
+            .OrderBy(s => s.Priority).ToListAsync(cancellationToken);
     }
 
-    public List<SectionElement> GetSectionElements(List<int> sectionIds)
+    public Task<List<SectionElement>> GetSectionElements(List<int> sectionIds, CancellationToken cancellationToken = default)
     {
         return _dbContext.SectionElements
             .Where(e => !e.IsDeleted && e.IsActive && sectionIds.Contains(e.SectionId))
-            .ToList();
+            .ToListAsync(cancellationToken);
     }
 
-    public List<SectionElement> GetSectionElements(int sectionId)
+    public Task<List<SectionElement>> GetSectionElements(int sectionId, CancellationToken cancellationToken = default)
     {
         return _dbContext.SectionElements
             .Where(e => !e.IsDeleted && e.IsActive && e.SectionId == sectionId)
-            .ToList();
+            .ToListAsync(cancellationToken);
     }
 
-    public ContentMetadata GetContentMetadata(int contentId)
+    public async Task<ContentMetadata> GetContentMetadata(int contentId, CancellationToken cancellationToken = default)
     {
-        if (_dbContext.ContentMetadatas.Any(m => m.ContentId == contentId && !m.IsDeleted))
-            return _dbContext.ContentMetadatas.Single(m => m.ContentId == contentId && !m.IsDeleted);
-        else
-            return new ContentMetadata();
+        return await _dbContext.ContentMetadatas.SingleOrDefaultAsync(m => m.ContentId == contentId && !m.IsDeleted, cancellationToken)
+            ?? new ContentMetadata();
     }
 
-    public List<ContentImage> GetAllContentImages(int contentId)
+    public Task<List<ContentImage>> GetAllContentImages(int contentId, CancellationToken cancellationToken = default)
     {
         return _dbContext.ContentImages
             .Where(i => i.ContentId == contentId && !i.IsDeleted && i.IsActive)
-            .ToList();
+            .ToListAsync(cancellationToken);
     }
 }

@@ -9,15 +9,15 @@ namespace Application.SCMRepository
 {
     public interface ISliderRepository : IRepository<Domains.Entities.CustomModule.Slider>
     {
-        List<Domains.Entities.CustomModule.Slider> GetSliders(int applicationId);
-        Task<Domains.Entities.CustomModule.Slider> GetByIdForApplication(int id, int applicationId);
-        List<SliderItem> GetSliderItems(int sliderId, int applicationId);
-        Task<SliderItem> GetItemForApplication(int sliderItemId, int applicationId);
+        Task<List<Domains.Entities.CustomModule.Slider>> GetSliders(int applicationId, CancellationToken cancellationToken = default);
+        Task<Domains.Entities.CustomModule.Slider> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default);
+        Task<List<SliderItem>> GetSliderItems(int sliderId, int applicationId, CancellationToken cancellationToken = default);
+        Task<SliderItem> GetItemForApplication(int sliderItemId, int applicationId, CancellationToken cancellationToken = default);
         Task<SliderItem> CreateSliderItem(SliderItem sliderItem);
-        Task DeactiveSliderItem(int sliderItemId);
-        Task DeleteSliderItem(int sliderItemId);
-        Task ActiveSliderItem(int sliderItemId);
-        Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId, int applicationId);
+        Task DeactiveSliderItem(int sliderItemId, CancellationToken cancellationToken = default);
+        Task DeleteSliderItem(int sliderItemId, CancellationToken cancellationToken = default);
+        Task ActiveSliderItem(int sliderItemId, CancellationToken cancellationToken = default);
+        Task<Domains.Entities.CustomModule.Slider> GetSliderWithItems(int sliderId, int applicationId, CancellationToken cancellationToken = default);
         Task<SliderItem> UpdateSliderItem(SliderItem sliderItem);
     }
 }

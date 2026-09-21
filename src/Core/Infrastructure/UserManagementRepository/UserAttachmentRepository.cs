@@ -18,11 +18,11 @@ namespace Infrastructure.UserManagementRepository
             _dbContext = dbContext;
         }
 
-        public async Task<List<UserAttachment>> List(string userId)
+        public async Task<List<UserAttachment>> List(string userId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.UserAttachments
                 .Where(a => a.UserId == userId && !a.IsDeleted)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

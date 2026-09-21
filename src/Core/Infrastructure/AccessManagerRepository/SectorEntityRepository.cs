@@ -23,22 +23,22 @@ namespace Infrastructure.AccessManagerRepository
         }
 
         // methods
-        public List<SectorEntity> GetSectorEntities(int sectorId)
+        public Task<List<SectorEntity>> GetSectorEntities(int sectorId, CancellationToken cancellationToken = default)
         {
-            return _dbContext.SectorEntities.Where(s => !s.IsDeleted && s.SectorId == sectorId).ToList();
+            return _dbContext.SectorEntities.Where(s => !s.IsDeleted && s.SectorId == sectorId).ToListAsync(cancellationToken);
         }
-        public List<SectorEntity> GetAllEntities()
+        public Task<List<SectorEntity>> GetAllEntities(CancellationToken cancellationToken = default)
         {
-            return _dbContext.SectorEntities.Where(s => !s.IsDeleted).ToList();
+            return _dbContext.SectorEntities.Where(s => !s.IsDeleted).ToListAsync(cancellationToken);
         }
 
         // SectorEntity has no ApplicationId column; it's resolved through SectorId -> Sector.
         // A soft-deleted entity, or one whose parent Sector is soft-deleted, must not resolve.
-        public async Task<SectorEntity> GetByIdForApplication(int id, int applicationId)
+        public async Task<SectorEntity> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.SectorEntities.AsNoTracking()
                 .SingleAsync(s => s.Id == id && !s.IsDeleted
-                    && s.Sector.ApplicationId == applicationId && !s.Sector.IsDeleted);
+                    && s.Sector.ApplicationId == applicationId && !s.Sector.IsDeleted, cancellationToken);
         }
     }
 }

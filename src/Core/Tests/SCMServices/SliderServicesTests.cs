@@ -34,7 +34,7 @@ public class SliderServicesTests
     }
 
     [Fact]
-    public void GetSliders_ExcludesSoftDeletedRoots()
+    public async Task GetSliders_ExcludesSoftDeletedRoots()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -44,7 +44,7 @@ public class SliderServicesTests
 
         var sut = CreateSut(context);
 
-        var result = sut.GetSliders(applicationId: 1);
+        var result = await sut.GetSliders(applicationId: 1);
 
         var slider = Assert.Single(result);
         Assert.Equal("Active", slider.Title);
@@ -240,7 +240,7 @@ public class SliderServicesTests
     }
 
     [Fact]
-    public void GetSliderItems_CrossApplicationSlider_ReturnsEmpty()
+    public async Task GetSliderItems_CrossApplicationSlider_ReturnsEmpty()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -252,11 +252,11 @@ public class SliderServicesTests
 
         var sut = CreateSut(context);
 
-        Assert.Empty(sut.GetSliderItems(slider.Id, applicationId: 1));
+        Assert.Empty(await sut.GetSliderItems(slider.Id, applicationId: 1));
     }
 
     [Fact]
-    public void GetSliderItems_SoftDeletedParentSlider_ReturnsEmpty()
+    public async Task GetSliderItems_SoftDeletedParentSlider_ReturnsEmpty()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -268,11 +268,11 @@ public class SliderServicesTests
 
         var sut = CreateSut(context);
 
-        Assert.Empty(sut.GetSliderItems(slider.Id, applicationId: 1));
+        Assert.Empty(await sut.GetSliderItems(slider.Id, applicationId: 1));
     }
 
     [Fact]
-    public void GetSliderItems_SoftDeletedItem_ExcludedFromSameApplicationSlider()
+    public async Task GetSliderItems_SoftDeletedItem_ExcludedFromSameApplicationSlider()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -285,14 +285,14 @@ public class SliderServicesTests
 
         var sut = CreateSut(context);
 
-        var result = sut.GetSliderItems(slider.Id, applicationId: 1);
+        var result = await sut.GetSliderItems(slider.Id, applicationId: 1);
 
         var item = Assert.Single(result);
         Assert.Equal("Active Item", item.Title);
     }
 
     [Fact]
-    public void GetSliderWithItems_CrossApplication_ReturnsEmptyDefault()
+    public async Task GetSliderWithItems_CrossApplication_ReturnsEmptyDefault()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -302,13 +302,13 @@ public class SliderServicesTests
 
         var sut = CreateSut(context);
 
-        var result = sut.GetSliderWithItems(slider.Id, applicationId: 1);
+        var result = await sut.GetSliderWithItems(slider.Id, applicationId: 1);
 
         Assert.Equal(0, result.Id);
     }
 
     [Fact]
-    public void GetSliderWithItems_SoftDeletedSlider_ReturnsEmptyDefault()
+    public async Task GetSliderWithItems_SoftDeletedSlider_ReturnsEmptyDefault()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -318,13 +318,13 @@ public class SliderServicesTests
 
         var sut = CreateSut(context);
 
-        var result = sut.GetSliderWithItems(slider.Id, applicationId: 1);
+        var result = await sut.GetSliderWithItems(slider.Id, applicationId: 1);
 
         Assert.Equal(0, result.Id);
     }
 
     [Fact]
-    public void GetSliderWithItems_OnlyReturnsActiveNonDeletedItems()
+    public async Task GetSliderWithItems_OnlyReturnsActiveNonDeletedItems()
     {
         using var factory = new SqliteContextFactory();
         int sliderId;
@@ -345,7 +345,7 @@ public class SliderServicesTests
         using var context = factory.CreateContext();
         var sut = CreateSut(context);
 
-        var result = sut.GetSliderWithItems(sliderId, applicationId: 1);
+        var result = await sut.GetSliderWithItems(sliderId, applicationId: 1);
 
         var visibleItem = Assert.Single(result.SliderItems);
         Assert.Equal("Active", visibleItem.Title);

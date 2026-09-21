@@ -47,7 +47,7 @@ public class SchemaController : BaseController
         }
         else
         {
-            var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+            var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
             return View(await _schemaServices.GetById(id, user.CurrentApplicationId));
         }
     }
@@ -56,7 +56,7 @@ public class SchemaController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSchemaForm(SchemaDto schema)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         if (schema.Id == 0)
         {
             schema = await _schemaServices.Create(schema, user.CurrentApplicationId);
@@ -73,7 +73,7 @@ public class SchemaController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadSchemaLogo(IFormFile File, int EntityId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         var schema = await _schemaServices.GetById(EntityId, user.CurrentApplicationId);
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Schema/Logos/");
@@ -89,10 +89,10 @@ public class SchemaController : BaseController
         return Content("Done");
     }
 
-    public IActionResult SchemaList()
+    public async Task<IActionResult> SchemaList()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_schemaServices.List(user.CurrentApplicationId));
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        return View(await _schemaServices.List(user.CurrentApplicationId));
     }
 
     [HttpDelete]
@@ -100,26 +100,26 @@ public class SchemaController : BaseController
     [Route("/{area}/Schema/DeleteSchema/{id}")]
     public async Task<IActionResult> DeleteSchema(int id)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _schemaServices.Delete(id, user.CurrentApplicationId);
         return Content("Done");
     }
 
 
     [Route("/{area}/Schema/SchemaDetailsForm/{schemaId}")]
-    public IActionResult SchemaDetailsForm(int schemaId)
+    public async Task<IActionResult> SchemaDetailsForm(int schemaId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["SchemaId"] = schemaId;
-        ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.ContentSchema);
+        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.ContentSchema);
         return View();
     }
 
     [Route("/{area}/Schema/SchemaDetailsList/{schemaId}")]
-    public IActionResult SchemaDetailsList(int schemaId)
+    public async Task<IActionResult> SchemaDetailsList(int schemaId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_schemaServices.DetailsList(schemaId, user.CurrentApplicationId));
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        return View(await _schemaServices.DetailsList(schemaId, user.CurrentApplicationId));
     }
 
     [HttpPost]
@@ -127,7 +127,7 @@ public class SchemaController : BaseController
     public async Task<IActionResult> SchemaDetailsFormSave(SchemaDetailsDto schemaDetails)
     {
         //TODO: Implement Realistic Implementation
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         await _schemaServices.CreateDetails(schemaDetails, user.CurrentApplicationId);
         return Content("Done");
     }

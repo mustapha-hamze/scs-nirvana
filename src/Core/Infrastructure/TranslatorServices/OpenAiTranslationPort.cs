@@ -1,7 +1,6 @@
 using System;
 using System.ClientModel;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Application.UseCases.TranslatorServices;
 using Microsoft.Extensions.Options;
@@ -40,6 +39,12 @@ public class OpenAiTranslationPort : ITranslationPort
         {
             return TranslationResult.Failed($"Translation request failed: {ex.GetType().Name}");
         }
+
+        // The completion can come back with an empty/malformed Content collection (e.g. the
+        // model returns no choices, or a moderation/refusal response) - guard before indexing
+        // instead of letting that throw an unhandled IndexOutOfRangeException.
+        if (response.Content == null || response.Content.Count == 0)
+            return TranslationResult.Failed("Translation response contained no content.");
 
         var translatedText = response.Content[0].Text;
 

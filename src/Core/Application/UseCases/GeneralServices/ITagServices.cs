@@ -6,10 +6,10 @@ namespace Application.UseCases.GeneralServices
 {
     public interface ITagServices
     {
-        Task<TagDto> Create(TagDto tag, int applicationId);
-        Task Delete(int id, int applicationId);
-        List<TagDto> List(int applicationId);
-        List<TagDto> FindTagsByTypeId(int applicationId, int typeId);
-        Task<TagDto> GetById(int id, int applicationId);
+        Task<TagDto> Create(TagDto tag, int applicationId, CancellationToken cancellationToken = default);
+        Task Delete(int id, int applicationId, CancellationToken cancellationToken = default);
+        Task<List<TagDto>> List(int applicationId, CancellationToken cancellationToken = default);
+        Task<List<TagDto>> FindTagsByTypeId(int applicationId, int typeId, CancellationToken cancellationToken = default);
+        Task<TagDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default);
     }
 }

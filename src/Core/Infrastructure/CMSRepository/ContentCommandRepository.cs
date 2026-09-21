@@ -19,40 +19,39 @@ public class ContentCommandRepository : Repository<Content>, IContentCommandRepo
         _contentImageRepository = new Repository<ContentImage>(dbContext);
     }
 
-    public Task DeleteAllContentImages(int contentId)
+    public async Task DeleteAllContentImages(int contentId, CancellationToken cancellationToken = default)
     {
-        _dbContext.ContentImages
-            .RemoveRange(_dbContext.ContentImages
+        var images = await _dbContext.ContentImages
             .Where(c => c.ContentId == contentId)
-            .AsEnumerable());
-        return Task.CompletedTask;
+            .ToListAsync(cancellationToken);
+        _dbContext.ContentImages.RemoveRange(images);
     }
 
-    public async Task UpdateSectionPriority(int sectionId, int priority)
+    public async Task UpdateSectionPriority(int sectionId, int priority, CancellationToken cancellationToken = default)
     {
-        var section = await _dbContext.ContentSections.SingleAsync(cs => cs.Id == sectionId);
+        var section = await _dbContext.ContentSections.SingleAsync(cs => cs.Id == sectionId, cancellationToken);
         section.Priority = priority;
     }
 
-    public async Task UpdateFarsiContent(int contentId, string farsiContent)
+    public async Task UpdateFarsiContent(int contentId, string farsiContent, CancellationToken cancellationToken = default)
     {
         // No AsNoTracking: if the content is already tracked in this DbContext (e.g. the
         // Farsi-translation flow fetched it earlier via IContentProvider.GetContentForTranslate),
         // this resolves to that same tracked instance instead of creating a conflicting second one.
-        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId);
+        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId, cancellationToken);
         content.FarsiContent = farsiContent;
     }
 
-    public async Task ActivateTranslatedContent(int contentId, string translatedContent)
+    public async Task ActivateTranslatedContent(int contentId, string translatedContent, CancellationToken cancellationToken = default)
     {
-        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId);
+        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId, cancellationToken);
         content.FarsiContent = translatedContent;
         content.IsActive = true;
     }
 
     public Task<ContentSection> CreateSection(ContentSection section) => _sectionRepository.Create(section);
 
-    public Task DeleteSection(int sectionId) => _sectionRepository.Delete(sectionId);
+    public Task DeleteSection(int sectionId, CancellationToken cancellationToken = default) => _sectionRepository.Delete(sectionId, cancellationToken);
 
     public Task<SectionElement> CreateSectionElement(SectionElement element) => _elementRepository.Create(element);
 

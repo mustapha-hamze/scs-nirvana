@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Threading.Tasks;
 using Application.Contracts.UserManagement;
 using Application.CQRS.Queries.UserManagement;
@@ -22,6 +21,6 @@ public class GetUserAttachmentByIdHandler : IRequestHandler<GetUserAttachmentByI
 
     public async Task<UserAttachmentDto> Handle(GetUserAttachmentByIdQuery request, CancellationToken cancellationToken)
     {
-        return _mapper.Map<UserAttachmentDto>(await _repository.GetById(request.Id));
+        return _mapper.Map<UserAttachmentDto>(await _repository.GetById(request.Id, cancellationToken));
     }
 }

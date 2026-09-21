@@ -23,20 +23,20 @@ namespace Infrastructure.AccessManagerRepository
         }
 
         // methods
-        public List<Sector> GetAllSector(int applicationId)
+        public Task<List<Sector>> GetAllSector(int applicationId, CancellationToken cancellationToken = default)
         {
             return _dbContext.Sectors.Where(s => !s.IsDeleted && s.ApplicationId == applicationId)
-                .OrderByDescending(s => s.CreatedDT).ToList();
+                .OrderByDescending(s => s.CreatedDT).ToListAsync(cancellationToken);
         }
-        public List<Sector> GetAllSector()
+        public Task<List<Sector>> GetAllSector(CancellationToken cancellationToken = default)
         {
-            return _dbContext.Sectors.Where(s => !s.IsDeleted).OrderByDescending(s => s.CreatedDT).ToList();
+            return _dbContext.Sectors.Where(s => !s.IsDeleted).OrderByDescending(s => s.CreatedDT).ToListAsync(cancellationToken);
         }
 
-        public async Task<Sector> GetByIdForApplication(int id, int applicationId)
+        public async Task<Sector> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Sectors.AsNoTracking()
-                .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted);
+                .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted, cancellationToken);
         }
     }
 }

@@ -21,20 +21,20 @@ namespace Application.UseCases.GeneralServices
             _unitOfWork = unitOfWork;
         }
 
-        public async Task Create(SystemTypeDto systemType)
+        public async Task Create(SystemTypeDto systemType, CancellationToken cancellationToken = default)
         {
             await _systemTypeRepository.Create(_mapper.Map<SystemType>(systemType));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public List<SystemTypeDto> List(int applicationId)
+        public async Task<List<SystemTypeDto>> List(int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<SystemTypeDto>>(_systemTypeRepository.List(applicationId));
+            return _mapper.Map<List<SystemTypeDto>>(await _systemTypeRepository.List(applicationId, cancellationToken));
         }
 
-        public List<SystemTypeDto> GetTypesInTypeGroup(int applicationId, int typeGroup)
+        public async Task<List<SystemTypeDto>> GetTypesInTypeGroup(int applicationId, int typeGroup, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<SystemTypeDto>>(_systemTypeRepository.GetTypesInTypeGroup(applicationId, typeGroup));
+            return _mapper.Map<List<SystemTypeDto>>(await _systemTypeRepository.GetTypesInTypeGroup(applicationId, typeGroup, cancellationToken));
         }
     }
 }

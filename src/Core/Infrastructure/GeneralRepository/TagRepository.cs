@@ -20,27 +20,27 @@ namespace Infrastructure.GeneralRepository
             _dbContext = dbContext;
         }
 
-        public async Task<Domains.Entities.General.Tag> GetByIdForApplication(int id, int applicationId)
+        public async Task<Domains.Entities.General.Tag> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Tags.AsNoTracking()
-                .SingleAsync(t => t.Id == id && t.ApplicationId == applicationId && !t.IsDeleted);
+                .SingleAsync(t => t.Id == id && t.ApplicationId == applicationId && !t.IsDeleted, cancellationToken);
         }
 
         // methods
-        public List<Domains.Entities.General.Tag> List(int applicationId)
+        public Task<List<Domains.Entities.General.Tag>> List(int applicationId, CancellationToken cancellationToken = default)
         {
             return _dbContext.Tags
                 .Where(t => t.ApplicationId == applicationId && !t.IsDeleted)
                 .OrderByDescending(t => t.CreatedDT)
-                .ToList();
+                .ToListAsync(cancellationToken);
         }
 
-        public List<Domains.Entities.General.Tag> FindTagsByTypeId(int applicationId, int typeId)
+        public Task<List<Domains.Entities.General.Tag>> FindTagsByTypeId(int applicationId, int typeId, CancellationToken cancellationToken = default)
         {
             return _dbContext.Tags
                 .Where(t => t.ApplicationId == applicationId && !t.IsDeleted && t.TypeId == typeId)
                 .OrderByDescending(t => t.CreatedDT)
-                .ToList();
+                .ToListAsync(cancellationToken);
         }
     }
 }

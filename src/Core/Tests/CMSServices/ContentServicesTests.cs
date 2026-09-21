@@ -53,8 +53,8 @@ public class ContentServicesTests
         var unitOfWork = new Mock<IUnitOfWork>();
         // Runs the operation inline, same as the real UnitOfWork, so callers composing a
         // transaction around a repository call (e.g. CreateContentCategories) still execute it.
-        unitOfWork.Setup(u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
-            .Returns<Func<Task>>(operation => operation());
+        unitOfWork.Setup(u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task>>(), It.IsAny<CancellationToken>()))
+            .Returns<Func<Task>, CancellationToken>((operation, _) => operation());
         return unitOfWork;
     }
 
@@ -99,7 +99,7 @@ public class ContentServicesTests
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
         contentQueryRepository
-            .Setup(r => r.GetByIdForApplication(7, 1))
+            .Setup(r => r.GetByIdForApplication(7, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Content { Id = 7, ApplicationId = 1 });
         var contentCommandRepository = new Mock<IContentCommandRepository>();
         contentCommandRepository
@@ -122,7 +122,7 @@ public class ContentServicesTests
         // of being wiped by the blind entity-wide write.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
         contentQueryRepository
-            .Setup(r => r.GetByIdForApplication(7, 1))
+            .Setup(r => r.GetByIdForApplication(7, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Content { Id = 7, ApplicationId = 1, FarsiContent = "ترجمه موجود" });
         var contentCommandRepository = new Mock<IContentCommandRepository>();
         contentCommandRepository
@@ -144,7 +144,7 @@ public class ContentServicesTests
         // malicious) compatibility string from the DTO win over what's actually stored.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
         contentQueryRepository
-            .Setup(r => r.GetByIdForApplication(7, 1))
+            .Setup(r => r.GetByIdForApplication(7, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Content { Id = 7, ApplicationId = 1, Categories = "1|2", Tags = "5", Cultures = "9" });
         var contentCommandRepository = new Mock<IContentCommandRepository>();
         contentCommandRepository
@@ -169,7 +169,7 @@ public class ContentServicesTests
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
         contentQueryRepository
-            .Setup(r => r.GetByIdForApplication(7, 1))
+            .Setup(r => r.GetByIdForApplication(7, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Content { Id = 7, ApplicationId = 1 });
         var contentCommandRepository = new Mock<IContentCommandRepository>();
         contentCommandRepository
@@ -181,7 +181,7 @@ public class ContentServicesTests
 
         await sut.Update(new ContentDto { Id = 7, Title = "Updated Title" }, applicationId: 1);
 
-        unitOfWork.Verify(u => u.SaveChangesAsync(), Times.Once);
+        unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public class ContentServicesTests
         // to application 2. Must be rejected before Update ever runs.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
         contentQueryRepository
-            .Setup(r => r.GetByIdForApplication(7, 1))
+            .Setup(r => r.GetByIdForApplication(7, 1, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new KeyNotFoundException());
 
         var contentCommandRepository = new Mock<IContentCommandRepository>();
@@ -210,7 +210,7 @@ public class ContentServicesTests
         // doesn't own) must not be able to read another application's content.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
         contentQueryRepository
-            .Setup(r => r.GetByIdForApplication(7, 0))
+            .Setup(r => r.GetByIdForApplication(7, 0, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(contentQueryRepository);
@@ -226,22 +226,22 @@ public class ContentServicesTests
         // holds a tracked Content instance for this id in the same request (e.g. from
         // IContentProvider.GetContentForTranslate).
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(5, 1)).ReturnsAsync(new Content { Id = 5, ApplicationId = 1 });
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(5, 1, It.IsAny<CancellationToken>())).ReturnsAsync(new Content { Id = 5, ApplicationId = 1 });
         var contentCommandRepository = new Mock<IContentCommandRepository>();
-        contentCommandRepository.Setup(r => r.UpdateFarsiContent(5, It.IsAny<string>())).Returns(Task.CompletedTask);
+        contentCommandRepository.Setup(r => r.UpdateFarsiContent(5, It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var sut = CreateSut(contentQueryRepository, contentCommandRepository);
 
         await sut.UpdateTranslate(5, "{\"title\":\"ترجمه\"}", applicationId: 1);
 
-        contentCommandRepository.Verify(r => r.UpdateFarsiContent(5, "{\"title\":\"ترجمه\"}"), Times.Once);
+        contentCommandRepository.Verify(r => r.UpdateFarsiContent(5, "{\"title\":\"ترجمه\"}", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task UpdateTranslate_CrossApplicationContentId_ThrowsAndDoesNotWrite()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(5, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(5, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var contentCommandRepository = new Mock<IContentCommandRepository>();
         var sut = CreateSut(contentQueryRepository, contentCommandRepository);
@@ -249,62 +249,62 @@ public class ContentServicesTests
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => sut.UpdateTranslate(5, "malicious", applicationId: 1));
 
-        contentCommandRepository.Verify(r => r.UpdateFarsiContent(It.IsAny<int>(), It.IsAny<string>()), Times.Never);
+        contentCommandRepository.Verify(r => r.UpdateFarsiContent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task ActivateTranslatedContent_ContentBelongsToApplication_DelegatesToRepository()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(5, 1)).ReturnsAsync(new Content { Id = 5, ApplicationId = 1 });
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(5, 1, It.IsAny<CancellationToken>())).ReturnsAsync(new Content { Id = 5, ApplicationId = 1 });
         var contentCommandRepository = new Mock<IContentCommandRepository>();
-        contentCommandRepository.Setup(r => r.ActivateTranslatedContent(5, It.IsAny<string>())).Returns(Task.CompletedTask);
+        contentCommandRepository.Setup(r => r.ActivateTranslatedContent(5, It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var sut = CreateSut(contentQueryRepository, contentCommandRepository);
 
         await sut.ActivateTranslatedContent(5, "translated", applicationId: 1);
 
-        contentCommandRepository.Verify(r => r.ActivateTranslatedContent(5, "translated"), Times.Once);
+        contentCommandRepository.Verify(r => r.ActivateTranslatedContent(5, "translated", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task Delete_ContentBelongsToApplication_DelegatesToRepository()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(9, 1)).ReturnsAsync(new Content { Id = 9, ApplicationId = 1 });
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(9, 1, It.IsAny<CancellationToken>())).ReturnsAsync(new Content { Id = 9, ApplicationId = 1 });
         var contentCommandRepository = new Mock<IContentCommandRepository>();
 
         var sut = CreateSut(contentQueryRepository, contentCommandRepository);
 
         await sut.Delete(9, applicationId: 1);
 
-        contentCommandRepository.Verify(r => r.Delete(9), Times.Once);
+        contentCommandRepository.Verify(r => r.Delete(9, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task Delete_CrossApplicationId_ThrowsAndDoesNotDelete()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(9, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(9, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
         var contentCommandRepository = new Mock<IContentCommandRepository>();
 
         var sut = CreateSut(contentQueryRepository, contentCommandRepository);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.Delete(9, applicationId: 1));
 
-        contentCommandRepository.Verify(r => r.Delete(It.IsAny<int>()), Times.Never);
+        contentCommandRepository.Verify(r => r.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task CreateContentCategories_DeduplicatesAndPassesValidatedIds()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1)).ReturnsAsync(new Content { Id = 3, ApplicationId = 1 });
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1, It.IsAny<CancellationToken>())).ReturnsAsync(new Content { Id = 3, ApplicationId = 1 });
         var contentRelationRepository = new Mock<IContentRelationRepository>();
-        contentRelationRepository.Setup(r => r.CreateContentCategories(3, It.IsAny<List<int>>())).Returns(Task.CompletedTask);
+        contentRelationRepository.Setup(r => r.CreateContentCategories(3, It.IsAny<List<int>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var categoryRepository = new Mock<ICategoryRepository>();
-        categoryRepository.Setup(r => r.List(1)).Returns(new List<Category>
+        categoryRepository.Setup(r => r.List(1, It.IsAny<CancellationToken>())).ReturnsAsync(new List<Category>
         {
             new() { Id = 10, ApplicationId = 1 },
             new() { Id = 11, ApplicationId = 1 },
@@ -315,7 +315,7 @@ public class ContentServicesTests
         await sut.CreateContentCategories(new List<int> { 10, 11, 10 }, contentId: 3, applicationId: 1);
 
         contentRelationRepository.Verify(r => r.CreateContentCategories(3, It.Is<List<int>>(
-            ids => ids.Count == 2 && ids.Contains(10) && ids.Contains(11))), Times.Once);
+            ids => ids.Count == 2 && ids.Contains(10) && ids.Contains(11)), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -324,25 +324,25 @@ public class ContentServicesTests
         // categoryId 99 belongs to a different application than the content being edited: the
         // whole write must be rejected, not silently filtered.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1)).ReturnsAsync(new Content { Id = 3, ApplicationId = 1 });
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1, It.IsAny<CancellationToken>())).ReturnsAsync(new Content { Id = 3, ApplicationId = 1 });
         var contentRelationRepository = new Mock<IContentRelationRepository>();
 
         var categoryRepository = new Mock<ICategoryRepository>();
-        categoryRepository.Setup(r => r.List(1)).Returns(new List<Category> { new() { Id = 10, ApplicationId = 1 } });
+        categoryRepository.Setup(r => r.List(1, It.IsAny<CancellationToken>())).ReturnsAsync(new List<Category> { new() { Id = 10, ApplicationId = 1 } });
 
         var sut = CreateSut(contentQueryRepository, contentRelationRepository: contentRelationRepository, categoryRepository: categoryRepository);
 
         await Assert.ThrowsAsync<ArgumentException>(
             () => sut.CreateContentCategories(new List<int> { 10, 99 }, contentId: 3, applicationId: 1));
 
-        contentRelationRepository.Verify(r => r.CreateContentCategories(It.IsAny<int>(), It.IsAny<List<int>>()), Times.Never);
+        contentRelationRepository.Verify(r => r.CreateContentCategories(It.IsAny<int>(), It.IsAny<List<int>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task CreateContentCategories_ContentInDifferentApplication_ThrowsBeforeValidatingCategories()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
         var contentRelationRepository = new Mock<IContentRelationRepository>();
 
         var categoryRepository = new Mock<ICategoryRepository>();
@@ -352,21 +352,21 @@ public class ContentServicesTests
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => sut.CreateContentCategories(new List<int> { 10 }, contentId: 3, applicationId: 1));
 
-        categoryRepository.Verify(r => r.List(It.IsAny<int>()), Times.Never);
-        contentRelationRepository.Verify(r => r.CreateContentCategories(It.IsAny<int>(), It.IsAny<List<int>>()), Times.Never);
+        categoryRepository.Verify(r => r.List(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        contentRelationRepository.Verify(r => r.CreateContentCategories(It.IsAny<int>(), It.IsAny<List<int>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task CreateSection_ContentBelongsToApplication_Creates()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1)).ReturnsAsync(new Content { Id = 3, ApplicationId = 1 });
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1, It.IsAny<CancellationToken>())).ReturnsAsync(new Content { Id = 3, ApplicationId = 1 });
 
         var sut = CreateSut(contentQueryRepository);
 
         await sut.CreateSection(new SectionDto { ContentId = 3, Priority = 1 }, applicationId: 1);
 
-        contentQueryRepository.Verify(r => r.GetByIdForApplication(3, 1), Times.Once);
+        contentQueryRepository.Verify(r => r.GetByIdForApplication(3, 1, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -375,7 +375,7 @@ public class ContentServicesTests
         // Never trust ContentId from the DTO: a section can't be attached to another
         // application's content just because the caller supplied that ContentId.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(contentQueryRepository);
 
@@ -388,7 +388,7 @@ public class ContentServicesTests
     {
         // Never trust SectionId from the DTO.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetSectionForApplication(4, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetSectionForApplication(4, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(contentQueryRepository);
 
@@ -400,14 +400,14 @@ public class ContentServicesTests
     public async Task UpdateSectionElement_ElementBelongsToApplication_MergesFieldsOntoLoadedEntity()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetElementForApplication(8, 1))
+        contentQueryRepository.Setup(r => r.GetElementForApplication(8, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SectionElement { Id = 8, SectionId = 4, TinyText = "old" });
 
         var sut = CreateSut(contentQueryRepository);
 
         await sut.UpdateSectionElement(new SectionElementDto { Id = 8, TinyText = "new" }, applicationId: 1);
 
-        contentQueryRepository.Verify(r => r.GetElementForApplication(8, 1), Times.Once);
+        contentQueryRepository.Verify(r => r.GetElementForApplication(8, 1, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -416,7 +416,7 @@ public class ContentServicesTests
         // Never trust the element's own Id without resolving element -> section -> content ->
         // application first: a caller in application 1 must not edit application 2's element.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetElementForApplication(8, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetElementForApplication(8, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(contentQueryRepository);
 
@@ -428,7 +428,7 @@ public class ContentServicesTests
     public async Task DeleteSection_SectionBelongsToDifferentApplication_ThrowsAndDoesNotDelete()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetSectionForApplication(4, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetSectionForApplication(4, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(contentQueryRepository);
 
@@ -439,21 +439,21 @@ public class ContentServicesTests
     public async Task UpdateSectionPriority_SectionBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetSectionForApplication(4, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetSectionForApplication(4, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
         var contentCommandRepository = new Mock<IContentCommandRepository>();
 
         var sut = CreateSut(contentQueryRepository, contentCommandRepository);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.UpdateSectionPriority(4, 2, applicationId: 1));
 
-        contentCommandRepository.Verify(r => r.UpdateSectionPriority(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        contentCommandRepository.Verify(r => r.UpdateSectionPriority(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task CreateContentMetadata_ContentBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(contentQueryRepository);
 
@@ -467,7 +467,7 @@ public class ContentServicesTests
         // Never trust contentMetadata.ContentId from the DTO: ownership is resolved from the
         // existing row (by its own Id), not from whatever ContentId the caller supplied.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetContentMetadataForApplication(6, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetContentMetadataForApplication(6, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(contentQueryRepository);
 
@@ -480,7 +480,7 @@ public class ContentServicesTests
     {
         // Even though the caller's DTO claims ContentId 999, the verified/loaded value must win.
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetContentMetadataForApplication(6, 1))
+        contentQueryRepository.Setup(r => r.GetContentMetadataForApplication(6, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ContentMetadata { Id = 6, ContentId = 3, Title = "Old" });
 
         var sut = CreateSut(contentQueryRepository);
@@ -494,7 +494,7 @@ public class ContentServicesTests
     public async Task CreateContentImage_ContentBelongsToDifferentApplication_ThrowsAndDoesNotWrite()
     {
         var contentQueryRepository = new Mock<IContentQueryRepository>();
-        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1)).ThrowsAsync(new KeyNotFoundException());
+        contentQueryRepository.Setup(r => r.GetByIdForApplication(3, 1, It.IsAny<CancellationToken>())).ThrowsAsync(new KeyNotFoundException());
 
         var sut = CreateSut(contentQueryRepository);
 

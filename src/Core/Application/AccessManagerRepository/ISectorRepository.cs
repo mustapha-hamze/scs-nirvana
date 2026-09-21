@@ -8,8 +8,8 @@ namespace Application.AccessManagerRepository
 {
     public interface ISectorRepository : IRepository<Sector>
     {
-        List<Sector> GetAllSector(int applicationId);
-        List<Sector> GetAllSector();
-        Task<Sector> GetByIdForApplication(int id, int applicationId);
+        Task<List<Sector>> GetAllSector(int applicationId, CancellationToken cancellationToken = default);
+        Task<List<Sector>> GetAllSector(CancellationToken cancellationToken = default);
+        Task<Sector> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default);
     }
 }

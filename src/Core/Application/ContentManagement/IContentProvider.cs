@@ -13,8 +13,8 @@ public interface IContentProvider
     // prefer DTO-returning reads for anything else. applicationId is required: a cross-
     // application contentId must be rejected rather than silently translating/activating
     // another application's content. There is deliberately no bare-contentId overload.
-    Task<Content> GetContentForTranslate(int contentId, int applicationId);
+    Task<Content> GetContentForTranslate(int contentId, int applicationId, CancellationToken cancellationToken = default);
 
-    ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en");
-    ContentListResultModel GetContentsListByTagId(int applicationId, int tagId, int pageIndex = 0, int pageSize = 20);
+    Task<ContentListResultModel> GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en", CancellationToken cancellationToken = default);
+    Task<ContentListResultModel> GetContentsListByTagId(int applicationId, int tagId, int pageIndex = 0, int pageSize = 20, CancellationToken cancellationToken = default);
 }

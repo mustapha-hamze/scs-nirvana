@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Dashboard";
-    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+    var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
     var app = await applicationServices.GetById(user.CurrentApplicationId);
     var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
     if (accesses == string.Empty)

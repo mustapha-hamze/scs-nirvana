@@ -28,43 +28,44 @@ namespace Application.UseCases.AccessManagerServices
         }
 
         // methods
-        public async Task Create(SectorEntityDto sectorEntity, int applicationId)
+        public async Task Create(SectorEntityDto sectorEntity, int applicationId, CancellationToken cancellationToken = default)
         {
             // The parent Sector must belong to this application before an entity can be filed under it.
-            await _sectorRepository.GetByIdForApplication(sectorEntity.SectorId, applicationId);
+            await _sectorRepository.GetByIdForApplication(sectorEntity.SectorId, applicationId, cancellationToken);
             await _sectorEntityRepository.Create(_mapper.Map<SectorEntity>(sectorEntity));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task Update(SectorEntityDto sectorEntity, int applicationId)
+        public async Task Update(SectorEntityDto sectorEntity, int applicationId, CancellationToken cancellationToken = default)
         {
-            await _sectorEntityRepository.GetByIdForApplication(sectorEntity.Id, applicationId);
-            await _sectorRepository.GetByIdForApplication(sectorEntity.SectorId, applicationId);
+            await _sectorEntityRepository.GetByIdForApplication(sectorEntity.Id, applicationId, cancellationToken);
+            await _sectorRepository.GetByIdForApplication(sectorEntity.SectorId, applicationId, cancellationToken);
             await _sectorEntityRepository.Update(_mapper.Map<SectorEntity>(sectorEntity));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public List<SectorEntityDto> GetSectorEntities(int sectorId, int applicationId)
+        public async Task<List<SectorEntityDto>> GetSectorEntities(int sectorId, int applicationId, CancellationToken cancellationToken = default)
         {
-            if (!_sectorRepository.GetAllSector(applicationId).Any(s => s.Id == sectorId))
+            var sectors = await _sectorRepository.GetAllSector(applicationId, cancellationToken);
+            if (!sectors.Any(s => s.Id == sectorId))
                 throw new KeyNotFoundException();
 
-            return _mapper.Map<List<SectorEntityDto>>(_sectorEntityRepository.GetSectorEntities(sectorId));
+            return _mapper.Map<List<SectorEntityDto>>(await _sectorEntityRepository.GetSectorEntities(sectorId, cancellationToken));
         }
 
-        public List<SectorEntityDto> GetSectorEntities(int sectorId)
+        public async Task<List<SectorEntityDto>> GetSectorEntities(int sectorId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<SectorEntityDto>>(_sectorEntityRepository.GetSectorEntities(sectorId));
+            return _mapper.Map<List<SectorEntityDto>>(await _sectorEntityRepository.GetSectorEntities(sectorId, cancellationToken));
         }
 
-        public List<SectorEntityDto> GetAllEntities()
+        public async Task<List<SectorEntityDto>> GetAllEntities(CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<SectorEntityDto>>(_sectorEntityRepository.GetAllEntities());
+            return _mapper.Map<List<SectorEntityDto>>(await _sectorEntityRepository.GetAllEntities(cancellationToken));
         }
 
-        public async Task<SectorEntityDto> GetById(int id, int applicationId)
+        public async Task<SectorEntityDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<SectorEntityDto>(await _sectorEntityRepository.GetByIdForApplication(id, applicationId));
+            return _mapper.Map<SectorEntityDto>(await _sectorEntityRepository.GetByIdForApplication(id, applicationId, cancellationToken));
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Application.Repository
     {
         Task<T> Create(T entity);
         Task<T> Update(T entity);
-        Task<T> GetById(int id);
-        Task Delete(int id);
+        Task<T> GetById(int id, CancellationToken cancellationToken = default);
+        Task Delete(int id, CancellationToken cancellationToken = default);
     }
 }

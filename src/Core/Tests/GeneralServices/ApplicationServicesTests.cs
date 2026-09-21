@@ -43,12 +43,12 @@ public class ApplicationServicesTests
     public async Task RemoveUserFromApplication_DelegatesApplicationIdToRepository()
     {
         var applicationRepository = new Mock<IApplicationRepository>();
-        applicationRepository.Setup(r => r.RemoveUserFromApplication(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.CompletedTask);
+        applicationRepository.Setup(r => r.RemoveUserFromApplication(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var sut = CreateSut(applicationRepository);
 
         await sut.RemoveUserFromApplication(relationId: 7, applicationId: 1);
 
-        applicationRepository.Verify(r => r.RemoveUserFromApplication(7, 1), Times.Once);
+        applicationRepository.Verify(r => r.RemoveUserFromApplication(7, 1, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

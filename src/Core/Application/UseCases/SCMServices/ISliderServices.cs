@@ -8,15 +8,15 @@ namespace Application.UseCases.SCMServices
 {
     public interface ISliderServices
     {
-        Task<Slider> Create(Slider slider, int applicationId);
-        Task<SliderItem> CreateSliderItem(SliderItem sliderItem, int applicationId);
-        Task DeactiveSliderItem(int sliderItemId, int applicationId);
-        List<Slider> GetSliders(int applicationId);
-        List<SliderItem> GetSliderItems(int sliderId, int applicationId);
-        Task DeleteSliderItem(int sliderItemId, int applicationId);
-        Task ActiveSliderItem(int sliderItemId, int applicationId);
-        Slider GetSliderWithItems(int sliderId, int applicationId);
-        Task<SliderItem> GetSliderItem(int sliderItemId, int applicationId);
-        Task<SliderItem> UpdateSliderItem(SliderItem sliderItem, int applicationId);
+        Task<Slider> Create(Slider slider, int applicationId, CancellationToken cancellationToken = default);
+        Task<SliderItem> CreateSliderItem(SliderItem sliderItem, int applicationId, CancellationToken cancellationToken = default);
+        Task DeactiveSliderItem(int sliderItemId, int applicationId, CancellationToken cancellationToken = default);
+        Task<List<Slider>> GetSliders(int applicationId, CancellationToken cancellationToken = default);
+        Task<List<SliderItem>> GetSliderItems(int sliderId, int applicationId, CancellationToken cancellationToken = default);
+        Task DeleteSliderItem(int sliderItemId, int applicationId, CancellationToken cancellationToken = default);
+        Task ActiveSliderItem(int sliderItemId, int applicationId, CancellationToken cancellationToken = default);
+        Task<Slider> GetSliderWithItems(int sliderId, int applicationId, CancellationToken cancellationToken = default);
+        Task<SliderItem> GetSliderItem(int sliderItemId, int applicationId, CancellationToken cancellationToken = default);
+        Task<SliderItem> UpdateSliderItem(SliderItem sliderItem, int applicationId, CancellationToken cancellationToken = default);
     }
 }

@@ -25,7 +25,7 @@ public class EntityAccessRepositoryTests
     }
 
     [Fact]
-    public void List_IgnoredApplicationId_OnlyReturnsThatApplicationsAccesses()
+    public async Task List_IgnoredApplicationId_OnlyReturnsThatApplicationsAccesses()
     {
         // Regression guard: List(applicationId) used to ignore its parameter entirely and
         // return every application's EntityAccess rows.
@@ -41,14 +41,14 @@ public class EntityAccessRepositoryTests
 
         var repository = new EntityAccessRepository(context);
 
-        var result = repository.List(applicationId: 1);
+        var result = await repository.List(applicationId: 1);
 
         Assert.Single(result);
         Assert.Equal(entityApp1.Id, result[0].EntityId);
     }
 
     [Fact]
-    public void List_ExcludesSoftDeletedRows()
+    public async Task List_ExcludesSoftDeletedRows()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -61,7 +61,7 @@ public class EntityAccessRepositoryTests
 
         var repository = new EntityAccessRepository(context);
 
-        var result = repository.List(applicationId: 1);
+        var result = await repository.List(applicationId: 1);
 
         Assert.Single(result);
         Assert.Equal("active", result[0].Access);
@@ -153,7 +153,7 @@ public class EntityAccessRepositoryTests
     }
 
     [Fact]
-    public void GetEntityAccesses_ExcludesSoftDeletedRows()
+    public async Task GetEntityAccesses_ExcludesSoftDeletedRows()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -165,7 +165,7 @@ public class EntityAccessRepositoryTests
 
         var repository = new EntityAccessRepository(context);
 
-        var result = repository.GetEntityAccesses(entity.Id);
+        var result = await repository.GetEntityAccesses(entity.Id);
 
         var access = Assert.Single(result);
         Assert.Equal("active", access.Access);

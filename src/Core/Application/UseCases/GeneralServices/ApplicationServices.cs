@@ -23,63 +23,63 @@ namespace Application.UseCases.GeneralServices
         }
 
         // methods
-        public async Task<ApplicationDto> Create(ApplicationDto application)
+        public async Task<ApplicationDto> Create(ApplicationDto application, CancellationToken cancellationToken = default)
         {
             var _application = await _applicationRepository.Create(_mapper.Map<Domains.Entities.General.Application>(application));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return _mapper.Map<ApplicationDto>(_application);
         }
-        public async Task<ApplicationDto> Update(ApplicationDto application)
+        public async Task<ApplicationDto> Update(ApplicationDto application, CancellationToken cancellationToken = default)
         {
             var _application = await _applicationRepository.Update(_mapper.Map<Domains.Entities.General.Application>(application));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return _mapper.Map<ApplicationDto>(_application);
         }
-        public async Task Delete(int id)
+        public async Task Delete(int id, CancellationToken cancellationToken = default)
         {
-            await _applicationRepository.Delete(id);
-            await _unitOfWork.SaveChangesAsync();
+            await _applicationRepository.Delete(id, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
-        public async Task<ApplicationDto> GetById(int id)
+        public async Task<ApplicationDto> GetById(int id, CancellationToken cancellationToken = default)
         {
-            var _application = await _applicationRepository.GetById(id);
+            var _application = await _applicationRepository.GetById(id, cancellationToken);
             return _mapper.Map<ApplicationDto>(_application);
         }
-        public List<ApplicationDto> List()
+        public async Task<List<ApplicationDto>> List(CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<ApplicationDto>>(_applicationRepository.List());
+            return _mapper.Map<List<ApplicationDto>>(await _applicationRepository.List(cancellationToken));
         }
 
-        public async Task<List<UserInApplicationDto>> GetUserApplications(string email)
+        public async Task<List<UserInApplicationDto>> GetUserApplications(string email, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<UserInApplicationDto>>(await _applicationRepository.GetUserApplications(email));
+            return _mapper.Map<List<UserInApplicationDto>>(await _applicationRepository.GetUserApplications(email, cancellationToken));
         }
 
-        public async Task AddUserToApplication(string userId, int applicationId)
+        public async Task AddUserToApplication(string userId, int applicationId, CancellationToken cancellationToken = default)
         {
-            await _applicationRepository.AddUserToApplication(userId, applicationId);
-            await _unitOfWork.SaveChangesAsync();
+            await _applicationRepository.AddUserToApplication(userId, applicationId, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task RemoveUserFromApplication(int relationId, int applicationId)
+        public async Task RemoveUserFromApplication(int relationId, int applicationId, CancellationToken cancellationToken = default)
         {
-            await _applicationRepository.RemoveUserFromApplication(relationId, applicationId);
-            await _unitOfWork.SaveChangesAsync();
+            await _applicationRepository.RemoveUserFromApplication(relationId, applicationId, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<ApplicationSettingDto> CreateApplicationSetting(ApplicationSettingDto applicationSetting, int applicationId)
+        public async Task<ApplicationSettingDto> CreateApplicationSetting(ApplicationSettingDto applicationSetting, int applicationId, CancellationToken cancellationToken = default)
         {
             applicationSetting.IsActive = true;
             // Never trust ApplicationId from the DTO - server-pin it.
             applicationSetting.ApplicationId = applicationId;
             var created = await _applicationRepository.CreateApplicationSetting(_mapper.Map<ApplicationSetting>(applicationSetting));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return _mapper.Map<ApplicationSettingDto>(created);
         }
 
-        public List<ApplicationSettingDto> GetApplicationSetting(int applicationId, int settingId = 0)
+        public async Task<List<ApplicationSettingDto>> GetApplicationSetting(int applicationId, int settingId = 0, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<ApplicationSettingDto>>(_applicationRepository.GetApplicationSetting(applicationId, settingId));
+            return _mapper.Map<List<ApplicationSettingDto>>(await _applicationRepository.GetApplicationSetting(applicationId, settingId, cancellationToken));
         }
     }
 }

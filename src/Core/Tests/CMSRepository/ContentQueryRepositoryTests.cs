@@ -9,7 +9,7 @@ namespace Core.Tests.CMSRepository;
 public class ContentQueryRepositoryTests
 {
     [Fact]
-    public void List_Paged_OtherApplicationsContentCannotFillOrEmptyThePage()
+    public async Task List_Paged_OtherApplicationsContentCannotFillOrEmptyThePage()
     {
         // Regression guard: Skip/Take used to run before the Where(ApplicationId == ...) filter,
         // so pagination was computed over every application's content and filtered afterward.
@@ -31,8 +31,8 @@ public class ContentQueryRepositoryTests
 
         var repository = new ContentQueryRepository(context);
 
-        var firstPage = repository.List(applicationId: 1, pageIndex: 0);
-        var secondPage = repository.List(applicationId: 1, pageIndex: 1);
+        var firstPage = await repository.List(applicationId: 1, pageIndex: 0);
+        var secondPage = await repository.List(applicationId: 1, pageIndex: 1);
 
         Assert.Equal(20, firstPage.Count);
         Assert.All(firstPage, c => Assert.Equal(1, c.ApplicationId));
@@ -122,7 +122,7 @@ public class ContentQueryRepositoryTests
     }
 
     [Fact]
-    public void GetContentByCategoryId_Page0_ReturnsFirstPage()
+    public async Task GetContentByCategoryId_Page0_ReturnsFirstPage()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -130,7 +130,7 @@ public class ContentQueryRepositoryTests
 
         var repository = new ContentQueryRepository(context);
 
-        var result = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 0, pageSize: 3);
+        var result = await repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 0, pageSize: 3);
 
         Assert.Equal(3, result.Contents.Count);
         Assert.Equal(1, result.PageIndex);
@@ -138,7 +138,7 @@ public class ContentQueryRepositoryTests
     }
 
     [Fact]
-    public void GetContentByCategoryId_DefaultPage_ReturnsFirstPage()
+    public async Task GetContentByCategoryId_DefaultPage_ReturnsFirstPage()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -146,15 +146,15 @@ public class ContentQueryRepositoryTests
 
         var repository = new ContentQueryRepository(context);
 
-        var page0 = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 0, pageSize: 3);
-        var page1 = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageSize: 3); // pageIndex defaults to 1
+        var page0 = await repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 0, pageSize: 3);
+        var page1 = await repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageSize: 3); // pageIndex defaults to 1
 
         Assert.Equal(page0.Contents.Select(c => c.Id), page1.Contents.Select(c => c.Id));
         Assert.Equal(1, page1.PageIndex);
     }
 
     [Fact]
-    public void GetContentByCategoryId_Page2_SkipsFirstPage()
+    public async Task GetContentByCategoryId_Page2_SkipsFirstPage()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -162,8 +162,8 @@ public class ContentQueryRepositoryTests
 
         var repository = new ContentQueryRepository(context);
 
-        var firstPage = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 3);
-        var secondPage = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 2, pageSize: 3);
+        var firstPage = await repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 3);
+        var secondPage = await repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 2, pageSize: 3);
 
         Assert.Equal(3, firstPage.Contents.Count);
         Assert.Equal(2, secondPage.Contents.Count);
@@ -172,7 +172,7 @@ public class ContentQueryRepositoryTests
     }
 
     [Fact]
-    public void GetContentByCategoryId_InvalidPageSize_FallsBackToDefault()
+    public async Task GetContentByCategoryId_InvalidPageSize_FallsBackToDefault()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -180,21 +180,21 @@ public class ContentQueryRepositoryTests
 
         var repository = new ContentQueryRepository(context);
 
-        var result = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 0);
+        var result = await repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 0);
 
         Assert.Equal(5, result.Contents.Count); // all 5 fit within the 40-item default page size
         Assert.Equal(1, result.PagesCount);
     }
 
     [Fact]
-    public void GetContentByCategoryId_EmptyResult_ReturnsZeroPagesAndNoContents()
+    public async Task GetContentByCategoryId_EmptyResult_ReturnsZeroPagesAndNoContents()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
         var repository = new ContentQueryRepository(context);
 
-        var result = repository.GetContentByCategoryId(categoryId: 999, applicationId: 1, pageIndex: 1, pageSize: 10);
+        var result = await repository.GetContentByCategoryId(categoryId: 999, applicationId: 1, pageIndex: 1, pageSize: 10);
 
         Assert.Empty(result.Contents);
         Assert.Equal(0, result.PagesCount);
@@ -202,7 +202,7 @@ public class ContentQueryRepositoryTests
     }
 
     [Fact]
-    public void GetContentByCategoryId_MatchingCategoryIdDifferentApplication_ExcludesOtherApplication()
+    public async Task GetContentByCategoryId_MatchingCategoryIdDifferentApplication_ExcludesOtherApplication()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -216,14 +216,14 @@ public class ContentQueryRepositoryTests
 
         var repository = new ContentQueryRepository(context);
 
-        var result = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 40);
+        var result = await repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 40);
 
         Assert.Equal(5, result.Contents.Count); // the app-1 seeded rows only, not the 6th (app 2) row
         Assert.DoesNotContain(result.Contents, c => c.Id == otherAppContent.Id);
     }
 
     [Fact]
-    public void GetContentMetadata_ReturnsMetadata_WhenNotDeleted()
+    public async Task GetContentMetadata_ReturnsMetadata_WhenNotDeleted()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -235,13 +235,13 @@ public class ContentQueryRepositoryTests
 
         var repository = new ContentQueryRepository(context);
 
-        var result = repository.GetContentMetadata(content.Id);
+        var result = await repository.GetContentMetadata(content.Id);
 
         Assert.Equal("Meta", result.Title);
     }
 
     [Fact]
-    public void GetContentMetadata_SoftDeleted_ReturnsEmptyMetadata()
+    public async Task GetContentMetadata_SoftDeleted_ReturnsEmptyMetadata()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
@@ -253,7 +253,7 @@ public class ContentQueryRepositoryTests
 
         var repository = new ContentQueryRepository(context);
 
-        var result = repository.GetContentMetadata(content.Id);
+        var result = await repository.GetContentMetadata(content.Id);
 
         Assert.Equal(0, result.Id);
         Assert.Null(result.Title);

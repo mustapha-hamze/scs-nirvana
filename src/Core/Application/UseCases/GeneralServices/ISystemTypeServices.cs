@@ -6,10 +6,10 @@ namespace Application.UseCases.GeneralServices
 {
     public interface ISystemTypeServices
     {
-        Task Create(SystemTypeDto systemType);
+        Task Create(SystemTypeDto systemType, CancellationToken cancellationToken = default);
 
-        List<SystemTypeDto> List(int applicationId);
+        Task<List<SystemTypeDto>> List(int applicationId, CancellationToken cancellationToken = default);
 
-        List<SystemTypeDto> GetTypesInTypeGroup(int applicationId, int typeGroup);
+        Task<List<SystemTypeDto>> GetTypesInTypeGroup(int applicationId, int typeGroup, CancellationToken cancellationToken = default);
     }
 }

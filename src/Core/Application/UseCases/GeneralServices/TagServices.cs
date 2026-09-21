@@ -23,36 +23,36 @@ namespace Application.UseCases.GeneralServices
         }
 
         // methods
-        public async Task<TagDto> Create(TagDto tag, int applicationId)
+        public async Task<TagDto> Create(TagDto tag, int applicationId, CancellationToken cancellationToken = default)
         {
             tag.IsActive = true;
             // Never trust ApplicationId from the DTO - server-pin it.
             tag.ApplicationId = applicationId;
             var result = await _tagRepository.Create(_mapper.Map<Tag>(tag));
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return _mapper.Map<TagDto>(result);
         }
 
-        public async Task Delete(int id, int applicationId)
+        public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
         {
-            await _tagRepository.GetByIdForApplication(id, applicationId);
-            await _tagRepository.Delete(id);
-            await _unitOfWork.SaveChangesAsync();
+            await _tagRepository.GetByIdForApplication(id, applicationId, cancellationToken);
+            await _tagRepository.Delete(id, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public List<TagDto> List(int applicationId)
+        public async Task<List<TagDto>> List(int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<TagDto>>(_tagRepository.List(applicationId));
+            return _mapper.Map<List<TagDto>>(await _tagRepository.List(applicationId, cancellationToken));
         }
 
-        public List<TagDto> FindTagsByTypeId(int applicationId, int typeId)
+        public async Task<List<TagDto>> FindTagsByTypeId(int applicationId, int typeId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<TagDto>>(_tagRepository.FindTagsByTypeId(applicationId, typeId));
+            return _mapper.Map<List<TagDto>>(await _tagRepository.FindTagsByTypeId(applicationId, typeId, cancellationToken));
         }
 
-        public async Task<TagDto> GetById(int id, int applicationId)
+        public async Task<TagDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<TagDto>(await _tagRepository.GetByIdForApplication(id, applicationId));
+            return _mapper.Map<TagDto>(await _tagRepository.GetByIdForApplication(id, applicationId, cancellationToken));
         }
     }
 }

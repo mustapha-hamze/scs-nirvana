@@ -7,10 +7,10 @@ namespace Application.AccessManagerRepository
 {
     public interface IEntityAccessRepository : IRepository<EntityAccess>
     {
-        List<EntityAccess> List(int applicationId);
+        Task<List<EntityAccess>> List(int applicationId, CancellationToken cancellationToken = default);
 
-        List<EntityAccess> GetEntityAccesses(int entityId);
+        Task<List<EntityAccess>> GetEntityAccesses(int entityId, CancellationToken cancellationToken = default);
 
-        Task<EntityAccess> GetByIdForApplication(int id, int applicationId);
+        Task<EntityAccess> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default);
     }
 }

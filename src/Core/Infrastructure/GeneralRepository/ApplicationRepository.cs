@@ -20,21 +20,21 @@ namespace Infrastructure.GeneralRepository
             _applicationSettingRepository = new Repository<ApplicationSetting>(dbContext);
         }
 
-        public List<Domains.Entities.General.Application> List()
+        public Task<List<Domains.Entities.General.Application>> List(CancellationToken cancellationToken = default)
         {
             return _dbContext.Applications
                 .Where(a => !a.IsDeleted)
-                .OrderBy(a => a.CreatedDT).ToList();
+                .OrderBy(a => a.CreatedDT).ToListAsync(cancellationToken);
         }
 
-        public async Task<List<UserInApplication>> GetUserApplications(string email)
+        public async Task<List<UserInApplication>> GetUserApplications(string email, CancellationToken cancellationToken = default)
         {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == email);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == email, cancellationToken);
 
-            return _dbContext.UserInApplications
+            return await _dbContext.UserInApplications
                 .Where(u => u.UserId == user.Id && u.IsActive && !u.IsDeleted)
                 .OrderByDescending(u => u.CreatedDT)
-                .ToList();
+                .ToListAsync(cancellationToken);
         }
 
         // Idempotent: restores an existing soft-deleted membership row instead of inserting a
@@ -44,11 +44,11 @@ namespace Infrastructure.GeneralRepository
         // Administrative opt-out: this is the one place in the codebase that must see a
         // soft-deleted row on purpose (to restore it instead of colliding with the unique
         // index), so it explicitly bypasses the global soft-delete filter.
-        public async Task AddUserToApplication(string userId, int applicationId)
+        public async Task AddUserToApplication(string userId, int applicationId, CancellationToken cancellationToken = default)
         {
             var existing = await _dbContext.UserInApplications
                 .IgnoreQueryFilters()
-                .SingleOrDefaultAsync(m => m.UserId == userId && m.ApplicationId == applicationId);
+                .SingleOrDefaultAsync(m => m.UserId == userId && m.ApplicationId == applicationId, cancellationToken);
 
             if (existing != null)
             {
@@ -61,35 +61,33 @@ namespace Infrastructure.GeneralRepository
                 UserId = userId,
                 ApplicationId = applicationId,
                 IsActive = true
-            });
+            }, cancellationToken);
         }
 
-        public Task RemoveUserFromApplication(int relationId, int applicationId)
+        public async Task RemoveUserFromApplication(int relationId, int applicationId, CancellationToken cancellationToken = default)
         {
-            var relation = _dbContext.UserInApplications.Single(u => u.Id == relationId && u.ApplicationId == applicationId);
+            var relation = await _dbContext.UserInApplications.SingleAsync(u => u.Id == relationId && u.ApplicationId == applicationId, cancellationToken);
             _dbContext.UserInApplications.Remove(relation);
-
-            return Task.CompletedTask;
         }
 
-        public async Task<bool> ExistsActiveApplication(int applicationId)
+        public async Task<bool> ExistsActiveApplication(int applicationId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Applications.AnyAsync(a =>
-                a.Id == applicationId && a.IsActive && !a.IsDeleted);
+                a.Id == applicationId && a.IsActive && !a.IsDeleted, cancellationToken);
         }
 
-        public List<ApplicationSetting> GetApplicationSetting(int applicationId, int settingId = 0)
+        public Task<List<ApplicationSetting>> GetApplicationSetting(int applicationId, int settingId = 0, CancellationToken cancellationToken = default)
         {
             if (settingId == 0)
                 return _dbContext.ApplicationSettings
                     .Where(a => a.ApplicationId == applicationId && !a.IsDeleted)
                     .OrderByDescending(a => a.CreatedDT)
-                    .ToList();
+                    .ToListAsync(cancellationToken);
             else
                 return _dbContext.ApplicationSettings
                     .Where(a => a.ApplicationId == applicationId && a.SettingId == settingId && !a.IsDeleted)
                     .OrderByDescending(a => a.CreatedDT)
-                    .ToList();
+                    .ToListAsync(cancellationToken);
         }
 
         public Task<ApplicationSetting> CreateApplicationSetting(ApplicationSetting setting)

@@ -27,18 +27,18 @@ public class UserManagementServicesTests
     public async Task SetCurrentApplicationId_AuthorizedSelection_Succeeds()
     {
         var userManagementRepository = new Mock<IUserManagementRepository>();
-        userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com"))
-            .Returns(new UserDto { Id = "u1" });
-        userManagementRepository.Setup(r => r.HasActiveMembership("u1", 5)).ReturnsAsync(true);
+        userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserDto { Id = "u1" });
+        userManagementRepository.Setup(r => r.HasActiveMembership("u1", 5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var applicationRepository = new Mock<IApplicationRepository>();
-        applicationRepository.Setup(r => r.ExistsActiveApplication(5)).ReturnsAsync(true);
+        applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var sut = CreateSut(userManagementRepository, applicationRepository);
 
         await sut.SetCurrentApplicationId("user@example.com", 5);
 
-        userManagementRepository.Verify(r => r.SetCurrentApplicationId("user@example.com", 5), Times.Once);
+        userManagementRepository.Verify(r => r.SetCurrentApplicationId("user@example.com", 5, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -46,18 +46,18 @@ public class UserManagementServicesTests
     {
         // The user exists and the application is fine, but they have no membership row at all.
         var userManagementRepository = new Mock<IUserManagementRepository>();
-        userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com"))
-            .Returns(new UserDto { Id = "u1" });
-        userManagementRepository.Setup(r => r.HasActiveMembership("u1", 5)).ReturnsAsync(false);
+        userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserDto { Id = "u1" });
+        userManagementRepository.Setup(r => r.HasActiveMembership("u1", 5, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var applicationRepository = new Mock<IApplicationRepository>();
-        applicationRepository.Setup(r => r.ExistsActiveApplication(5)).ReturnsAsync(true);
+        applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var sut = CreateSut(userManagementRepository, applicationRepository);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.SetCurrentApplicationId("user@example.com", 5));
 
-        userManagementRepository.Verify(r => r.SetCurrentApplicationId(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        userManagementRepository.Verify(r => r.SetCurrentApplicationId(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -66,12 +66,12 @@ public class UserManagementServicesTests
         // HasActiveMembership itself already excludes deleted/inactive rows, so from the
         // service's point of view this looks identical to "no membership" - same rejection.
         var userManagementRepository = new Mock<IUserManagementRepository>();
-        userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com"))
-            .Returns(new UserDto { Id = "u1" });
-        userManagementRepository.Setup(r => r.HasActiveMembership("u1", 5)).ReturnsAsync(false);
+        userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserDto { Id = "u1" });
+        userManagementRepository.Setup(r => r.HasActiveMembership("u1", 5, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var applicationRepository = new Mock<IApplicationRepository>();
-        applicationRepository.Setup(r => r.ExistsActiveApplication(5)).ReturnsAsync(true);
+        applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var sut = CreateSut(userManagementRepository, applicationRepository);
 
@@ -83,28 +83,28 @@ public class UserManagementServicesTests
     {
         // The user is a genuine active member, but the target application itself is gone/off.
         var userManagementRepository = new Mock<IUserManagementRepository>();
-        userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com"))
-            .Returns(new UserDto { Id = "u1" });
-        userManagementRepository.Setup(r => r.HasActiveMembership("u1", 5)).ReturnsAsync(true);
+        userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserDto { Id = "u1" });
+        userManagementRepository.Setup(r => r.HasActiveMembership("u1", 5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var applicationRepository = new Mock<IApplicationRepository>();
-        applicationRepository.Setup(r => r.ExistsActiveApplication(5)).ReturnsAsync(false);
+        applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var sut = CreateSut(userManagementRepository, applicationRepository);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.SetCurrentApplicationId("user@example.com", 5));
 
-        userManagementRepository.Verify(r => r.SetCurrentApplicationId(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        userManagementRepository.Verify(r => r.SetCurrentApplicationId(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task SetCurrentApplicationId_UnknownUser_ThrowsAndDoesNotSelect()
     {
         var userManagementRepository = new Mock<IUserManagementRepository>();
-        userManagementRepository.Setup(r => r.GetUserByEmailAddress("ghost@example.com")).Returns((UserDto)null);
+        userManagementRepository.Setup(r => r.GetUserByEmailAddress("ghost@example.com", It.IsAny<CancellationToken>())).ReturnsAsync((UserDto)null);
 
         var applicationRepository = new Mock<IApplicationRepository>();
-        applicationRepository.Setup(r => r.ExistsActiveApplication(5)).ReturnsAsync(true);
+        applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var sut = CreateSut(userManagementRepository, applicationRepository);
 
@@ -122,8 +122,8 @@ public class UserManagementServicesTests
 
         await sut.SetCurrentApplicationId("user@example.com", 0);
 
-        userManagementRepository.Verify(r => r.SetCurrentApplicationId("user@example.com", 0), Times.Once);
-        userManagementRepository.Verify(r => r.HasActiveMembership(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
-        applicationRepository.Verify(r => r.ExistsActiveApplication(It.IsAny<int>()), Times.Never);
+        userManagementRepository.Verify(r => r.SetCurrentApplicationId("user@example.com", 0, It.IsAny<CancellationToken>()), Times.Once);
+        userManagementRepository.Verify(r => r.HasActiveMembership(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        applicationRepository.Verify(r => r.ExistsActiveApplication(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
