@@ -39,7 +39,17 @@ public class ContentServicesTests
             (tagRepository ?? new Mock<ITagRepository>()).Object,
             (cultureRepository ?? new Mock<ICultureRepository>()).Object,
             mapper ?? CreateMapper(),
-            (unitOfWork ?? new Mock<IUnitOfWork>()).Object);
+            (unitOfWork ?? DefaultUnitOfWork()).Object);
+    }
+
+    private static Mock<IUnitOfWork> DefaultUnitOfWork()
+    {
+        var unitOfWork = new Mock<IUnitOfWork>();
+        // Runs the operation inline, same as the real UnitOfWork, so callers composing a
+        // transaction around a repository call (e.g. CreateContentCategories) still execute it.
+        unitOfWork.Setup(u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
+            .Returns<Func<Task>>(operation => operation());
+        return unitOfWork;
     }
 
     private static Mock<IRepository<ContentMetadata>> DefaultContentMetadataRepository()

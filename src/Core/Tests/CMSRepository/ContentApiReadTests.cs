@@ -17,8 +17,7 @@ public class ContentApiReadTests
 {
     private static ContentRepository CreateRepository(ApplicationDbContext context)
     {
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
-        return new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
+        return new ContentRepository(context, TestConfiguration.Create());
     }
 
     // Default System.Text.Json options — the app registers no custom JSON configuration

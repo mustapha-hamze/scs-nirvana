@@ -13,8 +13,7 @@ public class ContentOwnershipTests
 {
     private static ContentRepository CreateRepository(Infrastructure.Data.ApplicationDbContext context)
     {
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
-        return new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
+        return new ContentRepository(context, TestConfiguration.Create());
     }
 
     private static (int contentId, int sectionId, int elementId, int metadataId) SeedFullChain(

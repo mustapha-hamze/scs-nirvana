@@ -1,5 +1,4 @@
 ﻿using Application.CMSRepository;
-using Application.UnitOfWork;
 using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.CMSRepository;
@@ -9,14 +8,12 @@ public class ContentRepository : Repository<Content>, IContentRepository
     // fields
     private readonly ApplicationDbContext _dbContext;
     private readonly string _connectionString;
-    private readonly IUnitOfWork _unitOfWork;
 
     // constructor
-    public ContentRepository(ApplicationDbContext dbContext, IConfiguration configuration, IUnitOfWork unitOfWork) : base(dbContext)
+    public ContentRepository(ApplicationDbContext dbContext, IConfiguration configuration) : base(dbContext)
     {
         _dbContext = dbContext;
         _connectionString = configuration.GetConnectionString("DefaultConnection");
-        _unitOfWork = unitOfWork;
     }
 
     // methods
@@ -507,89 +504,81 @@ public class ContentRepository : Repository<Content>, IContentRepository
     }
 
     // categoryIds is expected to already be a validated, de-duplicated set (see
-    // ContentServices.CreateContentCategories) — this method's only job is to replace the join
-    // rows and the legacy pipe-delimited compatibility field atomically, in one transaction.
-    public async Task CreateContentCategories(int contentId, List<int> categoryIds)
+    // ContentServices.CreateContentCategories). This only stages the join-row replace and the
+    // legacy pipe-delimited compatibility field update; the caller (Application layer) is
+    // responsible for running it inside one transaction/SaveChanges so both change together.
+    public Task CreateContentCategories(int contentId, List<int> categoryIds)
     {
-        await _unitOfWork.ExecuteInTransactionAsync(() =>
+        var content = _dbContext.Contents.Single(c => c.Id == contentId);
+
+        content.Categories = string.Join("|", categoryIds);
+        content.UpdatedDT = DateTime.Now;
+        _dbContext.Entry(content).State = EntityState.Modified;
+
+        _dbContext.ContentInCategories
+            .RemoveRange(_dbContext.ContentInCategories
+            .Where(c => c.ContentId == contentId)
+            .AsEnumerable());
+
+        foreach (var categoryId in categoryIds)
         {
-            var content = _dbContext.Contents.Single(c => c.Id == contentId);
-
-            content.Categories = string.Join("|", categoryIds);
-            content.UpdatedDT = DateTime.Now;
-            _dbContext.Entry(content).State = EntityState.Modified;
-
-            _dbContext.ContentInCategories
-                .RemoveRange(_dbContext.ContentInCategories
-                .Where(c => c.ContentId == contentId)
-                .AsEnumerable());
-
-            foreach (var categoryId in categoryIds)
+            _dbContext.ContentInCategories.Add(new ContentInCategory
             {
-                _dbContext.ContentInCategories.Add(new ContentInCategory
-                {
-                    ContentId = contentId,
-                    CategoryId = categoryId,
-                    CreatedDt = DateTime.Now
-                });
-            }
+                ContentId = contentId,
+                CategoryId = categoryId,
+                CreatedDt = DateTime.Now
+            });
+        }
 
-            return Task.CompletedTask;
-        });
+        return Task.CompletedTask;
     }
 
-    public async Task CreateContentTags(int contentId, List<int> tagIds)
+    public Task CreateContentTags(int contentId, List<int> tagIds)
     {
-        await _unitOfWork.ExecuteInTransactionAsync(() =>
+        var content = _dbContext.Contents.Single(c => c.Id == contentId);
+        content.Tags = string.Join("|", tagIds);
+        content.UpdatedDT = DateTime.Now;
+        _dbContext.Entry(content).State = EntityState.Modified;
+
+        _dbContext.ContentInTags
+            .RemoveRange(_dbContext.ContentInTags
+            .Where(c => c.ContentId == contentId)
+            .AsEnumerable());
+
+        foreach (var tagId in tagIds)
         {
-            var content = _dbContext.Contents.Single(c => c.Id == contentId);
-            content.Tags = string.Join("|", tagIds);
-            content.UpdatedDT = DateTime.Now;
-            _dbContext.Entry(content).State = EntityState.Modified;
-
-            _dbContext.ContentInTags
-                .RemoveRange(_dbContext.ContentInTags
-                .Where(c => c.ContentId == contentId)
-                .AsEnumerable());
-
-            foreach (var tagId in tagIds)
+            _dbContext.ContentInTags.Add(new ContentInTag
             {
-                _dbContext.ContentInTags.Add(new ContentInTag
-                {
-                    ContentId = contentId,
-                    TagId = tagId
-                });
-            }
+                ContentId = contentId,
+                TagId = tagId
+            });
+        }
 
-            return Task.CompletedTask;
-        });
+        return Task.CompletedTask;
     }
 
-    public async Task CreateContentCultures(int contentId, List<int> cultureIds)
+    public Task CreateContentCultures(int contentId, List<int> cultureIds)
     {
-        await _unitOfWork.ExecuteInTransactionAsync(() =>
+        var content = _dbContext.Contents.Single(c => c.Id == contentId);
+        content.Cultures = string.Join("|", cultureIds);
+        content.UpdatedDT = DateTime.Now;
+        _dbContext.Entry(content).State = EntityState.Modified;
+
+        _dbContext.ContentInCultures
+            .RemoveRange(_dbContext.ContentInCultures
+            .Where(c => c.ContentId == contentId)
+            .AsEnumerable());
+
+        foreach (var cultureId in cultureIds)
         {
-            var content = _dbContext.Contents.Single(c => c.Id == contentId);
-            content.Cultures = string.Join("|", cultureIds);
-            content.UpdatedDT = DateTime.Now;
-            _dbContext.Entry(content).State = EntityState.Modified;
-
-            _dbContext.ContentInCultures
-                .RemoveRange(_dbContext.ContentInCultures
-                .Where(c => c.ContentId == contentId)
-                .AsEnumerable());
-
-            foreach (var cultureId in cultureIds)
+            _dbContext.ContentInCultures.Add(new ContentInCulture
             {
-                _dbContext.ContentInCultures.Add(new ContentInCulture
-                {
-                    ContentId = contentId,
-                    CultureId = cultureId
-                });
-            }
+                ContentId = contentId,
+                CultureId = cultureId
+            });
+        }
 
-            return Task.CompletedTask;
-        });
+        return Task.CompletedTask;
     }
 
     public Task DeleteAllContentImages(int contentId)

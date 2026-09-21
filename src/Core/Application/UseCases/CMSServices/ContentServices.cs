@@ -226,7 +226,9 @@ namespace Services.CMSServices
                     throw new ArgumentException("One or more category ids are invalid or belong to a different application.");
             }
 
-            await _contentRepository.CreateContentCategories(contentId, distinctIds);
+            // The repository only stages the join-row replace and the legacy compatibility
+            // string; this transaction is what makes both change together or not at all.
+            await _unitOfWork.ExecuteInTransactionAsync(() => _contentRepository.CreateContentCategories(contentId, distinctIds));
         }
 
         public async Task CreateContentTags(List<int> tagIds, int contentId, int applicationId)
@@ -241,7 +243,7 @@ namespace Services.CMSServices
                     throw new ArgumentException("One or more tag ids are invalid or belong to a different application.");
             }
 
-            await _contentRepository.CreateContentTags(contentId, distinctIds);
+            await _unitOfWork.ExecuteInTransactionAsync(() => _contentRepository.CreateContentTags(contentId, distinctIds));
         }
 
         public async Task CreateContentCultures(List<int> cultureIds, int contentId, int applicationId)
@@ -259,7 +261,7 @@ namespace Services.CMSServices
                     throw new ArgumentException("One or more culture ids are invalid.");
             }
 
-            await _contentRepository.CreateContentCultures(contentId, distinctIds);
+            await _unitOfWork.ExecuteInTransactionAsync(() => _contentRepository.CreateContentCultures(contentId, distinctIds));
         }
 
         public async Task<ContentMetadataDto> GetContentMetadata(int contentId, int applicationId)

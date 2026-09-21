@@ -20,10 +20,12 @@ public class ContentRepositoryTests
         context.ContentInCategories.Add(new ContentInCategory { ContentId = content.Id, CategoryId = 1, CreatedDt = DateTime.Now });
         await context.SaveChangesAsync();
 
+        // The repository only stages the replace; the Application layer is what wraps it in a
+        // transaction (exactly how ContentServices.CreateContentCategories composes it).
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
-        var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
-        await repository.CreateContentCategories(content.Id, new List<int> { 3, 4, 5 });
+        await unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int> { 3, 4, 5 }));
 
         await using var verifyContext = factory.CreateContext();
         var relations = await verifyContext.ContentInCategories.Where(c => c.ContentId == content.Id).ToListAsync();
@@ -47,18 +49,20 @@ public class ContentRepositoryTests
         await context.SaveChangesAsync();
 
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
-        var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         await Assert.ThrowsAnyAsync<Exception>(
-            () => repository.CreateContentCategories(content.Id, new List<int> { 3, 3 }));
+            () => unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int> { 3, 3 })));
     }
 
     [Fact]
     public async Task CreateContentCategories_FailurePartwayThrough_RollsBackCompatStringAndRelations()
     {
-        // The whole replace (compat string + join rows) runs in one transaction: a failure on
-        // the last insert must leave both the string and the rows exactly as they were, not a
-        // half-applied mix of the old rows and the new string (or vice versa).
+        // The whole replace (compat string + join rows) runs in one Application-owned
+        // transaction: a failure on the last insert must leave both the string and the rows
+        // exactly as they were, not a half-applied mix of the old rows and the new string (or
+        // vice versa). This is now enforced by the caller composing the transaction around the
+        // repository's staging-only method, not by the repository itself.
         using var factory = new SqliteContextFactory();
         await using var context = factory.CreateContext();
 
@@ -69,10 +73,10 @@ public class ContentRepositoryTests
         await context.SaveChangesAsync();
 
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
-        var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         await Assert.ThrowsAnyAsync<Exception>(
-            () => repository.CreateContentCategories(content.Id, new List<int> { 3, 3 }));
+            () => unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int> { 3, 3 })));
 
         await using var verifyContext = factory.CreateContext();
         var relations = await verifyContext.ContentInCategories.Where(c => c.ContentId == content.Id).ToListAsync();
@@ -96,9 +100,9 @@ public class ContentRepositoryTests
         await context.SaveChangesAsync();
 
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
-        var repository = new ContentRepository(context, TestConfiguration.Create(), unitOfWork);
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
-        await repository.CreateContentCategories(content.Id, new List<int>());
+        await unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int>()));
 
         await using var verifyContext = factory.CreateContext();
         var relations = await verifyContext.ContentInCategories.Where(c => c.ContentId == content.Id).ToListAsync();
@@ -129,7 +133,7 @@ public class ContentRepositoryTests
         }
         context.SaveChanges();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var firstPage = repository.List(applicationId: 1, pageIndex: 0);
         var secondPage = repository.List(applicationId: 1, pageIndex: 1);
@@ -150,8 +154,7 @@ public class ContentRepositoryTests
         using var factory = new SqliteContextFactory();
         await using var context = factory.CreateContext();
 
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
-        var repository = new ContentRepository(context, TestConfiguration.CreateUnreachable(), unitOfWork);
+        var repository = new ContentRepository(context, TestConfiguration.CreateUnreachable());
 
         await Assert.ThrowsAnyAsync<Exception>(() => repository.GetContentsInCategory(categoryId: 1, applicationId: 1));
     }
@@ -166,7 +169,7 @@ public class ContentRepositoryTests
         context.Contents.Add(content);
         await context.SaveChangesAsync();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         await repository.UpdateFarsiContent(content.Id, "{\"title\":\"ترجمه\"}");
         await context.SaveChangesAsync();
@@ -197,7 +200,7 @@ public class ContentRepositoryTests
         // before the update call.
         var alreadyTracked = await context.Contents.Include(c => c.Images).SingleAsync(c => c.Id == content.Id);
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var exception = await Record.ExceptionAsync(() => repository.UpdateFarsiContent(content.Id, "translated"));
 
@@ -215,7 +218,7 @@ public class ContentRepositoryTests
         context.Contents.Add(content);
         await context.SaveChangesAsync();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         await repository.ActivateTranslatedContent(content.Id, "translated");
         await context.SaveChangesAsync();
@@ -238,7 +241,7 @@ public class ContentRepositoryTests
 
         var alreadyTracked = await context.Contents.SingleAsync(c => c.Id == content.Id);
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var exception = await Record.ExceptionAsync(() => repository.ActivateTranslatedContent(content.Id, "translated"));
 
@@ -256,7 +259,7 @@ public class ContentRepositoryTests
         context.Contents.Add(content);
         await context.SaveChangesAsync();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var result = await repository.GetByIdForApplication(content.Id, 1);
 
@@ -273,7 +276,7 @@ public class ContentRepositoryTests
         context.Contents.Add(content);
         await context.SaveChangesAsync();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(content.Id, 2));
     }
@@ -289,7 +292,7 @@ public class ContentRepositoryTests
         context.Contents.Add(content);
         await context.SaveChangesAsync();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(content.Id, 1));
     }
@@ -306,7 +309,7 @@ public class ContentRepositoryTests
         context.Contents.Add(content);
         await context.SaveChangesAsync();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         await Assert.ThrowsAnyAsync<Exception>(() => repository.GetByIdForApplication(content.Id, 0));
     }
@@ -334,7 +337,7 @@ public class ContentRepositoryTests
         using var context = factory.CreateContext();
         SeedCategoryContents(context, categoryId: 5, count: 5);
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var result = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 0, pageSize: 3);
 
@@ -350,7 +353,7 @@ public class ContentRepositoryTests
         using var context = factory.CreateContext();
         SeedCategoryContents(context, categoryId: 5, count: 5);
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var page0 = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 0, pageSize: 3);
         var page1 = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageSize: 3); // pageIndex defaults to 1
@@ -366,7 +369,7 @@ public class ContentRepositoryTests
         using var context = factory.CreateContext();
         SeedCategoryContents(context, categoryId: 5, count: 5);
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var firstPage = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 3);
         var secondPage = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 2, pageSize: 3);
@@ -384,7 +387,7 @@ public class ContentRepositoryTests
         using var context = factory.CreateContext();
         SeedCategoryContents(context, categoryId: 5, count: 5);
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var result = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 0);
 
@@ -398,7 +401,7 @@ public class ContentRepositoryTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var result = repository.GetContentByCategoryId(categoryId: 999, applicationId: 1, pageIndex: 1, pageSize: 10);
 
@@ -420,7 +423,7 @@ public class ContentRepositoryTests
         context.ContentInCategories.Add(new ContentInCategory { ContentId = otherAppContent.Id, CategoryId = 5, CreatedDt = DateTime.Now });
         context.SaveChanges();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var result = repository.GetContentByCategoryId(categoryId: 5, applicationId: 1, pageIndex: 1, pageSize: 40);
 
@@ -439,7 +442,7 @@ public class ContentRepositoryTests
         context.ContentMetadatas.Add(new ContentMetadata { ContentId = content.Id, Title = "Meta" });
         context.SaveChanges();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var result = repository.GetContentMetadata(content.Id);
 
@@ -457,7 +460,7 @@ public class ContentRepositoryTests
         context.ContentMetadatas.Add(new ContentMetadata { ContentId = content.Id, Title = "Meta", IsDeleted = true });
         context.SaveChanges();
 
-        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+        var repository = new ContentRepository(context, TestConfiguration.Create());
 
         var result = repository.GetContentMetadata(content.Id);
 
