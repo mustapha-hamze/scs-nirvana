@@ -49,7 +49,7 @@ namespace Application.UseCases.AccessManagerServices
         public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
         {
             await _sectorRepository.GetByIdForApplication(id, applicationId, cancellationToken);
-            await _sectorRepository.Delete(id, cancellationToken);
+            await _sectorRepository.Delete(id, applicationId, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 

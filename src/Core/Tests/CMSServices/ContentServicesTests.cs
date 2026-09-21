@@ -278,7 +278,7 @@ public class ContentServicesTests
 
         await sut.Delete(9, applicationId: 1);
 
-        contentCommandRepository.Verify(r => r.Delete(9, It.IsAny<CancellationToken>()), Times.Once);
+        contentCommandRepository.Verify(r => r.Delete(9, 1, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -292,7 +292,7 @@ public class ContentServicesTests
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.Delete(9, applicationId: 1));
 
-        contentCommandRepository.Verify(r => r.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        contentCommandRepository.Verify(r => r.Delete(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

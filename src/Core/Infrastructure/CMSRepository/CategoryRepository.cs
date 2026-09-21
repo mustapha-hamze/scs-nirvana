@@ -28,6 +28,13 @@ namespace Infrastructure.CMSRepository
                 .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted, cancellationToken);
         }
 
+        public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
+        {
+            var category = await _dbContext.Categories
+                .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted, cancellationToken);
+            _dbContext.Categories.Remove(category);
+        }
+
         public async Task<List<Category>> List(int applicationId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Categories

@@ -37,7 +37,7 @@ namespace Application.UseCases.CMSServices
         public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
         {
             await _categoryRepository.GetByIdForApplication(id, applicationId, cancellationToken);
-            await _categoryRepository.Delete(id, cancellationToken);
+            await _categoryRepository.Delete(id, applicationId, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 

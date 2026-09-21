@@ -38,5 +38,12 @@ namespace Infrastructure.AccessManagerRepository
             return await _dbContext.Sectors.AsNoTracking()
                 .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted, cancellationToken);
         }
+
+        public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
+        {
+            var sector = await _dbContext.Sectors
+                .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted, cancellationToken);
+            _dbContext.Sectors.Remove(sector);
+        }
     }
 }

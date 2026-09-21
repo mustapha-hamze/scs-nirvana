@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Application.Repository;
 using Domains.Entities.ContentManagement;
 
 namespace Application.CMSRepository;
@@ -7,10 +6,16 @@ namespace Application.CMSRepository;
 // Application-scoped content commands: Content root plus its child entities (sections,
 // elements, metadata, images). Callers must resolve/verify ownership via
 // IContentQueryRepository's *ForApplication methods before calling any of these.
-public interface IContentCommandRepository : IRepository<Content>
+public interface IContentCommandRepository
 {
+    Task<Content> Create(Content content);
+    Task<Content> Update(Content content);
+
+    // Requires applicationId so a content id can't be deleted from any application but its own.
+    Task Delete(int id, int applicationId, CancellationToken cancellationToken = default);
+
     // Purpose-specific, entity-free update paths for the Farsi translation/activation flow.
-    // Unlike IRepository<T>.GetById (AsNoTracking), these query the content without
+    // Unlike Update (AsNoTracking-free by design here too), these query the content without
     // AsNoTracking, so EF's change tracker resolves to an already-tracked instance if the
     // caller obtained one earlier in the same request (e.g. via IContentProvider's
     // GetContentForTranslate) instead of creating a second, conflicting tracked instance.

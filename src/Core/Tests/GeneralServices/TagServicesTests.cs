@@ -59,6 +59,6 @@ public class TagServicesTests
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.Delete(5, applicationId: 1));
 
-        tagRepository.Verify(r => r.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        tagRepository.Verify(r => r.Delete(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

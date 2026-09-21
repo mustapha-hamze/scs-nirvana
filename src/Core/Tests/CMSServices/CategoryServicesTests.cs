@@ -59,6 +59,6 @@ public class CategoryServicesTests
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.Delete(5, applicationId: 1));
 
-        categoryRepository.Verify(r => r.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        categoryRepository.Verify(r => r.Delete(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

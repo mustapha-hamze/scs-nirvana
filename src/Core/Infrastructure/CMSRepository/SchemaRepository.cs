@@ -13,13 +13,11 @@ namespace Infrastructure.CMSRepository
     {
         // fields
         private readonly ApplicationDbContext _dbContext;
-        private readonly Repository<SchemaDetails> _detailsRepository;
 
         // constructor
         public SchemaRepository(ApplicationDbContext dbContext) : base(dbContext)
         {
             _dbContext = dbContext;
-            _detailsRepository = new Repository<SchemaDetails>(dbContext);
         }
 
         // methods
@@ -51,6 +49,13 @@ namespace Infrastructure.CMSRepository
                 .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted, cancellationToken);
         }
 
+        public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
+        {
+            var schema = await _dbContext.Schemas
+                .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted, cancellationToken);
+            _dbContext.Schemas.Remove(schema);
+        }
+
         public async Task<SchemaDetails> GetDetailForApplication(int detailId, int applicationId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.SchemaDetails.AsNoTracking()
@@ -58,8 +63,17 @@ namespace Infrastructure.CMSRepository
                     && d.Schema.ApplicationId == applicationId && !d.Schema.IsDeleted, cancellationToken);
         }
 
-        public Task<SchemaDetails> CreateDetail(SchemaDetails detail) => _detailsRepository.Create(detail);
+        public Task<SchemaDetails> CreateDetail(SchemaDetails detail)
+        {
+            _dbContext.SchemaDetails.Add(detail);
+            _dbContext.Entry(detail).State = EntityState.Added;
+            return Task.FromResult(detail);
+        }
 
-        public Task DeleteDetail(int id, CancellationToken cancellationToken = default) => _detailsRepository.Delete(id, cancellationToken);
+        public async Task DeleteDetail(int id, CancellationToken cancellationToken = default)
+        {
+            var detail = await _dbContext.SchemaDetails.SingleAsync(d => d.Id == id, cancellationToken);
+            _dbContext.SchemaDetails.Remove(detail);
+        }
     }
 }

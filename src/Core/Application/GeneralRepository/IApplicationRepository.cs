@@ -1,12 +1,18 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domains.Entities.General;
-using Application.Repository;
 
 namespace Application.GeneralRepository
 {
-    public interface IApplicationRepository : IRepository<Domains.Entities.General.Application>
+    public interface IApplicationRepository
     {
+        // These operate on the Application aggregate root itself, so there's no narrower
+        // "application scope" to require - the id already identifies the tenant.
+        Task<Domains.Entities.General.Application> Create(Domains.Entities.General.Application application);
+        Task<Domains.Entities.General.Application> Update(Domains.Entities.General.Application application);
+        Task Delete(int id, CancellationToken cancellationToken = default);
+        Task<Domains.Entities.General.Application> GetById(int id, CancellationToken cancellationToken = default);
+
         Task<List<Domains.Entities.General.Application>> List(CancellationToken cancellationToken = default);
         Task<List<UserInApplication>> GetUserApplications(string email, CancellationToken cancellationToken = default);
         Task AddUserToApplication(string userId, int applicationId, CancellationToken cancellationToken = default);

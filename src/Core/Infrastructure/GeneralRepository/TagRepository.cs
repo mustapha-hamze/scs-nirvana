@@ -26,6 +26,13 @@ namespace Infrastructure.GeneralRepository
                 .SingleAsync(t => t.Id == id && t.ApplicationId == applicationId && !t.IsDeleted, cancellationToken);
         }
 
+        public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
+        {
+            var tag = await _dbContext.Tags
+                .SingleAsync(t => t.Id == id && t.ApplicationId == applicationId && !t.IsDeleted, cancellationToken);
+            _dbContext.Tags.Remove(tag);
+        }
+
         // methods
         public Task<List<Domains.Entities.General.Tag>> List(int applicationId, CancellationToken cancellationToken = default)
         {

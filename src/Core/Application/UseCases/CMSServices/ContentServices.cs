@@ -54,7 +54,7 @@ namespace Application.UseCases.CMSServices
         {
             // Throws if id doesn't exist or belongs to another application, before any delete happens.
             await _contentQueryRepository.GetByIdForApplication(id, applicationId, cancellationToken);
-            await _contentCommandRepository.Delete(id, cancellationToken);
+            await _contentCommandRepository.Delete(id, applicationId, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 

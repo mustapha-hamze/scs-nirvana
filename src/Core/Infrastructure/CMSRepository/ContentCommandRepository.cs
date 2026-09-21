@@ -5,18 +5,17 @@ namespace Infrastructure.CMSRepository;
 public class ContentCommandRepository : Repository<Content>, IContentCommandRepository
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly Repository<ContentSection> _sectionRepository;
-    private readonly Repository<SectionElement> _elementRepository;
-    private readonly Repository<ContentMetadata> _contentMetadataRepository;
-    private readonly Repository<ContentImage> _contentImageRepository;
 
     public ContentCommandRepository(ApplicationDbContext dbContext) : base(dbContext)
     {
         _dbContext = dbContext;
-        _sectionRepository = new Repository<ContentSection>(dbContext);
-        _elementRepository = new Repository<SectionElement>(dbContext);
-        _contentMetadataRepository = new Repository<ContentMetadata>(dbContext);
-        _contentImageRepository = new Repository<ContentImage>(dbContext);
+    }
+
+    public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
+    {
+        var content = await _dbContext.Contents
+            .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted, cancellationToken);
+        _dbContext.Contents.Remove(content);
     }
 
     public async Task DeleteAllContentImages(int contentId, CancellationToken cancellationToken = default)
@@ -49,17 +48,51 @@ public class ContentCommandRepository : Repository<Content>, IContentCommandRepo
         content.IsActive = true;
     }
 
-    public Task<ContentSection> CreateSection(ContentSection section) => _sectionRepository.Create(section);
+    public Task<ContentSection> CreateSection(ContentSection section)
+    {
+        _dbContext.ContentSections.Add(section);
+        _dbContext.Entry(section).State = EntityState.Added;
+        return Task.FromResult(section);
+    }
 
-    public Task DeleteSection(int sectionId, CancellationToken cancellationToken = default) => _sectionRepository.Delete(sectionId, cancellationToken);
+    public async Task DeleteSection(int sectionId, CancellationToken cancellationToken = default)
+    {
+        var section = await _dbContext.ContentSections.SingleAsync(s => s.Id == sectionId, cancellationToken);
+        _dbContext.ContentSections.Remove(section);
+    }
 
-    public Task<SectionElement> CreateSectionElement(SectionElement element) => _elementRepository.Create(element);
+    public Task<SectionElement> CreateSectionElement(SectionElement element)
+    {
+        _dbContext.SectionElements.Add(element);
+        _dbContext.Entry(element).State = EntityState.Added;
+        return Task.FromResult(element);
+    }
 
-    public Task<SectionElement> UpdateElement(SectionElement element) => _elementRepository.Update(element);
+    public Task<SectionElement> UpdateElement(SectionElement element)
+    {
+        _dbContext.SectionElements.Update(element);
+        _dbContext.Entry(element).State = EntityState.Modified;
+        return Task.FromResult(element);
+    }
 
-    public Task<ContentMetadata> CreateContentMetadata(ContentMetadata metadata) => _contentMetadataRepository.Create(metadata);
+    public Task<ContentMetadata> CreateContentMetadata(ContentMetadata metadata)
+    {
+        _dbContext.ContentMetadatas.Add(metadata);
+        _dbContext.Entry(metadata).State = EntityState.Added;
+        return Task.FromResult(metadata);
+    }
 
-    public Task<ContentMetadata> UpdateContentMetadata(ContentMetadata metadata) => _contentMetadataRepository.Update(metadata);
+    public Task<ContentMetadata> UpdateContentMetadata(ContentMetadata metadata)
+    {
+        _dbContext.ContentMetadatas.Update(metadata);
+        _dbContext.Entry(metadata).State = EntityState.Modified;
+        return Task.FromResult(metadata);
+    }
 
-    public Task<ContentImage> CreateContentImage(ContentImage image) => _contentImageRepository.Create(image);
+    public Task<ContentImage> CreateContentImage(ContentImage image)
+    {
+        _dbContext.ContentImages.Add(image);
+        _dbContext.Entry(image).State = EntityState.Added;
+        return Task.FromResult(image);
+    }
 }

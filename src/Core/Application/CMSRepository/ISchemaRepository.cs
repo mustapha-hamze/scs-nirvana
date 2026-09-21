@@ -1,12 +1,17 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domains.Entities.ContentManagement;
-using Application.Repository;
 
 namespace Application.CMSRepository
 {
-    public interface ISchemaRepository : IRepository<Schema>
+    public interface ISchemaRepository
     {
+        Task<Schema> Create(Schema schema);
+        Task<Schema> Update(Schema schema);
+
+        // Requires applicationId so a schema id can't be deleted from any application but its own.
+        Task Delete(int id, int applicationId, CancellationToken cancellationToken = default);
+
         Task<List<Schema>> List(int applicationId, int typeId, CancellationToken cancellationToken = default);
         Task<List<Schema>> List(int applicationId, CancellationToken cancellationToken = default);
 

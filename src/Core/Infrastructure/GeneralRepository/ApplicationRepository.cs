@@ -12,12 +12,10 @@ namespace Infrastructure.GeneralRepository
     public class ApplicationRepository : Repository<Domains.Entities.General.Application>, global::Application.GeneralRepository.IApplicationRepository
     {
         private readonly ApplicationDbContext _dbContext;
-        private readonly Repository<ApplicationSetting> _applicationSettingRepository;
 
         public ApplicationRepository(ApplicationDbContext dbContext) : base(dbContext)
         {
             _dbContext = dbContext;
-            _applicationSettingRepository = new Repository<ApplicationSetting>(dbContext);
         }
 
         public Task<List<Domains.Entities.General.Application>> List(CancellationToken cancellationToken = default)
@@ -92,7 +90,9 @@ namespace Infrastructure.GeneralRepository
 
         public Task<ApplicationSetting> CreateApplicationSetting(ApplicationSetting setting)
         {
-            return _applicationSettingRepository.Create(setting);
+            _dbContext.ApplicationSettings.Add(setting);
+            _dbContext.Entry(setting).State = EntityState.Added;
+            return Task.FromResult(setting);
         }
     }
 }
