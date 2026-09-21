@@ -1,18 +1,17 @@
 @using Application.UseCases.Utilities.ApplicationConst;
 
 @{
-    var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var accesses = await userManagementServices.GetUserAccesses(user.Email);
+    int appId = currentApplicationContext.CurrentApplicationId ?? 0;
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, appId);
     if (accesses == string.Empty)
         accesses = "NULL";
 
-    int appId = user.CurrentApplicationId;
-
-    var appPages = (await applicationServices.GetApplicationSetting(user.CurrentApplicationId, 6000)).OrderBy(ap => ap.Value);
+    var appPages = (await applicationServices.GetApplicationSetting(appId, 6000)).OrderBy(ap => ap.Value);
 }
 @inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices
 @inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
 @inject Application.UseCases.GeneralServices.IApplicationServices applicationServices;
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext;
 
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_"))
 {

@@ -4,12 +4,13 @@
     var categories = (List<Application.Contracts.CMS.CategoryDto>)ViewData["Categories"];
     var cultures = (List<Application.Contracts.General.CultureDto>)ViewData["Cultures"];
 
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.CurrentApplicationId ?? 0);
     if (accesses == string.Empty)
         accesses = "NULL";
 }
 
 @inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
 
 @model Application.Contracts.CMS.ContentDto
 

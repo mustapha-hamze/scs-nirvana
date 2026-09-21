@@ -17,6 +17,7 @@ using Infrastructure.UserManagementRepository;
 using Infrastructure.UnitOfWork;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Web.Services.Tenancy;
 
 namespace Web.Extensions;
 
@@ -120,6 +121,7 @@ public static class ServiceCollectionExtensions
         services.AddAutoMapper(new[] { typeof(MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
 
         services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentApplicationContext, SessionCurrentApplicationContext>();
 
         services.AddAntiforgery(options =>
         {

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Application.Contracts.Tenancy;
 using Application.Contracts.UserManagement;
 using Application.GeneralRepository;
 using Application.UserManagementRepository;
@@ -12,13 +13,16 @@ namespace Application.UseCases.UserManagementServices
         private readonly IUserManagementRepository _userManagementRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentApplicationContext _currentApplicationContext;
 
         public UserManagementServices(IUserManagementRepository userManagementRepository,
-            IApplicationRepository applicationRepository, IUnitOfWork unitOfWork)
+            IApplicationRepository applicationRepository, IUnitOfWork unitOfWork,
+            ICurrentApplicationContext currentApplicationContext)
         {
             _userManagementRepository = userManagementRepository;
             _applicationRepository = applicationRepository;
             _unitOfWork = unitOfWork;
+            _currentApplicationContext = currentApplicationContext;
         }
         public Task<List<UserDto>> List(bool isAdminUser, string email = "", CancellationToken cancellationToken = default)
         {
@@ -28,11 +32,6 @@ namespace Application.UseCases.UserManagementServices
         public Task<UserDto> GetUserByEmailAddress(string email, CancellationToken cancellationToken = default)
         {
             return _userManagementRepository.GetUserByEmailAddress(email, cancellationToken);
-        }
-
-        public async Task<string> GetUserAccesses(string email, CancellationToken cancellationToken = default)
-        {
-            return await _userManagementRepository.GetUserAccesses(email, cancellationToken);
         }
 
         public async Task SetUserAccesses(string accesses, string userId, int appId, CancellationToken cancellationToken = default)
@@ -62,8 +61,9 @@ namespace Application.UseCases.UserManagementServices
                     throw new KeyNotFoundException();
             }
 
-            await _userManagementRepository.SetCurrentApplicationId(email, appId, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            // Stored in the caller's session-scoped context, not persisted on the user record -
+            // a selection here must never be visible to another session for the same account.
+            _currentApplicationContext.CurrentApplicationId = appId == 0 ? null : appId;
         }
     }
 }

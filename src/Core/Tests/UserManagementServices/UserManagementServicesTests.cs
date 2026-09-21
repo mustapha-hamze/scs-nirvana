@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Application.Contracts.Tenancy;
 using Application.Contracts.UserManagement;
 using Application.GeneralRepository;
 using Application.UnitOfWork;
@@ -12,15 +13,24 @@ namespace Core.Tests.UserManagement;
 
 public class UserManagementServicesTests
 {
+    // A minimal stand-in for a browser session's tenant selection, so tests can assert against
+    // plain state instead of mocking a two-way property.
+    private class FakeCurrentApplicationContext : ICurrentApplicationContext
+    {
+        public int? CurrentApplicationId { get; set; }
+    }
+
     private static UserManagementServices CreateSut(
         Mock<IUserManagementRepository> userManagementRepository,
         Mock<IApplicationRepository> applicationRepository = null,
-        Mock<IUnitOfWork> unitOfWork = null)
+        Mock<IUnitOfWork> unitOfWork = null,
+        ICurrentApplicationContext currentApplicationContext = null)
     {
         return new UserManagementServices(
             userManagementRepository.Object,
             (applicationRepository ?? new Mock<IApplicationRepository>()).Object,
-            (unitOfWork ?? new Mock<IUnitOfWork>()).Object);
+            (unitOfWork ?? new Mock<IUnitOfWork>()).Object,
+            currentApplicationContext ?? new FakeCurrentApplicationContext());
     }
 
     [Fact]
@@ -34,11 +44,12 @@ public class UserManagementServicesTests
         var applicationRepository = new Mock<IApplicationRepository>();
         applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
-        var sut = CreateSut(userManagementRepository, applicationRepository);
+        var currentApplicationContext = new FakeCurrentApplicationContext();
+        var sut = CreateSut(userManagementRepository, applicationRepository, currentApplicationContext: currentApplicationContext);
 
         await sut.SetCurrentApplicationId("user@example.com", 5);
 
-        userManagementRepository.Verify(r => r.SetCurrentApplicationId("user@example.com", 5, It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Equal(5, currentApplicationContext.CurrentApplicationId);
     }
 
     [Fact]
@@ -53,11 +64,12 @@ public class UserManagementServicesTests
         var applicationRepository = new Mock<IApplicationRepository>();
         applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
-        var sut = CreateSut(userManagementRepository, applicationRepository);
+        var currentApplicationContext = new FakeCurrentApplicationContext();
+        var sut = CreateSut(userManagementRepository, applicationRepository, currentApplicationContext: currentApplicationContext);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.SetCurrentApplicationId("user@example.com", 5));
 
-        userManagementRepository.Verify(r => r.SetCurrentApplicationId(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        Assert.Null(currentApplicationContext.CurrentApplicationId);
     }
 
     [Fact]
@@ -81,7 +93,9 @@ public class UserManagementServicesTests
     [Fact]
     public async Task SetCurrentApplicationId_DeletedOrInactiveApplication_ThrowsAndDoesNotSelect()
     {
-        // The user is a genuine active member, but the target application itself is gone/off.
+        // The user is a genuine active member, but the target application itself is gone/off -
+        // this also covers a "missing" (non-existent) application id, which is indistinguishable
+        // from inactive/deleted at this check.
         var userManagementRepository = new Mock<IUserManagementRepository>();
         userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new UserDto { Id = "u1" });
@@ -90,11 +104,12 @@ public class UserManagementServicesTests
         var applicationRepository = new Mock<IApplicationRepository>();
         applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
-        var sut = CreateSut(userManagementRepository, applicationRepository);
+        var currentApplicationContext = new FakeCurrentApplicationContext();
+        var sut = CreateSut(userManagementRepository, applicationRepository, currentApplicationContext: currentApplicationContext);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.SetCurrentApplicationId("user@example.com", 5));
 
-        userManagementRepository.Verify(r => r.SetCurrentApplicationId(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        Assert.Null(currentApplicationContext.CurrentApplicationId);
     }
 
     [Fact]
@@ -118,12 +133,36 @@ public class UserManagementServicesTests
 
         var applicationRepository = new Mock<IApplicationRepository>();
 
-        var sut = CreateSut(userManagementRepository, applicationRepository);
+        var currentApplicationContext = new FakeCurrentApplicationContext { CurrentApplicationId = 5 };
+        var sut = CreateSut(userManagementRepository, applicationRepository, currentApplicationContext: currentApplicationContext);
 
         await sut.SetCurrentApplicationId("user@example.com", 0);
 
-        userManagementRepository.Verify(r => r.SetCurrentApplicationId("user@example.com", 0, It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Null(currentApplicationContext.CurrentApplicationId);
         userManagementRepository.Verify(r => r.HasActiveMembership(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         applicationRepository.Verify(r => r.ExistsActiveApplication(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SetCurrentApplicationId_TwoIndependentContexts_SelectionInOneDoesNotAffectTheOther()
+    {
+        // Simulates two browser sessions for the same account: selecting an application through
+        // one session's context must never be visible through the other.
+        var userManagementRepository = new Mock<IUserManagementRepository>();
+        userManagementRepository.Setup(r => r.GetUserByEmailAddress("user@example.com", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserDto { Id = "u1" });
+        userManagementRepository.Setup(r => r.HasActiveMembership("u1", 5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        var applicationRepository = new Mock<IApplicationRepository>();
+        applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        var sessionA = new FakeCurrentApplicationContext();
+        var sessionB = new FakeCurrentApplicationContext();
+        var sutForSessionA = CreateSut(userManagementRepository, applicationRepository, currentApplicationContext: sessionA);
+
+        await sutForSessionA.SetCurrentApplicationId("user@example.com", 5);
+
+        Assert.Equal(5, sessionA.CurrentApplicationId);
+        Assert.Null(sessionB.CurrentApplicationId);
     }
 }

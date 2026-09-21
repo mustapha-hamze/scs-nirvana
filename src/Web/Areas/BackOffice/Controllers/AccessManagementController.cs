@@ -10,22 +10,22 @@ public class AccessManagementController : BaseController
     private readonly ISectorServices _sectorServices;
     private readonly ISectorEntityServices _SectorEntityServices;
     private readonly IEntityAccessServices _entityAccessServices;
-    private readonly IUserManagementServices _userManagementServices;
+    private readonly ICurrentApplicationContext _currentApplicationContext;
     private readonly ISender _sender;
     #endregion
 
-    // constructor 
+    // constructor
     #region constructor
     public AccessManagementController(IApplicationServices applicationServices,
         ISectorServices sectorServices, ISectorEntityServices SectorEntityServices,
         IEntityAccessServices entityAccessServices,
-        IUserManagementServices userManagementServices, ISender sender)
+        ICurrentApplicationContext currentApplicationContext, ISender sender)
     {
         _sectorServices = sectorServices;
         _applicationServices = applicationServices;
         _SectorEntityServices = SectorEntityServices;
         _entityAccessServices = entityAccessServices;
-        _userManagementServices = userManagementServices;
+        _currentApplicationContext = currentApplicationContext;
         _sender = sender;
     }
     #endregion
@@ -44,20 +44,20 @@ public class AccessManagementController : BaseController
 
     public async Task<IActionResult> SectorList()
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(await _sectorServices.GetAllSector(user.CurrentApplicationId));
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        return View(await _sectorServices.GetAllSector(currentApplicationId));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSector(SectorDto sector)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        sector.ApplicationId = user.CurrentApplicationId;
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        sector.ApplicationId = currentApplicationId;
         if (sector.Id == 0)
             await _sectorServices.Create(sector);
         else
-            await _sectorServices.Update(sector, user.CurrentApplicationId);
+            await _sectorServices.Update(sector, currentApplicationId);
         return Content("Done");
     }
     #endregion
@@ -67,8 +67,8 @@ public class AccessManagementController : BaseController
     public async Task<IActionResult> EntityForm(int sectorId)
     {
         ViewData["SectorId"] = sectorId;
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var sector = await _sectorServices.GetById(sectorId, user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var sector = await _sectorServices.GetById(sectorId, currentApplicationId);
         ViewData["SectorTitle"] = sector.Title;
         var entity = new SectorEntityDto
         {
@@ -80,19 +80,19 @@ public class AccessManagementController : BaseController
     [HttpGet("/{area}/{controller}/EntityList/{sectorId}")]
     public async Task<IActionResult> EntityList(int sectorId)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(await _SectorEntityServices.GetSectorEntities(sectorId, user.CurrentApplicationId));
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        return View(await _SectorEntityServices.GetSectorEntities(sectorId, currentApplicationId));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveEntity(SectorEntityDto entity)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
         if (entity.Id == 0)
-            await _SectorEntityServices.Create(entity, user.CurrentApplicationId);
+            await _SectorEntityServices.Create(entity, currentApplicationId);
         else
-            await _SectorEntityServices.Update(entity, user.CurrentApplicationId);
+            await _SectorEntityServices.Update(entity, currentApplicationId);
 
         return Content("Done");
     }
@@ -105,15 +105,15 @@ public class AccessManagementController : BaseController
     }
     public async Task<IActionResult> AccessForm(int id = 0)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var sectors = await _sectorServices.GetAllSector(user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var sectors = await _sectorServices.GetAllSector(currentApplicationId);
         ViewData["Sectors"] = sectors;
-        ViewData["SectorEntities"] = await _SectorEntityServices.GetSectorEntities(sectors[0].Id, user.CurrentApplicationId);
+        ViewData["SectorEntities"] = await _SectorEntityServices.GetSectorEntities(sectors[0].Id, currentApplicationId);
 
         if (id != 0)
         {
-            var access = await _entityAccessServices.GetById(id, user.CurrentApplicationId);
-            var entity = await _SectorEntityServices.GetById(access.EntityId, user.CurrentApplicationId);
+            var access = await _entityAccessServices.GetById(id, currentApplicationId);
+            var entity = await _SectorEntityServices.GetById(access.EntityId, currentApplicationId);
             ViewData["SectorId"] = entity.SectorId;
             ViewData["EntityId"] = access.EntityId;
             return View(access);
@@ -125,28 +125,28 @@ public class AccessManagementController : BaseController
     [HttpGet("/{area}/{controller}/GetSectorEntities/{id}")]
     public async Task<IActionResult> GetSectorEntities(int id)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var sectorEntities = await _SectorEntityServices.GetSectorEntities(id, user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var sectorEntities = await _SectorEntityServices.GetSectorEntities(id, currentApplicationId);
         return PartialView("_SectorEntityOptionsPartial", sectorEntities);
     }
     public async Task<IActionResult> AccessList()
     {
         ViewData["SectorEntities"] = await _SectorEntityServices.GetAllEntities();
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(await _entityAccessServices.List(user.CurrentApplicationId));
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        return View(await _entityAccessServices.List(currentApplicationId));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveAccess(EntityAccessDto accessModel)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
         if (accessModel.Id == 0)
         {
-            await _entityAccessServices.Create(accessModel, user.CurrentApplicationId);
+            await _entityAccessServices.Create(accessModel, currentApplicationId);
         }
         else
-            await _entityAccessServices.Update(accessModel, user.CurrentApplicationId);
+            await _entityAccessServices.Update(accessModel, currentApplicationId);
 
         return Content("Done");
     }

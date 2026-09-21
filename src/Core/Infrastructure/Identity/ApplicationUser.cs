@@ -35,8 +35,6 @@ public class ApplicationUser : IdentityUser
 
     public bool IsApprove { get; set; }
 
-    public int CurrentApplicationId { get; set; }
-
     public bool IsFrontEndUser { get; set; }
 
     public DateTime CreatedDT { get; set; }

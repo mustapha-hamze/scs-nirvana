@@ -1,12 +1,13 @@
 @{
     Layout = null;
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.CurrentApplicationId ?? 0);
     if (accesses == string.Empty)
         accesses = "NULL";
 
     var _version = Guid.NewGuid();
 }
 @inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
 @model List<Domains.Entities.CustomModule.SliderItem>
 <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
     <thead>

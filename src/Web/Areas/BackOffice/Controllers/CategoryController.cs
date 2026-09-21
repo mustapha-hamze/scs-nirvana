@@ -9,16 +9,16 @@ public class CategoryController : BaseController
     // fields
     #region fields
     private readonly ICategoryServices _categoryServices;
-    private readonly IUserManagementServices _userManagementServices;
+    private readonly ICurrentApplicationContext _currentApplicationContext;
     #endregion
 
     // constructor
     #region constructor
     public CategoryController(ICategoryServices categoryServices,
-        IUserManagementServices userManagementServices)
+        ICurrentApplicationContext currentApplicationContext)
     {
         _categoryServices = categoryServices;
-        _userManagementServices = userManagementServices;
+        _currentApplicationContext = currentApplicationContext;
     }
     #endregion
 
@@ -32,8 +32,8 @@ public class CategoryController : BaseController
 
     public async Task<IActionResult> Form()
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["Categories"] = await _categoryServices.List(user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        ViewData["Categories"] = await _categoryServices.List(currentApplicationId);
         return View();
     }
 
@@ -41,16 +41,16 @@ public class CategoryController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveForm(CategoryDto category)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        await _categoryServices.Create(category, user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        await _categoryServices.Create(category, currentApplicationId);
         //TODO: Implement Realistic Implementation
         return Content("Done");
     }
 
     public async Task<IActionResult> List()
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var categories = await _categoryServices.List(user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var categories = await _categoryServices.List(currentApplicationId);
 
         return View(categories);
     }

@@ -10,20 +10,20 @@ public class SchemaController : BaseController
     private readonly ISchemaServices _schemaServices;
     private readonly IHostEnvironment _appEnvironment;
     private readonly ISystemTypeServices _systemTypeServices;
-    private readonly IUserManagementServices _userManagementServices;
+    private readonly ICurrentApplicationContext _currentApplicationContext;
     private readonly IFileUploadService _fileUploadService;
     #endregion
 
     // constructor
     #region constructor
     public SchemaController(ISchemaServices schemaServices, IHostEnvironment appEnvironment,
-        ISystemTypeServices systemTypeServices, IUserManagementServices userManagementServices,
+        ISystemTypeServices systemTypeServices, ICurrentApplicationContext currentApplicationContext,
         IFileUploadService fileUploadService)
     {
         _appEnvironment = appEnvironment;
         _schemaServices = schemaServices;
         _systemTypeServices = systemTypeServices;
-        _userManagementServices = userManagementServices;
+        _currentApplicationContext = currentApplicationContext;
         _fileUploadService = fileUploadService;
     }
     #endregion
@@ -47,8 +47,8 @@ public class SchemaController : BaseController
         }
         else
         {
-            var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-            return View(await _schemaServices.GetById(id, user.CurrentApplicationId));
+            var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+            return View(await _schemaServices.GetById(id, currentApplicationId));
         }
     }
 
@@ -56,15 +56,15 @@ public class SchemaController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSchemaForm(SchemaDto schema)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
         if (schema.Id == 0)
         {
-            schema = await _schemaServices.Create(schema, user.CurrentApplicationId);
+            schema = await _schemaServices.Create(schema, currentApplicationId);
             return Content("Done|" + schema.Id.ToString());
         }
         else
         {
-            schema = await _schemaServices.Update(schema, user.CurrentApplicationId);
+            schema = await _schemaServices.Update(schema, currentApplicationId);
             return Content("Done|" + schema.Id.ToString());
         }
     }
@@ -73,8 +73,8 @@ public class SchemaController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadSchemaLogo(IFormFile File, int EntityId)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var schema = await _schemaServices.GetById(EntityId, user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var schema = await _schemaServices.GetById(EntityId, currentApplicationId);
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Schema/Logos/");
         var baseName = Path.GetFileNameWithoutExtension(schema.LogoFileName);
@@ -84,15 +84,15 @@ public class SchemaController : BaseController
             return Content("Failed");
 
         schema.LogoFileName = uploadResult.FileName;
-        await _schemaServices.Update(schema, user.CurrentApplicationId);
+        await _schemaServices.Update(schema, currentApplicationId);
 
         return Content("Done");
     }
 
     public async Task<IActionResult> SchemaList()
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(await _schemaServices.List(user.CurrentApplicationId));
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        return View(await _schemaServices.List(currentApplicationId));
     }
 
     [HttpDelete]
@@ -100,8 +100,8 @@ public class SchemaController : BaseController
     [Route("/{area}/Schema/DeleteSchema/{id}")]
     public async Task<IActionResult> DeleteSchema(int id)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        await _schemaServices.Delete(id, user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        await _schemaServices.Delete(id, currentApplicationId);
         return Content("Done");
     }
 
@@ -109,17 +109,17 @@ public class SchemaController : BaseController
     [Route("/{area}/Schema/SchemaDetailsForm/{schemaId}")]
     public async Task<IActionResult> SchemaDetailsForm(int schemaId)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
         ViewData["SchemaId"] = schemaId;
-        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.ContentSchema);
+        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(currentApplicationId, TypeId.ContentSchema);
         return View();
     }
 
     [Route("/{area}/Schema/SchemaDetailsList/{schemaId}")]
     public async Task<IActionResult> SchemaDetailsList(int schemaId)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(await _schemaServices.DetailsList(schemaId, user.CurrentApplicationId));
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        return View(await _schemaServices.DetailsList(schemaId, currentApplicationId));
     }
 
     [HttpPost]
@@ -127,8 +127,8 @@ public class SchemaController : BaseController
     public async Task<IActionResult> SchemaDetailsFormSave(SchemaDetailsDto schemaDetails)
     {
         //TODO: Implement Realistic Implementation
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        await _schemaServices.CreateDetails(schemaDetails, user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        await _schemaServices.CreateDetails(schemaDetails, currentApplicationId);
         return Content("Done");
     }
     #endregion

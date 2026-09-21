@@ -119,16 +119,6 @@ public class UserManagementRepositoryTests
     }
 
     [Fact]
-    public async Task GetUserAccesses_UnknownEmail_ThrowsKeyNotFound()
-    {
-        using var factory = new SqliteContextFactory();
-        using var context = factory.CreateContext();
-        var repository = new Infrastructure.UserManagementRepository.UserManagementRepository(context, CreateMapper());
-
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.GetUserAccesses("nobody@x.com"));
-    }
-
-    [Fact]
     public async Task GetUserAccessesWithAppId_UnknownEmail_ThrowsKeyNotFound()
     {
         using var factory = new SqliteContextFactory();
@@ -136,15 +126,5 @@ public class UserManagementRepositoryTests
         var repository = new Infrastructure.UserManagementRepository.UserManagementRepository(context, CreateMapper());
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.GetUserAccesses("nobody@x.com", 1));
-    }
-
-    [Fact]
-    public async Task SetCurrentApplicationId_UnknownEmail_ThrowsKeyNotFound()
-    {
-        using var factory = new SqliteContextFactory();
-        using var context = factory.CreateContext();
-        var repository = new Infrastructure.UserManagementRepository.UserManagementRepository(context, CreateMapper());
-
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.SetCurrentApplicationId("nobody@x.com", 1));
     }
 }

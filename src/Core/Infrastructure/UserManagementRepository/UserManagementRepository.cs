@@ -26,22 +26,6 @@ public class UserManagementRepository : IUserManagementRepository
         return _mapper.Map<List<UserDto>>(users);
     }
 
-    public async Task<string> GetUserAccesses(string email, CancellationToken cancellationToken = default)
-    {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
-        if (user == null)
-            throw new KeyNotFoundException();
-
-        var userAccesses = await _dbContext.UserAccesses.FirstOrDefaultAsync(
-            ua => ua.UserId == user.Id && ua.ApplicationId == user.CurrentApplicationId, cancellationToken
-        );
-
-        if (userAccesses == null)
-            return "";
-
-        return userAccesses.Access;
-    }
-
     public async Task<string> GetUserAccesses(string email, int appId, CancellationToken cancellationToken = default)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
@@ -79,15 +63,6 @@ public class UserManagementRepository : IUserManagementRepository
         {
             userAccesses.Access = accesses;
         }
-    }
-
-    public async Task SetCurrentApplicationId(string email, int appId, CancellationToken cancellationToken = default)
-    {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
-        if (user == null)
-            throw new KeyNotFoundException();
-
-        user.CurrentApplicationId = appId;
     }
 
     public async Task<UserDto> GetUserByEmailAddress(string email, CancellationToken cancellationToken = default)

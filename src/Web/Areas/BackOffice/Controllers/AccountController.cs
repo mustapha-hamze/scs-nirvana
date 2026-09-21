@@ -13,6 +13,7 @@ public class AccountController : BaseController
     private readonly ILogger<AccountController> _logger;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IUserManagementServices _userManagementServices;
+    private readonly ICurrentApplicationContext _currentApplicationContext;
     private readonly IApplicationServices _applicationServices;
     private readonly ISectorServices _sectorServices;
     private readonly ISectorEntityServices _SectorEntityServices;
@@ -23,7 +24,8 @@ public class AccountController : BaseController
     #region constructor
     public AccountController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager,
         SignInManager<ApplicationUser> signInManager, ILogger<AccountController> logger,
-        IUserManagementServices userManagementServices, IApplicationServices applicationServices,
+        IUserManagementServices userManagementServices, ICurrentApplicationContext currentApplicationContext,
+        IApplicationServices applicationServices,
         ISectorServices sectorServices, ISectorEntityServices SectorEntityServices,
         IEntityAccessServices entityAccessServices)
     {
@@ -32,6 +34,7 @@ public class AccountController : BaseController
         _logger = logger;
         _roleManager = roleManager;
         _userManagementServices = userManagementServices;
+        _currentApplicationContext = currentApplicationContext;
         _applicationServices = applicationServices;
         _sectorServices = sectorServices;
         _SectorEntityServices = SectorEntityServices;
@@ -101,8 +104,7 @@ public class AccountController : BaseController
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
     public async Task<IActionResult> RemoveUserFromApplication(int relationId)
     {
-        var user = await _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        await _applicationServices.RemoveUserFromApplication(relationId, user.CurrentApplicationId);
+        await _applicationServices.RemoveUserFromApplication(relationId, _currentApplicationContext.CurrentApplicationId ?? 0);
         return Content("Done");
     }
 
@@ -436,6 +438,7 @@ public class AccountController : BaseController
         // HttpContext.Session.Remove("AppKey");
         Response.Cookies.Delete("AppKey");
         Response.Cookies.Delete("UserIsApprove");
+        _currentApplicationContext.CurrentApplicationId = null;
         await _signInManager.SignOutAsync();
         return Redirect("/");
     }

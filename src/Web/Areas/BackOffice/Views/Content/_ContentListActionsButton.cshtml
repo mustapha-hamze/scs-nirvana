@@ -4,12 +4,13 @@
     var id = Convert.ToInt32(dataArr[0]);
     var typeId = Convert.ToInt32(dataArr[1]);
 
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.CurrentApplicationId ?? 0);
     if (accesses == string.Empty)
         accesses = "NULL";
 }
 
 @inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
 
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_EDIT_1005"))
 {
