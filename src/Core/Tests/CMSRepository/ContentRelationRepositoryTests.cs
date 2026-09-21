@@ -23,7 +23,8 @@ public class ContentRelationRepositoryTests
         // The repository only stages the replace; the Application layer is what wraps it in a
         // transaction (exactly how ContentServices.CreateContentCategories composes it).
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
-        var repository = new ContentRelationRepository(context);
+        var fixedInstant = new DateTimeOffset(2026, 3, 5, 13, 45, 9, TimeSpan.Zero);
+        var repository = new ContentRelationRepository(context, new FakeTimeProvider(fixedInstant));
 
         await unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int> { 3, 4, 5 }));
 
@@ -33,6 +34,7 @@ public class ContentRelationRepositoryTests
 
         Assert.Equal(new[] { 3, 4, 5 }, relations.Select(r => r.CategoryId).OrderBy(id => id));
         Assert.Equal("3|4|5", updatedContent.Categories);
+        Assert.All(relations, r => Assert.Equal(fixedInstant.UtcDateTime, r.CreatedDt));
     }
 
     [Fact]
@@ -49,7 +51,7 @@ public class ContentRelationRepositoryTests
         await context.SaveChangesAsync();
 
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
-        var repository = new ContentRelationRepository(context);
+        var repository = new ContentRelationRepository(context, new FakeTimeProvider(DateTimeOffset.UtcNow));
 
         await Assert.ThrowsAnyAsync<Exception>(
             () => unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int> { 3, 3 })));
@@ -73,7 +75,7 @@ public class ContentRelationRepositoryTests
         await context.SaveChangesAsync();
 
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
-        var repository = new ContentRelationRepository(context);
+        var repository = new ContentRelationRepository(context, new FakeTimeProvider(DateTimeOffset.UtcNow));
 
         await Assert.ThrowsAnyAsync<Exception>(
             () => unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int> { 3, 3 })));
@@ -100,7 +102,7 @@ public class ContentRelationRepositoryTests
         await context.SaveChangesAsync();
 
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
-        var repository = new ContentRelationRepository(context);
+        var repository = new ContentRelationRepository(context, new FakeTimeProvider(DateTimeOffset.UtcNow));
 
         await unitOfWork.ExecuteInTransactionAsync(() => repository.CreateContentCategories(content.Id, new List<int>()));
 

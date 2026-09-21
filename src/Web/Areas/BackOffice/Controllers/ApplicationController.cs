@@ -13,12 +13,13 @@ public class ApplicationController : BaseController
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IUserManagementServices _userManagementServices;
     private readonly IFileUploadService _fileUploadService;
+    private readonly CodeGenerator _codeGenerator;
 
     // constructor
     public ApplicationController(ILogger<ApplicationController> logger, IApplicationServices applicationServices,
         IHostEnvironment appEnvironment, UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager, IUserManagementServices userManagementServices,
-        IFileUploadService fileUploadService)
+        IFileUploadService fileUploadService, CodeGenerator codeGenerator)
     {
         _applicationServices = applicationServices;
         _logger = logger;
@@ -27,6 +28,7 @@ public class ApplicationController : BaseController
         _signInManager = signInManager;
         _userManagementServices = userManagementServices;
         _fileUploadService = fileUploadService;
+        _codeGenerator = codeGenerator;
     }
 
     // methods
@@ -64,8 +66,7 @@ public class ApplicationController : BaseController
     {
         var application = await _applicationServices.GetById(EntityId);
 
-        CodeGenerator codeGenerator = new();
-        application.ApplicationKey = codeGenerator.GenerateAppKey(application.Id);
+        application.ApplicationKey = _codeGenerator.GenerateAppKey(application.Id);
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Application/Logos/");
         var baseName = Path.GetFileNameWithoutExtension(application.LogoFileName);

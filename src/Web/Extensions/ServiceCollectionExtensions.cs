@@ -135,6 +135,7 @@ public static class ServiceCollectionExtensions
         services.AddRazorPages();
 
         services.AddTransient<IFileUploadService, FileUploadService>();
+        services.AddTransient<CodeGenerator>();
 
         services.ConfigureApplicationCookie(options =>
         {

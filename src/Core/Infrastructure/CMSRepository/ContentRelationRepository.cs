@@ -5,10 +5,12 @@ namespace Infrastructure.CMSRepository;
 public class ContentRelationRepository : IContentRelationRepository
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly TimeProvider _timeProvider;
 
-    public ContentRelationRepository(ApplicationDbContext dbContext)
+    public ContentRelationRepository(ApplicationDbContext dbContext, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider;
     }
 
     // categoryIds is expected to already be a validated, de-duplicated set (see
@@ -33,7 +35,7 @@ public class ContentRelationRepository : IContentRelationRepository
             {
                 ContentId = contentId,
                 CategoryId = categoryId,
-                CreatedDt = DateTime.Now
+                CreatedDt = _timeProvider.GetUtcNow().UtcDateTime
             });
         }
     }
