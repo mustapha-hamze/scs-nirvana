@@ -18,22 +18,34 @@ public class ContentProvider : IContentProvider
     // translation/activation flow only.
     public async Task<Content> GetContentForTranslate(int contentId)
     {
-        return await _dbContext.Contents
+        var content = await _dbContext.Contents
             .Include(c => c.Images.Where(i => !i.IsDeleted))
             .Include(c => c.Metadata)
             .Include(c => c.Sections.Where(s => !s.IsDeleted))
-                .ThenInclude(s => s.Elements)
+                .ThenInclude(s => s.Elements.Where(e => !e.IsDeleted))
             .FirstOrDefaultAsync(c => c.Id == contentId && !c.IsDeleted);
+
+        // Metadata is a single reference, not a collection, so EF's filtered Include can't
+        // exclude a soft-deleted row directly — null it out here instead.
+        if (content?.Metadata?.IsDeleted == true)
+            content.Metadata = null;
+
+        return content;
     }
 
     public async Task<Content> GetContentForTranslate(int contentId, int applicationId)
     {
-        return await _dbContext.Contents
+        var content = await _dbContext.Contents
             .Include(c => c.Images.Where(i => !i.IsDeleted))
             .Include(c => c.Metadata)
             .Include(c => c.Sections.Where(s => !s.IsDeleted))
-                .ThenInclude(s => s.Elements)
+                .ThenInclude(s => s.Elements.Where(e => !e.IsDeleted))
             .FirstOrDefaultAsync(c => c.Id == contentId && c.ApplicationId == applicationId && !c.IsDeleted);
+
+        if (content?.Metadata?.IsDeleted == true)
+            content.Metadata = null;
+
+        return content;
     }
 
     public ContentListResultModel GetContentsListByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 20, string keyLang = "en")

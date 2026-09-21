@@ -64,7 +64,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
                     CreatedDT = s.CreatedDT,
                     ContentId = s.ContentId,
                     Priority = s.Priority,
-                    Elements = s.Elements.Select(e => new SectionElementApiDto
+                    Elements = s.Elements.Where(e => !e.IsDeleted).Select(e => new SectionElementApiDto
                     {
                         Id = e.Id,
                         Status = e.Status,
@@ -107,7 +107,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 Tags = c.Tags,
                 Cultures = c.Cultures,
                 PublishDt = c.PublishDt,
-                Images = c.Images.Select(i => new ContentImageApiDto
+                Images = c.Images.Where(i => !i.IsDeleted).Select(i => new ContentImageApiDto
                 {
                     Id = i.Id,
                     Status = i.Status,
@@ -121,7 +121,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 }).ToList(),
                 // Matches the previous .Include(c => c.Sections) with no ThenInclude(Elements):
                 // sections are populated, their elements are not.
-                Sections = c.Sections.Select(s => new ContentSectionApiDto
+                Sections = c.Sections.Where(s => !s.IsDeleted).Select(s => new ContentSectionApiDto
                 {
                     Id = s.Id,
                     Status = s.Status,
@@ -132,7 +132,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
                     ContentId = s.ContentId,
                     Priority = s.Priority
                 }).ToList(),
-                Metadata = c.Metadata == null ? null : new ContentMetadataApiDto
+                Metadata = (c.Metadata == null || c.Metadata.IsDeleted) ? null : new ContentMetadataApiDto
                 {
                     Id = c.Metadata.Id,
                     Status = c.Metadata.Status,
@@ -166,7 +166,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 HeadLine = c.HeadLine,
                 CreatedDT = c.CreatedDT,
                 Categories = c.Categories,
-                Images = c.Images.Where(ci => ci.Size == 640).Select(i => new ContentImageApiDto
+                Images = c.Images.Where(ci => ci.Size == 640 && !ci.IsDeleted).Select(i => new ContentImageApiDto
                 {
                     Id = i.Id,
                     Status = i.Status,
@@ -236,7 +236,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
         var contentIds = _result.Select(r => r.ContentId).ToList();
         var imagesByContentId = _dbContext.ContentImages
-            .Where(i => contentIds.Contains(i.ContentId) && (i.Size == 640 || i.Size == 430 || i.Size == 860))
+            .Where(i => contentIds.Contains(i.ContentId) && (i.Size == 640 || i.Size == 430 || i.Size == 860) && !i.IsDeleted)
             .ToList()
             .GroupBy(i => i.ContentId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ContentImageApiDto
@@ -296,7 +296,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
         var contentIds = result.Select(r => r.ContentId).ToList();
         var imagesByContentId = _dbContext.ContentImages
-            .Where(i => contentIds.Contains(i.ContentId) && i.Size == 640)
+            .Where(i => contentIds.Contains(i.ContentId) && i.Size == 640 && !i.IsDeleted)
             .ToList()
             .GroupBy(i => i.ContentId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ContentImageApiDto
@@ -352,7 +352,7 @@ public class ContentRepository : Repository<Content>, IContentRepository
                 HeadLine = c.HeadLine,
                 CreatedDT = c.CreatedDT,
                 Categories = c.Categories,
-                Images = c.Images.Where(ci => ci.Size == 640).Select(i => new ContentImageApiDto
+                Images = c.Images.Where(ci => ci.Size == 640 && !ci.IsDeleted).Select(i => new ContentImageApiDto
                 {
                     Id = i.Id,
                     Status = i.Status,
@@ -467,8 +467,8 @@ public class ContentRepository : Repository<Content>, IContentRepository
 
     public ContentMetadata GetContentMetadata(int contentId)
     {
-        if (_dbContext.ContentMetadatas.Any(m => m.ContentId == contentId))
-            return _dbContext.ContentMetadatas.Single(m => m.ContentId == contentId);
+        if (_dbContext.ContentMetadatas.Any(m => m.ContentId == contentId && !m.IsDeleted))
+            return _dbContext.ContentMetadatas.Single(m => m.ContentId == contentId && !m.IsDeleted);
         else
             return new ContentMetadata();
     }

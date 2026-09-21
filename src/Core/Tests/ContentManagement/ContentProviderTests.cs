@@ -63,6 +63,58 @@ public class ContentProviderTests
     }
 
     [Fact]
+    public async Task GetContentForTranslate_ExcludesDeletedSectionElements()
+    {
+        using var factory = new SqliteContextFactory();
+        int contentId;
+        using (var seedContext = factory.CreateContext())
+        {
+            var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Sample" };
+            seedContext.Contents.Add(content);
+            seedContext.SaveChanges();
+            var section = new ContentSection { ContentId = content.Id, Priority = 1 };
+            seedContext.ContentSections.Add(section);
+            seedContext.SaveChanges();
+            seedContext.SectionElements.Add(new SectionElement { SectionId = section.Id, ElementType = 1000, TinyText = "kept" });
+            seedContext.SectionElements.Add(new SectionElement { SectionId = section.Id, ElementType = 1000, TinyText = "deleted", IsDeleted = true });
+            seedContext.SaveChanges();
+            contentId = content.Id;
+        }
+
+        // A fresh context for the read: reusing the seeding context would let EF's relationship
+        // fixup re-attach the already-tracked deleted element regardless of the query filter.
+        using var context = factory.CreateContext();
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentForTranslate(contentId);
+
+        var resultSection = Assert.Single(result.Sections);
+        var element = Assert.Single(resultSection.Elements);
+        Assert.Equal("kept", element.TinyText);
+    }
+
+    [Fact]
+    public async Task GetContentForTranslate_ExcludesDeletedMetadata()
+    {
+        using var factory = new SqliteContextFactory();
+        int contentId;
+        using (var seedContext = factory.CreateContext())
+        {
+            var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Sample" };
+            seedContext.Contents.Add(content);
+            seedContext.SaveChanges();
+            seedContext.ContentMetadatas.Add(new ContentMetadata { ContentId = content.Id, Title = "Deleted Meta", IsDeleted = true });
+            seedContext.SaveChanges();
+            contentId = content.Id;
+        }
+
+        using var context = factory.CreateContext();
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentForTranslate(contentId);
+
+        Assert.Null(result.Metadata);
+    }
+
+    [Fact]
     public void GetContentsListByCategoryId_CategoryOneDoesNotMatchCategoryEleven()
     {
         using var factory = new SqliteContextFactory();

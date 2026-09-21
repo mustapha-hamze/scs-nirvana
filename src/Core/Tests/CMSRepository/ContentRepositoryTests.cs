@@ -424,4 +424,41 @@ public class ContentRepositoryTests
         Assert.Equal(5, result.Contents.Count); // the app-1 seeded rows only, not the 6th (app 2) row
         Assert.DoesNotContain(result.Contents, c => c.Id == otherAppContent.Id);
     }
+
+    [Fact]
+    public void GetContentMetadata_ReturnsMetadata_WhenNotDeleted()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var content = new Content { TypeId = 1000, Title = "Sample" };
+        context.Contents.Add(content);
+        context.SaveChanges();
+        context.ContentMetadatas.Add(new ContentMetadata { ContentId = content.Id, Title = "Meta" });
+        context.SaveChanges();
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var result = repository.GetContentMetadata(content.Id);
+
+        Assert.Equal("Meta", result.Title);
+    }
+
+    [Fact]
+    public void GetContentMetadata_SoftDeleted_ReturnsEmptyMetadata()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var content = new Content { TypeId = 1000, Title = "Sample" };
+        context.Contents.Add(content);
+        context.SaveChanges();
+        context.ContentMetadatas.Add(new ContentMetadata { ContentId = content.Id, Title = "Meta", IsDeleted = true });
+        context.SaveChanges();
+
+        var repository = new ContentRepository(context, TestConfiguration.Create(), new Infrastructure.UnitOfWork.UnitOfWork(context));
+
+        var result = repository.GetContentMetadata(content.Id);
+
+        Assert.Equal(0, result.Id);
+        Assert.Null(result.Title);
+    }
 }

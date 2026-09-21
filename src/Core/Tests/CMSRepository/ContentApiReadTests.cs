@@ -119,6 +119,24 @@ public class ContentApiReadTests
     }
 
     [Fact]
+    public void GetContentByIdFull_ExcludesDeletedSectionElements()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context);
+        var section = context.ContentSections.Single(s => s.ContentId == contentId);
+        context.SectionElements.Add(new SectionElement { SectionId = section.Id, ElementType = 1000, TinyText = "Deleted", IsDeleted = true });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var dto = Assert.Single(repository.GetContentByIdFull(contentId, applicationId: 1));
+
+        var resultSection = Assert.Single(dto.Sections);
+        var element = Assert.Single(resultSection.Elements);
+        Assert.Equal("Hello", element.TinyText);
+    }
+
+    [Fact]
     public void GetContentByIdFull_NotFound_ReturnsEmptyList()
     {
         // The controller relies on this: Ok(content[0]) when found, Ok(content) — an empty
@@ -173,10 +191,8 @@ public class ContentApiReadTests
     }
 
     [Fact]
-    public void GetContentByTypeId_NoPage_ImagesAreUnfiltered()
+    public void GetContentByTypeId_NoPage_ExcludesDeletedImages()
     {
-        // Matches current behavior: .Include(c => c.Images) has no Where(!IsDeleted) filter here
-        // (unlike GetContentByIdFull), so deleted images are still returned.
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
         var contentId = SeedFullContent(context, typeId: 2001);
@@ -186,7 +202,38 @@ public class ContentApiReadTests
         var repository = CreateRepository(context);
         var dto = Assert.Single(repository.GetContentByTypeId(2001, applicationId: 1));
 
-        Assert.Contains(dto.Images, i => i.ImageFileName == "deleted.jpg");
+        Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted.jpg");
+    }
+
+    [Fact]
+    public void GetContentByTypeId_NoPage_ExcludesDeletedSections()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context, typeId: 2003);
+        context.ContentSections.Add(new ContentSection { ContentId = contentId, Priority = 2, IsDeleted = true });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var dto = Assert.Single(repository.GetContentByTypeId(2003, applicationId: 1));
+
+        Assert.Single(dto.Sections);
+    }
+
+    [Fact]
+    public void GetContentByTypeId_NoPage_ExcludesDeletedMetadata()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context, typeId: 2004);
+        var metadata = context.ContentMetadatas.Single(m => m.ContentId == contentId);
+        metadata.IsDeleted = true;
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var dto = Assert.Single(repository.GetContentByTypeId(2004, applicationId: 1));
+
+        Assert.Null(dto.Metadata);
     }
 
     [Fact]
@@ -249,6 +296,21 @@ public class ContentApiReadTests
         Assert.Equal(15, result.Contents.Count);
     }
 
+    [Fact]
+    public void GetContentByTypeId_Paged_ExcludesDeletedImages()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context, typeId: 4100);
+        context.ContentImages.Add(new ContentImage { ContentId = contentId, ImageFileName = "deleted-640.jpg", Size = 640, IsDeleted = true });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var dto = Assert.Single(repository.GetContentByTypeId(4100, applicationId: 1, pageIndex: 1).Contents);
+
+        Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted-640.jpg");
+    }
+
     // ---- GetContentByCategoryId/{categoryId}/{pageIndex}/{pageSize} ----
 
     [Fact]
@@ -285,6 +347,22 @@ public class ContentApiReadTests
 
         var dto = Assert.Single(result.Contents);
         Assert.Equal(ownApp, dto.Id);
+    }
+
+    [Fact]
+    public void GetContentByCategoryId_ExcludesDeletedImages()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context, typeId: 5060, categories: "1");
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = contentId, CategoryId = 60, CreatedDt = DateTime.Now });
+        context.ContentImages.Add(new ContentImage { ContentId = contentId, ImageFileName = "deleted-640.jpg", Size = 640, IsDeleted = true });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var dto = Assert.Single(repository.GetContentByCategoryId(60, applicationId: 1, pageIndex: 0, pageSize: 40).Contents);
+
+        Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted-640.jpg");
     }
 
     [Fact]
@@ -363,6 +441,22 @@ public class ContentApiReadTests
         Assert.Equal(ownApp, dto.Id);
     }
 
+    [Fact]
+    public void GetContentByCategoryIdByDate_ExcludesDeletedImages()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context, typeId: 6300, categories: "8");
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = contentId, CategoryId = 63, CreatedDt = DateTime.Now });
+        context.ContentImages.Add(new ContentImage { ContentId = contentId, ImageFileName = "deleted-640.jpg", Size = 640, IsDeleted = true });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var dto = Assert.Single(repository.GetContentByCategoryIdByDate(63, applicationId: 1, DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), pageIndex: 1).Contents);
+
+        Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted-640.jpg");
+    }
+
     // ---- GetContentInCategoryAsBox/{categoryId} ----
 
     [Fact]
@@ -400,6 +494,22 @@ public class ContentApiReadTests
 
         var dto = Assert.Single(result);
         Assert.Equal(ownApp, dto.Id);
+    }
+
+    [Fact]
+    public void GetContentInCategoryAsBox_ExcludesDeletedImages()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var contentId = SeedFullContent(context, typeId: 7200, categories: "4");
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = contentId, CategoryId = 72, CreatedDt = DateTime.Now });
+        context.ContentImages.Add(new ContentImage { ContentId = contentId, ImageFileName = "deleted-640.jpg", Size = 640, IsDeleted = true });
+        context.SaveChanges();
+
+        var repository = CreateRepository(context);
+        var dto = Assert.Single(repository.GetContentInCategoryAsBox(72, applicationId: 1));
+
+        Assert.DoesNotContain(dto.Images, i => i.ImageFileName == "deleted-640.jpg");
     }
 
     // ---- Cross-endpoint JSON shape checks (Part 1 baseline) ----
