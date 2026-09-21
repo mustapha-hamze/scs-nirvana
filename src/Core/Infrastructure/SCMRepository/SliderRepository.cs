@@ -22,17 +22,28 @@ namespace Infrastructure.SCMRepository
 
         public List<Domains.Entities.CustomModule.Slider> GetSliders(int applicationId)
         {
-            return _dbContext.Sliders.Where(s => s.ApplicationId == applicationId).ToList();
+            return _dbContext.Sliders.Where(s => s.ApplicationId == applicationId && !s.IsDeleted).ToList();
         }
 
-        public List<SliderItem> GetSliderItems(int sliderId)
+        public async Task<Domains.Entities.CustomModule.Slider> GetByIdForApplication(int id, int applicationId)
         {
-            return _dbContext.SliderItems.Where(si => si.SliderId == sliderId && !si.IsDeleted).ToList();
+            return await _dbContext.Sliders.AsNoTracking()
+                .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted);
         }
 
-        public async Task<SliderItem> GetSliderItem(int sliderItemId)
+        public List<SliderItem> GetSliderItems(int sliderId, int applicationId)
         {
-            return await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
+            return _dbContext.SliderItems
+                .Where(si => si.SliderId == sliderId && !si.IsDeleted
+                    && si.Slider.ApplicationId == applicationId && !si.Slider.IsDeleted)
+                .ToList();
+        }
+
+        public async Task<SliderItem> GetItemForApplication(int sliderItemId, int applicationId)
+        {
+            return await _dbContext.SliderItems.AsNoTracking()
+                .SingleAsync(si => si.Id == sliderItemId && !si.IsDeleted
+                    && si.Slider.ApplicationId == applicationId && !si.Slider.IsDeleted);
         }
 
         public Task<SliderItem> CreateSliderItem(SliderItem sliderItem)
@@ -67,9 +78,10 @@ namespace Infrastructure.SCMRepository
             _dbContext.Entry(sliderItem).State = EntityState.Modified;
         }
 
-        public Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId)
+        public Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId, int applicationId)
         {
-            var result = _dbContext.Sliders.Where(s => s.Id == sliderId)
+            var result = _dbContext.Sliders
+                .Where(s => s.Id == sliderId && s.ApplicationId == applicationId && !s.IsDeleted)
                 .Include(s => s.SliderItems.Where(si => !si.IsDeleted && si.IsActive))
                 .OrderByDescending(s => s.CreatedDT).ToList();
 

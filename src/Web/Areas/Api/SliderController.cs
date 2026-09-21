@@ -7,10 +7,12 @@ public class SliderController : ControllerBase
     {
         _sliderServices = sliderServices;
     }
+    // Breaking route change: applicationId is now a required leading segment so this public
+    // endpoint can no longer be used to read another application's slider by guessing its id.
     [HttpGet]
-    [Route("api/[controller]/GetSlider/{sliderId}")]
-    public IActionResult GetSlider(int sliderId)
+    [Route("api/[controller]/{applicationId}/GetSlider/{sliderId}")]
+    public IActionResult GetSlider(int applicationId, int sliderId)
     {
-        return Ok(_sliderServices.GetSliderWithItems(sliderId));
+        return Ok(_sliderServices.GetSliderWithItems(sliderId, applicationId));
     }
 }

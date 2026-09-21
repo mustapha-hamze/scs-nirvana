@@ -10,13 +10,14 @@ namespace Application.SCMRepository
     public interface ISliderRepository : IRepository<Domains.Entities.CustomModule.Slider>
     {
         List<Domains.Entities.CustomModule.Slider> GetSliders(int applicationId);
-        List<SliderItem> GetSliderItems(int sliderId);
+        Task<Domains.Entities.CustomModule.Slider> GetByIdForApplication(int id, int applicationId);
+        List<SliderItem> GetSliderItems(int sliderId, int applicationId);
+        Task<SliderItem> GetItemForApplication(int sliderItemId, int applicationId);
         Task<SliderItem> CreateSliderItem(SliderItem sliderItem);
         Task DeactiveSliderItem(int sliderItemId);
         Task DeleteSliderItem(int sliderItemId);
         Task ActiveSliderItem(int sliderItemId);
-        Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId);
-        Task<SliderItem> GetSliderItem(int sliderItemId);
+        Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId, int applicationId);
         Task<SliderItem> UpdateSliderItem(SliderItem sliderItem);
     }
 }

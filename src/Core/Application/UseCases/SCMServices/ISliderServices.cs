@@ -8,15 +8,15 @@ namespace Services.SCMServices
 {
     public interface ISliderServices
     {
-        Task<Slider> Create(Slider slider);
-        Task<SliderItem> CreateSliderItem(SliderItem sliderItem);
-        Task DeactiveSliderItem(int sliderItemId);
+        Task<Slider> Create(Slider slider, int applicationId);
+        Task<SliderItem> CreateSliderItem(SliderItem sliderItem, int applicationId);
+        Task DeactiveSliderItem(int sliderItemId, int applicationId);
         List<Slider> GetSliders(int applicationId);
-        List<SliderItem> GetSliderItems(int sliderId);
-        Task DeleteSliderItem(int sliderItemId);
-        Task ActiveSliderItem(int sliderItemId);
-        Slider GetSliderWithItems(int sliderId);
-        Task<SliderItem> GetSliderItem(int sliderItemId);
-        Task<SliderItem> UpdateSliderItem(SliderItem sliderItem);
+        List<SliderItem> GetSliderItems(int sliderId, int applicationId);
+        Task DeleteSliderItem(int sliderItemId, int applicationId);
+        Task ActiveSliderItem(int sliderItemId, int applicationId);
+        Slider GetSliderWithItems(int sliderId, int applicationId);
+        Task<SliderItem> GetSliderItem(int sliderItemId, int applicationId);
+        Task<SliderItem> UpdateSliderItem(SliderItem sliderItem, int applicationId);
     }
 }
