@@ -24,16 +24,19 @@ namespace Services.CMSServices
         }
 
         // methods
-        public async Task<CategoryDto> Create(CategoryDto category)
+        public async Task<CategoryDto> Create(CategoryDto category, int applicationId)
         {
             category.IsActive = true;
+            // Never trust ApplicationId from the DTO - server-pin it.
+            category.ApplicationId = applicationId;
             var created = await _categoryRepository.Create(_mapper.Map<Category>(category));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<CategoryDto>(created);
         }
 
-        public async Task Delete(int id)
+        public async Task Delete(int id, int applicationId)
         {
+            await _categoryRepository.GetByIdForApplication(id, applicationId);
             await _categoryRepository.Delete(id);
             await _unitOfWork.SaveChangesAsync();
         }
@@ -43,9 +46,9 @@ namespace Services.CMSServices
             return _mapper.Map<List<CategoryDto>>(_categoryRepository.List(applicationId));
         }
 
-        public async Task<CategoryDto> GetById(int id)
+        public async Task<CategoryDto> GetById(int id, int applicationId)
         {
-            return _mapper.Map<CategoryDto>(await _categoryRepository.GetById(id));
+            return _mapper.Map<CategoryDto>(await _categoryRepository.GetByIdForApplication(id, applicationId));
         }
 
         public List<CategoryDto> GetAllFullPath(int applicationId)

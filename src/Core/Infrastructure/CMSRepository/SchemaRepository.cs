@@ -13,11 +13,13 @@ namespace Infrastructure.CMSRepository
     {
         // fields
         private readonly ApplicationDbContext _dbContext;
+        private readonly Repository<SchemaDetails> _detailsRepository;
 
         // constructor
         public SchemaRepository(ApplicationDbContext dbContext) : base(dbContext)
         {
             _dbContext = dbContext;
+            _detailsRepository = new Repository<SchemaDetails>(dbContext);
         }
 
         // methods
@@ -55,5 +57,9 @@ namespace Infrastructure.CMSRepository
                 .SingleAsync(d => d.Id == detailId && !d.IsDeleted
                     && d.Schema.ApplicationId == applicationId && !d.Schema.IsDeleted);
         }
+
+        public Task<SchemaDetails> CreateDetail(SchemaDetails detail) => _detailsRepository.Create(detail);
+
+        public Task DeleteDetail(int id) => _detailsRepository.Delete(id);
     }
 }

@@ -135,6 +135,43 @@ public class ApplicationRepositoryTests
     }
 
     [Fact]
+    public async Task RemoveUserFromApplication_SameApplication_RemovesMembership()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var relation = new UserInApplication { UserId = "u1", ApplicationId = 5, IsActive = true };
+        context.UserInApplications.Add(relation);
+        context.SaveChanges();
+
+        var repository = new ApplicationRepository(context);
+
+        await repository.RemoveUserFromApplication(relation.Id, applicationId: 5);
+        await context.SaveChangesAsync();
+
+        await using var verifyContext = factory.CreateContext();
+        Assert.True(verifyContext.UserInApplications.Single(u => u.Id == relation.Id).IsDeleted);
+    }
+
+    [Fact]
+    public async Task RemoveUserFromApplication_DifferentApplication_ThrowsAndDoesNotRemove()
+    {
+        // A member of application 1 must not be able to remove a membership row that actually
+        // belongs to application 5, just by guessing/enumerating its relationId.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var relation = new UserInApplication { UserId = "victim", ApplicationId = 5, IsActive = true };
+        context.UserInApplications.Add(relation);
+        context.SaveChanges();
+
+        var repository = new ApplicationRepository(context);
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.RemoveUserFromApplication(relation.Id, applicationId: 1));
+
+        await using var verifyContext = factory.CreateContext();
+        Assert.False(verifyContext.UserInApplications.Single(u => u.Id == relation.Id).IsDeleted);
+    }
+
+    [Fact]
     public async Task UserAccess_DuplicatePair_ViolatesUniqueConstraint()
     {
         using var factory = new SqliteContextFactory();

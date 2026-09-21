@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Application.Contracts.General;
 using Domains.Entities.General;
-using Application.Repository;
 using Application.UnitOfWork;
 
 namespace Services.GeneralServices
@@ -12,14 +11,12 @@ namespace Services.GeneralServices
     {
         // fields
         private readonly global::Application.GeneralRepository.IApplicationRepository _applicationRepository;
-        private readonly IRepository<ApplicationSetting> _applicationSettingRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
         // cunstructor
-        public ApplicationServices(global::Application.GeneralRepository.IApplicationRepository applicationRepository, IRepository<ApplicationSetting> applicationSettingRepository, IMapper mapper, IUnitOfWork unitOfWork)
+        public ApplicationServices(global::Application.GeneralRepository.IApplicationRepository applicationRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
-            _applicationSettingRepository = applicationSettingRepository;
             _applicationRepository = applicationRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -64,16 +61,18 @@ namespace Services.GeneralServices
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task RemoveUserFromApplication(int relationId)
+        public async Task RemoveUserFromApplication(int relationId, int applicationId)
         {
-            await _applicationRepository.RemoveUserFromApplication(relationId);
+            await _applicationRepository.RemoveUserFromApplication(relationId, applicationId);
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<ApplicationSettingDto> CreateApplicationSetting(ApplicationSettingDto applicationSetting)
+        public async Task<ApplicationSettingDto> CreateApplicationSetting(ApplicationSettingDto applicationSetting, int applicationId)
         {
             applicationSetting.IsActive = true;
-            var created = await _applicationSettingRepository.Create(_mapper.Map<ApplicationSetting>(applicationSetting));
+            // Never trust ApplicationId from the DTO - server-pin it.
+            applicationSetting.ApplicationId = applicationId;
+            var created = await _applicationRepository.CreateApplicationSetting(_mapper.Map<ApplicationSetting>(applicationSetting));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<ApplicationSettingDto>(created);
         }

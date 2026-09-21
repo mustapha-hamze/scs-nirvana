@@ -12,10 +12,12 @@ namespace Infrastructure.GeneralRepository
     public class ApplicationRepository : Repository<Domains.Entities.General.Application>, global::Application.GeneralRepository.IApplicationRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly Repository<ApplicationSetting> _applicationSettingRepository;
 
         public ApplicationRepository(ApplicationDbContext dbContext) : base(dbContext)
         {
             _dbContext = dbContext;
+            _applicationSettingRepository = new Repository<ApplicationSetting>(dbContext);
         }
 
         public List<Domains.Entities.General.Application> List()
@@ -61,9 +63,9 @@ namespace Infrastructure.GeneralRepository
             });
         }
 
-        public Task RemoveUserFromApplication(int relationId)
+        public Task RemoveUserFromApplication(int relationId, int applicationId)
         {
-            var relation = _dbContext.UserInApplications.Single(u => u.Id == relationId);
+            var relation = _dbContext.UserInApplications.Single(u => u.Id == relationId && u.ApplicationId == applicationId);
             relation.IsDeleted = true;
             relation.UpdatedDT = DateTime.Now;
 
@@ -88,6 +90,11 @@ namespace Infrastructure.GeneralRepository
                     .Where(a => a.ApplicationId == applicationId && a.SettingId == settingId && !a.IsDeleted)
                     .OrderByDescending(a => a.CreatedDT)
                     .ToList();
+        }
+
+        public Task<ApplicationSetting> CreateApplicationSetting(ApplicationSetting setting)
+        {
+            return _applicationSettingRepository.Create(setting);
         }
     }
 }

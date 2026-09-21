@@ -47,6 +47,17 @@ public interface IContentRepository : IRepository<Content>
     Task<SectionElement> GetElementForApplication(int elementId, int applicationId);
     Task<ContentMetadata> GetContentMetadataForApplication(int metadataId, int applicationId);
 
+    // Staging-only, purpose-specific CRUD for Content's child entities (replaces generic
+    // IRepository<T> injections for ContentSection/SectionElement/ContentMetadata/ContentImage).
+    // Callers must resolve/verify ownership via the *ForApplication methods above first.
+    Task<ContentSection> CreateSection(ContentSection section);
+    Task DeleteSection(int sectionId);
+    Task<SectionElement> CreateSectionElement(SectionElement element);
+    Task<SectionElement> UpdateElement(SectionElement element);
+    Task<ContentMetadata> CreateContentMetadata(ContentMetadata metadata);
+    Task<ContentMetadata> UpdateContentMetadata(ContentMetadata metadata);
+    Task<ContentImage> CreateContentImage(ContentImage image);
+
     // Every public-API read below requires applicationId and filters on it — none of these ever
     // fall back to an unscoped query. A missing, deleted, or wrong-application id must produce
     // the same empty/not-found shape as any other id that doesn't exist.

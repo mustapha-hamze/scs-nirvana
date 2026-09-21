@@ -5,7 +5,6 @@ using Application.GeneralRepository;
 using Application.Contracts.CMS;
 using Application.UnitOfWork;
 using Infrastructure.Mapper;
-using Application.Repository;
 using Moq;
 using Services.CMSServices;
 using Xunit;
@@ -25,16 +24,15 @@ public class ContentServicesTests
         Mock<ICategoryRepository> categoryRepository = null,
         Mock<ITagRepository> tagRepository = null,
         Mock<ICultureRepository> cultureRepository = null,
-        Mock<IRepository<ContentMetadata>> contentMetadataRepository = null,
         IMapper mapper = null,
         Mock<IUnitOfWork> unitOfWork = null)
     {
+        // Same default the real repository gives UpdateContentMetadata: echoes back whatever
+        // entity it was handed, so callers that merge onto the loaded entity see it round-trip.
+        contentRepository.Setup(r => r.UpdateContentMetadata(It.IsAny<ContentMetadata>())).ReturnsAsync((ContentMetadata m) => m);
+
         return new ContentServices(
             contentRepository.Object,
-            Mock.Of<IRepository<ContentSection>>(),
-            Mock.Of<IRepository<SectionElement>>(),
-            (contentMetadataRepository ?? DefaultContentMetadataRepository()).Object,
-            Mock.Of<IRepository<ContentImage>>(),
             (categoryRepository ?? new Mock<ICategoryRepository>()).Object,
             (tagRepository ?? new Mock<ITagRepository>()).Object,
             (cultureRepository ?? new Mock<ICultureRepository>()).Object,
@@ -50,13 +48,6 @@ public class ContentServicesTests
         unitOfWork.Setup(u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
             .Returns<Func<Task>>(operation => operation());
         return unitOfWork;
-    }
-
-    private static Mock<IRepository<ContentMetadata>> DefaultContentMetadataRepository()
-    {
-        var repository = new Mock<IRepository<ContentMetadata>>();
-        repository.Setup(r => r.Update(It.IsAny<ContentMetadata>())).ReturnsAsync((ContentMetadata m) => m);
-        return repository;
     }
 
     [Fact]

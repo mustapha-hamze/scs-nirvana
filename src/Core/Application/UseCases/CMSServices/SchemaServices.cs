@@ -4,7 +4,6 @@ using AutoMapper;
 using Application.Contracts.CMS;
 using Domains.Entities.ContentManagement;
 using Application.CMSRepository;
-using Application.Repository;
 using Application.UnitOfWork;
 
 namespace Services.CMSServices
@@ -13,15 +12,13 @@ namespace Services.CMSServices
     {
         // fields
         private readonly ISchemaRepository _schemaRepository;
-        private readonly IRepository<SchemaDetails> _schemaDetailsRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
         // constructor
-        public SchemaServices(ISchemaRepository schemaRepository, IRepository<SchemaDetails> schemaDetailsRepository, IMapper mapper, IUnitOfWork unitOfWork)
+        public SchemaServices(ISchemaRepository schemaRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _schemaRepository = schemaRepository;
-            _schemaDetailsRepository = schemaDetailsRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
@@ -80,7 +77,7 @@ namespace Services.CMSServices
             await _schemaRepository.GetByIdForApplication(schemaDetails.SchemaId, applicationId);
 
             schemaDetails.IsActive = true;
-            var created = await _schemaDetailsRepository.Create(_mapper.Map<SchemaDetails>(schemaDetails));
+            var created = await _schemaRepository.CreateDetail(_mapper.Map<SchemaDetails>(schemaDetails));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<SchemaDetailsDto>(created);
         }
@@ -90,7 +87,7 @@ namespace Services.CMSServices
             // Resolves ownership through the actual chain (detail -> schema -> application)
             // rather than a bare-ID delete.
             await _schemaRepository.GetDetailForApplication(id, applicationId);
-            await _schemaDetailsRepository.Delete(id);
+            await _schemaRepository.DeleteDetail(id);
             await _unitOfWork.SaveChangesAsync();
         }
 

@@ -42,8 +42,7 @@ public class CategoryController : BaseController
     public async Task<IActionResult> SaveForm(CategoryDto category)
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        category.ApplicationId = user.CurrentApplicationId;
-        await _categoryServices.Create(category);
+        await _categoryServices.Create(category, user.CurrentApplicationId);
         //TODO: Implement Realistic Implementation
         return Content("Done");
     }

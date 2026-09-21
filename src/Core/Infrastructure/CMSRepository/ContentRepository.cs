@@ -8,12 +8,20 @@ public class ContentRepository : Repository<Content>, IContentRepository
     // fields
     private readonly ApplicationDbContext _dbContext;
     private readonly string _connectionString;
+    private readonly Repository<ContentSection> _sectionRepository;
+    private readonly Repository<SectionElement> _elementRepository;
+    private readonly Repository<ContentMetadata> _contentMetadataRepository;
+    private readonly Repository<ContentImage> _contentImageChildRepository;
 
     // constructor
     public ContentRepository(ApplicationDbContext dbContext, IConfiguration configuration) : base(dbContext)
     {
         _dbContext = dbContext;
         _connectionString = configuration.GetConnectionString("DefaultConnection");
+        _sectionRepository = new Repository<ContentSection>(dbContext);
+        _elementRepository = new Repository<SectionElement>(dbContext);
+        _contentMetadataRepository = new Repository<ContentMetadata>(dbContext);
+        _contentImageChildRepository = new Repository<ContentImage>(dbContext);
     }
 
     // methods
@@ -637,4 +645,18 @@ public class ContentRepository : Repository<Content>, IContentRepository
         content.IsActive = true;
         content.UpdatedDT = DateTime.Now;
     }
+
+    public Task<ContentSection> CreateSection(ContentSection section) => _sectionRepository.Create(section);
+
+    public Task DeleteSection(int sectionId) => _sectionRepository.Delete(sectionId);
+
+    public Task<SectionElement> CreateSectionElement(SectionElement element) => _elementRepository.Create(element);
+
+    public Task<SectionElement> UpdateElement(SectionElement element) => _elementRepository.Update(element);
+
+    public Task<ContentMetadata> CreateContentMetadata(ContentMetadata metadata) => _contentMetadataRepository.Create(metadata);
+
+    public Task<ContentMetadata> UpdateContentMetadata(ContentMetadata metadata) => _contentMetadataRepository.Update(metadata);
+
+    public Task<ContentImage> CreateContentImage(ContentImage image) => _contentImageChildRepository.Create(image);
 }

@@ -23,16 +23,19 @@ namespace Services.GeneralServices
         }
 
         // methods
-        public async Task<TagDto> Create(TagDto tag)
+        public async Task<TagDto> Create(TagDto tag, int applicationId)
         {
             tag.IsActive = true;
+            // Never trust ApplicationId from the DTO - server-pin it.
+            tag.ApplicationId = applicationId;
             var result = await _tagRepository.Create(_mapper.Map<Tag>(tag));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<TagDto>(result);
         }
 
-        public async Task Delete(int id)
+        public async Task Delete(int id, int applicationId)
         {
+            await _tagRepository.GetByIdForApplication(id, applicationId);
             await _tagRepository.Delete(id);
             await _unitOfWork.SaveChangesAsync();
         }
@@ -47,9 +50,9 @@ namespace Services.GeneralServices
             return _mapper.Map<List<TagDto>>(_tagRepository.FindTagsByTypeId(applicationId, typeId));
         }
 
-        public async Task<TagDto> GetById(int id)
+        public async Task<TagDto> GetById(int id, int applicationId)
         {
-            return _mapper.Map<TagDto>(await _tagRepository.GetById(id));
+            return _mapper.Map<TagDto>(await _tagRepository.GetByIdForApplication(id, applicationId));
         }
     }
 }

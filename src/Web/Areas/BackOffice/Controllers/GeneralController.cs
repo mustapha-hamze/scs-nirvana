@@ -46,8 +46,7 @@ public class GeneralController : BaseController
     {
         //TODO: Implement Realistic Implementation
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        tag.ApplicationId = user.CurrentApplicationId;
-        await _tagServices.Create(tag);
+        await _tagServices.Create(tag, user.CurrentApplicationId);
         return Content(tag.TypeId.ToString());
     }
 
@@ -106,8 +105,7 @@ public class GeneralController : BaseController
     public async Task<IActionResult> ApplicationSettingForm(ApplicationSettingDto applicationSetting)
     {
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        applicationSetting.ApplicationId = user.CurrentApplicationId;
-        await _applicationServices.CreateApplicationSetting(applicationSetting);
+        await _applicationServices.CreateApplicationSetting(applicationSetting, user.CurrentApplicationId);
         return Content("Done");
     }
 

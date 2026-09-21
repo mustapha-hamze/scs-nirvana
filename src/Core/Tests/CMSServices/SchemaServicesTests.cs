@@ -26,7 +26,6 @@ public class SchemaServicesTests
         var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
         return new SchemaServices(
             new SchemaRepository(context),
-            new Repository<SchemaDetails>(context),
             CreateMapper(),
             unitOfWork);
     }

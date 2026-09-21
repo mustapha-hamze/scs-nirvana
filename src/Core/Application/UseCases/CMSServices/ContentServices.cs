@@ -6,7 +6,6 @@ using AutoMapper;
 using Application.Contracts.CMS;
 using Application.Contracts.CMSApi;
 using Domains.Entities.ContentManagement;
-using Application.Repository;
 using Application.CMSRepository;
 using Application.GeneralRepository;
 using Application.UnitOfWork;
@@ -17,10 +16,6 @@ namespace Services.CMSServices
     {
         // fields
         private readonly IContentRepository _contentRepository;
-        private readonly IRepository<ContentSection> _contentSectionRepository;
-        private readonly IRepository<SectionElement> _sectionElementRepository;
-        private readonly IRepository<ContentMetadata> _contentMetadataRepository;
-        private readonly IRepository<ContentImage> _contentImageRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly ITagRepository _tagRepository;
         private readonly ICultureRepository _cultureRepository;
@@ -28,16 +23,11 @@ namespace Services.CMSServices
         private readonly IUnitOfWork _unitOfWork;
 
         // constructor
-        public ContentServices(IContentRepository contentRepository, IRepository<ContentSection> contentSectionRepository,
-        IRepository<SectionElement> sectionElementRepository, IRepository<ContentMetadata> contentMetadataRepository, IRepository<ContentImage> contentImageRepository,
+        public ContentServices(IContentRepository contentRepository,
         ICategoryRepository categoryRepository, ITagRepository tagRepository, ICultureRepository cultureRepository,
         IMapper mapper, IUnitOfWork unitOfWork)
         {
             _contentRepository = contentRepository;
-            _contentSectionRepository = contentSectionRepository;
-            _sectionElementRepository = sectionElementRepository;
-            _contentMetadataRepository = contentMetadataRepository;
-            _contentImageRepository = contentImageRepository;
             _categoryRepository = categoryRepository;
             _tagRepository = tagRepository;
             _cultureRepository = cultureRepository;
@@ -152,7 +142,7 @@ namespace Services.CMSServices
             // Never trust ContentId from the DTO — verify it belongs to this application first.
             await _contentRepository.GetByIdForApplication(section.ContentId, applicationId);
 
-            var created = await _contentSectionRepository.Create(_mapper.Map<ContentSection>(section));
+            var created = await _contentRepository.CreateSection(_mapper.Map<ContentSection>(section));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<SectionDto>(created);
         }
@@ -163,7 +153,7 @@ namespace Services.CMSServices
             // this application (and neither is soft-deleted) first.
             await _contentRepository.GetSectionForApplication(sectionElement.SectionId, applicationId);
 
-            var created = await _sectionElementRepository.Create(_mapper.Map<SectionElement>(sectionElement));
+            var created = await _contentRepository.CreateSectionElement(_mapper.Map<SectionElement>(sectionElement));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<SectionElementDto>(created);
         }
@@ -182,7 +172,7 @@ namespace Services.CMSServices
 
             element.UpdatedDT = DateTime.Now;
 
-            await _sectionElementRepository.Update(element);
+            await _contentRepository.UpdateElement(element);
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -276,7 +266,7 @@ namespace Services.CMSServices
             await _contentRepository.GetByIdForApplication(contentMetadata.ContentId, applicationId);
 
             contentMetadata.IsActive = true;
-            var created = await _contentMetadataRepository.Create(_mapper.Map<ContentMetadata>(contentMetadata));
+            var created = await _contentRepository.CreateContentMetadata(_mapper.Map<ContentMetadata>(contentMetadata));
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<ContentMetadataDto>(created);
         }
@@ -291,7 +281,7 @@ namespace Services.CMSServices
             contentMetadata.ContentId = existing.ContentId;
             _mapper.Map(contentMetadata, existing);
 
-            var updated = await _contentMetadataRepository.Update(existing);
+            var updated = await _contentRepository.UpdateContentMetadata(existing);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<ContentMetadataDto>(updated);
         }
@@ -301,7 +291,7 @@ namespace Services.CMSServices
             // Never trust ContentId from the DTO — verify it belongs to this application first.
             await _contentRepository.GetByIdForApplication(contentImage.ContentId, applicationId);
 
-            await _contentImageRepository.Create(_mapper.Map<ContentImage>(contentImage));
+            await _contentRepository.CreateContentImage(_mapper.Map<ContentImage>(contentImage));
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -321,7 +311,7 @@ namespace Services.CMSServices
         public async Task DeleteSection(int sectionId, int applicationId)
         {
             await _contentRepository.GetSectionForApplication(sectionId, applicationId);
-            await _contentSectionRepository.Delete(sectionId);
+            await _contentRepository.DeleteSection(sectionId);
             await _unitOfWork.SaveChangesAsync();
         }
 

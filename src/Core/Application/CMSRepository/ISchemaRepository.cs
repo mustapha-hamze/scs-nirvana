@@ -22,5 +22,11 @@ namespace Application.CMSRepository
         // Ownership-chain resolution for schema-detail mutations: resolves detail -> schema ->
         // application, rejecting a missing/cross-application/soft-deleted resource at any hop.
         Task<SchemaDetails> GetDetailForApplication(int detailId, int applicationId);
+
+        // Staging-only, purpose-specific CRUD for SchemaDetails (replaces a generic
+        // IRepository<SchemaDetails> injection). Callers must resolve/verify ownership via
+        // GetDetailForApplication (or the parent's GetByIdForApplication, for create) first.
+        Task<SchemaDetails> CreateDetail(SchemaDetails detail);
+        Task DeleteDetail(int id);
     }
 }

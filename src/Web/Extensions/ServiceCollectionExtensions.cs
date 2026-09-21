@@ -2,7 +2,6 @@ using Application.AccessManagerRepository;
 using Application.CMSRepository;
 using Application.ContentManagement;
 using Application.GeneralRepository;
-using Application.Repository;
 using Application.SCMRepository;
 using Application.UserManagementRepository;
 using Application.UnitOfWork;
@@ -13,7 +12,6 @@ using Infrastructure.CMSRepository;
 using Infrastructure.ContentManagement;
 using Infrastructure.GeneralRepository;
 using Infrastructure.Mapper;
-using Infrastructure.Repository;
 using Infrastructure.SCMRepository;
 using Infrastructure.TranslatorServices;
 using Infrastructure.UserManagementRepository;
@@ -25,14 +23,13 @@ namespace Web.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    /// <summary>Data access: the EF Core context, the generic repository/unit-of-work pair, and every concrete repository.</summary>
+    /// <summary>Data access: the EF Core context, the unit of work, and every aggregate-specific repository.</summary>
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
         services.AddDatabaseDeveloperPageExceptionFilter();
 
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IUserManagementRepository, UserManagementRepository>();
