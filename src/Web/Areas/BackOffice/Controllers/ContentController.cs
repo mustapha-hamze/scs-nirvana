@@ -367,8 +367,9 @@ public class ContentController : BaseController
     [Route("/{area}/Content/CreateContentSection/{schemaId}/{priority}")]
     public IActionResult CreateContentSection(int schemaId, int priority)
     {
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         ViewData["Priority"] = priority;
-        var schemaDetails = _schemaServices.DetailsList(schemaId);
+        var schemaDetails = _schemaServices.DetailsList(schemaId, user.CurrentApplicationId);
         return View(schemaDetails);
     }
 

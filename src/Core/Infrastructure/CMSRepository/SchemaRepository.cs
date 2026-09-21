@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Application.CMSRepository;
 using Domains.Entities.ContentManagement;
 using Infrastructure.Data;
 using Infrastructure.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.CMSRepository
 {
@@ -33,11 +35,25 @@ namespace Infrastructure.CMSRepository
                 .Order().ToList();
         }
 
-        public List<SchemaDetails> DetailsList(int schemaId)
+        public List<SchemaDetails> DetailsList(int schemaId, int applicationId)
         {
             return _dbContext.SchemaDetails
-                .Where(s => !s.IsDeleted && s.SchemaId == schemaId)
+                .Where(d => !d.IsDeleted && d.SchemaId == schemaId
+                    && d.Schema.ApplicationId == applicationId && !d.Schema.IsDeleted)
                 .Order().ToList();
+        }
+
+        public async Task<Schema> GetByIdForApplication(int id, int applicationId)
+        {
+            return await _dbContext.Schemas.AsNoTracking()
+                .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted);
+        }
+
+        public async Task<SchemaDetails> GetDetailForApplication(int detailId, int applicationId)
+        {
+            return await _dbContext.SchemaDetails.AsNoTracking()
+                .SingleAsync(d => d.Id == detailId && !d.IsDeleted
+                    && d.Schema.ApplicationId == applicationId && !d.Schema.IsDeleted);
         }
     }
 }

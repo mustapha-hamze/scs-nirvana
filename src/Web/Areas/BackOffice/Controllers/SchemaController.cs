@@ -47,7 +47,8 @@ public class SchemaController : BaseController
         }
         else
         {
-            return View(await _schemaServices.GetById(id));
+            var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+            return View(await _schemaServices.GetById(id, user.CurrentApplicationId));
         }
     }
 
@@ -58,14 +59,12 @@ public class SchemaController : BaseController
         var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
         if (schema.Id == 0)
         {
-            schema.ApplicationId = user.CurrentApplicationId;
-            schema = await _schemaServices.Create(schema);
+            schema = await _schemaServices.Create(schema, user.CurrentApplicationId);
             return Content("Done|" + schema.Id.ToString());
         }
         else
         {
-            schema.ApplicationId = user.CurrentApplicationId;
-            schema = await _schemaServices.Update(schema);
+            schema = await _schemaServices.Update(schema, user.CurrentApplicationId);
             return Content("Done|" + schema.Id.ToString());
         }
     }
@@ -74,7 +73,8 @@ public class SchemaController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadSchemaLogo(IFormFile File, int EntityId)
     {
-        var schema = await _schemaServices.GetById(EntityId);
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var schema = await _schemaServices.GetById(EntityId, user.CurrentApplicationId);
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Schema/Logos/");
         var baseName = Path.GetFileNameWithoutExtension(schema.LogoFileName);
@@ -84,7 +84,7 @@ public class SchemaController : BaseController
             return Content("Failed");
 
         schema.LogoFileName = uploadResult.FileName;
-        await _schemaServices.Update(schema);
+        await _schemaServices.Update(schema, user.CurrentApplicationId);
 
         return Content("Done");
     }
@@ -100,7 +100,8 @@ public class SchemaController : BaseController
     [Route("/{area}/Schema/DeleteSchema/{id}")]
     public async Task<IActionResult> DeleteSchema(int id)
     {
-        await _schemaServices.Delete(id);
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        await _schemaServices.Delete(id, user.CurrentApplicationId);
         return Content("Done");
     }
 
@@ -117,7 +118,8 @@ public class SchemaController : BaseController
     [Route("/{area}/Schema/SchemaDetailsList/{schemaId}")]
     public IActionResult SchemaDetailsList(int schemaId)
     {
-        return View(_schemaServices.DetailsList(schemaId));
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        return View(_schemaServices.DetailsList(schemaId, user.CurrentApplicationId));
     }
 
     [HttpPost]
@@ -125,7 +127,8 @@ public class SchemaController : BaseController
     public async Task<IActionResult> SchemaDetailsFormSave(SchemaDetailsDto schemaDetails)
     {
         //TODO: Implement Realistic Implementation
-        await _schemaServices.CreateDetails(schemaDetails);
+        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        await _schemaServices.CreateDetails(schemaDetails, user.CurrentApplicationId);
         return Content("Done");
     }
     #endregion
