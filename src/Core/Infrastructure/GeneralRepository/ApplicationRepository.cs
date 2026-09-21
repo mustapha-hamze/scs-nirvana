@@ -52,8 +52,7 @@ namespace Infrastructure.GeneralRepository
 
             if (existing != null)
             {
-                existing.IsDeleted = false;
-                existing.IsActive = true;
+                existing.Restore();
                 return;
             }
 
