@@ -70,14 +70,14 @@
     "semantic_hash": "51c1353070b6a947290bea4160207c3e"
   },
   "src/Core/Application/CQRS/Handlers/UserManagement/CreateUserAttachmentHandler.cs": {
-    "mtime": 1790068361.0995464,
-    "ast_hash": "89ffef8a7b5388edb1f43796a5fccb80",
-    "semantic_hash": "89ffef8a7b5388edb1f43796a5fccb80"
+    "mtime": 1790078068.388902,
+    "ast_hash": "742ff6f3a77ecaf0b07ad23ec7c5633f",
+    "semantic_hash": ""
   },
   "src/Core/Application/CQRS/Handlers/UserManagement/GetUserAttachmentByIdHandler.cs": {
-    "mtime": 1790068361.0996795,
-    "ast_hash": "cc05e2e3fcfe61d2af3565fd0fbccf32",
-    "semantic_hash": "cc05e2e3fcfe61d2af3565fd0fbccf32"
+    "mtime": 1790077650.8915162,
+    "ast_hash": "136322b1034a97bb39623baa56bb230a",
+    "semantic_hash": ""
   },
   "src/Core/Application/CQRS/Handlers/UserManagement/GetUserAttachmentsHandler.cs": {
     "mtime": 1790068361.0997975,
@@ -90,9 +90,9 @@
     "semantic_hash": "6c5e3d948a18e7d9f83ff96b8806032a"
   },
   "src/Core/Application/CQRS/Queries/UserManagement/GetUserAttachmentByIdQuery.cs": {
-    "mtime": 1790068361.100159,
-    "ast_hash": "f7f4b274e9b6bbefc9e0cf5ffabeffad",
-    "semantic_hash": "f7f4b274e9b6bbefc9e0cf5ffabeffad"
+    "mtime": 1790077650.8916655,
+    "ast_hash": "2b22a3f1ad87433792dfe5dabda3f818",
+    "semantic_hash": ""
   },
   "src/Core/Application/CQRS/Queries/UserManagement/GetUserAttachmentsQuery.cs": {
     "mtime": 1790068361.1002676,
@@ -500,14 +500,14 @@
     "semantic_hash": "909c045f07c7e367589d06b18359ebd7"
   },
   "src/Core/Application/UserManagementRepository/IUserAttachmentRepository.cs": {
-    "mtime": 1790068361.1091044,
-    "ast_hash": "78ea0151e33621769594d707031b2d1f",
-    "semantic_hash": "78ea0151e33621769594d707031b2d1f"
+    "mtime": 1790077650.8918233,
+    "ast_hash": "0e2331400ce453fb9b6f3a7c9a211500",
+    "semantic_hash": ""
   },
   "src/Core/Application/UserManagementRepository/IUserManagementRepository.cs": {
-    "mtime": 1790068361.1092746,
-    "ast_hash": "0e6bdfc0923ff37d0e2684c441af4ed9",
-    "semantic_hash": "0e6bdfc0923ff37d0e2684c441af4ed9"
+    "mtime": 1790077650.8919759,
+    "ast_hash": "f5815fa503d54578d953647664f1dc42",
+    "semantic_hash": ""
   },
   "src/Core/Application/Using.cs": {
     "mtime": 1790068361.1093967,
@@ -1130,14 +1130,14 @@
     "semantic_hash": "c7c68bdbd7055ba4beb9a4464e3254c8"
   },
   "src/Core/Infrastructure/UserManagementRepository/UserAttachmentRepository.cs": {
-    "mtime": 1790068361.1223388,
-    "ast_hash": "7b4865da189b71221df71bcb7b51885b",
-    "semantic_hash": "7b4865da189b71221df71bcb7b51885b"
+    "mtime": 1790077650.8921535,
+    "ast_hash": "d823f6a926af006c41c1937315435ffc",
+    "semantic_hash": ""
   },
   "src/Core/Infrastructure/UserManagementRepository/UserManagementRepository.cs": {
-    "mtime": 1790068361.1225033,
-    "ast_hash": "61ca8f16bbe6067ff388ec5276cab287",
-    "semantic_hash": "61ca8f16bbe6067ff388ec5276cab287"
+    "mtime": 1790077650.8922896,
+    "ast_hash": "ed53b311d774674b415f6f33b81ec3ce",
+    "semantic_hash": ""
   },
   "src/Core/Infrastructure/Using.cs": {
     "mtime": 1790068361.1226983,
@@ -1520,8 +1520,8 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/UserAttachmentController.cs": {
-    "mtime": 1790074542.1855407,
-    "ast_hash": "9f40d156f84532030e050d34a6716539",
+    "mtime": 1790077650.8924181,
+    "ast_hash": "6dc28cd308bab87f95e60db20493f6db",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Models/ErrorViewModel.cs": {
@@ -2220,8 +2220,8 @@
     "semantic_hash": ""
   },
   "src/Web.Tests/AccountFlowHelper.cs": {
-    "mtime": 1790076228.0414004,
-    "ast_hash": "3bf92149c1ed54988507e11bf6313e42",
+    "mtime": 1790077891.2167552,
+    "ast_hash": "caad7af4352691dbefb1cae6da74ec6d",
     "semantic_hash": ""
   },
   "src/Web.Tests/LogoutTests.cs": {
@@ -2230,8 +2230,8 @@
     "semantic_hash": ""
   },
   "src/Web.Tests/TestWebApplicationFactory.cs": {
-    "mtime": 1790076152.1945148,
-    "ast_hash": "7e181606e5edbd10a0590864e573a0f2",
+    "mtime": 1790078102.752193,
+    "ast_hash": "6b4d12ea7790077b28ad6ebe65908f04",
     "semantic_hash": ""
   },
   "src/Web.Tests/UserLoginDtoValidationTests.cs": {
@@ -2242,6 +2242,31 @@
   "src/Web.Tests/Web.Tests.csproj": {
     "mtime": 1790075447.0726428,
     "ast_hash": "e23ff50757aa66640bb88d3b30a3c3ff",
+    "semantic_hash": ""
+  },
+  "src/Core/Tests/Architecture/UserAttachmentAuthorizationTests.cs": {
+    "mtime": 1790077650.9058185,
+    "ast_hash": "7535df06683869566de01a35f4827303",
+    "semantic_hash": ""
+  },
+  "src/Core/Tests/Architecture/UserAttachmentCompositionTests.cs": {
+    "mtime": 1790078035.4773648,
+    "ast_hash": "db6604d17abe18cbfd79f6bb3b3d50cd",
+    "semantic_hash": ""
+  },
+  "src/Core/Tests/CQRS/Handlers/UserManagement/UserAttachmentHandlerTests.cs": {
+    "mtime": 1790078068.3891811,
+    "ast_hash": "783c15e4cf7d5d9c799d6979e17a4c3e",
+    "semantic_hash": ""
+  },
+  "src/Core/Tests/UserManagementRepository/UserAttachmentRepositoryTests.cs": {
+    "mtime": 1790077650.906213,
+    "ast_hash": "ad4d6f693be0feee3d14c2b37523a90e",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/UserAttachmentTests.cs": {
+    "mtime": 1790077876.4419613,
+    "ast_hash": "99d7fefe24a3f720b24fde7e585baeb4",
     "semantic_hash": ""
   }
 }
