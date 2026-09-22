@@ -45,6 +45,10 @@ public class AccountController : BaseController
     //: methods
     #region methods
 
+    // User administration (listing every user, editing another user's profile, or flipping
+    // IsAdminUser/IsApprove) is privileged, global administration - same rationale as role and
+    // membership administration above.
+    [Authorize(Roles = "SuperAdmin")]
     public IActionResult Users()
     {
         return View();
@@ -219,6 +223,7 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/Account/UserForm/{userId?}")]
     public async Task<IActionResult> UserForm(string userId = "")
     {
@@ -246,6 +251,11 @@ public class AccountController : BaseController
         }
     }
 
+    // CreateUserDto.IsAdminUser/IsApprove bind directly from the posted form with no further
+    // check - without this gate, any authenticated member could self-approve, grant themselves
+    // IsAdminUser, or edit another user's profile/approval state by posting a crafted DTO
+    // (UserId selects create vs. update, and update trusts every field on the DTO).
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveUserForm(CreateUserDto user)
@@ -312,6 +322,9 @@ public class AccountController : BaseController
         }
     }
 
+    // Enumerates every user in the system (optionally filtered) - global administration, not
+    // tenant-scoped self-service.
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult UserList(UserDto userFilter)
