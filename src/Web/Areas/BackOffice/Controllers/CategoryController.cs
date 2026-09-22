@@ -32,7 +32,7 @@ public class CategoryController : BaseController
 
     public async Task<IActionResult> Form()
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         ViewData["Categories"] = await _categoryServices.List(currentApplicationId);
         return View();
     }
@@ -41,7 +41,7 @@ public class CategoryController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveForm(CategoryDto category)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         await _categoryServices.Create(category, currentApplicationId);
         //TODO: Implement Realistic Implementation
         return Content("Done");
@@ -49,7 +49,7 @@ public class CategoryController : BaseController
 
     public async Task<IActionResult> List()
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var categories = await _categoryServices.List(currentApplicationId);
 
         return View(categories);

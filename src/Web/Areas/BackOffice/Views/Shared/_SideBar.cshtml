@@ -4,7 +4,7 @@
 @inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext;
 
 @{
-    var app = await applicationServices.GetById(currentApplicationContext.CurrentApplicationId ?? 0);
+    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
 }
 
 <!-- LOGO -->

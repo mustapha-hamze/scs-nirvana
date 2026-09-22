@@ -5,8 +5,8 @@
 @{
     ViewData["Title"] = "Dashboard";
     var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var app = await applicationServices.GetById(currentApplicationContext.CurrentApplicationId ?? 0);
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.CurrentApplicationId ?? 0);
+    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
     if (accesses == string.Empty)
         accesses = "NULL";
     bool isSuperAdmin = User.IsInRole("SuperAdmin");

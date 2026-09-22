@@ -70,7 +70,7 @@ public class ContentController : BaseController
     public async Task<IActionResult> ContentForm(int id = 0, int typeId = 0)
     {
         ViewData["TypeId"] = typeId;
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
 
         ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(currentApplicationId, TypeId.Content);
 
@@ -100,7 +100,7 @@ public class ContentController : BaseController
         else
             schemaTypeId = 1001;
 
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         ViewData["Schemas"] = await _schemaServices.List(currentApplicationId, schemaTypeId);
         ViewData["Sections"] = await _contentServices.GetSections(contentId, currentApplicationId);
         return View();
@@ -109,7 +109,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ContentRelations/{contentId}")]
     public async Task<IActionResult> ContentRelations(int contentId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         ViewData["Categories"] = await _categoryServices.GetAllFullPath(currentApplicationId);
         ViewData["Tags"] = await _tagServices.FindTagsByTypeId(currentApplicationId, TypeId.Content);
         ViewData["Cultures"] = await _cultureServices.List();
@@ -120,7 +120,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ContentMetadata/{contentId}")]
     public async Task<IActionResult> ContentMetadata(int contentId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var contentMetadata = await _contentServices.GetContentMetadata(contentId, currentApplicationId);
         contentMetadata.ContentId = contentId;
 
@@ -130,7 +130,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ContentImages/{contentId}")]
     public async Task<IActionResult> ContentImages(int contentId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         ViewData["ContentImageAspectRatio"] = await _applicationServices.GetApplicationSetting(currentApplicationId, 1001);
         ViewData["ContentImageSizes"] = await _applicationServices.GetApplicationSetting(currentApplicationId, 1000);
         ViewData["ContentImage"] = await _contentServices.GetAllContentImages(contentId, currentApplicationId);
@@ -141,7 +141,7 @@ public class ContentController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentForm(ContentDto content)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         if (content.Id == 0)
         {
             content.ApplicationId = currentApplicationId;
@@ -163,7 +163,7 @@ public class ContentController : BaseController
     [Route("/{area}/{controller}/FarsiContentForm/{id}/{typeId}")]
     public async Task<IActionResult> FarsiContentForm(int id, int typeId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var englishContent = await _contentProvider.GetContentForTranslate(id, currentApplicationId);
         if (englishContent == null)
             return NotFound();
@@ -183,7 +183,7 @@ public class ContentController : BaseController
         if (model == null || model.Id == 0)
             return Content("Failed");
 
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var englishContent = await _contentProvider.GetContentForTranslate(model.Id, currentApplicationId);
         if (englishContent == null)
             return NotFound();
@@ -323,7 +323,7 @@ public class ContentController : BaseController
     [Route("/{area}/{controller}/{action}/{id}")]
     public async Task<IActionResult> ContentList(int id)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var contents = (await _contentServices.List(currentApplicationId)).Where(c => c.TypeId == id).ToList();
         ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(currentApplicationId, TypeId.Content);
         return View(contents);
@@ -334,7 +334,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ChangeContentActiveMode/{typeId}/{contentId}/{mode}")]
     public async Task<IActionResult> ChangeContentActiveMode(int typeId, int contentId, bool mode)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
 
         if (mode)
         {
@@ -367,7 +367,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/CreateContentSection/{schemaId}/{priority}")]
     public async Task<IActionResult> CreateContentSection(int schemaId, int priority)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         ViewData["Priority"] = priority;
         var schemaDetails = await _schemaServices.DetailsList(schemaId, currentApplicationId);
         return View(schemaDetails);
@@ -378,7 +378,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/DeleteContent/{id}")]
     public async Task<IActionResult> DeleteContent(int id)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         await _contentServices.Delete(id, currentApplicationId);
         return Content("Done");
     }
@@ -387,7 +387,7 @@ public class ContentController : BaseController
     [Route("/{area}/Content/SaveRelation/{Entity}/{contentId}")]
     public async Task<IActionResult> SaveRelation([FromForm] string Data, string Entity, int contentId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var ids = ParseRelationIds(Data);
         switch (Entity)
         {
@@ -426,7 +426,7 @@ public class ContentController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentMetadata(ContentMetadataDto contentMetadata)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
 
         if (contentMetadata.Id == 0)
             await _contentServices.CreateContentMetadata(contentMetadata, currentApplicationId);
@@ -439,7 +439,7 @@ public class ContentController : BaseController
     [HttpPost]
     public async Task<IActionResult> SaveSection([FromBody] SaveContentBodyDto section)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
 
         if (section != null)
         {
@@ -709,7 +709,7 @@ public class ContentController : BaseController
     [HttpPost]
     public async Task<IActionResult> UpdateSectionsLayoutOrder([FromBody] string sectionsOrder)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
 
         var sectionsOrderArray = sectionsOrder.Split(',');
         for (int i = 0; i < sectionsOrderArray.Length - 1; i++)
@@ -772,7 +772,7 @@ public class ContentController : BaseController
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Content/Image/" + contentId);
 
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var imageSettings = await _applicationServices.GetApplicationSetting(currentApplicationId, 1000);
         var currentImageSettings = imageSettings.Single(s => s.Id == settingId);
 
@@ -816,7 +816,7 @@ public class ContentController : BaseController
     [HttpDelete]
     public async Task<IActionResult> DeleteSection(int id)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         await _contentServices.DeleteSection(id, currentApplicationId);
         return Content("Done");
     }

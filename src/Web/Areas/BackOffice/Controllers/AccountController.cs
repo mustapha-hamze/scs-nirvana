@@ -104,7 +104,7 @@ public class AccountController : BaseController
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
     public async Task<IActionResult> RemoveUserFromApplication(int relationId)
     {
-        await _applicationServices.RemoveUserFromApplication(relationId, _currentApplicationContext.CurrentApplicationId ?? 0);
+        await _applicationServices.RemoveUserFromApplication(relationId, _currentApplicationContext.RequireApplicationId());
         return Content("Done");
     }
 

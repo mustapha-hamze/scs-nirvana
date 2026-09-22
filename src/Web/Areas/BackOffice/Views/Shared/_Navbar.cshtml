@@ -4,7 +4,7 @@
 
 @{
     var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var app = await applicationServices.GetById(currentApplicationContext.CurrentApplicationId ?? 0);
+    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
 }
 
 <div class="topbar container-fluid">

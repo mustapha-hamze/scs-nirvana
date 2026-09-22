@@ -7,7 +7,7 @@
     var contentImages =
     (List<Application.Contracts.CMS.ContentImageDto>)ViewData["ContentImage"];
 
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.CurrentApplicationId ?? 0);
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
     if (accesses == string.Empty)
         accesses = "NULL";
 }

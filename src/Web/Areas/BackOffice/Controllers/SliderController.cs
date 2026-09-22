@@ -32,13 +32,13 @@ public class SliderController : BaseController
 
     public async Task<IActionResult> List()
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var slider = await _sliderServices.GetSliders(currentApplicationId);
         return View(slider);
     }
     public async Task<IActionResult> Create()
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         ViewData["ApplicationId"] = currentApplicationId;
         return View();
     }
@@ -47,7 +47,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Slider slider)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         slider.IsActive = true;
         await _sliderServices.Create(slider, currentApplicationId);
         return Ok();
@@ -63,7 +63,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateItem(SliderItem sliderItem)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         string imageName = Guid.NewGuid().ToString();
         sliderItem.ImageFileName = imageName + ".jpg";
         var _sliderItem = await _sliderServices.CreateSliderItem(sliderItem, currentApplicationId);
@@ -96,7 +96,7 @@ public class SliderController : BaseController
     [Route("/{area}/{controller}/GetSliderItemList/{sliderId}")]
     public async Task<IActionResult> GetSliderItemList(int sliderId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var sliderItems = await _sliderServices.GetSliderItems(sliderId, currentApplicationId);
         return View(sliderItems);
     }
@@ -106,7 +106,7 @@ public class SliderController : BaseController
     {
         if (sliderItemId != 0)
         {
-            var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+            var currentApplicationId = _currentApplicationContext.RequireApplicationId();
             return View(await _sliderServices.GetSliderItem(sliderItemId, currentApplicationId));
         }
         else
@@ -119,7 +119,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateItem(SliderItem model)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         await _sliderServices.UpdateSliderItem(model, currentApplicationId);
         return Ok();
     }
@@ -128,7 +128,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ActiveItem(int sliderItemId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         await _sliderServices.ActiveSliderItem(sliderItemId, currentApplicationId);
         return Ok();
     }
@@ -137,7 +137,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeactiveItem(int sliderItemId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         await _sliderServices.DeactiveSliderItem(sliderItemId, currentApplicationId);
         return Ok();
     }
@@ -146,7 +146,7 @@ public class SliderController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteItem(int sliderItemId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         await _sliderServices.DeleteSliderItem(sliderItemId, currentApplicationId);
         return Ok();
     }

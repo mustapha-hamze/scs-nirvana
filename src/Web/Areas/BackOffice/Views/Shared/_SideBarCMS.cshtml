@@ -1,7 +1,7 @@
 @using Application.UseCases.Utilities.ApplicationConst;
 
 @{
-    int appId = currentApplicationContext.CurrentApplicationId ?? 0;
+    int appId = currentApplicationContext.RequireApplicationId();
     var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, appId);
     if (accesses == string.Empty)
         accesses = "NULL";

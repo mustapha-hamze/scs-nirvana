@@ -45,14 +45,14 @@ public class GeneralController : BaseController
     public async Task<IActionResult> SaveTagForm(TagDto tag)
     {
         //TODO: Implement Realistic Implementation
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         await _tagServices.Create(tag, currentApplicationId);
         return Content(tag.TypeId.ToString());
     }
 
     public async Task<IActionResult> TagList()
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         return View(await _tagServices.List(currentApplicationId));
     }
     #endregion
@@ -104,14 +104,14 @@ public class GeneralController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApplicationSettingForm(ApplicationSettingDto applicationSetting)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         await _applicationServices.CreateApplicationSetting(applicationSetting, currentApplicationId);
         return Content("Done");
     }
 
     public async Task<IActionResult> ApplicationSettingList()
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         return View(await _applicationServices.GetApplicationSetting(currentApplicationId));
     }
     #endregion
@@ -129,7 +129,7 @@ public class GeneralController : BaseController
     [HttpPost]
     public async Task<IActionResult> SaveSystemTypeForm(SystemTypeDto systemType)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         systemType.ApplicationId = currentApplicationId;
         systemType.IsActive = true;
         await _systemTypeServices.Create(systemType);
@@ -138,7 +138,7 @@ public class GeneralController : BaseController
     }
     public async Task<IActionResult> SystemTypesList()
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         return View(await _systemTypeServices.List(currentApplicationId));
     }
     #endregion

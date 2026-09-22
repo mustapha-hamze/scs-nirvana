@@ -4,7 +4,7 @@
     var categories = (List<Application.Contracts.CMS.CategoryDto>)ViewData["Categories"];
     var cultures = (List<Application.Contracts.General.CultureDto>)ViewData["Cultures"];
 
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.CurrentApplicationId ?? 0);
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
     if (accesses == string.Empty)
         accesses = "NULL";
 }

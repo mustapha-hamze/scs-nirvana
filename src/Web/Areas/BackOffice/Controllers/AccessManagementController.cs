@@ -44,7 +44,7 @@ public class AccessManagementController : BaseController
 
     public async Task<IActionResult> SectorList()
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         return View(await _sectorServices.GetAllSector(currentApplicationId));
     }
 
@@ -52,7 +52,7 @@ public class AccessManagementController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSector(SectorDto sector)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         sector.ApplicationId = currentApplicationId;
         if (sector.Id == 0)
             await _sectorServices.Create(sector);
@@ -67,7 +67,7 @@ public class AccessManagementController : BaseController
     public async Task<IActionResult> EntityForm(int sectorId)
     {
         ViewData["SectorId"] = sectorId;
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var sector = await _sectorServices.GetById(sectorId, currentApplicationId);
         ViewData["SectorTitle"] = sector.Title;
         var entity = new SectorEntityDto
@@ -80,7 +80,7 @@ public class AccessManagementController : BaseController
     [HttpGet("/{area}/{controller}/EntityList/{sectorId}")]
     public async Task<IActionResult> EntityList(int sectorId)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         return View(await _SectorEntityServices.GetSectorEntities(sectorId, currentApplicationId));
     }
 
@@ -88,7 +88,7 @@ public class AccessManagementController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveEntity(SectorEntityDto entity)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         if (entity.Id == 0)
             await _SectorEntityServices.Create(entity, currentApplicationId);
         else
@@ -105,7 +105,7 @@ public class AccessManagementController : BaseController
     }
     public async Task<IActionResult> AccessForm(int id = 0)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var sectors = await _sectorServices.GetAllSector(currentApplicationId);
         ViewData["Sectors"] = sectors;
         ViewData["SectorEntities"] = await _SectorEntityServices.GetSectorEntities(sectors[0].Id, currentApplicationId);
@@ -125,14 +125,14 @@ public class AccessManagementController : BaseController
     [HttpGet("/{area}/{controller}/GetSectorEntities/{id}")]
     public async Task<IActionResult> GetSectorEntities(int id)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var sectorEntities = await _SectorEntityServices.GetSectorEntities(id, currentApplicationId);
         return PartialView("_SectorEntityOptionsPartial", sectorEntities);
     }
     public async Task<IActionResult> AccessList()
     {
         ViewData["SectorEntities"] = await _SectorEntityServices.GetAllEntities();
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         return View(await _entityAccessServices.List(currentApplicationId));
     }
 
@@ -140,7 +140,7 @@ public class AccessManagementController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveAccess(EntityAccessDto accessModel)
     {
-        var currentApplicationId = _currentApplicationContext.CurrentApplicationId ?? 0;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         if (accessModel.Id == 0)
         {
             await _entityAccessServices.Create(accessModel, currentApplicationId);
