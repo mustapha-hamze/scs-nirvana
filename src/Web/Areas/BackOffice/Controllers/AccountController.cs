@@ -50,12 +50,18 @@ public class AccountController : BaseController
         return View();
     }
 
+    // Role administration - creating a role, or granting/revoking one (including SuperAdmin
+    // itself) - is privileged, global (not tenant-scoped) administration. Authentication plus a
+    // selected-tenant membership must never be enough; the "User Management" sidebar section
+    // already hides this from non-SuperAdmins client-side, this is what actually enforces it.
+    [Authorize(Roles = "SuperAdmin")]
     public IActionResult Roles()
     {
         var roles = _roleManager.Roles.ToList();
         return View(roles);
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Roles(string RoleName)
@@ -64,6 +70,7 @@ public class AccountController : BaseController
         return Redirect("/BackOffice/Account/Roles");
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToRole/{userId}/{roleName}")]
@@ -77,6 +84,7 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromRole/{userId}/{roleName}")]
