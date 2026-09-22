@@ -58,9 +58,9 @@ namespace Application.UseCases.AccessManagerServices
             return _mapper.Map<List<SectorEntityDto>>(await _sectorEntityRepository.GetSectorEntities(sectorId, cancellationToken));
         }
 
-        public async Task<List<SectorEntityDto>> GetAllEntities(CancellationToken cancellationToken = default)
+        public async Task<List<SectorEntityDto>> GetEntitiesForApplication(int applicationId, CancellationToken cancellationToken = default)
         {
-            return _mapper.Map<List<SectorEntityDto>>(await _sectorEntityRepository.GetAllEntities(cancellationToken));
+            return _mapper.Map<List<SectorEntityDto>>(await _sectorEntityRepository.GetEntitiesForApplication(applicationId, cancellationToken));
         }
 
         public async Task<SectorEntityDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default)

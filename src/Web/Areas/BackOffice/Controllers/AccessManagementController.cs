@@ -131,8 +131,8 @@ public class AccessManagementController : BaseController
     }
     public async Task<IActionResult> AccessList()
     {
-        ViewData["SectorEntities"] = await _SectorEntityServices.GetAllEntities();
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        ViewData["SectorEntities"] = await _SectorEntityServices.GetEntitiesForApplication(currentApplicationId);
         return View(await _entityAccessServices.List(currentApplicationId));
     }
 

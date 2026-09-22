@@ -27,9 +27,11 @@ namespace Infrastructure.AccessManagerRepository
         {
             return _dbContext.SectorEntities.Where(s => !s.IsDeleted && s.SectorId == sectorId).ToListAsync(cancellationToken);
         }
-        public Task<List<SectorEntity>> GetAllEntities(CancellationToken cancellationToken = default)
+        public Task<List<SectorEntity>> GetEntitiesForApplication(int applicationId, CancellationToken cancellationToken = default)
         {
-            return _dbContext.SectorEntities.Where(s => !s.IsDeleted).ToListAsync(cancellationToken);
+            return _dbContext.SectorEntities
+                .Where(s => !s.IsDeleted && s.Sector.ApplicationId == applicationId && !s.Sector.IsDeleted)
+                .ToListAsync(cancellationToken);
         }
 
         // SectorEntity has no ApplicationId column; it's resolved through SectorId -> Sector.

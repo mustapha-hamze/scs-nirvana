@@ -17,7 +17,11 @@ namespace Application.UseCases.AccessManagerServices
         // AccountController), where an admin is deliberately working across applications and
         // already chose the sector from an application they picked explicitly.
         Task<List<SectorEntityDto>> GetSectorEntities(int sectorId, CancellationToken cancellationToken = default);
-        Task<List<SectorEntityDto>> GetAllEntities(CancellationToken cancellationToken = default);
+
+        // Application-scoped: every entity across every sector that belongs to applicationId.
+        // Used by the per-application Access Management screen's entity-label projection - never
+        // resolves an entity belonging to another application.
+        Task<List<SectorEntityDto>> GetEntitiesForApplication(int applicationId, CancellationToken cancellationToken = default);
         Task<SectorEntityDto> GetById(int id, int applicationId, CancellationToken cancellationToken = default);
     }
 }
