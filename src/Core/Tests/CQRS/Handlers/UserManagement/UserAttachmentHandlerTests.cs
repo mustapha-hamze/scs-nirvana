@@ -3,7 +3,6 @@ using Application.CQRS.Command.UserManagement;
 using Application.CQRS.Handlers.UserManagement;
 using Application.CQRS.Queries.UserManagement;
 using Application.Mapper;
-using Application.Repository;
 using Application.UnitOfWork;
 using Application.UserManagementRepository;
 using AutoMapper;
@@ -25,7 +24,7 @@ public class CreateUserAttachmentHandlerTests
     [Fact]
     public async Task Handle_TargetUserDoesNotExist_ThrowsAndNeverCreatesAttachment()
     {
-        var repository = new Mock<IRepository<UserAttachment>>();
+        var repository = new Mock<IUserAttachmentRepository>();
         var userManagementRepository = new Mock<IUserManagementRepository>();
         userManagementRepository.Setup(r => r.UserExists("ghost", It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
@@ -39,9 +38,9 @@ public class CreateUserAttachmentHandlerTests
     }
 
     [Fact]
-    public async Task Handle_TargetUserExists_CreatesAttachmentAndSaves()
+    public async Task Handle_TargetUserExists_CreatesAttachmentThroughTypedRepositoryAndSaves()
     {
-        var repository = new Mock<IRepository<UserAttachment>>();
+        var repository = new Mock<IUserAttachmentRepository>();
         repository.Setup(r => r.Create(It.IsAny<UserAttachment>())).ReturnsAsync((UserAttachment a) => a);
         var userManagementRepository = new Mock<IUserManagementRepository>();
         userManagementRepository.Setup(r => r.UserExists("u1", It.IsAny<CancellationToken>())).ReturnsAsync(true);

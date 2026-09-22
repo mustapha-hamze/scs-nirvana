@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.CQRS.Command.UserManagement;
-using Application.Repository;
 using Application.UnitOfWork;
 using Application.UserManagementRepository;
 using AutoMapper;
@@ -12,12 +11,12 @@ namespace Application.CQRS.Handlers.UserManagement;
 
 public class CreateUserAttachmentHandler : IRequestHandler<CreateUserAttachmentCommand, Unit>
 {
-    private readonly IRepository<UserAttachment> _repository;
+    private readonly IUserAttachmentRepository _repository;
     private readonly IUserManagementRepository _userManagementRepository;
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateUserAttachmentHandler(IRepository<UserAttachment> repository, IUserManagementRepository userManagementRepository,
+    public CreateUserAttachmentHandler(IUserAttachmentRepository repository, IUserManagementRepository userManagementRepository,
         IMapper mapper, IUnitOfWork unitOfWork)
     {
         _repository = repository;

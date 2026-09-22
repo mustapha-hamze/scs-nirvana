@@ -18,14 +18,14 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // The Development environment's default service provider validates the whole DI graph
-        // eagerly on build. A pre-existing, unrelated Core/Application registration gap
-        // (IRepository<UserAttachment> is never registered) then fails host startup before any
-        // request runs. That gap is out of scope for these Web-only logout tests, so relax
-        // eager validation for the test host rather than touching Core wiring.
+        // ValidateOnBuild used to be disabled here to work around a since-fixed registration gap
+        // (CreateUserAttachmentHandler/GetUserAttachmentByIdHandler depended on the never-registered
+        // generic IRepository<UserAttachment> instead of the registered IUserAttachmentRepository -
+        // see UserAttachmentCompositionTests). Left enabled now so the whole test host's DI graph -
+        // not just UserAttachment's - is eagerly validated on every Web.Tests run.
         builder.UseDefaultServiceProvider(options =>
         {
-            options.ValidateOnBuild = false;
+            options.ValidateOnBuild = true;
             options.ValidateScopes = true;
         });
 
