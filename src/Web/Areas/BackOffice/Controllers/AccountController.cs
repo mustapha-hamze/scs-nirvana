@@ -98,6 +98,11 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
+    // Membership administration is privileged, global administration, same as role
+    // administration above: applicationId here is an explicit, SuperAdmin-only target, never
+    // proof of authorization by itself (an ordinary member could otherwise add/remove anyone
+    // to/from any application, tenant membership notwithstanding).
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToApplication/{userId}/{applicationId}")]
@@ -107,6 +112,10 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
+    // applicationId comes from the caller's own validated selected tenant, not the request -
+    // a SuperAdmin using this action can only remove membership rows for the application they
+    // themselves currently have selected.
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
@@ -116,6 +125,7 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/Account/UserSettingForm/{userId}")]
     public async Task<IActionResult> UserSettingForm(string userId)
     {
@@ -131,6 +141,11 @@ public class AccountController : BaseController
         return View();
     }
 
+    // Cross-application by design (see ISectorEntityServices.GetSectorEntities(sectorId)): an
+    // admin here is deliberately working across every application a user belongs to, not just
+    // the caller's own selected tenant, so this must stay a global, SuperAdmin-only flow rather
+    // than being bound to the selected tenant.
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/BackOffice/Account/Sectors/{userId}")]
     public async Task<IActionResult> Sectors(string userId)
     {
@@ -143,6 +158,7 @@ public class AccountController : BaseController
         return View();
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/{controller}/Entities/{userId}")]
     public async Task<IActionResult> Entities(string userId)
     {
@@ -154,6 +170,10 @@ public class AccountController : BaseController
         return View();
     }
 
+    // appId is caller-supplied and unrelated to the caller's own selected tenant - without this
+    // gate any authenticated member could enumerate another application's sectors by guessing
+    // appId, regardless of their own membership.
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/{controller}/GetApplicationSectors/{appId}")]
     public IActionResult GetApplicationSectors(int appId)
     {
@@ -161,6 +181,7 @@ public class AccountController : BaseController
         return PartialView("_SectorOptionsPartial", sectors);
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/{controller}/{action}/{userId}/{appId}")]
     public async Task<string> GetUserAccess(string userId, int appId)
     {
@@ -169,6 +190,7 @@ public class AccountController : BaseController
         return accesses;
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/{controller}/GetSectorEntities/{sectorId}")]
     public IActionResult GetSectorEntities(int sectorId)
     {
@@ -456,6 +478,9 @@ public class AccountController : BaseController
         return Redirect("/");
     }
 
+    // id is an entity id with no applicationId scoping at all - same cross-tenant risk as
+    // GetApplicationSectors above.
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/BackOffice/Account/EntityAccesses/{id}")]
     public IActionResult EntityAccesses(int id)
     {
