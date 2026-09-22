@@ -22,6 +22,10 @@ public sealed class RequireAccessAttribute : Attribute, IAsyncActionFilter, IOrd
         _anyOfKeys = anyOfKeys;
     }
 
+    // Exposed read-only so tests can assert exactly which key(s) an action declares without
+    // duplicating the OR-matching logic AccessKeyAuthorizer already owns.
+    public IReadOnlyList<string> Keys => _anyOfKeys;
+
     public int Order => 1;
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
