@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Domains.Entities.ContentManagement;
 using Domains.Entities.CustomModule;
+using Domains.Entities.General;
 using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -40,6 +44,32 @@ public sealed class AccessKeyAuthorizationTests : IClassFixture<TestWebApplicati
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         return await context.Contents.FindAsync(contentId) is not null;
+    }
+
+    private async Task<string?> ContentTitleAsync(int contentId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var content = await context.Contents.FindAsync(contentId);
+        return content?.Title;
+    }
+
+    private async Task<int> ContentCountAsync(int applicationId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        return await context.Contents.CountAsync(c => c.ApplicationId == applicationId);
+    }
+
+    // ContentForm's edit branch indexes appSetting[0], so any test that reaches it with id != 0
+    // needs a seeded 5000 (WebsiteUrl) setting - same as ContentControllerRouteRegressionTests'
+    // ContentImages_AuthenticatedWithTenant_ReturnsOk needing a 1001 setting for its own indexing.
+    private async Task SeedWebsiteUrlSettingAsync(int applicationId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        context.ApplicationSettings.Add(new ApplicationSetting { ApplicationId = applicationId, SettingId = 5000, Title = "WebsiteUrl", Value = "https://example.test" });
+        await context.SaveChangesAsync();
     }
 
     private async Task<int> SeedSliderItemAsync(int applicationId)
@@ -173,6 +203,158 @@ public sealed class AccessKeyAuthorizationTests : IClassFixture<TestWebApplicati
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.False(await ContentExistsAsync(contentId));
+    }
+
+    // ---- Content: ContentForm/SaveContentForm dynamic-permission exceptions (Web Phase 4 task 1)
+    // ----
+    // These two actions have no BackOfficeEndpointAuthorizationMatrixTests row - the required key
+    // depends on request data (create vs. edit) rather than a static [RequireAccess] - see
+    // ContentController.Forms.cs's DenyIfMissingAccessAsync. Each branch is proven here: denied
+    // without its own key (even holding the *other* branch's key), allowed with it.
+
+    [Fact]
+    public async Task ContentForm_Create_WithoutAddKey_IsForbidden()
+    {
+        var email = $"contentform-create-noperm-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+
+        var response = await client.GetAsync("/BackOffice/Content/ContentForm/0/1000");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ContentForm_Create_WithAddKey_IsAllowed()
+    {
+        var email = $"contentform-create-exact-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+        await AccountFlowHelper.GrantAccessAsync(_factory, user, applicationId, Web.Authorization.AccessKeys.Content.Add);
+
+        var response = await client.GetAsync("/BackOffice/Content/ContentForm/0/1000");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ContentForm_Edit_WithOnlyAddKey_IsStillForbidden()
+    {
+        var email = $"contentform-edit-wrongkey-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+        var contentId = await SeedContentAsync(applicationId);
+        await AccountFlowHelper.GrantAccessAsync(_factory, user, applicationId, Web.Authorization.AccessKeys.Content.Add);
+
+        var response = await client.GetAsync($"/BackOffice/Content/ContentForm/{contentId}/1000");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ContentForm_Edit_WithEditKey_IsAllowed()
+    {
+        var email = $"contentform-edit-exact-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+        var contentId = await SeedContentAsync(applicationId);
+        await AccountFlowHelper.GrantAccessAsync(_factory, user, applicationId, Web.Authorization.AccessKeys.Content.Edit);
+        await SeedWebsiteUrlSettingAsync(applicationId);
+
+        var response = await client.GetAsync($"/BackOffice/Content/ContentForm/{contentId}/1000");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task SaveContentForm_Create_WithoutSaveKey_IsForbiddenAndDoesNotCreate()
+    {
+        var email = $"savecontentform-create-noperm-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+        var countBefore = await ContentCountAsync(applicationId);
+
+        var response = await client.PostAsync("/BackOffice/Content/SaveContentForm", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["Id"] = "0",
+            ["TypeId"] = "1000",
+            ["Title"] = "New content",
+            ["PublishDt"] = DateTime.UtcNow.ToString("o"),
+        }));
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(countBefore, await ContentCountAsync(applicationId));
+    }
+
+    [Fact]
+    public async Task SaveContentForm_Create_WithSaveKey_CreatesAndRedirects()
+    {
+        var email = $"savecontentform-create-exact-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+        await AccountFlowHelper.GrantAccessAsync(_factory, user, applicationId, Web.Authorization.AccessKeys.Content.Save);
+        var countBefore = await ContentCountAsync(applicationId);
+
+        var response = await client.PostAsync("/BackOffice/Content/SaveContentForm", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["Id"] = "0",
+            ["TypeId"] = "1000",
+            ["Title"] = "New content",
+            ["PublishDt"] = DateTime.UtcNow.ToString("o"),
+        }));
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal(countBefore + 1, await ContentCountAsync(applicationId));
+    }
+
+    [Fact]
+    public async Task SaveContentForm_Update_WithOnlySaveKey_IsStillForbiddenAndDoesNotMutate()
+    {
+        var email = $"savecontentform-update-wrongkey-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+        var contentId = await SeedContentAsync(applicationId);
+        await AccountFlowHelper.GrantAccessAsync(_factory, user, applicationId, Web.Authorization.AccessKeys.Content.Save);
+
+        var response = await client.PostAsync("/BackOffice/Content/SaveContentForm", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["Id"] = contentId.ToString(),
+            ["TypeId"] = "1000",
+            ["Title"] = "Changed title",
+            ["PublishDt"] = DateTime.UtcNow.ToString("o"),
+        }));
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal("Access-key content", await ContentTitleAsync(contentId));
+    }
+
+    [Fact]
+    public async Task SaveContentForm_Update_WithUpdateKey_UpdatesAndRedirects()
+    {
+        var email = $"savecontentform-update-exact-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+        var contentId = await SeedContentAsync(applicationId);
+        await AccountFlowHelper.GrantAccessAsync(_factory, user, applicationId, Web.Authorization.AccessKeys.Content.Update);
+
+        var response = await client.PostAsync("/BackOffice/Content/SaveContentForm", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["Id"] = contentId.ToString(),
+            ["TypeId"] = "1000",
+            ["Title"] = "Changed title",
+            ["PublishDt"] = DateTime.UtcNow.ToString("o"),
+        }));
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal("Changed title", await ContentTitleAsync(contentId));
     }
 
     // ---- Slider: read = List, unsafe mutation = DeleteItem ----

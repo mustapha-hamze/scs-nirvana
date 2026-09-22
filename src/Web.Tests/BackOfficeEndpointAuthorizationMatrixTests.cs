@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Web.Areas.BackOffice.Controllers;
 using Web.Areas.BackOffice.Features.Content.Contracts;
@@ -31,7 +33,15 @@ namespace Web.Tests;
 // *something* is there). Two data-dependent ContentController actions (ContentForm,
 // SaveContentForm) aren't in this matrix because their required key depends on request data
 // (create vs. edit) rather than a static attribute - see ContentController.cs's
-// DenyIfMissingAccessAsync and AccessKeyAuthorizationTests' Content_* cases for their coverage.
+// DenyIfMissingAccessAsync and AccessKeyAuthorizationTests' ContentForm_*/SaveContentForm_* cases
+// for their dedicated behavioral coverage.
+//
+// Web Phase 4 task 1: AllPublicActionMethods_AreClassifiedExactlyOnceInTheMatrix below closes the
+// regression gap the hand-maintained Matrix otherwise has - a new/renamed/overloaded action never
+// added here previously went unaudited. It discovers every real MVC action (via the same
+// IActionDescriptorCollectionProvider ASP.NET Core routing itself uses) under the audited root,
+// BackOffice and Api controllers, and fails if one has no Matrix row, an unclassified overload, or
+// the Matrix has more than one row for it.
 //
 // Reflection alone proves the attribute is declared, not that ASP.NET Core's authorization
 // pipeline actually honors it the way the row claims - AuthorizationBehaviorTests pairs a
@@ -286,6 +296,56 @@ public sealed class BackOfficeEndpointAuthorizationMatrixTests
                 Assert.Equal(row.Keys!.OrderBy(k => k), requireAccess!.Keys.OrderBy(k => k));
                 break;
         }
+    }
+
+    // Named, explicit dynamic-permission exceptions - see the class doc above and
+    // AccessKeyAuthorizationTests' ContentForm_*/SaveContentForm_* cases.
+    private static readonly (Type Controller, string Method)[] DynamicPermissionExceptions =
+    {
+        (typeof(ContentController), nameof(ContentController.ContentForm)),
+        (typeof(ContentController), nameof(ContentController.SaveContentForm)),
+    };
+
+    private static string ActionKey(Type controller, string method, Type[] paramTypes) =>
+        $"{controller.FullName}.{method}({string.Join(",", paramTypes.Select(t => t.FullName))})";
+
+    [Fact]
+    public void AllPublicActionMethods_AreClassifiedExactlyOnceInTheMatrix()
+    {
+        using var factory = new TestWebApplicationFactory();
+        var actionDescriptors = factory.Services.GetRequiredService<IActionDescriptorCollectionProvider>()
+            .ActionDescriptors.Items.OfType<ControllerActionDescriptor>();
+
+        var auditedNamespaces = new[] { "Web.Controllers", "Web.Areas.BackOffice.Controllers", "Web.Areas.Api" };
+        var discovered = actionDescriptors
+            .Where(a => auditedNamespaces.Contains(a.ControllerTypeInfo.Namespace))
+            .Select(a => (Controller: a.ControllerTypeInfo.AsType(), a.MethodInfo))
+            .Distinct()
+            .ToArray();
+        Assert.NotEmpty(discovered);
+
+        var exceptionKeys = DynamicPermissionExceptions
+            .Select(e => discovered.Where(d => d.Controller == e.Controller && d.MethodInfo.Name == e.Method)
+                .Select(d => ActionKey(d.Controller, d.MethodInfo.Name, d.MethodInfo.GetParameters().Select(p => p.ParameterType).ToArray())))
+            .SelectMany(k => k)
+            .ToHashSet();
+
+        var matrixKeys = Matrix.Select(r => ActionKey(r.Controller, r.Method, r.ParamTypes)).ToArray();
+        var duplicateMatrixKeys = matrixKeys.GroupBy(k => k).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
+        Assert.True(duplicateMatrixKeys.Length == 0,
+            "Matrix has duplicate row(s) for: " + string.Join(", ", duplicateMatrixKeys));
+
+        var discoveredKeys = discovered
+            .Select(d => ActionKey(d.Controller, d.MethodInfo.Name, d.MethodInfo.GetParameters().Select(p => p.ParameterType).ToArray()))
+            .ToArray();
+
+        var missingFromMatrix = discoveredKeys.Except(exceptionKeys).Except(matrixKeys).ToArray();
+        Assert.True(missingFromMatrix.Length == 0,
+            "Discovered action(s) with no Matrix row (missing or unclassified overload): " + string.Join(", ", missingFromMatrix));
+
+        var staleMatrixRows = matrixKeys.Except(discoveredKeys).ToArray();
+        Assert.True(staleMatrixRows.Length == 0,
+            "Matrix row(s) referencing an action MVC does not route (stale/renamed): " + string.Join(", ", staleMatrixRows));
     }
 
     // ---- Public endpoint list: every action classified Auth.Anonymous above, restated as a
