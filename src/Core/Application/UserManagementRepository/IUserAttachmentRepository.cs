@@ -12,5 +12,9 @@ namespace Application.UserManagementRepository
     public interface IUserAttachmentRepository : IRepository<UserAttachment>
     {
         Task<List<UserAttachment>> List(string userId, CancellationToken cancellationToken = default);
+
+        // Owner-scoped read: missing, deleted, and cross-user attachment ids all throw the same
+        // KeyNotFoundException, so callers can't distinguish "doesn't exist" from "exists but isn't yours".
+        Task<UserAttachment> GetByIdForUser(int attachmentId, string userId, CancellationToken cancellationToken = default);
     }
 }

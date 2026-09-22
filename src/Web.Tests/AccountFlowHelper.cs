@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Domains.Entities.General;
+using Infrastructure.Data;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -40,6 +43,56 @@ internal static class AccountFlowHelper
                 "Failed to seed test user: " + string.Join(", ", result.Errors.Select(e => e.Description)));
 
         return user;
+    }
+
+    // Same admin-user seeding as SeedAdminUserAsync, plus the SuperAdmin role that gates every
+    // [Authorize(Roles = "SuperAdmin")] BackOffice action (user/role/membership/attachment
+    // administration).
+    public static async Task<ApplicationUser> SeedSuperAdminUserAsync(
+        TestWebApplicationFactory factory, string email, string password)
+    {
+        var seeded = await SeedAdminUserAsync(factory, email, password);
+
+        using var scope = factory.Services.CreateScope();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        if (!await roleManager.RoleExistsAsync("SuperAdmin"))
+            await roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
+
+        // Re-fetch through this scope's own UserManager/DbContext instance rather than reusing
+        // the entity SeedAdminUserAsync's own (already-disposed) scope created and tracked.
+        var user = await userManager.FindByIdAsync(seeded.Id)
+            ?? throw new InvalidOperationException($"Seeded user '{seeded.Id}' was not found.");
+        await userManager.AddToRoleAsync(user, "SuperAdmin");
+
+        return user;
+    }
+
+    // Establishes the session-backed tenant context RequireTenantContextFilter requires on every
+    // BaseController action: seeds an active Application and an active UserInApplication
+    // membership for the caller, then drives the real SelectAppToEnter flow over HTTP exactly as
+    // a browser would after picking a tenant, so client's session cookie ends up carrying it.
+    public static async Task SelectApplicationAsync(TestWebApplicationFactory factory, HttpClient client, ApplicationUser user)
+    {
+        int applicationId;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var application = new Domains.Entities.General.Application { Title = $"Test App {Guid.NewGuid():N}", IsActive = true };
+            context.Applications.Add(application);
+            await context.SaveChangesAsync();
+            applicationId = application.Id;
+
+            context.UserInApplications.Add(new UserInApplication { UserId = user.Id, ApplicationId = applicationId, IsActive = true });
+            await context.SaveChangesAsync();
+        }
+
+        var response = await client.PostAsync($"/BackOffice/Application/SelectAppToEnter/{applicationId}", content: null);
+        if (response.StatusCode != HttpStatusCode.Redirect || response.Headers.Location?.OriginalString != "/BackOffice/Home/Index")
+            throw new InvalidOperationException(
+                $"Failed to select application context; got {response.StatusCode} -> {response.Headers.Location}");
     }
 
     // Logs in over real HTTP and returns a client whose default "X-CSRF-TOKEN" header carries a

@@ -1,19 +1,18 @@
 using System.Threading.Tasks;
 using Application.Contracts.UserManagement;
 using Application.CQRS.Queries.UserManagement;
-using Application.Repository;
+using Application.UserManagementRepository;
 using AutoMapper;
-using Domains.Entities.User;
 using MediatR;
 
 namespace Application.CQRS.Handlers.UserManagement;
 
 public class GetUserAttachmentByIdHandler : IRequestHandler<GetUserAttachmentByIdQuery, UserAttachmentDto>
 {
-    private readonly IRepository<UserAttachment> _repository;
+    private readonly IUserAttachmentRepository _repository;
     private readonly IMapper _mapper;
 
-    public GetUserAttachmentByIdHandler(IRepository<UserAttachment> repository, IMapper mapper)
+    public GetUserAttachmentByIdHandler(IUserAttachmentRepository repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
@@ -21,6 +20,7 @@ public class GetUserAttachmentByIdHandler : IRequestHandler<GetUserAttachmentByI
 
     public async Task<UserAttachmentDto> Handle(GetUserAttachmentByIdQuery request, CancellationToken cancellationToken)
     {
-        return _mapper.Map<UserAttachmentDto>(await _repository.GetById(request.Id, cancellationToken));
+        var attachment = await _repository.GetByIdForUser(request.Id, request.UserId, cancellationToken);
+        return _mapper.Map<UserAttachmentDto>(attachment);
     }
 }

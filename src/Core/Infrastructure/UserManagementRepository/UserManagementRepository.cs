@@ -75,4 +75,9 @@ public class UserManagementRepository : IUserManagementRepository
         return await _dbContext.UserInApplications.AnyAsync(m =>
             m.UserId == userId && m.ApplicationId == applicationId && m.IsActive && !m.IsDeleted, cancellationToken);
     }
+
+    public async Task<bool> UserExists(string userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Users.AnyAsync(u => u.Id == userId, cancellationToken);
+    }
 }

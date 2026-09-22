@@ -12,5 +12,7 @@ namespace Application.UserManagementRepository
         // True only when the user has an active, non-deleted UserInApplication row for this
         // application.
         Task<bool> HasActiveMembership(string userId, int applicationId, CancellationToken cancellationToken = default);
+
+        Task<bool> UserExists(string userId, CancellationToken cancellationToken = default);
     }
 }
