@@ -30,7 +30,10 @@ public sealed class ContentContractsBindingTests : IClassFixture<TestWebApplicat
     private async Task<(HttpClient Client, int ApplicationId)> AuthenticatedTenantClientAsync(string emailPrefix)
     {
         var email = $"{emailPrefix}-{Guid.NewGuid():N}@test.local";
-        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        // SuperAdmin, not an ordinary member: these tests pin contract/binding shape, not the
+        // Content access-key gate (see AuthorizationConventionsTests/BackOfficeEndpointAuthorizationMatrixTests
+        // for that), so the seeded caller must bypass it rather than need specific access keys.
+        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(_factory, email, "CorrectHorseBattery12");
         var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
         var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
         return (client, applicationId);

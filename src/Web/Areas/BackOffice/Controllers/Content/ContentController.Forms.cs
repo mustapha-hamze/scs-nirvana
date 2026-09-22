@@ -5,6 +5,7 @@ namespace Web.Areas.BackOffice.Controllers;
 public partial class ContentController
 {
     [HttpGet]
+    [RequireAccess(AccessKeys.Content.Module)]
     [Route("/{area}/{controller}/Index/{id}")]
     public IActionResult Index(int id)
     {
@@ -12,10 +13,16 @@ public partial class ContentController
         return View();
     }
 
+    // Shared by two UI entry points with different keys (_CreateContentButton.cshtml's Add vs.
+    // _ContentListActionsButton.cshtml's Edit) - the required key depends on id, so it's checked
+    // in the body via DenyIfMissingAccessAsync rather than a static [RequireAccess].
     [HttpGet]
     [Route("/{area}/{controller}/ContentForm/{id}/{typeId}")]
     public async Task<IActionResult> ContentForm(int id = 0, int typeId = 0)
     {
+        if (await DenyIfMissingAccessAsync(id == 0 ? AccessKeys.Content.Add : AccessKeys.Content.Edit) is IActionResult deny)
+            return deny;
+
         ViewData["TypeId"] = typeId;
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
 
@@ -38,9 +45,14 @@ public partial class ContentController
         }
     }
 
+    // Same shared-action reasoning as ContentForm above (SAVE_1003 for a new content vs.
+    // UPDATE_1001 for an existing one - see _ContentFormSaveButton.cshtml).
     [HttpPost]
     public async Task<IActionResult> SaveContentForm(ContentDto content)
     {
+        if (await DenyIfMissingAccessAsync(content.Id == 0 ? AccessKeys.Content.Save : AccessKeys.Content.Update) is IActionResult deny)
+            return deny;
+
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         if (content.Id == 0)
         {
@@ -61,6 +73,7 @@ public partial class ContentController
     }
 
     [HttpGet]
+    [RequireAccess(AccessKeys.Content.Module)]
     [Route("/{area}/{controller}/{action}/{id}")]
     public async Task<IActionResult> ContentList(int id)
     {
@@ -71,6 +84,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.ChangeActivity)]
     [Route("/{area}/Content/ChangeContentActiveMode/{typeId}/{contentId}/{mode}")]
     public async Task<IActionResult> ChangeContentActiveMode(int typeId, int contentId, bool mode)
     {
@@ -105,6 +119,7 @@ public partial class ContentController
     }
 
     [HttpDelete]
+    [RequireAccess(AccessKeys.Content.Delete)]
     [Route("/{area}/Content/DeleteContent/{id}")]
     public async Task<IActionResult> DeleteContent(int id)
     {

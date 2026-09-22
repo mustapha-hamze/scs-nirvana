@@ -1,7 +1,9 @@
 namespace Web.Areas.BackOffice.Controllers;
 
+// The sidebar only exposes one access key for Category (Views/Shared/_SideBarCMS.cshtml:
+// "CMS1000_1002"), with no finer-grained per-action key - every action here shares it.
 [Authorize]
-
+[RequireAccess(AccessKeys.Category.Module)]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
 public class CategoryController : BaseController

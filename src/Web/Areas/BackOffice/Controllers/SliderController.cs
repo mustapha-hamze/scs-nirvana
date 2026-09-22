@@ -26,19 +26,24 @@ public class SliderController : BaseController
 
     // methods
     [HttpGet]
+    [RequireAccess(AccessKeys.Slider.Module)]
     public IActionResult Index()
     {
         return View();
     }
 
     [HttpGet]
+    [RequireAccess(AccessKeys.Slider.Module)]
     public async Task<IActionResult> List()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var slider = await _sliderServices.GetSliders(currentApplicationId);
         return View(slider);
     }
+    // Views/Slider/_CreateSliderButton.cshtml gates navigation here with the (CMS-prefixed,
+    // established as-is) AccessKeys.Slider.Add key - see AccessKeys.Slider.Add's own comment.
     [HttpGet]
+    [RequireAccess(AccessKeys.Slider.Add)]
     public IActionResult Create()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -47,6 +52,7 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Slider.Save)]
     public async Task<IActionResult> Create(Slider slider)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -56,6 +62,7 @@ public class SliderController : BaseController
     }
 
     [HttpGet]
+    [RequireAccess(AccessKeys.Slider.AccessItems)]
     public IActionResult CreateItem(int sliderId)
     {
         ViewData["SliderId"] = sliderId;
@@ -63,6 +70,7 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Slider.SaveItem)]
     public async Task<IActionResult> CreateItem(SliderItem sliderItem)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -73,7 +81,10 @@ public class SliderController : BaseController
         return Ok($"{_sliderItem.SliderId}|{imageName}");
     }
 
+    // Used by both the create-item and update-item forms (GetSliderItemForm.cshtml), so either
+    // permission is accepted.
     [HttpPost]
+    [RequireAccess(AccessKeys.Slider.SaveItem, AccessKeys.Slider.UpdateItem)]
     public async Task<IActionResult> UploadSliderItemImage(IFormFile file, int sliderId, string imageFileName)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Slider/" + sliderId);
@@ -89,6 +100,7 @@ public class SliderController : BaseController
     }
 
     [HttpGet]
+    [RequireAccess(AccessKeys.Slider.AccessItems)]
     [Route("/{area}/{controller}/SliderItems")]
     public IActionResult SliderItems()
     {
@@ -96,6 +108,7 @@ public class SliderController : BaseController
     }
 
     [HttpGet]
+    [RequireAccess(AccessKeys.Slider.AccessItems)]
     [Route("/{area}/{controller}/GetSliderItemList/{sliderId}")]
     public async Task<IActionResult> GetSliderItemList(int sliderId)
     {
@@ -105,6 +118,7 @@ public class SliderController : BaseController
     }
 
     [HttpGet]
+    [RequireAccess(AccessKeys.Slider.AccessItems)]
     [Route("/{area}/{controller}/GetSliderItemForm/{sliderId}/{sliderItemId}")]
     public async Task<IActionResult> GetSliderItemForm(int sliderId, int sliderItemId = 0)
     {
@@ -120,6 +134,7 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Slider.UpdateItem)]
     public async Task<IActionResult> UpdateItem(SliderItem model)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -128,6 +143,7 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Slider.Activity)]
     public async Task<IActionResult> ActiveItem(int sliderItemId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -136,6 +152,7 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Slider.Activity)]
     public async Task<IActionResult> DeactiveItem(int sliderItemId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -144,6 +161,7 @@ public class SliderController : BaseController
     }
 
     [HttpDelete]
+    [RequireAccess(AccessKeys.Slider.DeleteItem)]
     public async Task<IActionResult> DeleteItem(int sliderItemId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

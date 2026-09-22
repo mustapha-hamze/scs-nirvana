@@ -26,7 +26,8 @@ public sealed class ContentFeatureScriptTests : IClassFixture<TestWebApplication
     public async Task ContentIndex_AuthenticatedWithTenant_ReferencesFeatureScriptExactlyOnce()
     {
         var email = $"content-script-ref-{Guid.NewGuid():N}@test.local";
-        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        // SuperAdmin to bypass the Content access-key gate - this test is about the script tag/asset, not authorization.
+        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(_factory, email, "CorrectHorseBattery12");
         var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
         await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
 

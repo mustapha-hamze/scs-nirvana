@@ -407,6 +407,10 @@ public class AccountController : BaseController
         return PartialView("_EntityAccessCheckboxesPartial", entityAccesses);
     }
 
+    // Only ever a shell for the UserAttachmentController workflow (UserAttachmentsList/
+    // UserAttachmentForm), which is entirely SuperAdmin-only - classified the same way rather
+    // than left reachable by any authenticated member.
+    [Authorize(Policy = WebAuthorizationPolicies.SuperAdmin)]
     [HttpGet]
     [Route("/BackOffice/Account/Attachment")]
     public IActionResult Attachment(int id)

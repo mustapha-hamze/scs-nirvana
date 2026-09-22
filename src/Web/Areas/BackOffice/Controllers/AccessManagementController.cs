@@ -1,5 +1,9 @@
 namespace Web.Areas.BackOffice.Controllers;
-[Authorize]
+
+// Reached only through the SuperAdmin-only "General Settings" sidebar section
+// (Views/Shared/_SideBarAdminMenu.cshtml) - sectors/entities/accesses administration is
+// privileged, tenant-root-adjacent configuration, not self-scoped content editing.
+[Authorize(Policy = WebAuthorizationPolicies.SuperAdmin)]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
 public class AccessManagementController : BaseController

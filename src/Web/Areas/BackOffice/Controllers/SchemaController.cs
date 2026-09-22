@@ -1,6 +1,9 @@
 namespace Web.Areas.BackOffice.Controllers;
 
+// The sidebar only exposes one access key for Schema (Views/Shared/_SideBarCMS.cshtml:
+// "CMS1000_1003"), with no finer-grained per-action key - every action here shares it.
 [Authorize]
+[RequireAccess(AccessKeys.Schema.Module)]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
 public class SchemaController : BaseController

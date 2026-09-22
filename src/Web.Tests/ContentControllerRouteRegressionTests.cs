@@ -137,7 +137,8 @@ public sealed class ContentControllerRouteRegressionTests : IClassFixture<TestWe
     public async Task ContentList_AuthenticatedWithTenant_ReturnsOk()
     {
         var email = $"content-list-{Guid.NewGuid():N}@test.local";
-        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        // SuperAdmin to bypass the Content access-key gate - this test is about routing, not authorization.
+        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(_factory, email, "CorrectHorseBattery12");
         var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
         await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
 
@@ -150,7 +151,8 @@ public sealed class ContentControllerRouteRegressionTests : IClassFixture<TestWe
     public async Task ContentImages_AuthenticatedWithTenant_ReturnsOk()
     {
         var email = $"content-images-{Guid.NewGuid():N}@test.local";
-        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        // SuperAdmin to bypass the Content access-key gate - this test is about routing, not authorization.
+        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(_factory, email, "CorrectHorseBattery12");
         var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
         var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
         var contentId = await SeedContentAsync(applicationId);
@@ -173,7 +175,8 @@ public sealed class ContentControllerRouteRegressionTests : IClassFixture<TestWe
     public async Task SaveContentMetadata_AuthenticatedWithTenant_CreatesAndReturnsDone()
     {
         var email = $"content-metadata-{Guid.NewGuid():N}@test.local";
-        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        // SuperAdmin to bypass the Content access-key gate - this test is about routing, not authorization.
+        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(_factory, email, "CorrectHorseBattery12");
         var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
         var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
         var contentId = await SeedContentAsync(applicationId);

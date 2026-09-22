@@ -8,6 +8,7 @@ namespace Web.Areas.BackOffice.Controllers;
 public partial class ContentController
 {
     [HttpGet]
+    [RequireAccess(AccessKeys.Content.PreviewBody)]
     [Route("/{area}/Content/ContentSections/{contentId}/{typeId}")]
     public async Task<IActionResult> ContentSections(int contentId, int typeId)
     {
@@ -24,6 +25,7 @@ public partial class ContentController
     }
 
     [HttpGet]
+    [RequireAccess(AccessKeys.Content.SaveBody)]
     [Route("/{area}/Content/CreateContentSection/{schemaId}/{priority}")]
     public async Task<IActionResult> CreateContentSection(int schemaId, int priority)
     {
@@ -34,6 +36,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.SaveBody)]
     public async Task<IActionResult> SaveSection([FromBody] SaveContentBodyDto section)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -71,6 +74,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.SaveBody)]
     public async Task<IActionResult> UpdateSectionsLayoutOrder([FromBody] string sectionsOrder)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -86,6 +90,7 @@ public partial class ContentController
 
     [Route("/{area}/Content/DeleteSection/{id}")]
     [HttpDelete]
+    [RequireAccess(AccessKeys.Content.SaveBody)]
     public async Task<IActionResult> DeleteSection(int id)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

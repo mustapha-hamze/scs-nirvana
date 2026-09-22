@@ -1,7 +1,10 @@
 namespace Web.Areas.BackOffice.Controllers;
 
-[Authorize]
-
+// Entirely gated behind the "General Settings" sidebar section, which the UI only ever shows to
+// SuperAdmin (Views/Shared/_SideBarAdminMenu.cshtml: `@if (User.IsInRole("SuperAdmin"))` around
+// the whole section, including Access Management/Tags/Cultures/Application Settings/System
+// Types/Logs) - no finer-grained per-action access key exists for any of it.
+[Authorize(Policy = WebAuthorizationPolicies.SuperAdmin)]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
 public class GeneralController : BaseController

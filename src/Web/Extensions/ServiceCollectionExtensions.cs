@@ -138,6 +138,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentApplicationContext, SessionCurrentApplicationContext>();
         services.AddScoped<RequireTenantContextFilter>();
+        services.AddScoped<Web.Authorization.AccessKeyAuthorizer>();
 
         services.AddAntiforgery(options =>
         {

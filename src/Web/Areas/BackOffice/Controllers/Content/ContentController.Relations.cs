@@ -4,6 +4,7 @@ namespace Web.Areas.BackOffice.Controllers;
 public partial class ContentController
 {
     [HttpGet]
+    [RequireAccess(AccessKeys.Content.PreviewRelations)]
     [Route("/{area}/Content/ContentRelations/{contentId}")]
     public async Task<IActionResult> ContentRelations(int contentId)
     {
@@ -16,6 +17,7 @@ public partial class ContentController
     }
 
     [HttpGet]
+    [RequireAccess(AccessKeys.Content.PreviewMetadata)]
     [Route("/{area}/Content/ContentMetadata/{contentId}")]
     public async Task<IActionResult> ContentMetadata(int contentId)
     {
@@ -27,6 +29,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.SaveRelations)]
     [Route("/{area}/Content/SaveRelation/{Entity}/{contentId}")]
     public async Task<IActionResult> SaveRelation([FromForm] string Data, string Entity, int contentId)
     {
@@ -66,6 +69,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.SaveMetadata)]
     public async Task<IActionResult> SaveContentMetadata(ContentMetadataDto contentMetadata)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

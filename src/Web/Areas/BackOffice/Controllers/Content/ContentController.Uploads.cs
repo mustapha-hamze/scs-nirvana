@@ -8,6 +8,7 @@ public partial class ContentController
         { "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip", "csv", "txt" };
 
     [HttpGet]
+    [RequireAccess(AccessKeys.Content.PreviewImages)]
     [Route("/{area}/Content/ContentImages/{contentId}")]
     public async Task<IActionResult> ContentImages(int contentId)
     {
@@ -19,6 +20,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.SaveBody)]
     public async Task<IActionResult> UploadBodyImage(IFormFile File)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Images/");
@@ -29,6 +31,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.SaveBody)]
     public async Task<IActionResult> UploadBodyFile(IFormFile File, string FileName)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Files/");
@@ -39,6 +42,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.SaveBody)]
     public async Task<IActionResult> UploadBodyImageGallery()
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Gallery/");
@@ -56,6 +60,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.UploadImages)]
     public async Task<IActionResult> UploadContentImage(IFormFile file, int contentId, int settingId)
     {
         if (file == null || file.Length == 0)

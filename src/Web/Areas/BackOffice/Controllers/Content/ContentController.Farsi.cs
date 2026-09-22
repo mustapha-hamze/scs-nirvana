@@ -8,6 +8,7 @@ namespace Web.Areas.BackOffice.Controllers;
 public partial class ContentController
 {
     [HttpGet]
+    [RequireAccess(AccessKeys.Content.EditFarsi)]
     [Route("/{area}/{controller}/FarsiContentForm/{id}/{typeId}")]
     public async Task<IActionResult> FarsiContentForm(int id, int typeId)
     {
@@ -25,6 +26,7 @@ public partial class ContentController
     }
 
     [HttpPost]
+    [RequireAccess(AccessKeys.Content.EditFarsi)]
     public async Task<IActionResult> SaveFarsiContentForm(FarsiContentEditDto model)
     {
         if (model == null || model.Id == 0)

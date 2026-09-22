@@ -74,7 +74,9 @@ public sealed class AuthorizationConventionsTests : IClassFixture<TestWebApplica
     public async Task Post_ToNowGetOnlyBackOfficeRead_NoLongerExecutes()
     {
         var email = $"authz-verb-{Guid.NewGuid():N}@test.local";
-        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        // SuperAdmin: General is now SuperAdmin-only (see BackOfficeEndpointAuthorizationMatrixTests) -
+        // this test is only about the GET-only verb lockdown.
+        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(_factory, email, "CorrectHorseBattery12");
         var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
         await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
 

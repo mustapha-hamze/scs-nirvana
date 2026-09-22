@@ -126,6 +126,17 @@ internal static class AccountFlowHelper
         return client;
     }
 
+    // Grants the caller's persisted, tenant-scoped access-key string for applicationId, exactly
+    // as AccountController.SetAccessForUser (SuperAdmin-only) would - through the real
+    // IUserManagementServices.SetUserAccesses port, not a raw DbContext write, so this stays a
+    // faithful stand-in for how the app itself grants access.
+    public static async Task GrantAccessAsync(TestWebApplicationFactory factory, ApplicationUser user, int applicationId, string accesses)
+    {
+        using var scope = factory.Services.CreateScope();
+        var userManagementServices = scope.ServiceProvider.GetRequiredService<Application.UseCases.UserManagementServices.IUserManagementServices>();
+        await userManagementServices.SetUserAccesses(accesses, user.Id, applicationId);
+    }
+
     public static async Task RefreshAntiForgeryTokenAsync(HttpClient client)
     {
         var page = await client.GetAsync("/Login");
