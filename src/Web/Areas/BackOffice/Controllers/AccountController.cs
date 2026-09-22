@@ -67,7 +67,6 @@ public class AccountController : BaseController
 
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Roles(string RoleName)
     {
         await _roleManager.CreateAsync(new IdentityRole { Name = RoleName });
@@ -76,7 +75,6 @@ public class AccountController : BaseController
 
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToRole/{userId}/{roleName}")]
     public async Task<IActionResult> AddUserToRole(string userId, string roleName)
     {
@@ -90,7 +88,6 @@ public class AccountController : BaseController
 
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromRole/{userId}/{roleName}")]
     public async Task<IActionResult> RemoveUserFromRole(string userId, string roleName)
     {
@@ -108,7 +105,6 @@ public class AccountController : BaseController
     // to/from any application, tenant membership notwithstanding).
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToApplication/{userId}/{applicationId}")]
     public async Task<IActionResult> AddUserToApplication(string userId, int applicationId)
     {
@@ -121,7 +117,6 @@ public class AccountController : BaseController
     // themselves currently have selected.
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
     public async Task<IActionResult> RemoveUserFromApplication(int relationId)
     {
@@ -257,7 +252,6 @@ public class AccountController : BaseController
     // (UserId selects create vs. update, and update trusts every field on the DTO).
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveUserForm(CreateUserDto user)
     {
         if (user.UserId != "")
@@ -326,7 +320,6 @@ public class AccountController : BaseController
     // tenant-scoped self-service.
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public IActionResult UserList(UserDto userFilter)
     {
         if (string.IsNullOrEmpty(userFilter.Email))
@@ -444,7 +437,6 @@ public class AccountController : BaseController
     [SkipTenantContextCheck]
     [Route("/Login")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(UserLoginDto userLogin, string _password = "")
     {
         userLogin.ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();

@@ -1,5 +1,6 @@
 namespace Web.Areas.Api;
 [ApiController]
+[IgnoreAntiforgeryToken]
 public class ContentController : ControllerBase
 {
     private readonly IContentServices _contentServices;

@@ -53,7 +53,6 @@ public class SchemaController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSchemaForm(SchemaDto schema)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -70,7 +69,6 @@ public class SchemaController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadSchemaLogo(IFormFile File, int EntityId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -96,7 +94,6 @@ public class SchemaController : BaseController
     }
 
     [HttpDelete]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Schema/DeleteSchema/{id}")]
     public async Task<IActionResult> DeleteSchema(int id)
     {
@@ -123,7 +120,6 @@ public class SchemaController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SchemaDetailsFormSave(SchemaDetailsDto schemaDetails)
     {
         //TODO: Implement Realistic Implementation

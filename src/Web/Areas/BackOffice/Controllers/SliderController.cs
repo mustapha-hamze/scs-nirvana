@@ -44,7 +44,6 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Slider slider)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -60,7 +59,6 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateItem(SliderItem sliderItem)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -72,7 +70,6 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadSliderItemImage(IFormFile file, int sliderId, string imageFileName)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Slider/" + sliderId);
@@ -116,7 +113,6 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateItem(SliderItem model)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -125,7 +121,6 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ActiveItem(int sliderItemId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -134,7 +129,6 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeactiveItem(int sliderItemId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -143,7 +137,6 @@ public class SliderController : BaseController
     }
 
     [HttpDelete]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteItem(int sliderItemId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

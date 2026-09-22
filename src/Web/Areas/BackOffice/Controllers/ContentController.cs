@@ -138,7 +138,6 @@ public class ContentController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentForm(ContentDto content)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -177,7 +176,6 @@ public class ContentController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveFarsiContentForm(FarsiContentEditDto model)
     {
         if (model == null || model.Id == 0)
@@ -330,7 +328,6 @@ public class ContentController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Content/ChangeContentActiveMode/{typeId}/{contentId}/{mode}")]
     public async Task<IActionResult> ChangeContentActiveMode(int typeId, int contentId, bool mode)
     {
@@ -374,7 +371,6 @@ public class ContentController : BaseController
     }
 
     [HttpDelete]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Content/DeleteContent/{id}")]
     public async Task<IActionResult> DeleteContent(int id)
     {
@@ -423,7 +419,6 @@ public class ContentController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentMetadata(ContentMetadataDto contentMetadata)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -724,7 +719,6 @@ public class ContentController : BaseController
         { "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip", "csv", "txt" };
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadBodyImage(IFormFile File)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Images/");
@@ -735,7 +729,6 @@ public class ContentController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadBodyFile(IFormFile File, string FileName)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Files/");
@@ -746,7 +739,6 @@ public class ContentController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadBodyImageGallery()
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Gallery/");
@@ -764,7 +756,6 @@ public class ContentController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadContentImage(IFormFile file, int contentId, int settingId)
     {
         if (file == null || file.Length == 0)

@@ -134,7 +134,11 @@ public static class ServiceCollectionExtensions
         services.AddDistributedMemoryCache();
         services.AddSession(options => options.IdleTimeout = TimeSpan.FromDays(1));
 
-        services.AddControllersWithViews();
+        // Every unsafe MVC action (POST/PUT/DELETE/PATCH) is validated by default so it's not
+        // left to developers to remember a per-action [ValidateAntiForgeryToken]. Anonymous
+        // public API controllers opt out explicitly via [IgnoreAntiforgeryToken].
+        services.AddControllersWithViews(options =>
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
         services.AddRazorPages();
 
         services.AddTransient<IFileUploadService, FileUploadService>();

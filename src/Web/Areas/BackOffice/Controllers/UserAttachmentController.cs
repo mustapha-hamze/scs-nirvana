@@ -33,7 +33,6 @@ public class UserAttachmentController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/{controller}/SaveUserAttachment")]
     public async Task<IActionResult> SaveUserAttachment(UserAttachmentDto attachment)
     {
@@ -44,7 +43,6 @@ public class UserAttachmentController : BaseController
     private static readonly string[] AllowedAttachmentExtensions = { "pdf" };
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadAttachmentFile(IFormFile file, string userId, int attachmentId, string attachmentType)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/UserAttachment/" + userId);

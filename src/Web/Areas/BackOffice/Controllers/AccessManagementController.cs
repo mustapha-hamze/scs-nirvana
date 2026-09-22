@@ -49,7 +49,6 @@ public class AccessManagementController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSector(SectorDto sector)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -85,7 +84,6 @@ public class AccessManagementController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveEntity(SectorEntityDto entity)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -137,7 +135,6 @@ public class AccessManagementController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveAccess(EntityAccessDto accessModel)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

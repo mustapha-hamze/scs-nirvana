@@ -38,7 +38,6 @@ public class CategoryController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveForm(CategoryDto category)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

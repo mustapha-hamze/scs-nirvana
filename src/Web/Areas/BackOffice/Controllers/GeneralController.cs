@@ -41,7 +41,6 @@ public class GeneralController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveTagForm(TagDto tag)
     {
         //TODO: Implement Realistic Implementation
@@ -68,7 +67,6 @@ public class GeneralController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveCultureForm(CultureDto culture)
     {
         await _cultureServices.Create(culture);
@@ -101,7 +99,6 @@ public class GeneralController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApplicationSettingForm(ApplicationSettingDto applicationSetting)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

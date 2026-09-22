@@ -57,7 +57,6 @@ public class ApplicationController : BaseController
     // enough to create one. Only a SuperAdmin may.
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveApplicationForm(ApplicationDto applicationForm)
     {
         applicationForm.IsActive = true;
@@ -71,7 +70,6 @@ public class ApplicationController : BaseController
     // before this method body, so the SuperAdmin check happens before EntityId is ever looked up.
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadApplicationLogo(IFormFile File, int EntityId)
     {
         var application = await _applicationServices.GetById(EntityId);
@@ -94,7 +92,6 @@ public class ApplicationController : BaseController
     // Selecting an application changes the caller's server-side session state, so this must be a
     // state-changing POST with a CSRF token - not a plain GET link a page could trigger silently.
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/BackOffice/Application/SelectAppToEnter/{applicationId}")]
     public async Task<IActionResult> SelectAppToEnter(int applicationId)
     {

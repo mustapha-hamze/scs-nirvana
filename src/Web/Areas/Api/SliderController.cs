@@ -1,5 +1,6 @@
 namespace Web.Areas.Api;
 [ApiController]
+[IgnoreAntiforgeryToken]
 public class SliderController : ControllerBase
 {
     private readonly ISliderServices _sliderServices;
