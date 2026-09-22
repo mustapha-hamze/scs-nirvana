@@ -131,7 +131,8 @@
         @await Html.PartialAsync("_ContentFormTabsBody", Model)
     </div>
 </div>
-@await Html.PartialAsync("__ContentJSFunctions")
+<script src="/BackOffice/vendor/quill/quill.min.js"></script>
+<script src="/BackOffice/js/features/content.js"></script>
 <input type="hidden" name="" id="hidTypeIdContent_Form" value="@ViewData["TypeId"]">
 @section Scripts {
     <script>

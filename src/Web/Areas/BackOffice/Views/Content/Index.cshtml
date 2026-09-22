@@ -50,7 +50,8 @@
     <!-- end col-->
   </div>
 </div>
-@await Html.PartialAsync("__ContentJSFunctions")
+<script src="/BackOffice/vendor/quill/quill.min.js"></script>
+<script src="/BackOffice/js/features/content.js"></script>
 <input type="hidden" id="hidContentsTypeId_List" value="@ViewData["TypeId"]" />
 @section Scripts {
   <script>

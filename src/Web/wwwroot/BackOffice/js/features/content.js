@@ -1,9 +1,5 @@
-@{
-    Layout = null;
-}
-<script src="/BackOffice/vendor/quill/quill.min.js"></script>
+// Content feature JS: shared by Index, ContentForm, and FarsiContentForm (moved from Areas/BackOffice/Views/Content/__ContentJSFunctions.cshtml).
 
-<script>
     function findContents(typeId) {
     clearModalBody("findContentsResultBody");
     $.ajax({
@@ -740,5 +736,3 @@
     loadContentBody();
     });
     }
-
-</script>
