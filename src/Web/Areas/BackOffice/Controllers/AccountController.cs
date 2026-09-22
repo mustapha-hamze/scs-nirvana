@@ -293,6 +293,7 @@ public class AccountController : BaseController
     }
 
     [AllowAnonymous]
+    [SkipTenantContextCheck]
     [Route("/Login")]
     public async Task<IActionResult> Login()
     {
@@ -304,6 +305,7 @@ public class AccountController : BaseController
     }
 
     [AllowAnonymous]
+    [SkipTenantContextCheck]
     [Route("/{area}/ExternalLogin/{provider}")]
     public IActionResult ExternalLogin(string provider)
     {
@@ -313,6 +315,7 @@ public class AccountController : BaseController
     }
 
     [AllowAnonymous]
+    [SkipTenantContextCheck]
     [HttpGet]
     public async Task<IActionResult> ExternalLoginCallBack(string remoteError = null)
     {
@@ -395,6 +398,7 @@ public class AccountController : BaseController
     }
 
     [AllowAnonymous]
+    [SkipTenantContextCheck]
     [Route("/Login")]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -432,6 +436,7 @@ public class AccountController : BaseController
         return Redirect("/BackOffice/Application/SelectApp");
     }
 
+    [SkipTenantContextCheck]
     [Route("/Logout")]
     public async Task<IActionResult> Logout()
     {

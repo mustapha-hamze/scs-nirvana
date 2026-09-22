@@ -6,6 +6,7 @@ using Application.GeneralRepository;
 using Application.UnitOfWork;
 using Application.UserManagementRepository;
 using Moq;
+using Application.UseCases.Tenancy;
 using Application.UseCases.UserManagementServices;
 using Xunit;
 
@@ -28,9 +29,9 @@ public class UserManagementServicesTests
     {
         return new UserManagementServices(
             userManagementRepository.Object,
-            (applicationRepository ?? new Mock<IApplicationRepository>()).Object,
             (unitOfWork ?? new Mock<IUnitOfWork>()).Object,
-            currentApplicationContext ?? new FakeCurrentApplicationContext());
+            currentApplicationContext ?? new FakeCurrentApplicationContext(),
+            new TenantAccessGuard(userManagementRepository.Object, (applicationRepository ?? new Mock<IApplicationRepository>()).Object));
     }
 
     [Fact]

@@ -3,6 +3,9 @@ namespace Web.Areas.BackOffice.Controllers;
 [Authorize]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
+// Every action here is either about selecting a tenant or administering the tenant root itself -
+// none of them consume the session's selected tenant, so none needs one to already be present.
+[SkipTenantContextCheck]
 public class ApplicationController : BaseController
 {
     // fields

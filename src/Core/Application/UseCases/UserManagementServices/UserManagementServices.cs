@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Contracts.Tenancy;
 using Application.Contracts.UserManagement;
-using Application.GeneralRepository;
 using Application.UserManagementRepository;
 using Application.UnitOfWork;
 
@@ -11,18 +10,18 @@ namespace Application.UseCases.UserManagementServices
     public class UserManagementServices : IUserManagementServices
     {
         private readonly IUserManagementRepository _userManagementRepository;
-        private readonly IApplicationRepository _applicationRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentApplicationContext _currentApplicationContext;
+        private readonly ITenantAccessGuard _tenantAccessGuard;
 
         public UserManagementServices(IUserManagementRepository userManagementRepository,
-            IApplicationRepository applicationRepository, IUnitOfWork unitOfWork,
-            ICurrentApplicationContext currentApplicationContext)
+            IUnitOfWork unitOfWork, ICurrentApplicationContext currentApplicationContext,
+            ITenantAccessGuard tenantAccessGuard)
         {
             _userManagementRepository = userManagementRepository;
-            _applicationRepository = applicationRepository;
             _unitOfWork = unitOfWork;
             _currentApplicationContext = currentApplicationContext;
+            _tenantAccessGuard = tenantAccessGuard;
         }
         public Task<List<UserDto>> List(bool isAdminUser, string email = "", CancellationToken cancellationToken = default)
         {
@@ -51,15 +50,8 @@ namespace Application.UseCases.UserManagementServices
             // value must be a real, active, non-deleted application that the identified user has
             // an active, non-deleted membership for - a missing, unauthorized, or deleted target
             // is rejected identically, so none of those cases is distinguishable to the caller.
-            if (appId != 0)
-            {
-                var user = await _userManagementRepository.GetUserByEmailAddress(email, cancellationToken);
-                var isMember = user != null && await _userManagementRepository.HasActiveMembership(user.Id, appId, cancellationToken);
-                var applicationIsUsable = await _applicationRepository.ExistsActiveApplication(appId, cancellationToken);
-
-                if (!isMember || !applicationIsUsable)
-                    throw new KeyNotFoundException();
-            }
+            if (appId != 0 && !await _tenantAccessGuard.HasAccessAsync(email, appId, cancellationToken))
+                throw new KeyNotFoundException();
 
             // Stored in the caller's session-scoped context, not persisted on the user record -
             // a selection here must never be visible to another session for the same account.

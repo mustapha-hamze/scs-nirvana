@@ -5,6 +5,7 @@ using Application.GeneralRepository;
 using Application.SCMRepository;
 using Application.UserManagementRepository;
 using Application.UnitOfWork;
+using Application.UseCases.Tenancy;
 using Application.UseCases.TranslatorServices;
 using Infrastructure.AccessManagerRepository;
 using Infrastructure.CMSRepository;
@@ -60,6 +61,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddTransient<IUserManagementServices, UserManagementServices>();
+        services.AddTransient<ITenantAccessGuard, TenantAccessGuard>();
         services.AddTransient<IApplicationServices, ApplicationServices>();
         services.AddTransient<ITagServices, TagServices>();
         services.AddTransient<ICultureServices, CultureServices>();
@@ -122,6 +124,7 @@ public static class ServiceCollectionExtensions
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentApplicationContext, SessionCurrentApplicationContext>();
+        services.AddScoped<RequireTenantContextFilter>();
 
         services.AddAntiforgery(options =>
         {
