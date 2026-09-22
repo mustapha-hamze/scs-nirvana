@@ -9,6 +9,15 @@ builder.Services.AddApplicationServices();
 builder.Services.AddCmsServices();
 builder.Services.AddWebInfrastructure();
 
+// Every unhandled exception is logged here (server-side only) with its trace id; /api/... requests
+// additionally get an RFC 7807 JSON body instead of falling through to the MVC HTML error page.
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+});
+builder.Services.AddExceptionHandler<Web.ApiExceptionHandler>();
+
 var app = builder.Build();
 
 // One-time super admin bootstrap, opt-in only. Disabled by default; enable by setting
