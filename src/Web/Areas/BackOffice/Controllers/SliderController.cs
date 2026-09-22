@@ -36,7 +36,7 @@ public class SliderController : BaseController
         var slider = await _sliderServices.GetSliders(currentApplicationId);
         return View(slider);
     }
-    public async Task<IActionResult> Create()
+    public IActionResult Create()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         ViewData["ApplicationId"] = currentApplicationId;
