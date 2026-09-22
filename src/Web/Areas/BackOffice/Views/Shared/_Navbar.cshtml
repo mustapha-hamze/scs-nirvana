@@ -49,10 +49,13 @@
                         <span>Change Application</span>
                     </a>
                 }
-                <a href="/Logout" class="dropdown-item notify-item">
-                    <i class="mdi mdi-logout me-1"></i>
-                    <span>Logout</span>
-                </a>
+                <form method="post" action="/Logout" class="m-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="dropdown-item notify-item border-0 bg-transparent w-100 text-start">
+                        <i class="mdi mdi-logout me-1"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
             </div>
         </li>
     </ul>

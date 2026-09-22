@@ -375,6 +375,7 @@ public class AccountController : BaseController
 
     [SkipTenantContextCheck]
     [Route("/Logout")]
+    [HttpPost]
     public async Task<IActionResult> Logout()
     {
         // HttpContext.Session.Remove("AppKey");

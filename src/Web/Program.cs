@@ -90,3 +90,6 @@ app.UseEndpoints(endpoints =>
 });
 
 app.Run();
+
+// Exposes the implicit top-level Program class to WebApplicationFactory<Program> in Web.Tests.
+public partial class Program { }

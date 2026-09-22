@@ -127,6 +127,7 @@ public class ApplicationController : BaseController
     }
 
     [Route("/LogoutApp")]
+    [HttpPost]
     public async Task<IActionResult> Logout()
     {
         // HttpContext.Session.Remove("AppKey");
