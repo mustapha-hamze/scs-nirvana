@@ -18,6 +18,10 @@ builder.Services.AddProblemDetails(options =>
 });
 builder.Services.AddExceptionHandler<Web.ApiExceptionHandler>();
 
+// Liveness only: no checks are registered, so this never touches the database and always
+// reports Healthy once the process is up.
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 // One-time super admin bootstrap, opt-in only. Disabled by default; enable by setting
@@ -83,20 +87,18 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-#pragma warning disable ASP0014
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllerRoute(
-        name: "BackOffice",
-        pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-    endpoints.MapControllerRoute(
-        name: "Api",
-        pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-    endpoints.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}");
-    endpoints.MapRazorPages();
-});
+app.MapControllerRoute(
+    name: "BackOffice",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}");
+app.MapControllers();
+app.MapRazorPages();
+
+// Anonymous, no sensitive diagnostics, no database dependency (see AddHealthChecks above); as a
+// mapped endpoint it never goes through the MVC pipeline, so RequireTenantContextFilter never runs.
+app.MapHealthChecks("/healthz").AllowAnonymous();
 
 app.Run();
 
