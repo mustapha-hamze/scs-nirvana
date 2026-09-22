@@ -4,18 +4,46 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domains.Entities.General;
 using Infrastructure.Data;
-using Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.GeneralRepository
 {
-    public class ApplicationRepository : Repository<Domains.Entities.General.Application>, global::Application.GeneralRepository.IApplicationRepository
+    // Application is the tenant root, never a self-scoped exception - it deliberately does not
+    // inherit the generic Repository<T> the way tenant-owned aggregates do, so root
+    // administration (Create/Update/Delete/GetById below) can never pick up a capability added to
+    // that shared base for tenant-scoped entities without a matching, reviewed change here.
+    public class ApplicationRepository : global::Application.GeneralRepository.IApplicationRepository
     {
         private readonly ApplicationDbContext _dbContext;
 
-        public ApplicationRepository(ApplicationDbContext dbContext) : base(dbContext)
+        public ApplicationRepository(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
+        }
+
+        public Task<Domains.Entities.General.Application> Create(Domains.Entities.General.Application application)
+        {
+            _dbContext.Applications.Add(application);
+            _dbContext.Entry(application).State = EntityState.Added;
+            return Task.FromResult(application);
+        }
+
+        public Task<Domains.Entities.General.Application> Update(Domains.Entities.General.Application application)
+        {
+            _dbContext.Applications.Update(application);
+            _dbContext.Entry(application).State = EntityState.Modified;
+            return Task.FromResult(application);
+        }
+
+        public async Task Delete(int id, CancellationToken cancellationToken = default)
+        {
+            var application = await _dbContext.Applications.SingleAsync(a => a.Id == id, cancellationToken);
+            _dbContext.Applications.Remove(application);
+        }
+
+        public async Task<Domains.Entities.General.Application> GetById(int id, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Applications.AsNoTracking().SingleAsync(a => a.Id == id, cancellationToken);
         }
 
         public Task<List<Domains.Entities.General.Application>> List(CancellationToken cancellationToken = default)

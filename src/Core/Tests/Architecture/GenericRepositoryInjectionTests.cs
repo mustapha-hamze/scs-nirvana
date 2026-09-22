@@ -102,4 +102,17 @@ public class GenericRepositoryInjectionTests
         Assert.True(violations.Count == 0,
             $"Found generic Repository<T> field(s) for a tenant child entity: {string.Join(", ", violations)}");
     }
+
+    // Application is the tenant root, not a self-scoped exception - unlike the tenant-owned
+    // repositories above (which still inherit Repository<T> for their own Create/Update), its
+    // repository must not inherit the generic base at all, so root administration can never pick
+    // up a capability added to that shared base without a matching, reviewed change here.
+    [Fact]
+    public void ApplicationRepository_DoesNotInheritGenericRepository()
+    {
+        var baseType = typeof(Infrastructure.GeneralRepository.ApplicationRepository).BaseType;
+
+        Assert.True(baseType == typeof(object),
+            $"ApplicationRepository must not inherit a generic repository base class - found base type {baseType?.FullName}.");
+    }
 }

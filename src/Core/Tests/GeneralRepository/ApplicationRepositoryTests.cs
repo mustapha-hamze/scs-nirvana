@@ -10,6 +10,80 @@ namespace Core.Tests.GeneralRepository;
 public class ApplicationRepositoryTests
 {
     [Fact]
+    public async Task Create_PersistsApplication()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var repository = new ApplicationRepository(context);
+
+        var created = await repository.Create(new Domains.Entities.General.Application { Title = "App" });
+        await context.SaveChangesAsync();
+
+        Assert.NotEqual(0, created.Id);
+        Assert.Equal("App", context.Applications.Single(a => a.Id == created.Id).Title);
+    }
+
+    [Fact]
+    public async Task Update_PersistsChanges()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var app = new Domains.Entities.General.Application { Title = "Old" };
+        context.Applications.Add(app);
+        await context.SaveChangesAsync();
+
+        await using var updateContext = factory.CreateContext();
+        var repository = new ApplicationRepository(updateContext);
+        app.Title = "New";
+        await repository.Update(app);
+        await updateContext.SaveChangesAsync();
+
+        await using var verifyContext = factory.CreateContext();
+        Assert.Equal("New", verifyContext.Applications.Single(a => a.Id == app.Id).Title);
+    }
+
+    [Fact]
+    public async Task Delete_SoftDeletesApplication()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var app = new Domains.Entities.General.Application { Title = "App" };
+        context.Applications.Add(app);
+        await context.SaveChangesAsync();
+
+        var repository = new ApplicationRepository(context);
+        await repository.Delete(app.Id);
+        await context.SaveChangesAsync();
+
+        await using var verifyContext = factory.CreateContext();
+        Assert.True(verifyContext.Applications.IgnoreQueryFilters().Single(a => a.Id == app.Id).IsDeleted);
+    }
+
+    [Fact]
+    public async Task GetById_Existing_ReturnsApplication()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var app = new Domains.Entities.General.Application { Title = "App" };
+        context.Applications.Add(app);
+        await context.SaveChangesAsync();
+
+        var repository = new ApplicationRepository(context);
+
+        Assert.Equal("App", (await repository.GetById(app.Id)).Title);
+    }
+
+    [Fact]
+    public async Task GetById_Missing_Throws()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+        var repository = new ApplicationRepository(context);
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repository.GetById(999));
+    }
+
+    [Fact]
     public async Task ExistsActiveApplication_ActiveNonDeleted_ReturnsTrue()
     {
         using var factory = new SqliteContextFactory();

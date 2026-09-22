@@ -53,6 +53,9 @@ public class ApplicationController : BaseController
         });
     }
 
+    // Application is the tenant root, not a self-scoped resource - authentication alone is not
+    // enough to create one. Only a SuperAdmin may.
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveApplicationForm(ApplicationDto applicationForm)
@@ -63,6 +66,10 @@ public class ApplicationController : BaseController
         return Content("Done|" + application.Id);
     }
 
+    // EntityId is caller-controlled and would otherwise let any authenticated member overwrite
+    // the logo and regenerate the application key for an arbitrary application. [Authorize] runs
+    // before this method body, so the SuperAdmin check happens before EntityId is ever looked up.
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadApplicationLogo(IFormFile File, int EntityId)
