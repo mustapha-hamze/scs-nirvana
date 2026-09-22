@@ -1,11 +1,12 @@
-@inject Services.GeneralServices.IApplicationServices applicationServices
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
 
 @{
     ViewData["Title"] = "Dashboard";
-    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var app = await applicationServices.GetById(user.CurrentApplicationId);
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
     if (accesses == string.Empty)
         accesses = "NULL";
     bool isSuperAdmin = User.IsInRole("SuperAdmin");

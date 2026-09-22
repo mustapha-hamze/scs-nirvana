@@ -1,11 +1,10 @@
-@* @inject Services.GeneralServices.IZoneServices zoneServices; *@
-@inject Services.GeneralServices.ISystemTypeServices systemTypeServices;
-@inject Services.GeneralServices.IApplicationServices applicationServices;
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices;
+@* @inject Application.UseCases.GeneralServices.IZoneServices zoneServices; *@
+@inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices;
+@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices;
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext;
 
 @{
-    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var app = await applicationServices.GetById(user.CurrentApplicationId);
+    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
 }
 
 <!-- LOGO -->

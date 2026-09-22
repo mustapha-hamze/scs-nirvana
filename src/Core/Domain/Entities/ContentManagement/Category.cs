@@ -9,13 +9,10 @@ public class Category : BaseEntity
 
     public int ParentId { get; set; }
 
-    [StringLength(256)]
     public string Title { get; set; }
 
-    [StringLength(1024)]
     public string Description { get; set; }
 
     // relation
-    [ForeignKey("ApplicationId")]
     public virtual Application Application { get; set; }
 }

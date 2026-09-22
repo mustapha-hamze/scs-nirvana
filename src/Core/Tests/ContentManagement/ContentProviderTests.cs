@@ -32,7 +32,7 @@ public class ContentProviderTests
         context.SaveChanges();
 
         var provider = new ContentProvider(context);
-        var result = await provider.GetContentForTranslate(content.Id);
+        var result = await provider.GetContentForTranslate(content.Id, applicationId: 1);
 
         Assert.NotNull(result);
         Assert.Equal("Translate me", result.Title);
@@ -58,17 +58,86 @@ public class ContentProviderTests
 
         var provider = new ContentProvider(context);
 
-        Assert.NotNull(await provider.GetContentForTranslate(inactiveContent.Id));
-        Assert.Null(await provider.GetContentForTranslate(deletedContent.Id));
+        Assert.NotNull(await provider.GetContentForTranslate(inactiveContent.Id, applicationId: 1));
+        Assert.Null(await provider.GetContentForTranslate(deletedContent.Id, applicationId: 1));
     }
 
     [Fact]
-    public void GetContentsListByCategoryId_CategoryOneDoesNotMatchCategoryEleven()
+    public async Task GetContentForTranslate_ExcludesDeletedSectionElements()
+    {
+        using var factory = new SqliteContextFactory();
+        int contentId;
+        using (var seedContext = factory.CreateContext())
+        {
+            var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Sample" };
+            seedContext.Contents.Add(content);
+            seedContext.SaveChanges();
+            var section = new ContentSection { ContentId = content.Id, Priority = 1 };
+            seedContext.ContentSections.Add(section);
+            seedContext.SaveChanges();
+            seedContext.SectionElements.Add(new SectionElement { SectionId = section.Id, ElementType = 1000, TinyText = "kept" });
+            seedContext.SectionElements.Add(new SectionElement { SectionId = section.Id, ElementType = 1000, TinyText = "deleted", IsDeleted = true });
+            seedContext.SaveChanges();
+            contentId = content.Id;
+        }
+
+        // A fresh context for the read: reusing the seeding context would let EF's relationship
+        // fixup re-attach the already-tracked deleted element regardless of the query filter.
+        using var context = factory.CreateContext();
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentForTranslate(contentId, applicationId: 1);
+
+        var resultSection = Assert.Single(result.Sections);
+        var element = Assert.Single(resultSection.Elements);
+        Assert.Equal("kept", element.TinyText);
+    }
+
+    [Fact]
+    public async Task GetContentForTranslate_ExcludesDeletedMetadata()
+    {
+        using var factory = new SqliteContextFactory();
+        int contentId;
+        using (var seedContext = factory.CreateContext())
+        {
+            var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Sample" };
+            seedContext.Contents.Add(content);
+            seedContext.SaveChanges();
+            seedContext.ContentMetadatas.Add(new ContentMetadata { ContentId = content.Id, Title = "Deleted Meta", IsDeleted = true });
+            seedContext.SaveChanges();
+            contentId = content.Id;
+        }
+
+        using var context = factory.CreateContext();
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentForTranslate(contentId, applicationId: 1);
+
+        Assert.Null(result.Metadata);
+    }
+
+    [Fact]
+    public async Task GetContentForTranslate_CrossApplicationId_ReturnsNull()
+    {
+        // Same not-found semantics as a missing id: a cross-application contentId must not
+        // resolve, and must be indistinguishable from an id that doesn't exist at all.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Owned by app 1" };
+        context.Contents.Add(content);
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+
+        Assert.Null(await provider.GetContentForTranslate(content.Id, applicationId: 2));
+    }
+
+    [Fact]
+    public async Task GetContentsListByCategoryId_CategoryOneDoesNotMatchCategoryEleven()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Categories.Add(new Category { Id = 1, ApplicationId = 1, Title = "Category One" });
+        context.Categories.Add(new Category { Id = 1, ApplicationId = 1, Title = "Category One", IsActive = true });
         var wronglyMatchedBefore = new Content { ApplicationId = 1, TypeId = 1000, Title = "Tagged 11", Categories = "11", IsActive = true };
         context.Contents.Add(wronglyMatchedBefore);
         context.SaveChanges();
@@ -76,7 +145,7 @@ public class ContentProviderTests
         context.SaveChanges();
 
         var provider = new ContentProvider(context);
-        var result = provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 1);
+        var result = await provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 1);
 
         Assert.Empty(result.Contents);
         Assert.Equal(0, result.PageCount);
@@ -84,12 +153,70 @@ public class ContentProviderTests
     }
 
     [Fact]
-    public void GetContentsListByCategoryId_ReturnsExactMatch_AndPreservesResultShape()
+    public async Task GetContentsListByCategoryId_MissingCategory_ReturnsEmptyResultWithoutThrowing()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Categories.Add(new Category { Id = 2, ApplicationId = 1, Title = "Category Two" });
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 999);
+
+        Assert.Empty(result.Contents);
+        Assert.Equal(0, result.PageCount);
+        Assert.Null(result.Title);
+    }
+
+    [Fact]
+    public async Task GetContentsListByCategoryId_SoftDeletedCategory_ReturnsEmptyResult()
+    {
+        // A deleted category must produce the same empty result as a missing one — never
+        // distinguishable, even though its join rows still technically exist.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Categories.Add(new Category { Id = 5, ApplicationId = 1, Title = "Deleted", IsActive = true, IsDeleted = true });
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Content", Categories = "5", IsActive = true };
+        context.Contents.Add(content);
+        context.SaveChanges();
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = content.Id, CategoryId = 5, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 5);
+
+        Assert.Empty(result.Contents);
+        Assert.Null(result.Title);
+    }
+
+    [Fact]
+    public async Task GetContentsListByCategoryId_MalformedCrossApplicationRelation_ReturnsEmptyResult()
+    {
+        // Historical/corrupt data: a ContentInCategory row links a category that belongs to a
+        // different application to this application's own content. The category ownership check
+        // must reject this regardless of what the join row says.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Categories.Add(new Category { Id = 6, ApplicationId = 2, Title = "Other App Category", IsActive = true });
+        var ownContent = new Content { ApplicationId = 1, TypeId = 1000, Title = "Own Content", Categories = "6", IsActive = true };
+        context.Contents.Add(ownContent);
+        context.SaveChanges();
+        context.ContentInCategories.Add(new ContentInCategory { ContentId = ownContent.Id, CategoryId = 6, CreatedDt = DateTime.Now });
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 6);
+
+        Assert.Empty(result.Contents);
+    }
+
+    [Fact]
+    public async Task GetContentsListByCategoryId_ReturnsExactMatch_AndPreservesResultShape()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Categories.Add(new Category { Id = 2, ApplicationId = 1, Title = "Category Two", IsActive = true });
         var matching = new Content { ApplicationId = 1, TypeId = 1000, Title = "In category two", Categories = "2", IsActive = true, UpdatedDT = DateTime.Now };
         context.Contents.Add(matching);
         context.SaveChanges();
@@ -97,7 +224,7 @@ public class ContentProviderTests
         context.SaveChanges();
 
         var provider = new ContentProvider(context);
-        var result = provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 2, pageIndex: 0, pageSize: 20);
+        var result = await provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 2, pageIndex: 0, pageSize: 20);
 
         var content = Assert.Single(result.Contents);
         Assert.Equal("In category two", content.Title);
@@ -109,12 +236,12 @@ public class ContentProviderTests
     }
 
     [Fact]
-    public void GetContentsListByCategoryId_FarsiKeyLang_UsesSameJoinTableFilter()
+    public async Task GetContentsListByCategoryId_FarsiKeyLang_UsesSameJoinTableFilter()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Categories.Add(new Category { Id = 3, ApplicationId = 1, Title = "Category Three" });
+        context.Categories.Add(new Category { Id = 3, ApplicationId = 1, Title = "Category Three", IsActive = true });
         var wronglyMatchedBefore = new Content { ApplicationId = 1, TypeId = 1000, Title = "Tagged 13", Categories = "13", IsActive = true };
         context.Contents.Add(wronglyMatchedBefore);
         context.SaveChanges();
@@ -122,13 +249,13 @@ public class ContentProviderTests
         context.SaveChanges();
 
         var provider = new ContentProvider(context);
-        var result = provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 3, keyLang: "fa");
+        var result = await provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 3, keyLang: "fa");
 
         Assert.Empty(result.Contents);
     }
 
     [Fact]
-    public void GetContentsListByCategoryId_PagesAreOrderedByUpdatedDTDescending_AcrossPageBoundaries()
+    public async Task GetContentsListByCategoryId_PagesAreOrderedByUpdatedDTDescending_AcrossPageBoundaries()
     {
         // Regression guard: Skip/Take used to run before OrderByDescending in the fluent chain,
         // so the "page" was sliced before the sort was applied. Insertion order here is the exact
@@ -138,7 +265,7 @@ public class ContentProviderTests
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Categories.Add(new Category { Id = 20, ApplicationId = 1, Title = "Category Twenty" });
+        context.Categories.Add(new Category { Id = 20, ApplicationId = 1, Title = "Category Twenty", IsActive = true });
         var baseTime = DateTime.Now;
         var contents = new List<Content>();
         for (var i = 1; i <= 25; i++)
@@ -155,8 +282,8 @@ public class ContentProviderTests
         context.SaveChanges();
 
         var provider = new ContentProvider(context);
-        var firstPage = provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 20, pageIndex: 0, pageSize: 20);
-        var secondPage = provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 20, pageIndex: 1, pageSize: 20);
+        var firstPage = await provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 20, pageIndex: 0, pageSize: 20);
+        var secondPage = await provider.GetContentsListByCategoryId(applicationId: 1, categoryId: 20, pageIndex: 1, pageSize: 20);
 
         Assert.Equal(20, firstPage.Contents.Count);
         Assert.Equal(Enumerable.Range(6, 20).Reverse().Select(i => $"Item {i}"), firstPage.Contents.Select(c => c.Title));
@@ -166,12 +293,12 @@ public class ContentProviderTests
     }
 
     [Fact]
-    public void GetContentsListByTagId_TagOneDoesNotMatchTagEleven()
+    public async Task GetContentsListByTagId_TagOneDoesNotMatchTagEleven()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Tags.Add(new Tag { Id = 1, ApplicationId = 1, Title = "Tag One" });
+        context.Tags.Add(new Tag { Id = 1, ApplicationId = 1, Title = "Tag One", IsActive = true });
         var wronglyMatchedBefore = new Content { ApplicationId = 1, TypeId = 1000, Title = "Tagged 11", Tags = "11", IsActive = true };
         context.Contents.Add(wronglyMatchedBefore);
         context.SaveChanges();
@@ -179,19 +306,74 @@ public class ContentProviderTests
         context.SaveChanges();
 
         var provider = new ContentProvider(context);
-        var result = provider.GetContentsListByTagId(applicationId: 1, tagId: 1);
+        var result = await provider.GetContentsListByTagId(applicationId: 1, tagId: 1);
 
         Assert.Empty(result.Contents);
         Assert.Equal("Tag One", result.Title);
     }
 
     [Fact]
-    public void GetContentsListByTagId_ReturnsExactMatch_AndPreservesResultShape()
+    public async Task GetContentsListByTagId_MissingTag_ReturnsEmptyResultWithoutThrowing()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Tags.Add(new Tag { Id = 4, ApplicationId = 1, Title = "Tag Four" });
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentsListByTagId(applicationId: 1, tagId: 999);
+
+        Assert.Empty(result.Contents);
+        Assert.Equal(0, result.PageCount);
+        Assert.Null(result.Title);
+    }
+
+    [Fact]
+    public async Task GetContentsListByTagId_SoftDeletedTag_ReturnsEmptyResult()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Tags.Add(new Tag { Id = 5, ApplicationId = 1, Title = "Deleted", IsActive = true, IsDeleted = true });
+        var content = new Content { ApplicationId = 1, TypeId = 1000, Title = "Content", Tags = "5", IsActive = true };
+        context.Contents.Add(content);
+        context.SaveChanges();
+        context.ContentInTags.Add(new ContentInTag { ContentId = content.Id, TagId = 5 });
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentsListByTagId(applicationId: 1, tagId: 5);
+
+        Assert.Empty(result.Contents);
+        Assert.Null(result.Title);
+    }
+
+    [Fact]
+    public async Task GetContentsListByTagId_MalformedCrossApplicationRelation_ReturnsEmptyResult()
+    {
+        // Historical/corrupt data: a ContentInTag row links a tag that belongs to a different
+        // application to this application's own content.
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Tags.Add(new Tag { Id = 6, ApplicationId = 2, Title = "Other App Tag", IsActive = true });
+        var ownContent = new Content { ApplicationId = 1, TypeId = 1000, Title = "Own Content", Tags = "6", IsActive = true };
+        context.Contents.Add(ownContent);
+        context.SaveChanges();
+        context.ContentInTags.Add(new ContentInTag { ContentId = ownContent.Id, TagId = 6 });
+        context.SaveChanges();
+
+        var provider = new ContentProvider(context);
+        var result = await provider.GetContentsListByTagId(applicationId: 1, tagId: 6);
+
+        Assert.Empty(result.Contents);
+    }
+
+    [Fact]
+    public async Task GetContentsListByTagId_ReturnsExactMatch_AndPreservesResultShape()
+    {
+        using var factory = new SqliteContextFactory();
+        using var context = factory.CreateContext();
+
+        context.Tags.Add(new Tag { Id = 4, ApplicationId = 1, Title = "Tag Four", IsActive = true });
         var matching = new Content { ApplicationId = 1, TypeId = 1000, Title = "Tagged four", Tags = "4", IsActive = true, UpdatedDT = DateTime.Now };
         context.Contents.Add(matching);
         context.SaveChanges();
@@ -199,7 +381,7 @@ public class ContentProviderTests
         context.SaveChanges();
 
         var provider = new ContentProvider(context);
-        var result = provider.GetContentsListByTagId(applicationId: 1, tagId: 4, pageIndex: 0, pageSize: 20);
+        var result = await provider.GetContentsListByTagId(applicationId: 1, tagId: 4, pageIndex: 0, pageSize: 20);
 
         var content = Assert.Single(result.Contents);
         Assert.Equal("Tagged four", content.Title);
@@ -209,12 +391,12 @@ public class ContentProviderTests
     }
 
     [Fact]
-    public void GetContentsListByTagId_PagesAreOrderedByUpdatedDTDescending_AcrossPageBoundaries()
+    public async Task GetContentsListByTagId_PagesAreOrderedByUpdatedDTDescending_AcrossPageBoundaries()
     {
         using var factory = new SqliteContextFactory();
         using var context = factory.CreateContext();
 
-        context.Tags.Add(new Tag { Id = 30, ApplicationId = 1, Title = "Tag Thirty" });
+        context.Tags.Add(new Tag { Id = 30, ApplicationId = 1, Title = "Tag Thirty", IsActive = true });
         var baseTime = DateTime.Now;
         var contents = new List<Content>();
         for (var i = 1; i <= 25; i++)
@@ -231,8 +413,8 @@ public class ContentProviderTests
         context.SaveChanges();
 
         var provider = new ContentProvider(context);
-        var firstPage = provider.GetContentsListByTagId(applicationId: 1, tagId: 30, pageIndex: 0, pageSize: 20);
-        var secondPage = provider.GetContentsListByTagId(applicationId: 1, tagId: 30, pageIndex: 1, pageSize: 20);
+        var firstPage = await provider.GetContentsListByTagId(applicationId: 1, tagId: 30, pageIndex: 0, pageSize: 20);
+        var secondPage = await provider.GetContentsListByTagId(applicationId: 1, tagId: 30, pageIndex: 1, pageSize: 20);
 
         Assert.Equal(20, firstPage.Contents.Count);
         Assert.Equal(Enumerable.Range(6, 20).Reverse().Select(i => $"Item {i}"), firstPage.Contents.Select(c => c.Title));

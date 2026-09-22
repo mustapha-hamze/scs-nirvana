@@ -1,15 +1,14 @@
-@using Services.Utilities.ApplicationConst
+@using Application.UseCases.Utilities.ApplicationConst
 @model Application.Contracts.CMS.ContentDto
 
-@inject Services.GeneralServices.ISystemTypeServices systemTypeServices
-@inject Services.GeneralServices.IApplicationServices applicationServices
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices
+@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
 
 @{
     int typeId = Convert.ToInt32(ViewData["TypeId"]);
-    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var contentTypes = systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
-    var appPages = applicationServices.GetApplicationSetting(user.CurrentApplicationId, 6000);
+    var contentTypes = await systemTypeServices.GetTypesInTypeGroup(currentApplicationContext.RequireApplicationId(), TypeId.Content);
+    var appPages = await applicationServices.GetApplicationSetting(currentApplicationContext.RequireApplicationId(), 6000);
 
     string typeTitle = contentTypes.FirstOrDefault(t => t.Id == typeId)?.Title;
     if (typeTitle == null)

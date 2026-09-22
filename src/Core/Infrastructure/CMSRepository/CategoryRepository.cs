@@ -8,6 +8,7 @@ using Application.CMSRepository;
 using Domains.Entities.ContentManagement;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Infrastructure.Repository;
 using Infrastructure.Data;
 
@@ -21,27 +22,34 @@ namespace Infrastructure.CMSRepository
             _dbContext = dbContext;
         }
 
-        public List<Category> List(int applicationId)
+        public async Task<Category> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default)
         {
-            var categories = _dbContext.Categories
-                .Where(c => !c.IsDeleted && c.ApplicationId == applicationId && !c.IsDeleted)
-                .OrderBy(c => c.Id)
-                .ToList();
-
-            return categories;
+            return await _dbContext.Categories.AsNoTracking()
+                .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted, cancellationToken);
         }
 
-        public List<Category> GetAllFullPath(int applicationId)
+        public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                return _dbContext.Categories.Where(c => c.ApplicationId == applicationId
-                    && !c.IsDeleted).ToList();
-            }
-            catch (Exception)
-            {
-                return new List<Category>();
-            }
+            var category = await _dbContext.Categories
+                .SingleAsync(c => c.Id == id && c.ApplicationId == applicationId && !c.IsDeleted, cancellationToken);
+            _dbContext.Categories.Remove(category);
+        }
+
+        public async Task<List<Category>> List(int applicationId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Categories
+                .Where(c => !c.IsDeleted && c.ApplicationId == applicationId && !c.IsDeleted)
+                .OrderBy(c => c.Id)
+                .ToListAsync(cancellationToken);
+        }
+
+        // No try/catch: an empty result here means "no categories for this application", a real
+        // outcome the query itself already produces - it must not be confused with a query
+        // failure (e.g. a DB outage) by swallowing every exception into the same empty list.
+        public async Task<List<Category>> GetAllFullPath(int applicationId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Categories.Where(c => c.ApplicationId == applicationId
+                && !c.IsDeleted).ToListAsync(cancellationToken);
         }
     }
 }

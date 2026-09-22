@@ -12,7 +12,7 @@ public class UnitOfWorkTests
     {
         using var factory = new SqliteContextFactory();
         await using var context = factory.CreateContext();
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
 
         await unitOfWork.ExecuteInTransactionAsync(() =>
         {
@@ -30,7 +30,7 @@ public class UnitOfWorkTests
     {
         using var factory = new SqliteContextFactory();
         await using var context = factory.CreateContext();
-        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context);
+        var unitOfWork = new Infrastructure.UnitOfWork.UnitOfWork(context, Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.UnitOfWork.UnitOfWork>.Instance);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             unitOfWork.ExecuteInTransactionAsync(() =>

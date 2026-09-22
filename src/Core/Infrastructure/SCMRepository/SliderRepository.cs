@@ -20,62 +20,66 @@ namespace Infrastructure.SCMRepository
             _dbContext = dbContext;
         }
 
-        public List<Domains.Entities.CustomModule.Slider> GetSliders(int applicationId)
+        public Task<List<Domains.Entities.CustomModule.Slider>> GetSliders(int applicationId, CancellationToken cancellationToken = default)
         {
-            return _dbContext.Sliders.Where(s => s.ApplicationId == applicationId).ToList();
+            return _dbContext.Sliders.Where(s => s.ApplicationId == applicationId && !s.IsDeleted).ToListAsync(cancellationToken);
         }
 
-        public List<SliderItem> GetSliderItems(int sliderId)
+        public async Task<Domains.Entities.CustomModule.Slider> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default)
         {
-            return _dbContext.SliderItems.Where(si => si.SliderId == sliderId && !si.IsDeleted).ToList();
+            return await _dbContext.Sliders.AsNoTracking()
+                .SingleAsync(s => s.Id == id && s.ApplicationId == applicationId && !s.IsDeleted, cancellationToken);
         }
 
-        public async Task<SliderItem> GetSliderItem(int sliderItemId)
+        public Task<List<SliderItem>> GetSliderItems(int sliderId, int applicationId, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
+            return _dbContext.SliderItems
+                .Where(si => si.SliderId == sliderId && !si.IsDeleted
+                    && si.Slider.ApplicationId == applicationId && !si.Slider.IsDeleted)
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<SliderItem> CreateSliderItem(SliderItem sliderItem)
+        public async Task<SliderItem> GetItemForApplication(int sliderItemId, int applicationId, CancellationToken cancellationToken = default)
         {
-            sliderItem.CreatedDT = DateTime.Now;
-            sliderItem.UpdatedDT = DateTime.Now;
-            sliderItem.IsDeleted = false;
+            return await _dbContext.SliderItems.AsNoTracking()
+                .SingleAsync(si => si.Id == sliderItemId && !si.IsDeleted
+                    && si.Slider.ApplicationId == applicationId && !si.Slider.IsDeleted, cancellationToken);
+        }
+
+        public Task<SliderItem> CreateSliderItem(SliderItem sliderItem)
+        {
             sliderItem.IsActive = true;
 
             _dbContext.SliderItems.Add(sliderItem);
-            await _dbContext.SaveChangesAsync();
 
-            return sliderItem;
+            return Task.FromResult(sliderItem);
         }
-        public async Task DeactiveSliderItem(int sliderItemId)
+        public async Task DeactiveSliderItem(int sliderItemId, CancellationToken cancellationToken = default)
         {
-            var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
+            var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId, cancellationToken);
             sliderItem.IsActive = false;
             _dbContext.Entry(sliderItem).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
         }
 
-        public async Task ActiveSliderItem(int sliderItemId)
+        public async Task ActiveSliderItem(int sliderItemId, CancellationToken cancellationToken = default)
         {
-            var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
+            var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId, cancellationToken);
             sliderItem.IsActive = true;
             _dbContext.Entry(sliderItem).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteSliderItem(int sliderItemId)
+        public async Task DeleteSliderItem(int sliderItemId, CancellationToken cancellationToken = default)
         {
-            var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId);
-            sliderItem.IsDeleted = true;
-            _dbContext.Entry(sliderItem).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
+            var sliderItem = await _dbContext.SliderItems.SingleAsync(si => si.Id == sliderItemId, cancellationToken);
+            _dbContext.SliderItems.Remove(sliderItem);
         }
 
-        public Domains.Entities.CustomModule.Slider GetSliderWithItems(int sliderId)
+        public async Task<Domains.Entities.CustomModule.Slider> GetSliderWithItems(int sliderId, int applicationId, CancellationToken cancellationToken = default)
         {
-            var result = _dbContext.Sliders.Where(s => s.Id == sliderId)
+            var result = await _dbContext.Sliders
+                .Where(s => s.Id == sliderId && s.ApplicationId == applicationId && !s.IsDeleted)
                 .Include(s => s.SliderItems.Where(si => !si.IsDeleted && si.IsActive))
-                .OrderByDescending(s => s.CreatedDT).ToList();
+                .OrderByDescending(s => s.CreatedDT).ToListAsync(cancellationToken);
 
             if (result.Any())
                 return result[0];
@@ -83,14 +87,12 @@ namespace Infrastructure.SCMRepository
             return new Domains.Entities.CustomModule.Slider();
         }
 
-        public async Task<SliderItem> UpdateSliderItem(SliderItem sliderItem)
+        public Task<SliderItem> UpdateSliderItem(SliderItem sliderItem)
         {
-            sliderItem.UpdatedDT = DateTime.Now;
             _dbContext.SliderItems.Update(sliderItem);
             _dbContext.Entry(sliderItem).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
 
-            return sliderItem;
+            return Task.FromResult(sliderItem);
         }
     }
 }

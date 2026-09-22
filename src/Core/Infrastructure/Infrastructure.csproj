@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Dto/UserManagementDtos/UserLoginDto.cs uses Microsoft.AspNetCore.Authentication.AuthenticationScheme.
+         Previously resolved only transitively through Domain's now-removed Identity 2.2.0 package
+         reference; this is the direct, correct way for a class library to reach ASP.NET Core types. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Dapper" Version="2.0.143" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
@@ -21,6 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="OpenAI" Version="2.8.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,10 +9,10 @@ public class ContentController : ControllerBase
     }
 
     [HttpGet]
-    [Route("api/[controller]/GetContent/{id}")]
-    public ActionResult Get(int id)
+    [Route("api/[controller]/GetContent/{applicationId}/{id}")]
+    public async Task<ActionResult> Get(int applicationId, int id, CancellationToken cancellationToken)
     {
-        var content = _contentServices.GetContentByIdFull(id);
+        var content = await _contentServices.GetContentByIdFull(id, applicationId, cancellationToken);
         if (content.Count > 0)
             return Ok(content[0]);
 
@@ -24,42 +24,42 @@ public class ContentController : ControllerBase
     // AmbiguousMatchException. Making the second route's {pageIndex} required (not optional)
     // keeps both existing URL shapes working while making each match exactly one action.
     [HttpGet]
-    [Route("api/[controller]/GetContentByTypeId/{typeId}")]
-    public ActionResult GetContentByTypeId(int typeId)
+    [Route("api/[controller]/GetContentByTypeId/{applicationId}/{typeId}")]
+    public async Task<ActionResult> GetContentByTypeId(int applicationId, int typeId, CancellationToken cancellationToken)
     {
-        return Ok(_contentServices.GetContentByTypeId(typeId));
+        return Ok(await _contentServices.GetContentByTypeId(typeId, applicationId, cancellationToken));
     }
 
     [HttpGet]
-    [Route("api/[controller]/GetContentByTypeId/{typeId}/{pageIndex}")]
-    public ActionResult GetContentByTypeId(int typeId, int pageIndex)
+    [Route("api/[controller]/GetContentByTypeId/{applicationId}/{typeId}/{pageIndex}")]
+    public async Task<ActionResult> GetContentByTypeId(int applicationId, int typeId, int pageIndex, CancellationToken cancellationToken)
     {
-        return Ok(_contentServices.GetContentByTypeId(typeId, pageIndex));
+        return Ok(await _contentServices.GetContentByTypeId(typeId, applicationId, pageIndex, cancellationToken));
     }
 
     [HttpGet]
-    [Route("api/[controller]/GetContentByCategoryId/{categoryId}/{pageIndex?}/{pageSize?}")]
-    public ActionResult GetContentByCategoryId(int categoryId, int pageIndex = 0, int pageSize = 40)
+    [Route("api/[controller]/GetContentByCategoryId/{applicationId}/{categoryId}/{pageIndex?}/{pageSize?}")]
+    public async Task<ActionResult> GetContentByCategoryId(int applicationId, int categoryId, int pageIndex = 0, int pageSize = 40, CancellationToken cancellationToken = default)
     {
-        return Ok(_contentServices.GetContentByCategoryId(categoryId, pageIndex, pageSize));
+        return Ok(await _contentServices.GetContentByCategoryId(categoryId, applicationId, pageIndex, pageSize, cancellationToken));
     }
 
     [HttpGet]
-    [Route("api/[controller]/GetContentByCategoryIdByDate/{categoryId}/{startDate}/{endDate}/{pageIndex?}")]
-    public ActionResult GetContentByCategoryIdByDate(int categoryId,
-        DateTime startDate, DateTime endDate, int pageIndex = 0)
+    [Route("api/[controller]/GetContentByCategoryIdByDate/{applicationId}/{categoryId}/{startDate}/{endDate}/{pageIndex?}")]
+    public async Task<ActionResult> GetContentByCategoryIdByDate(int applicationId, int categoryId,
+        DateTime startDate, DateTime endDate, int pageIndex = 0, CancellationToken cancellationToken = default)
     {
         return Ok(
-            _contentServices
-                .GetContentByCategoryIdByDate(categoryId, startDate, endDate, pageIndex));
+            await _contentServices
+                .GetContentByCategoryIdByDate(categoryId, applicationId, startDate, endDate, pageIndex, cancellationToken));
     }
 
     [HttpGet]
-    [Route("api/[controller]/GetContentInCategoryAsBox/{categoryId}")]
-    public ActionResult GetContentInCategoryAsBox(int categoryId)
+    [Route("api/[controller]/GetContentInCategoryAsBox/{applicationId}/{categoryId}")]
+    public async Task<ActionResult> GetContentInCategoryAsBox(int applicationId, int categoryId, CancellationToken cancellationToken)
     {
         return Ok(
-            _contentServices
-                .GetContentInCategoryAsBox(categoryId));
+            await _contentServices
+                .GetContentInCategoryAsBox(categoryId, applicationId, cancellationToken));
     }
 }

@@ -1,12 +1,14 @@
 ﻿using Domains.Entities.ContentManagement;
 using Domains.Entities.General;
 using Domains.Entities.User;
+using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Threading.Tasks;
 using Domains.Entities.CustomModule;
 using Domains.Entities.AccessManagement;
 
@@ -14,48 +16,71 @@ namespace Infrastructure.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        private readonly TimeProvider _timeProvider;
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, TimeProvider timeProvider)
             : base(options)
         {
+            _timeProvider = timeProvider;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // General
-            modelBuilder.Entity<Domains.Entities.General.Application>().ToTable("GNR_Applications");
-            modelBuilder.Entity<SystemLog>().ToTable("GRN_SystemLogs");
-            modelBuilder.Entity<Domains.Entities.General.Tag>().ToTable("GNR_Tags");
-            modelBuilder.Entity<Culture>().ToTable("GNR_Cultures");
-            modelBuilder.Entity<UserInApplication>().ToTable("GNR_UserInApplications");
-            modelBuilder.Entity<ApplicationSetting>().ToTable("GNR_ApplicationSettings");
-            modelBuilder.Entity<SystemType>().ToTable("GNR_SystemTypes");
-            modelBuilder.Entity<Sector>().ToTable("AME_Sectors");
-            modelBuilder.Entity<SectorEntity>().ToTable("AME_SectorEntities");
-            modelBuilder.Entity<EntityAccess>().ToTable("AME_EntityAccesses");
-            modelBuilder.Entity<UserAccess>().ToTable("GNR_UserAccesses");
-            modelBuilder.Entity<UserAttachment>().ToTable("GNR_UserAttachments");
+            // Every non-Identity entity's table/keys/lengths/relations now live in one
+            // IEntityTypeConfiguration<T> class per entity under Data/Configurations. That
+            // includes the shared audit/soft-delete shape applied via ConfigureAudit<T>
+            // (Data/Configurations/EntityTypeBuilderExtensions.cs), which is what gives every
+            // BaseEntity-derived table its global "exclude soft-deleted rows" query filter.
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        }
 
-            // CMS
-            modelBuilder.Entity<Category>().ToTable("CMS_Categories");
-            modelBuilder.Entity<Comment>().ToTable("CMS_Comments");
-            modelBuilder.Entity<Content>().ToTable("CMS_Contents");
-            modelBuilder.Entity<ContentImage>().ToTable("CMS_ContentImages");
-            modelBuilder.Entity<ContentMetadata>().ToTable("CMS_ContentMetadata");
-            modelBuilder.Entity<ContentSection>().ToTable("CMS_ContentSections");
-            modelBuilder.Entity<Schema>().ToTable("CMS_Schema");
-            modelBuilder.Entity<SchemaDetails>().ToTable("CMS_SchemaDetails");
-            modelBuilder.Entity<SectionElement>().ToTable("CMS_SectionElements");
-            modelBuilder.Entity<ContentInCategory>().ToTable("CMS_ContentInCategories");
-            modelBuilder.Entity<ContentInTag>().ToTable("CMS_ContentInTags");
-            modelBuilder.Entity<ContentInCulture>().ToTable("CMS_ContentInCultures");
-            modelBuilder.Entity<ContentAttachment>().ToTable("CMS_ContentAttachments");
-            modelBuilder.Entity<ContentAttachmentItem>().ToTable("CMS_ContentAttachmentItems");
+        // Single Infrastructure-level mechanism for BaseEntity lifecycle policy: every
+        // repository/use case just adds/mutates/removes entities as usual, and this is what
+        // actually stamps CreatedDT/UpdatedDT (UTC, via the injected TimeProvider so tests can
+        // fake "now") and converts a physical delete into a soft delete. No repository or use
+        // case should set these fields or IsDeleted by hand any more.
+        //
+        // CreatedDT/UpdatedDT are only filled in when still at their default value, rather than
+        // always overwritten, so seed/import/test code that deliberately backdates a row (e.g.
+        // to assert ordering) keeps working - the common path (nothing set them) still gets a
+        // real, server-controlled UTC timestamp instead of silently persisting default(DateTime).
+        private void ApplyLifecyclePolicy()
+        {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+            foreach (var entry in ChangeTracker.Entries<Domains.Entities.BaseEntity>())
+            {
+                if (entry.State == EntityState.Deleted)
+                {
+                    entry.State = EntityState.Modified;
+                    entry.Entity.IsDeleted = true;
+                }
 
-            // SCM = System Custom Module
-            modelBuilder.Entity<Domains.Entities.CustomModule.Slider>().ToTable("SCM_Sliders");
-            modelBuilder.Entity<SliderItem>().ToTable("SCM_SliderItems");
+                if (entry.State == EntityState.Added)
+                {
+                    if (entry.Entity.CreatedDT == default)
+                        entry.Entity.CreatedDT = now;
+                    if (entry.Entity.UpdatedDT == default)
+                        entry.Entity.UpdatedDT = now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.UpdatedDT = now;
+                }
+            }
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            ApplyLifecyclePolicy();
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            ApplyLifecyclePolicy();
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
 
         // General

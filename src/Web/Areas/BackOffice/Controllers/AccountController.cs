@@ -13,6 +13,7 @@ public class AccountController : BaseController
     private readonly ILogger<AccountController> _logger;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IUserManagementServices _userManagementServices;
+    private readonly ICurrentApplicationContext _currentApplicationContext;
     private readonly IApplicationServices _applicationServices;
     private readonly ISectorServices _sectorServices;
     private readonly ISectorEntityServices _SectorEntityServices;
@@ -23,7 +24,8 @@ public class AccountController : BaseController
     #region constructor
     public AccountController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager,
         SignInManager<ApplicationUser> signInManager, ILogger<AccountController> logger,
-        IUserManagementServices userManagementServices, IApplicationServices applicationServices,
+        IUserManagementServices userManagementServices, ICurrentApplicationContext currentApplicationContext,
+        IApplicationServices applicationServices,
         ISectorServices sectorServices, ISectorEntityServices SectorEntityServices,
         IEntityAccessServices entityAccessServices)
     {
@@ -32,6 +34,7 @@ public class AccountController : BaseController
         _logger = logger;
         _roleManager = roleManager;
         _userManagementServices = userManagementServices;
+        _currentApplicationContext = currentApplicationContext;
         _applicationServices = applicationServices;
         _sectorServices = sectorServices;
         _SectorEntityServices = SectorEntityServices;
@@ -42,17 +45,27 @@ public class AccountController : BaseController
     //: methods
     #region methods
 
+    // User administration (listing every user, editing another user's profile, or flipping
+    // IsAdminUser/IsApprove) is privileged, global administration - same rationale as role and
+    // membership administration above.
+    [Authorize(Roles = "SuperAdmin")]
     public IActionResult Users()
     {
         return View();
     }
 
+    // Role administration - creating a role, or granting/revoking one (including SuperAdmin
+    // itself) - is privileged, global (not tenant-scoped) administration. Authentication plus a
+    // selected-tenant membership must never be enough; the "User Management" sidebar section
+    // already hides this from non-SuperAdmins client-side, this is what actually enforces it.
+    [Authorize(Roles = "SuperAdmin")]
     public IActionResult Roles()
     {
         var roles = _roleManager.Roles.ToList();
         return View(roles);
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Roles(string RoleName)
@@ -61,6 +74,7 @@ public class AccountController : BaseController
         return Redirect("/BackOffice/Account/Roles");
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToRole/{userId}/{roleName}")]
@@ -74,6 +88,7 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromRole/{userId}/{roleName}")]
@@ -87,6 +102,11 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
+    // Membership administration is privileged, global administration, same as role
+    // administration above: applicationId here is an explicit, SuperAdmin-only target, never
+    // proof of authorization by itself (an ordinary member could otherwise add/remove anyone
+    // to/from any application, tenant membership notwithstanding).
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToApplication/{userId}/{applicationId}")]
@@ -96,15 +116,20 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
+    // applicationId comes from the caller's own validated selected tenant, not the request -
+    // a SuperAdmin using this action can only remove membership rows for the application they
+    // themselves currently have selected.
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
     public async Task<IActionResult> RemoveUserFromApplication(int relationId)
     {
-        await _applicationServices.RemoveUserFromApplication(relationId);
+        await _applicationServices.RemoveUserFromApplication(relationId, _currentApplicationContext.RequireApplicationId());
         return Content("Done");
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/Account/UserSettingForm/{userId}")]
     public async Task<IActionResult> UserSettingForm(string userId)
     {
@@ -120,6 +145,11 @@ public class AccountController : BaseController
         return View();
     }
 
+    // Cross-application by design (see ISectorEntityServices.GetSectorEntities(sectorId)): an
+    // admin here is deliberately working across every application a user belongs to, not just
+    // the caller's own selected tenant, so this must stay a global, SuperAdmin-only flow rather
+    // than being bound to the selected tenant.
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/BackOffice/Account/Sectors/{userId}")]
     public async Task<IActionResult> Sectors(string userId)
     {
@@ -132,6 +162,7 @@ public class AccountController : BaseController
         return View();
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/{controller}/Entities/{userId}")]
     public async Task<IActionResult> Entities(string userId)
     {
@@ -143,6 +174,10 @@ public class AccountController : BaseController
         return View();
     }
 
+    // appId is caller-supplied and unrelated to the caller's own selected tenant - without this
+    // gate any authenticated member could enumerate another application's sectors by guessing
+    // appId, regardless of their own membership.
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/{controller}/GetApplicationSectors/{appId}")]
     public IActionResult GetApplicationSectors(int appId)
     {
@@ -150,6 +185,7 @@ public class AccountController : BaseController
         return PartialView("_SectorOptionsPartial", sectors);
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/{controller}/{action}/{userId}/{appId}")]
     public async Task<string> GetUserAccess(string userId, int appId)
     {
@@ -158,6 +194,7 @@ public class AccountController : BaseController
         return accesses;
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/{controller}/GetSectorEntities/{sectorId}")]
     public IActionResult GetSectorEntities(int sectorId)
     {
@@ -186,6 +223,7 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/{area}/Account/UserForm/{userId?}")]
     public async Task<IActionResult> UserForm(string userId = "")
     {
@@ -213,6 +251,11 @@ public class AccountController : BaseController
         }
     }
 
+    // CreateUserDto.IsAdminUser/IsApprove bind directly from the posted form with no further
+    // check - without this gate, any authenticated member could self-approve, grant themselves
+    // IsAdminUser, or edit another user's profile/approval state by posting a crafted DTO
+    // (UserId selects create vs. update, and update trusts every field on the DTO).
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveUserForm(CreateUserDto user)
@@ -279,6 +322,9 @@ public class AccountController : BaseController
         }
     }
 
+    // Enumerates every user in the system (optionally filtered) - global administration, not
+    // tenant-scoped self-service.
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult UserList(UserDto userFilter)
@@ -290,6 +336,7 @@ public class AccountController : BaseController
     }
 
     [AllowAnonymous]
+    [SkipTenantContextCheck]
     [Route("/Login")]
     public async Task<IActionResult> Login()
     {
@@ -301,6 +348,7 @@ public class AccountController : BaseController
     }
 
     [AllowAnonymous]
+    [SkipTenantContextCheck]
     [Route("/{area}/ExternalLogin/{provider}")]
     public IActionResult ExternalLogin(string provider)
     {
@@ -310,6 +358,7 @@ public class AccountController : BaseController
     }
 
     [AllowAnonymous]
+    [SkipTenantContextCheck]
     [HttpGet]
     public async Task<IActionResult> ExternalLoginCallBack(string remoteError = null)
     {
@@ -392,6 +441,7 @@ public class AccountController : BaseController
     }
 
     [AllowAnonymous]
+    [SkipTenantContextCheck]
     [Route("/Login")]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -429,16 +479,21 @@ public class AccountController : BaseController
         return Redirect("/BackOffice/Application/SelectApp");
     }
 
+    [SkipTenantContextCheck]
     [Route("/Logout")]
     public async Task<IActionResult> Logout()
     {
         // HttpContext.Session.Remove("AppKey");
         Response.Cookies.Delete("AppKey");
         Response.Cookies.Delete("UserIsApprove");
+        _currentApplicationContext.CurrentApplicationId = null;
         await _signInManager.SignOutAsync();
         return Redirect("/");
     }
 
+    // id is an entity id with no applicationId scoping at all - same cross-tenant risk as
+    // GetApplicationSectors above.
+    [Authorize(Roles = "SuperAdmin")]
     [Route("/BackOffice/Account/EntityAccesses/{id}")]
     public IActionResult EntityAccesses(int id)
     {

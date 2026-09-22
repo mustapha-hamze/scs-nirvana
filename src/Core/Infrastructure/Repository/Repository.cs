@@ -20,41 +20,34 @@ namespace Infrastructure.Repository
             _entities = dbContext.Set<T>();
         }
 
-        public async Task<T> Create(T entity)
+        // Stages the change only; the calling use case owns SaveChangesAsync/ExecuteInTransactionAsync.
+        // CreatedDT/UpdatedDT/IsDeleted are not set here - ApplicationDbContext stamps them
+        // centrally (UTC, via TimeProvider) at SaveChanges time for every BaseEntity.
+        public Task<T> Create(T entity)
         {
-            //entity.Id = Guid.NewGuid().ToString();
-            entity.IsDeleted = false;
-            entity.CreatedDT = DateTime.Now;
-            entity.UpdatedDT = DateTime.Now;
-
             _entities.Add(entity);
             _dbContext.Entry(entity).State = EntityState.Added;
-            await _dbContext.SaveChangesAsync();
-            return entity;
+            return Task.FromResult(entity);
         }
 
-        public async Task Delete(int id)
+        // A physical Remove(); ApplicationDbContext converts this into a soft delete
+        // (IsDeleted = true, State = Modified) at SaveChanges time - see ApplyLifecyclePolicy.
+        public async Task Delete(int id, CancellationToken cancellationToken = default)
         {
-            var entity = _entities.Single(e => e.Id == id);
-            entity.IsDeleted = true;
-            entity.UpdatedDT = DateTime.Now;
-            _dbContext.Entry(entity).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
+            var entity = await _entities.SingleAsync(e => e.Id == id, cancellationToken);
+            _entities.Remove(entity);
         }
 
-        public async Task<T> GetById(int id)
+        public async Task<T> GetById(int id, CancellationToken cancellationToken = default)
         {
-            return await _entities.AsNoTracking().SingleAsync(s => s.Id == id);
+            return await _entities.AsNoTracking().SingleAsync(s => s.Id == id, cancellationToken);
         }
 
-        public async Task<T> Update(T entity)
+        public Task<T> Update(T entity)
         {
-            entity.UpdatedDT = DateTime.Now;
-
             _entities.Update(entity);
             _dbContext.Entry(entity).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
-            return entity;
+            return Task.FromResult(entity);
         }
     }
 }

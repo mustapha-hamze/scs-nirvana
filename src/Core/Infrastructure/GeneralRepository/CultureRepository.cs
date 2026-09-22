@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Application.GeneralRepository;
 using Domains.Entities.General;
 using Infrastructure.Data;
 using Infrastructure.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.GeneralRepository
 {
@@ -20,11 +22,11 @@ namespace Infrastructure.GeneralRepository
         }
 
         // methods
-        public List<Culture> List()
+        public Task<List<Culture>> List(CancellationToken cancellationToken = default)
         {
             return _dbContext.Cultures
                 .Where(c => !c.IsDeleted)
-                .OrderByDescending(c => c.CreatedDT).ToList();
+                .OrderByDescending(c => c.CreatedDT).ToListAsync(cancellationToken);
         }
     }
 }

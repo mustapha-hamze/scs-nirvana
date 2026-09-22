@@ -1,9 +1,9 @@
 @{
     Layout = null;
-    var zones = (List<Infrastructure.Dto.GeneralDtos.ZoneDto>)ViewData["Zones"];
+    var zones = (List<Web.Models.General.ZoneDto>)ViewData["Zones"];
 }
 
-@model Infrastructure.Dto.GeneralDtos.ZoneDto
+@model Web.Models.General.ZoneDto
 
 <form class="needs-validation row" novalidate id="frmZone" method="POST">
     <input type="hidden" asp-for="Id" id="Id" />

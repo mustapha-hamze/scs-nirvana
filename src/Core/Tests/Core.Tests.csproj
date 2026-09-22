@@ -20,7 +20,10 @@
     <ProjectReference Include="..\Domain\Domain.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
-    <ProjectReference Include="..\Services\Services.csproj" />
+    <!-- Test-only: lets architecture/filter tests assert Web-boundary security invariants
+         (e.g. tenant-guard coverage) by reflecting over the real Web assembly instead of
+         duplicating its controller list by hand. -->
+    <ProjectReference Include="..\..\Web\Web.csproj" />
   </ItemGroup>
 
 </Project>

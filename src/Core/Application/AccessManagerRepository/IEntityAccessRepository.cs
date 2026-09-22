@@ -1,13 +1,18 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Domains.Entities.AccessManagement;
-using Application.Repository;
 
 namespace Application.AccessManagerRepository
 {
-    public interface IEntityAccessRepository : IRepository<EntityAccess>
+    public interface IEntityAccessRepository
     {
-        List<EntityAccess> List(int applicationId);
+        Task<EntityAccess> Create(EntityAccess access);
+        Task<EntityAccess> Update(EntityAccess access);
 
-        List<EntityAccess> GetEntityAccesses(int entityId);
+        Task<List<EntityAccess>> List(int applicationId, CancellationToken cancellationToken = default);
+
+        Task<List<EntityAccess>> GetEntityAccesses(int entityId, CancellationToken cancellationToken = default);
+
+        Task<EntityAccess> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default);
     }
 }

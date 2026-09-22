@@ -1,5 +1,5 @@
 using Application.ContentManagement;
-using Core.Services.TranslatorServices;
+using Application.UseCases.TranslatorServices;
 using Domains.Entities.ContentManagement;
 
 namespace Web.Areas.BackOffice.Controllers;
@@ -21,7 +21,7 @@ public class ContentController : BaseController
     private readonly IHostEnvironment _appEnvironment;
     private readonly IApplicationServices _applicationServices;
     private readonly ISystemTypeServices _systemTypeServices;
-    private readonly IUserManagementServices _userManagementServices;
+    private readonly ICurrentApplicationContext _currentApplicationContext;
     private readonly IContentTranslator _contentTranslator;
     private readonly IFileUploadService _fileUploadService;
 
@@ -38,7 +38,7 @@ public class ContentController : BaseController
         ICategoryServices categoryServices,
         ITagServices tagServices, ICultureServices cultureServices, IHostEnvironment appEnvironment,
         IApplicationServices applicationServices, ISystemTypeServices systemTypeServices,
-        IUserManagementServices userManagementServices, IContentTranslator contentTranslator,
+        ICurrentApplicationContext currentApplicationContext, IContentTranslator contentTranslator,
         IContentProvider contentProvider, IFileUploadService fileUploadService)
     {
         _applicationServices = applicationServices;
@@ -49,7 +49,7 @@ public class ContentController : BaseController
         _cultureServices = cultureServices;
         _appEnvironment = appEnvironment;
         _systemTypeServices = systemTypeServices;
-        _userManagementServices = userManagementServices;
+        _currentApplicationContext = currentApplicationContext;
         _contentTranslator = contentTranslator;
         _contentProvider = contentProvider;
         _fileUploadService = fileUploadService;
@@ -70,14 +70,14 @@ public class ContentController : BaseController
     public async Task<IActionResult> ContentForm(int id = 0, int typeId = 0)
     {
         ViewData["TypeId"] = typeId;
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
 
-        ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
+        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(currentApplicationId, TypeId.Content);
 
         if (id != 0)
         {
-            var content = await _contentServices.GetById(id);
-            var appSetting = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 5000);
+            var content = await _contentServices.GetById(id, currentApplicationId);
+            var appSetting = await _applicationServices.GetApplicationSetting(currentApplicationId, 5000);
             ViewData["WebsiteUrl"] = appSetting[0].Value;
             return View(content);
         }
@@ -92,7 +92,7 @@ public class ContentController : BaseController
     }
 
     [Route("/{area}/Content/ContentSections/{contentId}/{typeId}")]
-    public IActionResult ContentSections(int contentId, int typeId)
+    public async Task<IActionResult> ContentSections(int contentId, int typeId)
     {
         int schemaTypeId = 0;
         if (typeId >= 1111)
@@ -100,39 +100,40 @@ public class ContentController : BaseController
         else
             schemaTypeId = 1001;
 
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["Schemas"] = _schemaServices.List(user.CurrentApplicationId, schemaTypeId);
-        ViewData["Sections"] = _contentServices.GetSections(contentId);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        ViewData["Schemas"] = await _schemaServices.List(currentApplicationId, schemaTypeId);
+        ViewData["Sections"] = await _contentServices.GetSections(contentId, currentApplicationId);
         return View();
     }
 
     [Route("/{area}/Content/ContentRelations/{contentId}")]
     public async Task<IActionResult> ContentRelations(int contentId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["Categories"] = _categoryServices.GetAllFullPath(user.CurrentApplicationId);
-        ViewData["Tags"] = _tagServices.FindTagsByTypeId(user.CurrentApplicationId, TypeId.Content);
-        ViewData["Cultures"] = _cultureServices.List();
-        var content = await _contentServices.GetById(contentId);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        ViewData["Categories"] = await _categoryServices.GetAllFullPath(currentApplicationId);
+        ViewData["Tags"] = await _tagServices.FindTagsByTypeId(currentApplicationId, TypeId.Content);
+        ViewData["Cultures"] = await _cultureServices.List();
+        var content = await _contentServices.GetById(contentId, currentApplicationId);
         return View(content);
     }
 
     [Route("/{area}/Content/ContentMetadata/{contentId}")]
-    public IActionResult ContentMetadata(int contentId)
+    public async Task<IActionResult> ContentMetadata(int contentId)
     {
-        var contentMetadata = _contentServices.GetContentMetadata(contentId);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var contentMetadata = await _contentServices.GetContentMetadata(contentId, currentApplicationId);
         contentMetadata.ContentId = contentId;
 
         return View(contentMetadata);
     }
 
     [Route("/{area}/Content/ContentImages/{contentId}")]
-    public IActionResult ContentImages(int contentId)
+    public async Task<IActionResult> ContentImages(int contentId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["ContentImageAspectRatio"] = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1001);
-        ViewData["ContentImageSizes"] = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
-        ViewData["ContentImage"] = _contentServices.GetAllContentImages(contentId);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        ViewData["ContentImageAspectRatio"] = await _applicationServices.GetApplicationSetting(currentApplicationId, 1001);
+        ViewData["ContentImageSizes"] = await _applicationServices.GetApplicationSetting(currentApplicationId, 1000);
+        ViewData["ContentImage"] = await _contentServices.GetAllContentImages(contentId, currentApplicationId);
         return View();
     }
 
@@ -140,20 +141,20 @@ public class ContentController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentForm(ContentDto content)
     {
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         if (content.Id == 0)
         {
-            var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-            content.ApplicationId = user.CurrentApplicationId;
+            content.ApplicationId = currentApplicationId;
             var _content = await _contentServices.Create(content);
             return RedirectToAction("ContentForm", new { id = _content.Id, typeId = _content.TypeId });
         }
         else
         {
-            var _content = await _contentServices.GetById(content.Id);
+            var _content = await _contentServices.GetById(content.Id, currentApplicationId);
             content.Categories = _content.Categories;
             content.Tags = _content.Tags;
             content.Cultures = _content.Cultures;
-            await _contentServices.Update(content);
+            await _contentServices.Update(content, currentApplicationId);
 
             return RedirectToAction("ContentForm", new { id = content.Id, typeId = _content.TypeId });
         }
@@ -162,7 +163,8 @@ public class ContentController : BaseController
     [Route("/{area}/{controller}/FarsiContentForm/{id}/{typeId}")]
     public async Task<IActionResult> FarsiContentForm(int id, int typeId)
     {
-        var englishContent = await _contentProvider.GetContentForTranslate(id);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var englishContent = await _contentProvider.GetContentForTranslate(id, currentApplicationId);
         if (englishContent == null)
             return NotFound();
 
@@ -181,7 +183,8 @@ public class ContentController : BaseController
         if (model == null || model.Id == 0)
             return Content("Failed");
 
-        var englishContent = await _contentProvider.GetContentForTranslate(model.Id);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var englishContent = await _contentProvider.GetContentForTranslate(model.Id, currentApplicationId);
         if (englishContent == null)
             return NotFound();
 
@@ -241,7 +244,7 @@ public class ContentController : BaseController
 
         // UpdateTranslate now queries without AsNoTracking, so it safely resolves to the
         // already-tracked `englishContent` instance instead of conflicting with it.
-        await _contentServices.UpdateTranslate(model.Id, farsiJson);
+        await _contentServices.UpdateTranslate(model.Id, farsiJson, currentApplicationId);
 
         return Content("Done");
     }
@@ -318,11 +321,11 @@ public class ContentController : BaseController
     }
 
     [Route("/{area}/{controller}/{action}/{id}")]
-    public IActionResult ContentList(int id)
+    public async Task<IActionResult> ContentList(int id)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var contents = _contentServices.List(user.CurrentApplicationId).Where(c => c.TypeId == id).ToList();
-        ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.Content);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var contents = (await _contentServices.List(currentApplicationId)).Where(c => c.TypeId == id).ToList();
+        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(currentApplicationId, TypeId.Content);
         return View(contents);
     }
 
@@ -331,23 +334,26 @@ public class ContentController : BaseController
     [Route("/{area}/Content/ChangeContentActiveMode/{typeId}/{contentId}/{mode}")]
     public async Task<IActionResult> ChangeContentActiveMode(int typeId, int contentId, bool mode)
     {
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+
         if (mode)
         {
-            var content = await _contentProvider.GetContentForTranslate(contentId);
+            var content = await _contentProvider.GetContentForTranslate(contentId, currentApplicationId);
+            if (content == null)
+                return NotFound();
+
             if (string.IsNullOrEmpty(content.FarsiContent))
             {
                 var result = await _contentTranslator.Translate(content);
-                await _contentServices.ActivateTranslatedContent(contentId, result);
+                await _contentServices.ActivateTranslatedContent(contentId, result, currentApplicationId);
             }
         }
         else
         {
-            await _contentServices.ChangeContentActiveMode(contentId, mode);
+            await _contentServices.ChangeContentActiveMode(contentId, mode, currentApplicationId);
         }
 
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-
-        var frontContentTypes = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1002);
+        var frontContentTypes = await _applicationServices.GetApplicationSetting(currentApplicationId, 1002);
         if (frontContentTypes.Any(x => x.Value.Contains(typeId.ToString())))
         {
             var frontContentTypeIds = new List<int>();
@@ -359,10 +365,11 @@ public class ContentController : BaseController
     }
 
     [Route("/{area}/Content/CreateContentSection/{schemaId}/{priority}")]
-    public IActionResult CreateContentSection(int schemaId, int priority)
+    public async Task<IActionResult> CreateContentSection(int schemaId, int priority)
     {
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         ViewData["Priority"] = priority;
-        var schemaDetails = _schemaServices.DetailsList(schemaId);
+        var schemaDetails = await _schemaServices.DetailsList(schemaId, currentApplicationId);
         return View(schemaDetails);
     }
 
@@ -371,7 +378,8 @@ public class ContentController : BaseController
     [Route("/{area}/Content/DeleteContent/{id}")]
     public async Task<IActionResult> DeleteContent(int id)
     {
-        await _contentServices.Delete(id);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        await _contentServices.Delete(id, currentApplicationId);
         return Content("Done");
     }
 
@@ -379,32 +387,51 @@ public class ContentController : BaseController
     [Route("/{area}/Content/SaveRelation/{Entity}/{contentId}")]
     public async Task<IActionResult> SaveRelation([FromForm] string Data, string Entity, int contentId)
     {
-        if (Data != "" && Data != string.Empty && Data != null)
-            Data = Data[..^1];
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var ids = ParseRelationIds(Data);
         switch (Entity)
         {
             case "Category":
-                await _contentServices.CreateContentCategories(Data, Entity, contentId);
+                await _contentServices.CreateContentCategories(ids, contentId, currentApplicationId);
                 break;
             case "Tag":
-                await _contentServices.CreateContentTags(Data, Entity, contentId);
+                await _contentServices.CreateContentTags(ids, contentId, currentApplicationId);
                 break;
             case "Culture":
-                await _contentServices.CreateContentCultures(Data, Entity, contentId);
+                await _contentServices.CreateContentCultures(ids, contentId, currentApplicationId);
                 break;
         }
 
         return Content("Done");
     }
 
+    // The client always appends a trailing '|' to the pipe-delimited id list; strips it, then
+    // parses each remaining token as an id (same as the previous Convert.ToInt32 per-token
+    // behavior — malformed input still throws rather than being silently dropped).
+    private static List<int> ParseRelationIds(string data)
+    {
+        if (string.IsNullOrEmpty(data))
+            return new List<int>();
+
+        var trimmed = data[..^1];
+        if (trimmed.Length == 0)
+            return new List<int>();
+
+        return trimmed.Split('|', StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToList();
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveContentMetadata(ContentMetadataDto contentMetadata)
     {
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+
         if (contentMetadata.Id == 0)
-            await _contentServices.CreateContentMetadata(contentMetadata);
+            await _contentServices.CreateContentMetadata(contentMetadata, currentApplicationId);
         else
-            await _contentServices.UpdateContentMetadata(contentMetadata);
+            await _contentServices.UpdateContentMetadata(contentMetadata, currentApplicationId);
 
         return Content("Done");
     }
@@ -412,6 +439,8 @@ public class ContentController : BaseController
     [HttpPost]
     public async Task<IActionResult> SaveSection([FromBody] SaveContentBodyDto section)
     {
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+
         if (section != null)
         {
             if (section.SectionId != 0)
@@ -426,7 +455,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1001:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -434,7 +463,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 FileNameText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1002:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -442,7 +471,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 EditorText = item.Value.Replace("<p></p>", "").Replace("<p> </p>", "").Replace("\n", ""),
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1003:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -450,7 +479,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 GalleryImages = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1004:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -458,7 +487,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 FileNameText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1005:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -466,7 +495,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 EditorText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1006:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -474,7 +503,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1007:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -482,7 +511,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1008:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -490,7 +519,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1009:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -498,7 +527,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1010:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -506,7 +535,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1011:
                             await _contentServices.UpdateSectionElement(new SectionElementDto
@@ -514,7 +543,7 @@ public class ContentController : BaseController
                                 Id = item.Id,
                                 TinyText = item.Value,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                     }
                 }
@@ -527,7 +556,7 @@ public class ContentController : BaseController
                     ContentId = section.ContentId,
                     Priority = section.Priority,
                     IsActive = true
-                });
+                }, currentApplicationId);
 
                 foreach (var item in section.Elements)
                 {
@@ -542,7 +571,7 @@ public class ContentController : BaseController
                                 ElementType = 1000,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1001:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -553,7 +582,7 @@ public class ContentController : BaseController
                                 ElementType = 1001,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1002:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -564,7 +593,7 @@ public class ContentController : BaseController
                                 ElementType = 1002,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1003:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -575,7 +604,7 @@ public class ContentController : BaseController
                                 ElementType = 1003,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1004:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -586,7 +615,7 @@ public class ContentController : BaseController
                                 ElementType = 1004,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1005:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -597,7 +626,7 @@ public class ContentController : BaseController
                                 ElementType = 1005,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1006:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -608,7 +637,7 @@ public class ContentController : BaseController
                                 ElementType = 1006,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1007:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -619,7 +648,7 @@ public class ContentController : BaseController
                                 ElementType = 1007,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1008:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -630,7 +659,7 @@ public class ContentController : BaseController
                                 ElementType = 1008,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1009:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -641,7 +670,7 @@ public class ContentController : BaseController
                                 ElementType = 1009,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1010:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -652,7 +681,7 @@ public class ContentController : BaseController
                                 ElementType = 1010,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                         case 1011:
                             await _contentServices.CreateSectionElement(new SectionElementDto
@@ -663,7 +692,7 @@ public class ContentController : BaseController
                                 ElementType = 1011,
                                 Size = item.Size,
                                 ElementTitle = item.Title
-                            });
+                            }, currentApplicationId);
                             break;
                     }
                 }
@@ -680,10 +709,12 @@ public class ContentController : BaseController
     [HttpPost]
     public async Task<IActionResult> UpdateSectionsLayoutOrder([FromBody] string sectionsOrder)
     {
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+
         var sectionsOrderArray = sectionsOrder.Split(',');
         for (int i = 0; i < sectionsOrderArray.Length - 1; i++)
         {
-            await _contentServices.UpdateSectionPriority(Convert.ToInt32(sectionsOrderArray[i]), i + 1);
+            await _contentServices.UpdateSectionPriority(Convert.ToInt32(sectionsOrderArray[i]), i + 1, currentApplicationId);
         }
 
         return Ok("Done");
@@ -741,8 +772,8 @@ public class ContentController : BaseController
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Content/Image/" + contentId);
 
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var imageSettings = _applicationServices.GetApplicationSetting(user.CurrentApplicationId, 1000);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var imageSettings = await _applicationServices.GetApplicationSetting(currentApplicationId, 1000);
         var currentImageSettings = imageSettings.Single(s => s.Id == settingId);
 
         var targetSizes = currentImageSettings.Value.Split(",").Select(item =>
@@ -756,7 +787,7 @@ public class ContentController : BaseController
             return Content("Failed");
 
         // Only remove the previous images/records once the new ones have been validated and written successfully.
-        await _contentServices.DeleteAllContentImages(contentId);
+        await _contentServices.DeleteAllContentImages(contentId, currentApplicationId);
         if (Directory.Exists(savePath))
         {
             var newFileNames = uploadResult.Variants.Select(v => v.FileName).ToHashSet();
@@ -775,7 +806,7 @@ public class ContentController : BaseController
                 ImageFileName = variant.FileName,
                 IsActive = true,
                 Size = variant.Width
-            });
+            }, currentApplicationId);
         }
 
         return Content("Done,");
@@ -785,7 +816,8 @@ public class ContentController : BaseController
     [HttpDelete]
     public async Task<IActionResult> DeleteSection(int id)
     {
-        await _contentServices.DeleteSection(id);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        await _contentServices.DeleteSection(id, currentApplicationId);
         return Content("Done");
     }
     #endregion

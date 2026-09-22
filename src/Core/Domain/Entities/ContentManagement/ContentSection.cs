@@ -18,7 +18,6 @@ namespace Domains.Entities.ContentManagement
         public virtual ICollection<SectionElement> Elements { get; set; }
 
         // foreign key
-        [ForeignKey("ContentId")]
         [JsonIgnore]
         public virtual Content Content { get; set; }
     }

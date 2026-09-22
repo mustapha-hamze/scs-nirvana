@@ -2,35 +2,39 @@ using Application.AccessManagerRepository;
 using Application.CMSRepository;
 using Application.ContentManagement;
 using Application.GeneralRepository;
-using Application.Repository;
 using Application.SCMRepository;
 using Application.UserManagementRepository;
 using Application.UnitOfWork;
-using Core.Services.TranslatorServices;
+using Application.UseCases.Tenancy;
+using Application.UseCases.TranslatorServices;
 using Infrastructure.AccessManagerRepository;
 using Infrastructure.CMSRepository;
 using Infrastructure.ContentManagement;
 using Infrastructure.GeneralRepository;
 using Infrastructure.Mapper;
-using Infrastructure.Repository;
 using Infrastructure.SCMRepository;
+using Infrastructure.TranslatorServices;
 using Infrastructure.UserManagementRepository;
 using Infrastructure.UnitOfWork;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Web.Services.Tenancy;
 
 namespace Web.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    /// <summary>Data access: the EF Core context, the generic repository/unit-of-work pair, and every concrete repository.</summary>
+    /// <summary>Data access: the EF Core context, the unit of work, and every aggregate-specific repository.</summary>
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
+        // Injected into ApplicationDbContext so it can stamp CreatedDT/UpdatedDT centrally
+        // (UTC) at SaveChanges time instead of every repository calling DateTime.Now by hand.
+        services.AddSingleton(TimeProvider.System);
+
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
         services.AddDatabaseDeveloperPageExceptionFilter();
 
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IUserManagementRepository, UserManagementRepository>();
@@ -39,12 +43,16 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICultureRepository, CultureRepository>();
         services.AddScoped<ISchemaRepository, SchemaRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
-        services.AddScoped<IContentRepository, ContentRepository>();
+        services.AddScoped<IContentQueryRepository, ContentQueryRepository>();
+        services.AddScoped<IContentCommandRepository, ContentCommandRepository>();
+        services.AddScoped<IContentRelationRepository, ContentRelationRepository>();
+        services.AddScoped<IContentsInCategoryQueryAdapter, ContentsInCategoryQueryAdapter>();
         services.AddScoped<ISliderRepository, SliderRepository>();
         services.AddScoped<ISystemTypeRepository, SystemTypeRepository>();
         services.AddScoped<ISectorRepository, SectorRepository>();
         services.AddScoped<ISectorEntityRepository, SectorEntityRepository>();
         services.AddScoped<IEntityAccessRepository, EntityAccessRepository>();
+        services.AddScoped<IUserAttachmentRepository, UserAttachmentRepository>();
 
         return services;
     }
@@ -53,6 +61,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddTransient<IUserManagementServices, UserManagementServices>();
+        services.AddTransient<ITenantAccessGuard, TenantAccessGuard>();
         services.AddTransient<IApplicationServices, ApplicationServices>();
         services.AddTransient<ITagServices, TagServices>();
         services.AddTransient<ICultureServices, CultureServices>();
@@ -71,7 +80,17 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ICategoryServices, CategoryServices>();
         services.AddTransient<IContentServices, ContentServices>();
         services.AddTransient<ISliderServices, SliderServices>();
+
+        services.AddOptions<OpenAiTranslationOptions>()
+            .Configure<IConfiguration>((options, configuration) =>
+            {
+                options.ApiKey = configuration["OPENAI_API_KEY"];
+            })
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddTransient<ITranslationPort, OpenAiTranslationPort>();
         services.AddTransient<IContentTranslator, ContentTranslator>();
+
         services.AddTransient<IContentProvider, ContentProvider>();
 
         return services;
@@ -99,11 +118,13 @@ public static class ServiceCollectionExtensions
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        services.AddMediatR(typeof(ApplicationDbContext).Assembly);
+        services.AddMediatR(typeof(IUnitOfWork).Assembly);
 
-        services.AddAutoMapper(new[] { typeof(MapperProfile).Assembly }, ServiceLifetime.Singleton);
+        services.AddAutoMapper(new[] { typeof(MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
 
         services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentApplicationContext, SessionCurrentApplicationContext>();
+        services.AddScoped<RequireTenantContextFilter>();
 
         services.AddAntiforgery(options =>
         {
@@ -117,6 +138,7 @@ public static class ServiceCollectionExtensions
         services.AddRazorPages();
 
         services.AddTransient<IFileUploadService, FileUploadService>();
+        services.AddTransient<CodeGenerator>();
 
         services.ConfigureApplicationCookie(options =>
         {

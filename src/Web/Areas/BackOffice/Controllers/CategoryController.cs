@@ -9,16 +9,16 @@ public class CategoryController : BaseController
     // fields
     #region fields
     private readonly ICategoryServices _categoryServices;
-    private readonly IUserManagementServices _userManagementServices;
+    private readonly ICurrentApplicationContext _currentApplicationContext;
     #endregion
 
     // constructor
     #region constructor
     public CategoryController(ICategoryServices categoryServices,
-        IUserManagementServices userManagementServices)
+        ICurrentApplicationContext currentApplicationContext)
     {
         _categoryServices = categoryServices;
-        _userManagementServices = userManagementServices;
+        _currentApplicationContext = currentApplicationContext;
     }
     #endregion
 
@@ -30,10 +30,10 @@ public class CategoryController : BaseController
         return View();
     }
 
-    public IActionResult Form()
+    public async Task<IActionResult> Form()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        ViewData["Categories"] = _categoryServices.List(user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        ViewData["Categories"] = await _categoryServices.List(currentApplicationId);
         return View();
     }
 
@@ -41,17 +41,16 @@ public class CategoryController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveForm(CategoryDto category)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        category.ApplicationId = user.CurrentApplicationId;
-        await _categoryServices.Create(category);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        await _categoryServices.Create(category, currentApplicationId);
         //TODO: Implement Realistic Implementation
         return Content("Done");
     }
 
-    public IActionResult List()
+    public async Task<IActionResult> List()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        var categories = _categoryServices.List(user.CurrentApplicationId);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var categories = await _categoryServices.List(currentApplicationId);
 
         return View(categories);
     }

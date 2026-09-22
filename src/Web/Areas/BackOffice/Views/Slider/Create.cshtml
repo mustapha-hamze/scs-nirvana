@@ -1,10 +1,11 @@
 @{
     Layout = null;
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
     if (accesses == string.Empty)
         accesses = "NULL";
 }
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
 
 <div class="col-md-4">
     <form action="" method="post" id="__frmCreateSliderForm__">

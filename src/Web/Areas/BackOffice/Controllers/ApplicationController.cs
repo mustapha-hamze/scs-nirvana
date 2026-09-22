@@ -3,6 +3,9 @@ namespace Web.Areas.BackOffice.Controllers;
 [Authorize]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
+// Every action here is either about selecting a tenant or administering the tenant root itself -
+// none of them consume the session's selected tenant, so none needs one to already be present.
+[SkipTenantContextCheck]
 public class ApplicationController : BaseController
 {
     // fields
@@ -13,12 +16,13 @@ public class ApplicationController : BaseController
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IUserManagementServices _userManagementServices;
     private readonly IFileUploadService _fileUploadService;
+    private readonly CodeGenerator _codeGenerator;
 
     // constructor
     public ApplicationController(ILogger<ApplicationController> logger, IApplicationServices applicationServices,
         IHostEnvironment appEnvironment, UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager, IUserManagementServices userManagementServices,
-        IFileUploadService fileUploadService)
+        IFileUploadService fileUploadService, CodeGenerator codeGenerator)
     {
         _applicationServices = applicationServices;
         _logger = logger;
@@ -27,6 +31,7 @@ public class ApplicationController : BaseController
         _signInManager = signInManager;
         _userManagementServices = userManagementServices;
         _fileUploadService = fileUploadService;
+        _codeGenerator = codeGenerator;
     }
 
     // methods
@@ -48,6 +53,9 @@ public class ApplicationController : BaseController
         });
     }
 
+    // Application is the tenant root, not a self-scoped resource - authentication alone is not
+    // enough to create one. Only a SuperAdmin may.
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveApplicationForm(ApplicationDto applicationForm)
@@ -58,14 +66,17 @@ public class ApplicationController : BaseController
         return Content("Done|" + application.Id);
     }
 
+    // EntityId is caller-controlled and would otherwise let any authenticated member overwrite
+    // the logo and regenerate the application key for an arbitrary application. [Authorize] runs
+    // before this method body, so the SuperAdmin check happens before EntityId is ever looked up.
+    [Authorize(Roles = "SuperAdmin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadApplicationLogo(IFormFile File, int EntityId)
     {
         var application = await _applicationServices.GetById(EntityId);
 
-        CodeGenerator codeGenerator = new();
-        application.ApplicationKey = codeGenerator.GenerateAppKey(application.Id);
+        application.ApplicationKey = _codeGenerator.GenerateAppKey(application.Id);
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Application/Logos/");
         var baseName = Path.GetFileNameWithoutExtension(application.LogoFileName);
@@ -80,18 +91,27 @@ public class ApplicationController : BaseController
         return Content("Done");
     }
 
+    // Selecting an application changes the caller's server-side session state, so this must be a
+    // state-changing POST with a CSRF token - not a plain GET link a page could trigger silently.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Route("/BackOffice/Application/SelectAppToEnter/{applicationId}")]
     public async Task<IActionResult> SelectAppToEnter(int applicationId)
     {
         if (!await CheckUserApproval())
             return Redirect("/WaitingForApproval");
 
-        // HttpContext.Session.SetInt32("AppKey", applicationId);
-        // CookieOptions option = new();
-        // option.Expires = DateTime.Now.AddDays(1);
-        // Response.Cookies.Append("AppKey", applicationId.ToString(), option);
-        // 
-        await _userManagementServices.SetCurrentApplicationId(User.Identity.Name, applicationId);
+        try
+        {
+            await _userManagementServices.SetCurrentApplicationId(User.Identity.Name, applicationId);
+        }
+        catch (KeyNotFoundException)
+        {
+            // Core rejected the selection (missing/unauthorized/deleted application or
+            // membership - deliberately indistinguishable). Send the user back to their real,
+            // legitimate list rather than surfacing an error.
+            return Redirect("/BackOffice/Application/SelectApp");
+        }
 
         return Redirect("/BackOffice/Home/Index");
     }

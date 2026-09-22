@@ -11,24 +11,18 @@ namespace Domains.Entities.ContentManagement
 
         public int TypeId { get; set; }
 
-        [StringLength(256)]
         public string Title { get; set; }
 
-        [StringLength(2048)]
         public string HeadLine { get; set; }
 
-        [StringLength(2048)]
         public string Abstract { get; set; }
 
         public string Description { get; set; }
 
         public string FarsiContent { get; set; }
 
-        [StringLength(1024)]
         public string Categories { get; set; }
-        [StringLength(1024)]
         public string Tags { get; set; }
-        [StringLength(1024)]
         public string Cultures { get; set; }
         public DateTime PublishDt { get; set; }
 
@@ -39,7 +33,6 @@ namespace Domains.Entities.ContentManagement
 
         public virtual ContentMetadata Metadata { get; set; }
 
-        [ForeignKey("ApplicationId")]
         public virtual Application Application { get; set; }
     }
 }

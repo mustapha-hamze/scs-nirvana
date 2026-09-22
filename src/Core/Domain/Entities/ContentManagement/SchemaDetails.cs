@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Domains.Entities.ContentManagement
+﻿namespace Domains.Entities.ContentManagement
 {
     public class SchemaDetails : BaseEntity
     {
@@ -12,7 +9,6 @@ namespace Domains.Entities.ContentManagement
         // property
         public int SchemaId { get; set; }
 
-        [StringLength(64)]
         public string Title { get; set; }
 
         public int TypeId { get; set; }
@@ -21,7 +17,6 @@ namespace Domains.Entities.ContentManagement
 
 
         // foreign key
-        [ForeignKey("SchemaId")]
         public virtual Schema Schema { get; set; }
     }
 }

@@ -1,18 +1,17 @@
-@using Services.Utilities.ApplicationConst;
+@using Application.UseCases.Utilities.ApplicationConst;
 
 @{
-    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var accesses = await userManagementServices.GetUserAccesses(user.Email);
+    int appId = currentApplicationContext.RequireApplicationId();
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, appId);
     if (accesses == string.Empty)
         accesses = "NULL";
 
-    int appId = user.CurrentApplicationId;
-
-    var appPages = applicationServices.GetApplicationSetting(user.CurrentApplicationId, 6000).OrderBy(ap => ap.Value);
+    var appPages = (await applicationServices.GetApplicationSetting(appId, 6000)).OrderBy(ap => ap.Value);
 }
-@inject Services.GeneralServices.ISystemTypeServices systemTypeServices
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
-@inject Services.GeneralServices.IApplicationServices applicationServices;
+@inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices;
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext;
 
 @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_"))
 {
@@ -36,7 +35,7 @@
                         <div class="collapse" id="sidebarSecondLevel">
                             <ul class="side-nav-third-level">
                                 @{
-                                    var contentTypes = systemTypeServices.GetTypesInTypeGroup(appId, TypeId.Content);
+                                    var contentTypes = await systemTypeServices.GetTypesInTypeGroup(appId, TypeId.Content);
                                 }
                                 @foreach (var item in contentTypes)
                                 {

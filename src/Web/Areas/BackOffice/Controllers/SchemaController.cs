@@ -10,20 +10,20 @@ public class SchemaController : BaseController
     private readonly ISchemaServices _schemaServices;
     private readonly IHostEnvironment _appEnvironment;
     private readonly ISystemTypeServices _systemTypeServices;
-    private readonly IUserManagementServices _userManagementServices;
+    private readonly ICurrentApplicationContext _currentApplicationContext;
     private readonly IFileUploadService _fileUploadService;
     #endregion
 
     // constructor
     #region constructor
     public SchemaController(ISchemaServices schemaServices, IHostEnvironment appEnvironment,
-        ISystemTypeServices systemTypeServices, IUserManagementServices userManagementServices,
+        ISystemTypeServices systemTypeServices, ICurrentApplicationContext currentApplicationContext,
         IFileUploadService fileUploadService)
     {
         _appEnvironment = appEnvironment;
         _schemaServices = schemaServices;
         _systemTypeServices = systemTypeServices;
-        _userManagementServices = userManagementServices;
+        _currentApplicationContext = currentApplicationContext;
         _fileUploadService = fileUploadService;
     }
     #endregion
@@ -47,7 +47,8 @@ public class SchemaController : BaseController
         }
         else
         {
-            return View(await _schemaServices.GetById(id));
+            var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+            return View(await _schemaServices.GetById(id, currentApplicationId));
         }
     }
 
@@ -55,17 +56,15 @@ public class SchemaController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSchemaForm(SchemaDto schema)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         if (schema.Id == 0)
         {
-            schema.ApplicationId = user.CurrentApplicationId;
-            schema = await _schemaServices.Create(schema);
+            schema = await _schemaServices.Create(schema, currentApplicationId);
             return Content("Done|" + schema.Id.ToString());
         }
         else
         {
-            schema.ApplicationId = user.CurrentApplicationId;
-            schema = await _schemaServices.Update(schema);
+            schema = await _schemaServices.Update(schema, currentApplicationId);
             return Content("Done|" + schema.Id.ToString());
         }
     }
@@ -74,7 +73,8 @@ public class SchemaController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadSchemaLogo(IFormFile File, int EntityId)
     {
-        var schema = await _schemaServices.GetById(EntityId);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var schema = await _schemaServices.GetById(EntityId, currentApplicationId);
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Schema/Logos/");
         var baseName = Path.GetFileNameWithoutExtension(schema.LogoFileName);
@@ -84,15 +84,15 @@ public class SchemaController : BaseController
             return Content("Failed");
 
         schema.LogoFileName = uploadResult.FileName;
-        await _schemaServices.Update(schema);
+        await _schemaServices.Update(schema, currentApplicationId);
 
         return Content("Done");
     }
 
-    public IActionResult SchemaList()
+    public async Task<IActionResult> SchemaList()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_schemaServices.List(user.CurrentApplicationId));
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        return View(await _schemaServices.List(currentApplicationId));
     }
 
     [HttpDelete]
@@ -100,24 +100,26 @@ public class SchemaController : BaseController
     [Route("/{area}/Schema/DeleteSchema/{id}")]
     public async Task<IActionResult> DeleteSchema(int id)
     {
-        await _schemaServices.Delete(id);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        await _schemaServices.Delete(id, currentApplicationId);
         return Content("Done");
     }
 
 
     [Route("/{area}/Schema/SchemaDetailsForm/{schemaId}")]
-    public IActionResult SchemaDetailsForm(int schemaId)
+    public async Task<IActionResult> SchemaDetailsForm(int schemaId)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         ViewData["SchemaId"] = schemaId;
-        ViewData["Types"] = _systemTypeServices.GetTypesInTypeGroup(user.CurrentApplicationId, TypeId.ContentSchema);
+        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(currentApplicationId, TypeId.ContentSchema);
         return View();
     }
 
     [Route("/{area}/Schema/SchemaDetailsList/{schemaId}")]
-    public IActionResult SchemaDetailsList(int schemaId)
+    public async Task<IActionResult> SchemaDetailsList(int schemaId)
     {
-        return View(_schemaServices.DetailsList(schemaId));
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        return View(await _schemaServices.DetailsList(schemaId, currentApplicationId));
     }
 
     [HttpPost]
@@ -125,7 +127,8 @@ public class SchemaController : BaseController
     public async Task<IActionResult> SchemaDetailsFormSave(SchemaDetailsDto schemaDetails)
     {
         //TODO: Implement Realistic Implementation
-        await _schemaServices.CreateDetails(schemaDetails);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        await _schemaServices.CreateDetails(schemaDetails, currentApplicationId);
         return Content("Done");
     }
     #endregion

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Domains.Entities.General;
 using Infrastructure.Data;
 using Infrastructure.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.GeneralRepository
 {
@@ -12,27 +14,40 @@ namespace Infrastructure.GeneralRepository
         private readonly ApplicationDbContext _dbContext;
 
 
-        // constructor 
+        // constructor
         public TagRepository(ApplicationDbContext dbContext) : base(dbContext)
         {
             _dbContext = dbContext;
         }
 
+        public async Task<Domains.Entities.General.Tag> GetByIdForApplication(int id, int applicationId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Tags.AsNoTracking()
+                .SingleAsync(t => t.Id == id && t.ApplicationId == applicationId && !t.IsDeleted, cancellationToken);
+        }
+
+        public async Task Delete(int id, int applicationId, CancellationToken cancellationToken = default)
+        {
+            var tag = await _dbContext.Tags
+                .SingleAsync(t => t.Id == id && t.ApplicationId == applicationId && !t.IsDeleted, cancellationToken);
+            _dbContext.Tags.Remove(tag);
+        }
+
         // methods
-        public List<Domains.Entities.General.Tag> List(int applicationId)
+        public Task<List<Domains.Entities.General.Tag>> List(int applicationId, CancellationToken cancellationToken = default)
         {
             return _dbContext.Tags
                 .Where(t => t.ApplicationId == applicationId && !t.IsDeleted)
                 .OrderByDescending(t => t.CreatedDT)
-                .ToList();
+                .ToListAsync(cancellationToken);
         }
 
-        public List<Domains.Entities.General.Tag> FindTagsByTypeId(int applicationId, int typeId)
+        public Task<List<Domains.Entities.General.Tag>> FindTagsByTypeId(int applicationId, int typeId, CancellationToken cancellationToken = default)
         {
             return _dbContext.Tags
                 .Where(t => t.ApplicationId == applicationId && !t.IsDeleted && t.TypeId == typeId)
                 .OrderByDescending(t => t.CreatedDT)
-                .ToList();
+                .ToListAsync(cancellationToken);
         }
     }
 }

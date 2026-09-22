@@ -17,6 +17,5 @@ namespace Application.Contracts.UserManagement
         public string HomeAddress { get; set; }
         public bool IsAdminUser { get; set; }
         public bool IsApprove { get; set; }
-        public int CurrentApplicationId { get; set; }
     }
 }

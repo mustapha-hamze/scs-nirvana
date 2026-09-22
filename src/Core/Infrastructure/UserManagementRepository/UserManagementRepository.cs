@@ -1,4 +1,6 @@
+using Application.Contracts.UserManagement;
 using Application.UserManagementRepository;
+using AutoMapper;
 using Domains.Entities.User;
 using Domains.Entities.General;
 
@@ -6,25 +8,32 @@ namespace Infrastructure.UserManagementRepository;
 public class UserManagementRepository : IUserManagementRepository
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly IMapper _mapper;
 
-    public UserManagementRepository(ApplicationDbContext dbContext)
+    public UserManagementRepository(ApplicationDbContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
+        _mapper = mapper;
     }
-    public List<ApplicationUser> List(bool isAdminUser, string email = "")
+    public async Task<List<UserDto>> List(bool isAdminUser, string email = "", CancellationToken cancellationToken = default)
     {
-        var user = _dbContext.Users.ToList();
-        if (email?.Length == 0)
-            return user.Where(u => u.IsAdminUser).ToList();
-        else
-            return user.Where(u => u.IsAdminUser == isAdminUser && u.Email.Contains(email)).ToList();
+        var query = _dbContext.Users.Where(u => u.IsAdminUser == isAdminUser);
+        if (!string.IsNullOrEmpty(email))
+            query = query.Where(u => u.Email.Contains(email));
+
+        var users = await query.ToListAsync(cancellationToken);
+
+        return _mapper.Map<List<UserDto>>(users);
     }
 
-    public async Task<string> GetUserAccesses(string email)
+    public async Task<string> GetUserAccesses(string email, int appId, CancellationToken cancellationToken = default)
     {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+        if (user == null)
+            throw new KeyNotFoundException();
+
         var userAccesses = await _dbContext.UserAccesses.FirstOrDefaultAsync(
-            ua => ua.UserId == user.Id && ua.ApplicationId == user.CurrentApplicationId
+            ua => ua.UserId == user.Id && ua.ApplicationId == appId, cancellationToken
         );
 
         if (userAccesses == null)
@@ -33,23 +42,10 @@ public class UserManagementRepository : IUserManagementRepository
         return userAccesses.Access;
     }
 
-    public async Task<string> GetUserAccesses(string email, int appId)
-    {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-        var userAccesses = await _dbContext.UserAccesses.FirstOrDefaultAsync(
-            ua => ua.UserId == user.Id && ua.ApplicationId == appId
-        );
-
-        if (userAccesses == null)
-            return "";
-
-        return userAccesses.Access;
-    }
-
-    public async Task SetUserAccesses(string accesses, string userId, int appId)
+    public async Task SetUserAccesses(string accesses, string userId, int appId, CancellationToken cancellationToken = default)
     {
         var userAccesses = await _dbContext.UserAccesses.FirstOrDefaultAsync(
-            ua => ua.UserId == userId && ua.ApplicationId == appId
+            ua => ua.UserId == userId && ua.ApplicationId == appId, cancellationToken
         );
 
         if (userAccesses == null)
@@ -60,39 +56,23 @@ public class UserManagementRepository : IUserManagementRepository
                 IsActive = true,
                 Access = accesses,
                 UserId = userId,
-                ApplicationId = appId,
-                CreatedDT = DateTime.Now,
-                UpdatedDT = DateTime.Now
+                ApplicationId = appId
             });
-            await _dbContext.SaveChangesAsync();
         }
         else
         {
             userAccesses.Access = accesses;
-            await _dbContext.SaveChangesAsync();
         }
-
     }
 
-    public async Task SetCurrentApplicationId(string email, int appId)
+    public async Task<UserDto> GetUserByEmailAddress(string email, CancellationToken cancellationToken = default)
     {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-        user.CurrentApplicationId = appId;
-        await _dbContext.SaveChangesAsync();
+        return _mapper.Map<UserDto>(await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken));
     }
 
-    public ApplicationUser GetUserByEmailAddress(string email)
+    public async Task<bool> HasActiveMembership(string userId, int applicationId, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users.FirstOrDefault(u => u.Email == email);
+        return await _dbContext.UserInApplications.AnyAsync(m =>
+            m.UserId == userId && m.ApplicationId == applicationId && m.IsActive && !m.IsDeleted, cancellationToken);
     }
-
-    // public async Task CreateUserAttachment(UserAttachment userAttachment)
-    // {
-    //     throw new NotImplementedException();
-    // }
-
-    // public async Task<List<UserAttachment>> GetUserAttachments(string userId)
-    // {
-    //     throw new NotImplementedException();
-    // }
 }

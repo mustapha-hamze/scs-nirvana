@@ -12,19 +12,19 @@ public class GeneralController : BaseController
     private readonly ICultureServices _cultureServices;
     private readonly IApplicationServices _applicationServices;
     private readonly ISystemTypeServices _systemTypeServices;
-    private readonly IUserManagementServices _userManagementServices;
+    private readonly ICurrentApplicationContext _currentApplicationContext;
     #endregion
 
     // constructor
     #region constructor
     public GeneralController(ITagServices tagServices, ICultureServices cultureServices, IApplicationServices applicationServices,
-        ISystemTypeServices systemTypeServices, IUserManagementServices userManagementServices)
+        ISystemTypeServices systemTypeServices, ICurrentApplicationContext currentApplicationContext)
     {
         _applicationServices = applicationServices;
         _tagServices = tagServices;
         _cultureServices = cultureServices;
         _systemTypeServices = systemTypeServices;
-        _userManagementServices = userManagementServices;
+        _currentApplicationContext = currentApplicationContext;
     }
     #endregion
 
@@ -45,16 +45,15 @@ public class GeneralController : BaseController
     public async Task<IActionResult> SaveTagForm(TagDto tag)
     {
         //TODO: Implement Realistic Implementation
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        tag.ApplicationId = user.CurrentApplicationId;
-        await _tagServices.Create(tag);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        await _tagServices.Create(tag, currentApplicationId);
         return Content(tag.TypeId.ToString());
     }
 
-    public IActionResult TagList()
+    public async Task<IActionResult> TagList()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_tagServices.List(user.CurrentApplicationId));
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        return View(await _tagServices.List(currentApplicationId));
     }
     #endregion
 
@@ -77,9 +76,9 @@ public class GeneralController : BaseController
         return Content("Done");
     }
 
-    public IActionResult CultureList()
+    public async Task<IActionResult> CultureList()
     {
-        return View(_cultureServices.List());
+        return View(await _cultureServices.List());
     }
     #endregion
 
@@ -105,16 +104,15 @@ public class GeneralController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApplicationSettingForm(ApplicationSettingDto applicationSetting)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        applicationSetting.ApplicationId = user.CurrentApplicationId;
-        await _applicationServices.CreateApplicationSetting(applicationSetting);
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        await _applicationServices.CreateApplicationSetting(applicationSetting, currentApplicationId);
         return Content("Done");
     }
 
-    public IActionResult ApplicationSettingList()
+    public async Task<IActionResult> ApplicationSettingList()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_applicationServices.GetApplicationSetting(user.CurrentApplicationId));
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        return View(await _applicationServices.GetApplicationSetting(currentApplicationId));
     }
     #endregion
 
@@ -131,17 +129,17 @@ public class GeneralController : BaseController
     [HttpPost]
     public async Task<IActionResult> SaveSystemTypeForm(SystemTypeDto systemType)
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        systemType.ApplicationId = user.CurrentApplicationId;
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        systemType.ApplicationId = currentApplicationId;
         systemType.IsActive = true;
         await _systemTypeServices.Create(systemType);
         // return View();
         return Content("Done");
     }
-    public IActionResult SystemTypesList()
+    public async Task<IActionResult> SystemTypesList()
     {
-        var user = _userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-        return View(_systemTypeServices.List(user.CurrentApplicationId));
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        return View(await _systemTypeServices.List(currentApplicationId));
     }
     #endregion
 }

@@ -7,12 +7,13 @@
     var contentImages =
     (List<Application.Contracts.CMS.ContentImageDto>)ViewData["ContentImage"];
 
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name);
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
     if (accesses == string.Empty)
         accesses = "NULL";
 }
 
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
 
 <div class="row mt-2">
     @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_UPLOAD_IMAGES_1009"))

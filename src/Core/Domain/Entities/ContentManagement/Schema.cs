@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Domains.Entities.General;
 
 namespace Domains.Entities.ContentManagement
@@ -14,10 +12,8 @@ namespace Domains.Entities.ContentManagement
         // property
         public int ApplicationId { get; set; }
 
-        [StringLength(64)]
         public string Title { get; set; }
 
-        [StringLength(128)]
         public string LogoFileName { get; set; }
 
         public int TypeId { get; set; }

@@ -1,9 +1,10 @@
-@inject Services.GeneralServices.IApplicationServices applicationServices;
-@inject Services.UserManagementServices.IUserManagementServices userManagementServices;
+@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices;
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices;
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext;
 
 @{
-    var user = userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var app = await applicationServices.GetById(user.CurrentApplicationId);
+    var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
 }
 
 <div class="topbar container-fluid">
