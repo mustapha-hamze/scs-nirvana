@@ -1,12 +1,10 @@
-@{
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
-}
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
+@inject Web.Areas.BackOffice.Presentation.Shell.IBackOfficeShellContext ShellContext
 
-@if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_"))
+@{
+    var shell = await ShellContext.GetSnapshotAsync();
+}
+
+@if (shell.Access.HasFamilyAccess(Web.Authorization.AccessKeys.MediaAndModulesFamily))
 {
     <li class="side-nav-item">
         <a data-bs-toggle="collapse" href="#sidebarSCM" aria-expanded="false" aria-controls="sidebarSCM"
@@ -17,9 +15,9 @@
         </a>
         <div class="collapse" id="sidebarSCM">
             <ul class="side-nav-second-level">
-                @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001"))
+                @if (shell.Access.HasModuleAccess(Web.Authorization.AccessKeys.Slider.Module))
                 {
-                    <li>
+                    <li id="liSCMSlider">
                         <a href="/BackOffice/Slider/Index">Sliders</a>
                     </li>
                 }

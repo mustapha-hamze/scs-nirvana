@@ -139,6 +139,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICurrentApplicationContext, SessionCurrentApplicationContext>();
         services.AddScoped<RequireTenantContextFilter>();
         services.AddScoped<Web.Authorization.AccessKeyAuthorizer>();
+        services.AddScoped<Web.Areas.BackOffice.Presentation.Shell.IBackOfficeShellContext, Web.Areas.BackOffice.Presentation.Shell.BackOfficeShellContext>();
 
         services.AddAntiforgery(options =>
         {

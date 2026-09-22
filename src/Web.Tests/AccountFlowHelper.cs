@@ -20,7 +20,7 @@ namespace Web.Tests;
 internal static class AccountFlowHelper
 {
     public static async Task<ApplicationUser> SeedAdminUserAsync(
-        TestWebApplicationFactory factory, string email, string password)
+        WebApplicationFactory<Program> factory, string email, string password)
     {
         using var scope = factory.Services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -49,7 +49,7 @@ internal static class AccountFlowHelper
     // [Authorize(Roles = "SuperAdmin")] BackOffice action (user/role/membership/attachment
     // administration).
     public static async Task<ApplicationUser> SeedSuperAdminUserAsync(
-        TestWebApplicationFactory factory, string email, string password)
+        WebApplicationFactory<Program> factory, string email, string password)
     {
         var seeded = await SeedAdminUserAsync(factory, email, password);
 
@@ -73,7 +73,7 @@ internal static class AccountFlowHelper
     // BaseController action: seeds an active Application and an active UserInApplication
     // membership for the caller, then drives the real SelectAppToEnter flow over HTTP exactly as
     // a browser would after picking a tenant, so client's session cookie ends up carrying it.
-    public static async Task<int> SelectApplicationAsync(TestWebApplicationFactory factory, HttpClient client, ApplicationUser user)
+    public static async Task<int> SelectApplicationAsync(WebApplicationFactory<Program> factory, HttpClient client, ApplicationUser user)
     {
         int applicationId;
         using (var scope = factory.Services.CreateScope())
@@ -100,7 +100,7 @@ internal static class AccountFlowHelper
     // Logs in over real HTTP and returns a client whose default "X-CSRF-TOKEN" header carries a
     // valid antiforgery request token pairing the cookie the login page issued - the same
     // convention the BackOffice's own AJAX calls use (see _Layout.cshtml's $.ajaxSetup).
-    public static async Task<HttpClient> LoginAsync(TestWebApplicationFactory factory, string email, string password)
+    public static async Task<HttpClient> LoginAsync(WebApplicationFactory<Program> factory, string email, string password)
     {
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
@@ -130,7 +130,7 @@ internal static class AccountFlowHelper
     // as AccountController.SetAccessForUser (SuperAdmin-only) would - through the real
     // IUserManagementServices.SetUserAccesses port, not a raw DbContext write, so this stays a
     // faithful stand-in for how the app itself grants access.
-    public static async Task GrantAccessAsync(TestWebApplicationFactory factory, ApplicationUser user, int applicationId, string accesses)
+    public static async Task GrantAccessAsync(WebApplicationFactory<Program> factory, ApplicationUser user, int applicationId, string accesses)
     {
         using var scope = factory.Services.CreateScope();
         var userManagementServices = scope.ServiceProvider.GetRequiredService<Application.UseCases.UserManagementServices.IUserManagementServices>();

@@ -1,10 +1,7 @@
-@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices;
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices;
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext;
+@inject Web.Areas.BackOffice.Presentation.Shell.IBackOfficeShellContext ShellContext
 
 @{
-    var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
+    var shell = await ShellContext.GetSnapshotAsync();
 }
 
 <div class="topbar container-fluid">
@@ -31,7 +28,7 @@
                     <img src="/BackOffice/images/users/avatar-1.jpg" alt="user-image" width="32" class="rounded-circle">
                 </span>
                 <span class="d-lg-flex flex-column gap-1 d-none">
-                    <h5 class="my-0">@user.FirstName @user.LastName</h5>
+                    <h5 class="my-0">@shell.UserDisplayName</h5>
                     <h6 class="my-0 fw-normal">Admin</h6>
                 </span>
             </a>
@@ -39,10 +36,7 @@
                 <div class=" dropdown-header noti-title">
                     <h6 class="text-overflow m-0">Welcome !</h6>
                 </div>
-                @{
-                    var userApps = await applicationServices.GetUserApplications(User.Identity.Name);
-                }
-                @if (User.IsInRole("SuperAdmin") || userApps.Count > 1)
+                @if (shell.IsSuperAdmin || shell.HasMultipleApplications)
                 {
                     <a href="/BackOffice/Application/SelectApp" class="dropdown-item notify-item">
                         <i class="mdi mdi-refresh me-1"></i>

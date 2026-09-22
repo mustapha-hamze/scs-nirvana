@@ -1,10 +1,7 @@
-@* @inject Application.UseCases.GeneralServices.IZoneServices zoneServices; *@
-@inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices;
-@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices;
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext;
+@inject Web.Areas.BackOffice.Presentation.Shell.IBackOfficeShellContext ShellContext
 
 @{
-    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
+    var shell = await ShellContext.GetSnapshotAsync();
 }
 
 <!-- LOGO -->
@@ -23,7 +20,7 @@
     <ul class="side-nav">
 
         <li class="side-nav-title side-nav-item">
-            <h5>@app.Title</h5>
+            <h5>@shell.ApplicationTitle</h5>
         </li>
         <li class="side-nav-title side-nav-item">Navigation</li>
 
@@ -40,7 +37,7 @@
 
         @await Html.PartialAsync("_SideBarSCM")
 
-        @if (User.IsInRole("SuperAdmin"))
+        @if (shell.IsSuperAdmin)
         {
             <li class="side-nav-title side-nav-item">Settings</li>
         }
