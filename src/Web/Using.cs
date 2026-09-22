@@ -25,7 +25,6 @@ global using System.Diagnostics;
 global using Infrastructure.Data;
 global using AutoMapper;
 global using Domains.Entities.CustomModule;
-global using System.Security.Claims;
 global using System.ComponentModel.DataAnnotations;
 global using Application.CQRS.Queries.ContentManagement.Category;
 global using Web.Services.FileUpload;

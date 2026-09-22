@@ -331,115 +331,17 @@ public class AccountController : BaseController
     [AllowAnonymous]
     [SkipTenantContextCheck]
     [Route("/Login")]
-    public async Task<IActionResult> Login()
+    public IActionResult Login()
     {
-        var loginModel = new UserLoginDto
-        {
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
-        };
-        return View(loginModel);
-    }
-
-    [AllowAnonymous]
-    [SkipTenantContextCheck]
-    [Route("/{area}/ExternalLogin/{provider}")]
-    public IActionResult ExternalLogin(string provider)
-    {
-        var redirectUrl = Url.Action("ExternalLoginCallBack", "Account");
-        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-        return new ChallengeResult(provider, properties);
-    }
-
-    [AllowAnonymous]
-    [SkipTenantContextCheck]
-    [HttpGet]
-    public async Task<IActionResult> ExternalLoginCallBack(string remoteError = null)
-    {
-        var loginModel = new UserLoginDto
-        {
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
-        };
-
-        if (remoteError != null)
-        {
-            ModelState.AddModelError(string.Empty, $"Error from google login: {remoteError}");
-            return View("Login", loginModel);
-        }
-
-        var info = await _signInManager.GetExternalLoginInfoAsync();
-        if (info == null)
-        {
-            ModelState.AddModelError(string.Empty, "Error loading external login information.");
-            return View("Login", loginModel);
-        }
-
-        var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider,
-            info.ProviderKey, true, true);
-
-        if (signInResult.Succeeded)
-        {
-            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user.IsApprove)
-            {
-                CookieOptions option = new();
-                option.Expires = DateTime.Now.AddDays(1);
-                Response.Cookies.Append("UserIsApprove", "true", option);
-                return Redirect("/BackOffice/Application/SelectApp");
-            }
-            else
-            {
-                CookieOptions option = new();
-                option.Expires = DateTime.Now.AddDays(1);
-                Response.Cookies.Append("UserIsApprove", "false", option);
-
-                return Redirect("/WaitingForApproval");
-            }
-        }
-        else
-        {
-            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-
-            if (email != null)
-            {
-                var user = await _userManager.FindByEmailAsync(email);
-
-                if (user == null)
-                {
-                    user = new ApplicationUser
-                    {
-                        UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
-                        Email = info.Principal.FindFirstValue(ClaimTypes.Email),
-                        IsAdminUser = true,
-                        IsApprove = false
-                    };
-                    await _userManager.CreateAsync(user);
-                }
-
-                await _userManager.AddLoginAsync(user, info);
-                await _signInManager.SignInAsync(user, true);
-
-                CookieOptions option = new();
-                option.Expires = DateTime.Now.AddDays(1);
-                Response.Cookies.Append("UserIsApprove", "false", option);
-
-                return Redirect("/WaitingForApproval");
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Google login isn't available, please contact support on info@entralon.com");
-                return View("Login", loginModel);
-            }
-        }
+        return View(new UserLoginDto());
     }
 
     [AllowAnonymous]
     [SkipTenantContextCheck]
     [Route("/Login")]
     [HttpPost]
-    public async Task<IActionResult> Login(UserLoginDto userLogin, string _password = "")
+    public async Task<IActionResult> Login(UserLoginDto userLogin)
     {
-        userLogin.ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         if (!ModelState.IsValid)
             return View(userLogin);
 
