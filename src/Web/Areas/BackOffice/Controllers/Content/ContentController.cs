@@ -1,6 +1,7 @@
 using Application.ContentManagement;
 using Application.UseCases.TranslatorServices;
 using Microsoft.AspNetCore.Http;
+using Web.Areas.BackOffice.Presentation.Shell;
 
 namespace Web.Areas.BackOffice.Controllers;
 
@@ -26,6 +27,7 @@ public partial class ContentController : BaseController
     private readonly IContentTranslator _contentTranslator;
     private readonly IFileUploadService _fileUploadService;
     private readonly AccessKeyAuthorizer _accessKeyAuthorizer;
+    private readonly IBackOfficeShellContext _shellContext;
 
     public ContentController(IContentServices contentServices, ISchemaServices schemaServices,
         ICategoryServices categoryServices,
@@ -33,7 +35,7 @@ public partial class ContentController : BaseController
         IApplicationServices applicationServices, ISystemTypeServices systemTypeServices,
         ICurrentApplicationContext currentApplicationContext, IContentTranslator contentTranslator,
         IContentProvider contentProvider, IFileUploadService fileUploadService,
-        AccessKeyAuthorizer accessKeyAuthorizer)
+        AccessKeyAuthorizer accessKeyAuthorizer, IBackOfficeShellContext shellContext)
     {
         _applicationServices = applicationServices;
         _contentServices = contentServices;
@@ -48,6 +50,7 @@ public partial class ContentController : BaseController
         _contentProvider = contentProvider;
         _fileUploadService = fileUploadService;
         _accessKeyAuthorizer = accessKeyAuthorizer;
+        _shellContext = shellContext;
     }
 
     // ContentForm/SaveContentForm serve both create and edit through one action (see .Forms.cs),

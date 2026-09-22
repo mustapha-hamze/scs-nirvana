@@ -42,6 +42,12 @@ public static class AccessKeys
         public const string PreviewImages = "CMS1000_1001_PREVIEW_IMAGES_1008";
         public const string UploadImages = "CMS1000_1001_UPLOAD_IMAGES_1009";
 
+        // Content form's "Attachments" tab (Views/Content/_ContentFormTabs.cshtml /
+        // _ContentFormTabsBody.cshtml) - the tab/panel exist and are gated by this key, but no
+        // controller action or client script ever populates the panel. Preserved exactly as-is;
+        // not a Web Phase 4 regression, and out of scope to wire up.
+        public const string PreviewAttachments = "CMS1000_1001_ATTACHMENT_1013";
+
         public const string PreviewRelations = "CMS1000_1001_PREVIEW_RELATIONS_1010";
         public const string SaveRelations = "CMS1000_1001_SAVE_RELATIONS_1011";
 

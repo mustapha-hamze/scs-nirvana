@@ -1,3 +1,5 @@
+using Web.Areas.BackOffice.Features.Content.ViewModels;
+
 namespace Web.Areas.BackOffice.Controllers;
 
 // Content forms/lifecycle: the entry list, the create/edit form, saving it, and active-mode
@@ -7,10 +9,17 @@ public partial class ContentController
     [HttpGet]
     [RequireAccess(AccessKeys.Content.Module)]
     [Route("/{area}/{controller}/Index/{id}")]
-    public IActionResult Index(int id)
+    public async Task<IActionResult> Index(int id)
     {
-        ViewData["TypeId"] = id;
-        return View();
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var shell = await _shellContext.GetSnapshotAsync();
+        var typeTitle = shell.ContentTypes.FirstOrDefault(t => t.Id == id)?.Title
+            ?? shell.AppPages.FirstOrDefault(p => p.PageType == id.ToString())?.Title
+            ?? "Content";
+        var canCreateContent = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.Add);
+
+        ViewData["Title"] = typeTitle;
+        return View(new ContentIndexViewModel(id, typeTitle, canCreateContent));
     }
 
     // Shared by two UI entry points with different keys (_CreateContentButton.cshtml's Add vs.
@@ -23,26 +32,64 @@ public partial class ContentController
         if (await DenyIfMissingAccessAsync(id == 0 ? AccessKeys.Content.Add : AccessKeys.Content.Edit) is IActionResult deny)
             return deny;
 
-        ViewData["TypeId"] = typeId;
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var shell = await _shellContext.GetSnapshotAsync();
 
-        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(currentApplicationId, TypeId.Content);
-
+        ContentDto content;
+        string websiteUrl = null;
         if (id != 0)
         {
-            var content = await _contentServices.GetById(id, currentApplicationId);
+            content = await _contentServices.GetById(id, currentApplicationId);
             var appSetting = await _applicationServices.GetApplicationSetting(currentApplicationId, 5000);
-            ViewData["WebsiteUrl"] = appSetting[0].Value;
-            return View(content);
+            websiteUrl = appSetting[0].Value;
         }
         else
         {
-            return View(new ContentDto
+            content = new ContentDto
             {
                 TypeId = typeId,
                 PublishDt = DateTime.Now // Set default publish date to now
-            });
+            };
         }
+
+        var canSaveOrUpdateContent = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, id == 0 ? AccessKeys.Content.Save : AccessKeys.Content.Update);
+        var canChangeActivity = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.ChangeActivity);
+        var canPreviewBody = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewBody);
+        var canPreviewImages = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewImages);
+        var canPreviewAttachments = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewAttachments);
+        var canPreviewRelations = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewRelations);
+        var canPreviewMetadata = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewMetadata);
+
+        var model = new ContentFormViewModel
+        {
+            Id = content.Id,
+            ApplicationId = content.ApplicationId,
+            TypeId = content.TypeId,
+            Title = content.Title,
+            HeadLine = content.HeadLine,
+            Abstract = content.Abstract,
+            Description = content.Description,
+            Categories = content.Categories,
+            Tags = content.Tags,
+            Cultures = content.Cultures,
+            PublishDt = content.PublishDt,
+            Status = content.Status,
+            IsDeleted = content.IsDeleted,
+            IsActive = content.IsActive,
+            UpdatedDT = content.UpdatedDT,
+            CreatedDT = content.CreatedDT,
+            Types = shell.ContentTypes,
+            RouteTypeId = typeId,
+            WebsiteUrl = websiteUrl,
+            CanSaveOrUpdateContent = canSaveOrUpdateContent,
+            CanChangeActivity = canChangeActivity,
+            CanPreviewBody = canPreviewBody,
+            CanPreviewImages = canPreviewImages,
+            CanPreviewAttachments = canPreviewAttachments,
+            CanPreviewRelations = canPreviewRelations,
+            CanPreviewMetadata = canPreviewMetadata,
+        };
+        return View(model);
     }
 
     // Same shared-action reasoning as ContentForm above (SAVE_1003 for a new content vs.
@@ -79,8 +126,23 @@ public partial class ContentController
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var contents = (await _contentServices.List(currentApplicationId)).Where(c => c.TypeId == id).ToList();
-        ViewData["Types"] = await _systemTypeServices.GetTypesInTypeGroup(currentApplicationId, TypeId.Content);
-        return View(contents);
+        var shell = await _shellContext.GetSnapshotAsync();
+        var canEdit = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.Edit);
+        var canDelete = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.Delete);
+
+        var items = contents.Select(c => new ContentListItemViewModel
+        {
+            Id = c.Id,
+            Title = c.Title,
+            TypeId = c.TypeId,
+            TypeTitle = shell.ContentTypes.FirstOrDefault(t => t.Id == c.TypeId)?.Title,
+            IsActive = c.IsActive,
+            CreatedDT = c.CreatedDT,
+            CanEdit = canEdit,
+            CanDelete = canDelete,
+        }).ToList();
+
+        return View(new ContentListViewModel { Items = items });
     }
 
     [HttpPost]

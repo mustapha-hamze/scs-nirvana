@@ -1,11 +1,8 @@
-@using ZXing.QrCode.Internal
-@model Application.Contracts.CMS.ContentDto
+@model ContentFormViewModel
 
 @{
-    var types = (List<Application.Contracts.General.SystemTypeDto>)ViewData["Types"];
-
     var publishDateTime = Model.PublishDt.ToString("yyyy-MM-dd HH:mm");
-    bool isNew = Model.Id == 0;
+    bool isNew = Model.IsNew;
     ViewData["Title"] = isNew ? "New Content" : "Edit Content";
 }
 
@@ -69,15 +66,13 @@
                     <label class="form-label" asp-for="TypeId">Type</label>
                     <select id="ddlContentTypeIds__Form" type="text" class="form-control" asp-for="TypeId"
                             placeholder="Title">
-                        @* <option value="@ViewData["TypeId"]">Pages</option> *@
-
                         @if (Model.TypeId.ToString().Contains("100"))
                         {
                             <option value="@Model.TypeId">Page</option>
                         }
                         else
                         {
-                            foreach (SystemTypeDto item in types)
+                            foreach (var item in Model.Types)
                             {
                                 <option value="@item.Id">@item.Title</option>
                             }
@@ -117,10 +112,9 @@
                 </div>
                 <div class="col-md-12 d-flex flex-wrap align-items-center gap-2 border-top pt-3 mt-2">
                     @await Html.PartialAsync("_ContentFormSaveButton", Model)
-                    @if (Model.Id != 0)
+                    @if (!Model.IsNew)
                     {
-                        string contentPreviewUrl = ViewData["WebsiteUrl"].ToString() + "/" + Model.Id;
-                        <a class="btn btn-info mt-2" href="@contentPreviewUrl" target="_blank" title="Open in a new tab">
+                        <a class="btn btn-info mt-2" href="@Model.ContentPreviewUrl" target="_blank" title="Open in a new tab">
                             <i class="mdi mdi-eye-outline"></i>
                             Preview Content
                         </a>
@@ -133,7 +127,7 @@
 </div>
 <script src="/BackOffice/vendor/quill/quill.min.js"></script>
 <script src="/BackOffice/js/features/content.js"></script>
-<input type="hidden" name="" id="hidTypeIdContent_Form" value="@ViewData["TypeId"]">
+<input type="hidden" name="" id="hidTypeIdContent_Form" value="@Model.RouteTypeId">
 @section Scripts {
     <script>
         $(document).ready(function () {

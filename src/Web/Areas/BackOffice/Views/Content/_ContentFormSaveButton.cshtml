@@ -1,17 +1,11 @@
+@model ContentFormViewModel
 @{
     Layout = null;
-
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
 }
 
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-
-@if (Model != null)
+@if (!Model.IsNew)
 {
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_UPDATE_1001"))
+    @if (Model.CanSaveOrUpdateContent)
     {
         <button type="submit" id="btnSaveContentForm"
             onclick="$('#textAreaDescription').val($('#__descriptionEditor__ .ql-editor').html());$('#textAreaDescriptionFA').val($('#__descriptionEditorFA__ .ql-editor').html())"
@@ -19,7 +13,7 @@
             <i class="uil uil-file-check-alt"></i> Save Content
         </button>
     }
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_CHANGE_ACTIVITY_1004"))
+    @if (Model.CanChangeActivity)
     {
         @if (Model.IsActive)
         {
@@ -41,7 +35,7 @@
 }
 else
 {
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_SAVE_1003"))
+    @if (Model.CanSaveOrUpdateContent)
     {
         <button type="submit" id="btnSaveContentForm"
             onclick="$('#textAreaDescription').val($('#__descriptionEditor__ .ql-editor').html());$('#textAreaDescriptionFA').val($('#__descriptionEditorFA__ .ql-editor').html())"

@@ -1,27 +1,15 @@
+@model ContentImagesViewModel
 @{
     Layout = null;
-    var contentImageAspectRatio =
-    (List<Application.Contracts.General.ApplicationSettingDto>)ViewData["ContentImageAspectRatio"];
-    var contentImageSizes =
-    (List<Application.Contracts.General.ApplicationSettingDto>)ViewData["ContentImageSizes"];
-    var contentImages =
-    (List<Application.Contracts.CMS.ContentImageDto>)ViewData["ContentImage"];
-
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
 }
 
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-
 <div class="row mt-2">
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_UPLOAD_IMAGES_1009"))
+    @if (Model.CanUploadImages)
     {
         <div class="col-md-4">
             <select class="form-control" name="" id="ddlImageSetting">
                 <option value="0">Chose image setting</option>
-                @foreach (var item in contentImageSizes)
+                @foreach (var item in Model.ContentImageSizes)
                 {
                     <option value="@item.Id">@item.Title</option>
                 }
@@ -33,13 +21,13 @@
     }
     <div class="col-md-12 mb-2 mt-3">
         <div class="alert alert-warning">Content image aspect ratio must be :
-            @contentImageAspectRatio[0].Value
+            @Model.ContentImageAspectRatio[0].Value
         </div>
     </div>
     <div class="col-md-12">
         <div class="alert alert-info">
             <h5>Content image sizes</h5>
-            @foreach (var item in contentImageSizes)
+            @foreach (var item in Model.ContentImageSizes)
             {
                 <div class="row">
                     <div class="col-md-6">@item.Title</div>
@@ -49,14 +37,11 @@
         </div>
     </div>
     <div class="row" id="__contentImagePlaceHolder__">
-        @if (contentImages != null)
+        @foreach (var item in Model.ContentImages)
         {
-            foreach (var item in contentImages)
-            {
-                <div class="col-md-3 p-2">
-                    <img src="/Storage/Content/Image/@item.ContentId/@item.ImageFileName" class="w-100" />
-                </div>
-            }
+            <div class="col-md-3 p-2">
+                <img src="/Storage/Content/Image/@item.ContentId/@item.ImageFileName" class="w-100" />
+            </div>
         }
     </div>
 </div>

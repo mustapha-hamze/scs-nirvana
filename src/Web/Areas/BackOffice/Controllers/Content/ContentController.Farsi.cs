@@ -1,4 +1,5 @@
 using Web.Areas.BackOffice.Features.Content;
+using Web.Areas.BackOffice.Features.Content.ViewModels;
 
 namespace Web.Areas.BackOffice.Controllers;
 
@@ -17,12 +18,24 @@ public partial class ContentController
         if (englishContent == null)
             return NotFound();
 
-        ViewData["TypeId"] = typeId;
-
         var (source, usedEnglishFallback) = FarsiContentMapper.GetEditSource(englishContent);
-        ViewBag.FarsiInitializedFromEnglish = usedEnglishFallback;
+        var dto = FarsiContentMapper.ToEditDto(source);
 
-        return View(FarsiContentMapper.ToEditDto(source));
+        var model = new FarsiContentFormPageModel
+        {
+            Id = dto.Id,
+            ApplicationId = dto.ApplicationId,
+            TypeId = typeId, // the route value - preserves the prior ViewData["TypeId"] behavior exactly
+            Title = dto.Title,
+            HeadLine = dto.HeadLine,
+            Abstract = dto.Abstract,
+            Description = dto.Description,
+            PublishDt = dto.PublishDt,
+            Metadata = dto.Metadata,
+            Sections = dto.Sections,
+            FarsiInitializedFromEnglish = usedEnglishFallback,
+        };
+        return View(model);
     }
 
     [HttpPost]

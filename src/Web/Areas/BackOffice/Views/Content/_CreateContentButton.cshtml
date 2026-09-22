@@ -1,14 +1,9 @@
+@model bool
 @{
     Layout = null;
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
 }
 
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-
-@if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_ADD_1000"))
+@if (Model)
 {
     <a class="btn btn-primary" href="javascript:void(0)" onclick="createNewContent()">
         <i class="uil uil-plus"></i>

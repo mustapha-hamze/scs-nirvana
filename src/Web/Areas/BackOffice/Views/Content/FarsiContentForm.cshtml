@@ -1,4 +1,4 @@
-@model Web.Areas.BackOffice.Features.Content.Contracts.FarsiContentEditDto
+@model FarsiContentFormPageModel
 
 @section Styles {
     <link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
@@ -25,7 +25,7 @@
     </div>
 </div>
 
-@if (ViewBag.FarsiInitializedFromEnglish == true)
+@if (Model.FarsiInitializedFromEnglish)
 {
     <div class="alert alert-info mt-2" role="alert">
         Farsi content was not found (or was invalid). The fields below have been pre-filled from the English
@@ -193,7 +193,7 @@
 
 <script src="/BackOffice/vendor/quill/quill.min.js"></script>
 <script src="/BackOffice/js/features/content.js"></script>
-<input type="hidden" id="hidTypeIdContent_Form" value="@ViewData["TypeId"]">
+<input type="hidden" id="hidTypeIdContent_Form" value="@Model.TypeId">
 
 @section Scripts {
     <script>

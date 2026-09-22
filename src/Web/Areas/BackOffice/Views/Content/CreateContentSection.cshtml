@@ -1,19 +1,17 @@
-@using Microsoft.JSInterop.Infrastructure
+@model CreateContentSectionViewModel
 @{
     Layout = null;
     string sectionElementId = Guid.NewGuid().ToString();
 }
 
-@model List<Application.Contracts.CMS.SchemaDetailsDto>
-
-<div class="row mb-2 border pt-2 pb-1" sectionId="0" priority='@ViewData["Priority"]' id="sectionDiv-@sectionElementId">
+<div class="row mb-2 border pt-2 pb-1" sectionId="0" priority='@Model.Priority' id="sectionDiv-@sectionElementId">
     <div class="text-end">
         <button type="button" onclick="removeBodySection('sectionDiv-@sectionElementId')"
             class="btn btn-xs btn-outline-danger btn-rounded remove-section-button">
             <i class="mdi mdi-delete"></i>
         </button>
     </div>
-    @foreach (var item in Model)
+    @foreach (var item in Model.SchemaDetails)
     {
         string elementRandomId = Guid.NewGuid().ToString();
 

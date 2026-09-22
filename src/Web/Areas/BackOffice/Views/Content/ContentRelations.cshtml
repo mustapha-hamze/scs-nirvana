@@ -1,18 +1,7 @@
+@model ContentRelationsViewModel
 @{
     Layout = null;
-    var tags = (List<Application.Contracts.General.TagDto>)ViewData["Tags"];
-    var categories = (List<Application.Contracts.CMS.CategoryDto>)ViewData["Categories"];
-    var cultures = (List<Application.Contracts.General.CultureDto>)ViewData["Cultures"];
-
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
 }
-
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-
-@model Application.Contracts.CMS.ContentDto
 
 <div class="row">
     <div class="col-md-12">
@@ -22,12 +11,9 @@
         <div class="col-md-12 mb-2">
             <select class="form-control select2 select2-multiple" data-toggle="select2" multiple="multiple"
                 data-placeholder="Choose ..." id="__Select2_Categories__">
-                @if (categories != null)
+                @foreach (var item in Model.Categories)
                 {
-                    foreach (var item in categories)
-                    {
-                        <option value="@item.Id">@item.Title</option>
-                    }
+                    <option value="@item.Id">@item.Title</option>
                 }
             </select>
         </div>
@@ -41,12 +27,9 @@
         <div class="col-md-12 mb-2">
             <select class="form-control select2 select2-multiple" data-toggle="select2" multiple="multiple"
                 data-placeholder="Choose ..." id="__Select2_Tags__">
-                @if (tags != null)
+                @foreach (var item in Model.Tags)
                 {
-                    foreach (var item in tags)
-                    {
-                        <option value="@item.Id">@item.Title</option>
-                    }
+                    <option value="@item.Id">@item.Title</option>
                 }
             </select>
         </div>
@@ -60,18 +43,15 @@
         <div class="col-md-12 mb-2">
             <select class="form-control select2 select2-multiple" data-toggle="select2" multiple="multiple"
                 data-placeholder="Choose ..." id="__Select2_Cultures__">
-                @if (cultures != null)
+                @foreach (var item in Model.Cultures)
                 {
-                    foreach (var item in cultures)
-                    {
-                        <option value="@item.Id">@item.Title</option>
-                    }
+                    <option value="@item.Id">@item.Title</option>
                 }
             </select>
         </div>
     </div>
 </div>
-@if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_SAVE_RELATIONS_1011"))
+@if (Model.CanSaveRelations)
 {
     <div class="row mt-2">
     <div class="col-md-12">
@@ -82,9 +62,6 @@
 </div>
 }
 
-@if (Model != null)
-{
-    <input type="hidden" id="hidCategoriesRelated" value="@Model.Categories">
-    <input type="hidden" id="hidTagsRelated" value="@Model.Tags">
-    <input type="hidden" id="hidCulturesRelated" value="@Model.Cultures">
-}
+<input type="hidden" id="hidCategoriesRelated" value="@Model.CategoriesRelated">
+<input type="hidden" id="hidTagsRelated" value="@Model.TagsRelated">
+<input type="hidden" id="hidCulturesRelated" value="@Model.CulturesRelated">

@@ -1,3 +1,5 @@
+using Web.Areas.BackOffice.Features.Content.ViewModels;
+
 namespace Web.Areas.BackOffice.Controllers;
 
 // Uploads/images: content body images/files/galleries used by the section editor, and the
@@ -13,10 +15,18 @@ public partial class ContentController
     public async Task<IActionResult> ContentImages(int contentId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        ViewData["ContentImageAspectRatio"] = await _applicationServices.GetApplicationSetting(currentApplicationId, 1001);
-        ViewData["ContentImageSizes"] = await _applicationServices.GetApplicationSetting(currentApplicationId, 1000);
-        ViewData["ContentImage"] = await _contentServices.GetAllContentImages(contentId, currentApplicationId);
-        return View();
+        var aspectRatio = await _applicationServices.GetApplicationSetting(currentApplicationId, 1001);
+        var sizes = await _applicationServices.GetApplicationSetting(currentApplicationId, 1000);
+        var images = await _contentServices.GetAllContentImages(contentId, currentApplicationId);
+        var canUploadImages = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.UploadImages);
+
+        return View(new ContentImagesViewModel
+        {
+            ContentImageAspectRatio = aspectRatio,
+            ContentImageSizes = sizes,
+            ContentImages = images,
+            CanUploadImages = canUploadImages,
+        });
     }
 
     [HttpPost]

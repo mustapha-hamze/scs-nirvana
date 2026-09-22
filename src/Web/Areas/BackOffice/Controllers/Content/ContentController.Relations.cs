@@ -1,3 +1,5 @@
+using Web.Areas.BackOffice.Features.Content.ViewModels;
+
 namespace Web.Areas.BackOffice.Controllers;
 
 // Relations (categories/tags/cultures) and metadata (SEO title/author/keywords/description).
@@ -9,11 +11,23 @@ public partial class ContentController
     public async Task<IActionResult> ContentRelations(int contentId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        ViewData["Categories"] = await _categoryServices.GetAllFullPath(currentApplicationId);
-        ViewData["Tags"] = await _tagServices.FindTagsByTypeId(currentApplicationId, TypeId.Content);
-        ViewData["Cultures"] = await _cultureServices.List();
+        var categories = await _categoryServices.GetAllFullPath(currentApplicationId);
+        var tags = await _tagServices.FindTagsByTypeId(currentApplicationId, TypeId.Content);
+        var cultures = await _cultureServices.List();
         var content = await _contentServices.GetById(contentId, currentApplicationId);
-        return View(content);
+        var canSaveRelations = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.SaveRelations);
+
+        return View(new ContentRelationsViewModel
+        {
+            ContentId = contentId,
+            CategoriesRelated = content.Categories,
+            TagsRelated = content.Tags,
+            CulturesRelated = content.Cultures,
+            Categories = categories,
+            Tags = tags,
+            Cultures = cultures,
+            CanSaveRelations = canSaveRelations,
+        });
     }
 
     [HttpGet]
@@ -24,8 +38,23 @@ public partial class ContentController
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var contentMetadata = await _contentServices.GetContentMetadata(contentId, currentApplicationId);
         contentMetadata.ContentId = contentId;
+        var canSaveMetadata = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.SaveMetadata);
 
-        return View(contentMetadata);
+        return View(new ContentMetadataPageModel
+        {
+            Id = contentMetadata.Id,
+            ContentId = contentMetadata.ContentId,
+            Title = contentMetadata.Title,
+            Author = contentMetadata.Author,
+            Keywords = contentMetadata.Keywords,
+            Description = contentMetadata.Description,
+            Status = contentMetadata.Status,
+            IsDeleted = contentMetadata.IsDeleted,
+            IsActive = contentMetadata.IsActive,
+            UpdatedDT = contentMetadata.UpdatedDT,
+            CreatedDT = contentMetadata.CreatedDT,
+            CanSaveMetadata = canSaveMetadata,
+        });
     }
 
     [HttpPost]

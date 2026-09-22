@@ -1,9 +1,7 @@
+@model ContentListViewModel
 @{
     Layout = null;
-    var types = (List<Application.Contracts.General.SystemTypeDto>)ViewData["Types"];
 }
-
-@model List<Application.Contracts.CMS.ContentDto>
 
 <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
     <thead>
@@ -17,7 +15,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Items)
         {
             <tr>
                 <td>@item.Id</td>
@@ -32,13 +30,9 @@
                     }
                 </td>
                 <td>
-                    @{
-                        var typeTitle = types.Where(t => t.Id == item.TypeId).ToList();
-
-                        if (typeTitle.Count > 0)
-                        {
-                            <span>@typeTitle[0].Title</span>
-                        }
+                    @if (!string.IsNullOrEmpty(item.TypeTitle))
+                    {
+                        <span>@item.TypeTitle</span>
                     }
                 </td>
                 <td>
@@ -53,10 +47,7 @@
                 </td>
                 <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
                 <td>
-                    @{
-                        ViewData["PartialData"] = item.Id.ToString() + "," + item.TypeId.ToString();
-                    }
-                    @await Html.PartialAsync("_ContentListActionsButton", ViewData["PartialData"])
+                    @await Html.PartialAsync("_ContentListActionsButton", item)
                 </td>
             </tr>
         }

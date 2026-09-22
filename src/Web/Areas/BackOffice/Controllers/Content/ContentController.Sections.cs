@@ -1,5 +1,7 @@
 using Web.Areas.BackOffice.Features.Content;
 
+using Web.Areas.BackOffice.Features.Content.ViewModels;
+
 namespace Web.Areas.BackOffice.Controllers;
 
 // Sections/layout: the schema-driven section editor, creating/updating/deleting sections and
@@ -19,9 +21,18 @@ public partial class ContentController
             schemaTypeId = 1001;
 
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        ViewData["Schemas"] = await _schemaServices.List(currentApplicationId, schemaTypeId);
-        ViewData["Sections"] = await _contentServices.GetSections(contentId, currentApplicationId);
-        return View();
+        var schemas = await _schemaServices.List(currentApplicationId, schemaTypeId);
+        var sections = await _contentServices.GetSections(contentId, currentApplicationId);
+        var priority = sections.Count > 0 ? sections[^1].Priority + 1 : 0;
+        var canSaveBody = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.SaveBody);
+
+        return View(new ContentSectionsViewModel
+        {
+            Schemas = schemas,
+            Sections = sections,
+            Priority = priority,
+            CanSaveBody = canSaveBody,
+        });
     }
 
     [HttpGet]
@@ -30,9 +41,8 @@ public partial class ContentController
     public async Task<IActionResult> CreateContentSection(int schemaId, int priority)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        ViewData["Priority"] = priority;
         var schemaDetails = await _schemaServices.DetailsList(schemaId, currentApplicationId);
-        return View(schemaDetails);
+        return View(new CreateContentSectionViewModel { SchemaDetails = schemaDetails, Priority = priority });
     }
 
     [HttpPost]
