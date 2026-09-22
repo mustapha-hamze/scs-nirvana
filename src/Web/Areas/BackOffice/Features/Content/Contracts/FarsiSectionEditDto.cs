@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Web.Models.CMS
+namespace Web.Areas.BackOffice.Features.Content.Contracts
 {
     public class FarsiSectionEditDto
     {

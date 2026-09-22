@@ -73,7 +73,7 @@ internal static class AccountFlowHelper
     // BaseController action: seeds an active Application and an active UserInApplication
     // membership for the caller, then drives the real SelectAppToEnter flow over HTTP exactly as
     // a browser would after picking a tenant, so client's session cookie ends up carrying it.
-    public static async Task SelectApplicationAsync(TestWebApplicationFactory factory, HttpClient client, ApplicationUser user)
+    public static async Task<int> SelectApplicationAsync(TestWebApplicationFactory factory, HttpClient client, ApplicationUser user)
     {
         int applicationId;
         using (var scope = factory.Services.CreateScope())
@@ -93,6 +93,8 @@ internal static class AccountFlowHelper
         if (response.StatusCode != HttpStatusCode.Redirect || response.Headers.Location?.OriginalString != "/BackOffice/Home/Index")
             throw new InvalidOperationException(
                 $"Failed to select application context; got {response.StatusCode} -> {response.Headers.Location}");
+
+        return applicationId;
     }
 
     // Logs in over real HTTP and returns a client whose default "X-CSRF-TOKEN" header carries a

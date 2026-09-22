@@ -19,7 +19,7 @@ global using Web.Models.UserManagement;
 global using Microsoft.AspNetCore.Identity;
 global using Web.Areas.BackOffice.Models;
 global using Application.UseCases.Utilities.ApplicationFunctions;
-global using Web.Models.CMS;
+global using Web.Areas.BackOffice.Features.Content.Contracts;
 global using Application.UseCases.Utilities.ApplicationConst;
 global using System.Diagnostics;
 global using Infrastructure.Data;
