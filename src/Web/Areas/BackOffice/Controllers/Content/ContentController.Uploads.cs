@@ -7,6 +7,7 @@ public partial class ContentController
     private static readonly string[] AllowedBodyFileExtensions =
         { "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip", "csv", "txt" };
 
+    [HttpGet]
     [Route("/{area}/Content/ContentImages/{contentId}")]
     public async Task<IActionResult> ContentImages(int contentId)
     {

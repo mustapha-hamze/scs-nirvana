@@ -17,6 +17,7 @@ public class HomeController : BaseController
         _mapper = mapper;
     }
 
+    [HttpGet]
     public IActionResult Index()
     {
         return View();

@@ -48,7 +48,8 @@ public class AccountController : BaseController
     // User administration (listing every user, editing another user's profile, or flipping
     // IsAdminUser/IsApprove) is privileged, global administration - same rationale as role and
     // membership administration above.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     public IActionResult Users()
     {
         return View();
@@ -58,14 +59,15 @@ public class AccountController : BaseController
     // itself) - is privileged, global (not tenant-scoped) administration. Authentication plus a
     // selected-tenant membership must never be enough; the "User Management" sidebar section
     // already hides this from non-SuperAdmins client-side, this is what actually enforces it.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     public IActionResult Roles()
     {
         var roles = _roleManager.Roles.ToList();
         return View(roles);
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     public async Task<IActionResult> Roles(string RoleName)
     {
@@ -73,7 +75,7 @@ public class AccountController : BaseController
         return Redirect("/BackOffice/Account/Roles");
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     [Route("/{area}/Account/AddUserToRole/{userId}/{roleName}")]
     public async Task<IActionResult> AddUserToRole(string userId, string roleName)
@@ -86,7 +88,7 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     [Route("/{area}/Account/RemoveUserFromRole/{userId}/{roleName}")]
     public async Task<IActionResult> RemoveUserFromRole(string userId, string roleName)
@@ -103,7 +105,7 @@ public class AccountController : BaseController
     // administration above: applicationId here is an explicit, SuperAdmin-only target, never
     // proof of authorization by itself (an ordinary member could otherwise add/remove anyone
     // to/from any application, tenant membership notwithstanding).
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     [Route("/{area}/Account/AddUserToApplication/{userId}/{applicationId}")]
     public async Task<IActionResult> AddUserToApplication(string userId, int applicationId)
@@ -115,7 +117,7 @@ public class AccountController : BaseController
     // applicationId comes from the caller's own validated selected tenant, not the request -
     // a SuperAdmin using this action can only remove membership rows for the application they
     // themselves currently have selected.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
     public async Task<IActionResult> RemoveUserFromApplication(int relationId)
@@ -124,7 +126,8 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/Account/UserSettingForm/{userId}")]
     public async Task<IActionResult> UserSettingForm(string userId)
     {
@@ -144,7 +147,8 @@ public class AccountController : BaseController
     // admin here is deliberately working across every application a user belongs to, not just
     // the caller's own selected tenant, so this must stay a global, SuperAdmin-only flow rather
     // than being bound to the selected tenant.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/BackOffice/Account/Sectors/{userId}")]
     public async Task<IActionResult> Sectors(string userId)
     {
@@ -157,7 +161,8 @@ public class AccountController : BaseController
         return View();
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/{controller}/Entities/{userId}")]
     public async Task<IActionResult> Entities(string userId)
     {
@@ -172,7 +177,8 @@ public class AccountController : BaseController
     // appId is caller-supplied and unrelated to the caller's own selected tenant - without this
     // gate any authenticated member could enumerate another application's sectors by guessing
     // appId, regardless of their own membership.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/{controller}/GetApplicationSectors/{appId}")]
     public IActionResult GetApplicationSectors(int appId)
     {
@@ -180,7 +186,8 @@ public class AccountController : BaseController
         return PartialView("_SectorOptionsPartial", sectors);
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/{controller}/{action}/{userId}/{appId}")]
     public async Task<string> GetUserAccess(string userId, int appId)
     {
@@ -189,7 +196,8 @@ public class AccountController : BaseController
         return accesses;
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/{controller}/GetSectorEntities/{sectorId}")]
     public IActionResult GetSectorEntities(int sectorId)
     {
@@ -197,7 +205,7 @@ public class AccountController : BaseController
         return PartialView("_SectorEntityLinksPartial", entities);
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [Route("/{area}/{controller}/{action}")]
     [HttpPost]
     public async Task<IActionResult> SetAccessForUser(SaveAccessViewModel model)
@@ -218,7 +226,8 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/Account/UserForm/{userId?}")]
     public async Task<IActionResult> UserForm(string userId = "")
     {
@@ -250,7 +259,7 @@ public class AccountController : BaseController
     // check - without this gate, any authenticated member could self-approve, grant themselves
     // IsAdminUser, or edit another user's profile/approval state by posting a crafted DTO
     // (UserId selects create vs. update, and update trusts every field on the DTO).
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     public async Task<IActionResult> SaveUserForm(CreateUserDto user)
     {
@@ -318,7 +327,7 @@ public class AccountController : BaseController
 
     // Enumerates every user in the system (optionally filtered) - global administration, not
     // tenant-scoped self-service.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     public IActionResult UserList(UserDto userFilter)
     {
@@ -330,6 +339,7 @@ public class AccountController : BaseController
 
     [AllowAnonymous]
     [SkipTenantContextCheck]
+    [HttpGet]
     [Route("/Login")]
     public IActionResult Login()
     {
@@ -388,7 +398,8 @@ public class AccountController : BaseController
 
     // id is an entity id with no applicationId scoping at all - same cross-tenant risk as
     // GetApplicationSectors above.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/BackOffice/Account/EntityAccesses/{id}")]
     public IActionResult EntityAccesses(int id)
     {
@@ -396,6 +407,7 @@ public class AccountController : BaseController
         return PartialView("_EntityAccessCheckboxesPartial", entityAccesses);
     }
 
+    [HttpGet]
     [Route("/BackOffice/Account/Attachment")]
     public IActionResult Attachment(int id)
     {

@@ -30,11 +30,13 @@ public class SchemaController : BaseController
 
     // methods
     #region methods
+    [HttpGet]
     public IActionResult Index()
     {
         return View();
     }
 
+    [HttpGet]
     [Route("/{area}/Schema/SchemaForm/{id?}")]
     public async Task<IActionResult> SchemaForm(int id = 0)
     {
@@ -87,6 +89,7 @@ public class SchemaController : BaseController
         return Content("Done");
     }
 
+    [HttpGet]
     public async Task<IActionResult> SchemaList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -103,6 +106,7 @@ public class SchemaController : BaseController
     }
 
 
+    [HttpGet]
     [Route("/{area}/Schema/SchemaDetailsForm/{schemaId}")]
     public async Task<IActionResult> SchemaDetailsForm(int schemaId)
     {
@@ -112,6 +116,7 @@ public class SchemaController : BaseController
         return View();
     }
 
+    [HttpGet]
     [Route("/{area}/Schema/SchemaDetailsList/{schemaId}")]
     public async Task<IActionResult> SchemaDetailsList(int schemaId)
     {

@@ -30,3 +30,4 @@ global using Application.CQRS.Queries.ContentManagement.Category;
 global using Web.Services.FileUpload;
 global using Application.Contracts.Tenancy;
 global using Web.Filters;
+global using Web.Authorization;

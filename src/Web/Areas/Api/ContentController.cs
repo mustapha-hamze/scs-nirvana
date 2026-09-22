@@ -1,5 +1,6 @@
 namespace Web.Areas.Api;
 [ApiController]
+[AllowAnonymous]
 [IgnoreAntiforgeryToken]
 public class ContentController : ControllerBase
 {

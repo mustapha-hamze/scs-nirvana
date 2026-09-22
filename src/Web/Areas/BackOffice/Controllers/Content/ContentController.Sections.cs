@@ -7,6 +7,7 @@ namespace Web.Areas.BackOffice.Controllers;
 // and lives in SectionElementRequestMapper.
 public partial class ContentController
 {
+    [HttpGet]
     [Route("/{area}/Content/ContentSections/{contentId}/{typeId}")]
     public async Task<IActionResult> ContentSections(int contentId, int typeId)
     {
@@ -22,6 +23,7 @@ public partial class ContentController
         return View();
     }
 
+    [HttpGet]
     [Route("/{area}/Content/CreateContentSection/{schemaId}/{priority}")]
     public async Task<IActionResult> CreateContentSection(int schemaId, int priority)
     {

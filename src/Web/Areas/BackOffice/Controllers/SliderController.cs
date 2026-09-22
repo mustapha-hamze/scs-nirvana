@@ -25,17 +25,20 @@ public class SliderController : BaseController
 
 
     // methods
+    [HttpGet]
     public IActionResult Index()
     {
         return View();
     }
 
+    [HttpGet]
     public async Task<IActionResult> List()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var slider = await _sliderServices.GetSliders(currentApplicationId);
         return View(slider);
     }
+    [HttpGet]
     public IActionResult Create()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -52,6 +55,7 @@ public class SliderController : BaseController
         return Ok();
     }
 
+    [HttpGet]
     public IActionResult CreateItem(int sliderId)
     {
         ViewData["SliderId"] = sliderId;
@@ -84,12 +88,14 @@ public class SliderController : BaseController
         return Ok(uploadResult.FileName);
     }
 
+    [HttpGet]
     [Route("/{area}/{controller}/SliderItems")]
     public IActionResult SliderItems()
     {
         return View();
     }
 
+    [HttpGet]
     [Route("/{area}/{controller}/GetSliderItemList/{sliderId}")]
     public async Task<IActionResult> GetSliderItemList(int sliderId)
     {
@@ -98,6 +104,7 @@ public class SliderController : BaseController
         return View(sliderItems);
     }
 
+    [HttpGet]
     [Route("/{area}/{controller}/GetSliderItemForm/{sliderId}/{sliderItemId}")]
     public async Task<IActionResult> GetSliderItemForm(int sliderId, int sliderItemId = 0)
     {

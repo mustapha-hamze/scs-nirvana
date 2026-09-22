@@ -14,7 +14,7 @@ public class UserAttachmentController : BaseController
         _appEnvironment = appEnvironment;
         _fileUploadService = fileUploadService;
     }
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpGet("/{area}/{controller}/UserAttachmentForm/{userId}/{id?}")]
     public async Task<IActionResult> UserAttachmentForm(string userId, int id = 0)
     {
@@ -26,7 +26,7 @@ public class UserAttachmentController : BaseController
         return View(new UserAttachmentDto { UserId = userId });
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpGet("/{area}/{controller}/UserAttachmentsList/{userId?}")]
     public async Task<IActionResult> UserAttachmentsList(string userId = "")
     {
@@ -34,7 +34,7 @@ public class UserAttachmentController : BaseController
         return View(attachments);
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     [Route("/{area}/{controller}/SaveUserAttachment")]
     public async Task<IActionResult> SaveUserAttachment(UserAttachmentDto attachment)
@@ -45,7 +45,7 @@ public class UserAttachmentController : BaseController
 
     private static readonly string[] AllowedAttachmentExtensions = { "pdf" };
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     public async Task<IActionResult> UploadAttachmentFile(IFormFile file, string userId, int attachmentId, string attachmentType)
     {

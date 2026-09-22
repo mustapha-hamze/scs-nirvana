@@ -122,6 +122,15 @@ public static class ServiceCollectionExtensions
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
+        // Named policy for administrative-only endpoints, instead of [Authorize(Roles = "SuperAdmin")]
+        // string literals scattered across controllers. No fallback policy is added here - every
+        // action keeps its own explicit [Authorize]/[AllowAnonymous] intent.
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(WebAuthorizationPolicies.SuperAdmin,
+                policy => policy.RequireRole(ApplicationRoles.SuperAdmin));
+        });
+
         services.AddMediatR(typeof(IUnitOfWork).Assembly);
 
         services.AddAutoMapper(new[] { typeof(MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);

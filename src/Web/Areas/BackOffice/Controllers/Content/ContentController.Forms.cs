@@ -4,6 +4,7 @@ namespace Web.Areas.BackOffice.Controllers;
 // changes (which trigger Farsi auto-translate on first activation).
 public partial class ContentController
 {
+    [HttpGet]
     [Route("/{area}/{controller}/Index/{id}")]
     public IActionResult Index(int id)
     {
@@ -11,6 +12,7 @@ public partial class ContentController
         return View();
     }
 
+    [HttpGet]
     [Route("/{area}/{controller}/ContentForm/{id}/{typeId}")]
     public async Task<IActionResult> ContentForm(int id = 0, int typeId = 0)
     {
@@ -58,6 +60,7 @@ public partial class ContentController
         }
     }
 
+    [HttpGet]
     [Route("/{area}/{controller}/{action}/{id}")]
     public async Task<IActionResult> ContentList(int id)
     {

@@ -2,6 +2,8 @@ namespace Web.Controllers;
 
 public class HomeController : Controller
 {
+    [AllowAnonymous]
+    [HttpGet]
     public IActionResult Index()
     {
         return View();

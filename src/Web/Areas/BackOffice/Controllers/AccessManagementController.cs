@@ -32,16 +32,19 @@ public class AccessManagementController : BaseController
 
     // methods
     #region sectors
+    [HttpGet]
     public IActionResult Sectors()
     {
         return View();
     }
 
+    [HttpGet]
     public IActionResult SectorForm()
     {
         return View();
     }
 
+    [HttpGet]
     public async Task<IActionResult> SectorList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -97,10 +100,12 @@ public class AccessManagementController : BaseController
     #endregion
 
     #region access
+    [HttpGet]
     public IActionResult Accesses()
     {
         return View();
     }
+    [HttpGet]
     public async Task<IActionResult> AccessForm(int id = 0)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -127,6 +132,7 @@ public class AccessManagementController : BaseController
         var sectorEntities = await _SectorEntityServices.GetSectorEntities(id, currentApplicationId);
         return PartialView("_SectorEntityOptionsPartial", sectorEntities);
     }
+    [HttpGet]
     public async Task<IActionResult> AccessList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

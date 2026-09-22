@@ -25,11 +25,13 @@ public class CategoryController : BaseController
 
     // methods
     #region methods
+    [HttpGet]
     public IActionResult Index()
     {
         return View();
     }
 
+    [HttpGet]
     public async Task<IActionResult> Form()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -46,6 +48,7 @@ public class CategoryController : BaseController
         return Content("Done");
     }
 
+    [HttpGet]
     public async Task<IActionResult> List()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

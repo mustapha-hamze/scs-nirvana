@@ -3,6 +3,7 @@ namespace Web.Areas.BackOffice.Controllers;
 // Relations (categories/tags/cultures) and metadata (SEO title/author/keywords/description).
 public partial class ContentController
 {
+    [HttpGet]
     [Route("/{area}/Content/ContentRelations/{contentId}")]
     public async Task<IActionResult> ContentRelations(int contentId)
     {
@@ -14,6 +15,7 @@ public partial class ContentController
         return View(content);
     }
 
+    [HttpGet]
     [Route("/{area}/Content/ContentMetadata/{contentId}")]
     public async Task<IActionResult> ContentMetadata(int contentId)
     {

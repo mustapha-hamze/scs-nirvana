@@ -30,11 +30,13 @@ public class GeneralController : BaseController
 
     // methods
     #region Tags
+    [HttpGet]
     public IActionResult Tags()
     {
         return View();
     }
 
+    [HttpGet]
     public IActionResult TagForm()
     {
         return View();
@@ -49,6 +51,7 @@ public class GeneralController : BaseController
         return Content(tag.TypeId.ToString());
     }
 
+    [HttpGet]
     public async Task<IActionResult> TagList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -57,10 +60,12 @@ public class GeneralController : BaseController
     #endregion
 
     #region  Cultures
+    [HttpGet]
     public IActionResult Cultures()
     {
         return View();
     }
+    [HttpGet]
     public IActionResult CultureForm()
     {
         return View();
@@ -74,6 +79,7 @@ public class GeneralController : BaseController
         return Content("Done");
     }
 
+    [HttpGet]
     public async Task<IActionResult> CultureList()
     {
         return View(await _cultureServices.List());
@@ -81,6 +87,7 @@ public class GeneralController : BaseController
     #endregion
 
     #region System Logs
+    [HttpGet]
     public IActionResult Logs()
     {
         return View();
@@ -88,11 +95,13 @@ public class GeneralController : BaseController
     #endregion
 
     #region Application Setting
+    [HttpGet]
     public IActionResult ApplicationSetting()
     {
         return View();
     }
 
+    [HttpGet]
     public IActionResult ApplicationSettingForm()
     {
         return View();
@@ -106,6 +115,7 @@ public class GeneralController : BaseController
         return Content("Done");
     }
 
+    [HttpGet]
     public async Task<IActionResult> ApplicationSettingList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -114,10 +124,12 @@ public class GeneralController : BaseController
     #endregion
 
     #region  System Types
+    [HttpGet]
     public IActionResult SystemTypes()
     {
         return View();
     }
+    [HttpGet]
     public IActionResult SystemTypeForm()
     {
         return View();
@@ -133,6 +145,7 @@ public class GeneralController : BaseController
         // return View();
         return Content("Done");
     }
+    [HttpGet]
     public async Task<IActionResult> SystemTypesList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

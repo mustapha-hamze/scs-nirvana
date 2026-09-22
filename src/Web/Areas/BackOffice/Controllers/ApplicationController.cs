@@ -35,6 +35,7 @@ public class ApplicationController : BaseController
     }
 
     // methods
+    [HttpGet]
     public async Task<IActionResult> SelectApp()
     {
         if (!await CheckUserApproval())
@@ -45,6 +46,7 @@ public class ApplicationController : BaseController
         return View(_applicationServices.List());
     }
 
+    [HttpGet]
     public IActionResult ApplicationForm()
     {
         return View(new ApplicationDto
@@ -55,7 +57,7 @@ public class ApplicationController : BaseController
 
     // Application is the tenant root, not a self-scoped resource - authentication alone is not
     // enough to create one. Only a SuperAdmin may.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     public async Task<IActionResult> SaveApplicationForm(ApplicationDto applicationForm)
     {
@@ -68,7 +70,7 @@ public class ApplicationController : BaseController
     // EntityId is caller-controlled and would otherwise let any authenticated member overwrite
     // the logo and regenerate the application key for an arbitrary application. [Authorize] runs
     // before this method body, so the SuperAdmin check happens before EntityId is ever looked up.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
     public async Task<IActionResult> UploadApplicationLogo(IFormFile File, int EntityId)
     {
@@ -120,6 +122,7 @@ public class ApplicationController : BaseController
         return user.IsApprove;
     }
 
+    [HttpGet]
     [Route("/WaitingForApproval")]
     public IActionResult WaitingForApproval()
     {

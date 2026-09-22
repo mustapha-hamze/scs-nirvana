@@ -7,6 +7,7 @@ namespace Web.Areas.BackOffice.Controllers;
 // HTTP concerns, tenant scoping, and delegating to IContentProvider/IContentServices.
 public partial class ContentController
 {
+    [HttpGet]
     [Route("/{area}/{controller}/FarsiContentForm/{id}/{typeId}")]
     public async Task<IActionResult> FarsiContentForm(int id, int typeId)
     {
