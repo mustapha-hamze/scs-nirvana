@@ -1,0 +1,2212 @@
+{
+  ".claude/settings.local.json": {
+    "mtime": 1786714194.8898087,
+    "ast_hash": "cf851d3656e90b0e59c5bf055556254d",
+    "semantic_hash": "cf851d3656e90b0e59c5bf055556254d"
+  },
+  "docs/inspect-schema.sql": {
+    "mtime": 1790068361.0966723,
+    "ast_hash": "b51b0d05e35147c26c7acec6ce78914b",
+    "semantic_hash": "b51b0d05e35147c26c7acec6ce78914b"
+  },
+  "src/Core/Application/AccessManagerRepository/IEntityAccessRepository.cs": {
+    "mtime": 1790068361.0971212,
+    "ast_hash": "aaa0ffda867bb27a660d65f3c11b3ee2",
+    "semantic_hash": "aaa0ffda867bb27a660d65f3c11b3ee2"
+  },
+  "src/Core/Application/AccessManagerRepository/ISectorEntityRepository.cs": {
+    "mtime": 1790068361.097301,
+    "ast_hash": "7291e6f3fdb04eaa73ae9b4fbdc7c784",
+    "semantic_hash": "7291e6f3fdb04eaa73ae9b4fbdc7c784"
+  },
+  "src/Core/Application/AccessManagerRepository/ISectorRepository.cs": {
+    "mtime": 1790068361.0975034,
+    "ast_hash": "31475701abe82c0d774a6b32eba7c9f7",
+    "semantic_hash": "31475701abe82c0d774a6b32eba7c9f7"
+  },
+  "src/Core/Application/Application.csproj": {
+    "mtime": 1790068361.0977042,
+    "ast_hash": "705935066fd37b32ec3427fafc7584bc",
+    "semantic_hash": "705935066fd37b32ec3427fafc7584bc"
+  },
+  "src/Core/Application/CMSRepository/ICategoryRepository.cs": {
+    "mtime": 1790068361.0978978,
+    "ast_hash": "3da5cf4a60a24353960bde6fe6f7c84e",
+    "semantic_hash": "3da5cf4a60a24353960bde6fe6f7c84e"
+  },
+  "src/Core/Application/CMSRepository/IContentCommandRepository.cs": {
+    "mtime": 1790068361.0981677,
+    "ast_hash": "5476df0ad04339c2084aa143a4feb0e4",
+    "semantic_hash": "5476df0ad04339c2084aa143a4feb0e4"
+  },
+  "src/Core/Application/CMSRepository/IContentQueryRepository.cs": {
+    "mtime": 1790068361.0983984,
+    "ast_hash": "9e6771ee1541e11a19c69d4c95ca8a9c",
+    "semantic_hash": "9e6771ee1541e11a19c69d4c95ca8a9c"
+  },
+  "src/Core/Application/CMSRepository/IContentRelationRepository.cs": {
+    "mtime": 1790068361.0985672,
+    "ast_hash": "c6bc1bebd3b1c8d997fafc4e57ff8556",
+    "semantic_hash": "c6bc1bebd3b1c8d997fafc4e57ff8556"
+  },
+  "src/Core/Application/CMSRepository/IContentsInCategoryQueryAdapter.cs": {
+    "mtime": 1790068361.0987163,
+    "ast_hash": "67e3573f97d48f36ddaa3928f6afd0ce",
+    "semantic_hash": "67e3573f97d48f36ddaa3928f6afd0ce"
+  },
+  "src/Core/Application/CMSRepository/ISchemaRepository.cs": {
+    "mtime": 1790068361.0989158,
+    "ast_hash": "648903339523af4979af9f57e93148ec",
+    "semantic_hash": "648903339523af4979af9f57e93148ec"
+  },
+  "src/Core/Application/CQRS/Command/UserManagement/CreateUserAttachmentCommand.cs": {
+    "mtime": 1790068361.0991523,
+    "ast_hash": "c3d86389245b002478ecaf2c032fa78e",
+    "semantic_hash": "c3d86389245b002478ecaf2c032fa78e"
+  },
+  "src/Core/Application/CQRS/Handlers/ContentManagement/Category/GetCategoriesHandler.cs": {
+    "mtime": 1790068361.0993764,
+    "ast_hash": "51c1353070b6a947290bea4160207c3e",
+    "semantic_hash": "51c1353070b6a947290bea4160207c3e"
+  },
+  "src/Core/Application/CQRS/Handlers/UserManagement/CreateUserAttachmentHandler.cs": {
+    "mtime": 1790068361.0995464,
+    "ast_hash": "89ffef8a7b5388edb1f43796a5fccb80",
+    "semantic_hash": "89ffef8a7b5388edb1f43796a5fccb80"
+  },
+  "src/Core/Application/CQRS/Handlers/UserManagement/GetUserAttachmentByIdHandler.cs": {
+    "mtime": 1790068361.0996795,
+    "ast_hash": "cc05e2e3fcfe61d2af3565fd0fbccf32",
+    "semantic_hash": "cc05e2e3fcfe61d2af3565fd0fbccf32"
+  },
+  "src/Core/Application/CQRS/Handlers/UserManagement/GetUserAttachmentsHandler.cs": {
+    "mtime": 1790068361.0997975,
+    "ast_hash": "35203958a74d90c636e048351266424f",
+    "semantic_hash": "35203958a74d90c636e048351266424f"
+  },
+  "src/Core/Application/CQRS/Queries/ContentManagement/Category/GetCategoriesQuery.cs": {
+    "mtime": 1790068361.1000123,
+    "ast_hash": "6c5e3d948a18e7d9f83ff96b8806032a",
+    "semantic_hash": "6c5e3d948a18e7d9f83ff96b8806032a"
+  },
+  "src/Core/Application/CQRS/Queries/UserManagement/GetUserAttachmentByIdQuery.cs": {
+    "mtime": 1790068361.100159,
+    "ast_hash": "f7f4b274e9b6bbefc9e0cf5ffabeffad",
+    "semantic_hash": "f7f4b274e9b6bbefc9e0cf5ffabeffad"
+  },
+  "src/Core/Application/CQRS/Queries/UserManagement/GetUserAttachmentsQuery.cs": {
+    "mtime": 1790068361.1002676,
+    "ast_hash": "0c3b969f3bc6921ecaeefa515a7afcc4",
+    "semantic_hash": "0c3b969f3bc6921ecaeefa515a7afcc4"
+  },
+  "src/Core/Application/ContentManagement/IContentProvider.cs": {
+    "mtime": 1790068361.1004303,
+    "ast_hash": "38d61507f48909ec7c2685ee3690cefe",
+    "semantic_hash": "38d61507f48909ec7c2685ee3690cefe"
+  },
+  "src/Core/Application/Contracts/AccessManagement/EntityAccessDto.cs": {
+    "mtime": 1786624815.9113693,
+    "ast_hash": "884e7b1002ed9935194441964a4410b9",
+    "semantic_hash": "884e7b1002ed9935194441964a4410b9"
+  },
+  "src/Core/Application/Contracts/AccessManagement/SectorDto.cs": {
+    "mtime": 1786624822.2310452,
+    "ast_hash": "0ba62f59a6f02d4f1efbef09e68206b6",
+    "semantic_hash": "0ba62f59a6f02d4f1efbef09e68206b6"
+  },
+  "src/Core/Application/Contracts/AccessManagement/SectorEntityDto.cs": {
+    "mtime": 1786624829.5745304,
+    "ast_hash": "c14805915262d3fc76ba78853f51ecc1",
+    "semantic_hash": "c14805915262d3fc76ba78853f51ecc1"
+  },
+  "src/Core/Application/Contracts/CMS/CategoryDto.cs": {
+    "mtime": 1786624834.6819112,
+    "ast_hash": "55393e78c29ba4a60b4d5ec922e9f63a",
+    "semantic_hash": "55393e78c29ba4a60b4d5ec922e9f63a"
+  },
+  "src/Core/Application/Contracts/CMS/ContentDto.cs": {
+    "mtime": 1786624848.2269876,
+    "ast_hash": "1be7f01c0d1694b9290f2aef933e8ed0",
+    "semantic_hash": "1be7f01c0d1694b9290f2aef933e8ed0"
+  },
+  "src/Core/Application/Contracts/CMS/ContentImageDto.cs": {
+    "mtime": 1786624858.786703,
+    "ast_hash": "5cce3d57e232599e0a307b5e5bab346c",
+    "semantic_hash": "5cce3d57e232599e0a307b5e5bab346c"
+  },
+  "src/Core/Application/Contracts/CMS/ContentMetadataDto.cs": {
+    "mtime": 1786624867.5825772,
+    "ast_hash": "a9161c9029d31db82816df8af19012b8",
+    "semantic_hash": "a9161c9029d31db82816df8af19012b8"
+  },
+  "src/Core/Application/Contracts/CMS/SchemaDetailsDto.cs": {
+    "mtime": 1786624877.0775259,
+    "ast_hash": "dab3af73c8dfcdb1786625aaa2a2cb82",
+    "semantic_hash": "dab3af73c8dfcdb1786625aaa2a2cb82"
+  },
+  "src/Core/Application/Contracts/CMS/SchemaDto.cs": {
+    "mtime": 1786624883.7443297,
+    "ast_hash": "8571554435e1de30d5409cea1b16f03a",
+    "semantic_hash": "8571554435e1de30d5409cea1b16f03a"
+  },
+  "src/Core/Application/Contracts/CMS/SectionDto.cs": {
+    "mtime": 1786624892.9978845,
+    "ast_hash": "5e99f92de4f4c16aec8f5712034643f8",
+    "semantic_hash": "5e99f92de4f4c16aec8f5712034643f8"
+  },
+  "src/Core/Application/Contracts/CMS/SectionElementDto.cs": {
+    "mtime": 1786624899.3349402,
+    "ast_hash": "621a7750231cd806e9d9b466c86c3c7b",
+    "semantic_hash": "621a7750231cd806e9d9b466c86c3c7b"
+  },
+  "src/Core/Application/Contracts/CMSApi/BlogIndexApiDto.cs": {
+    "mtime": 1786582091.359626,
+    "ast_hash": "a467a1795be47770c066b895a19b7a47",
+    "semantic_hash": "a467a1795be47770c066b895a19b7a47"
+  },
+  "src/Core/Application/Contracts/CMSApi/ContentApiDto.cs": {
+    "mtime": 1786582091.3598113,
+    "ast_hash": "f189a11e9faa43e6fe07fd7e9d7e29d5",
+    "semantic_hash": "f189a11e9faa43e6fe07fd7e9d7e29d5"
+  },
+  "src/Core/Application/Contracts/CMSApi/ContentImageApiDto.cs": {
+    "mtime": 1786582091.35991,
+    "ast_hash": "61659a41513033fd249e4574ffe11e8f",
+    "semantic_hash": "61659a41513033fd249e4574ffe11e8f"
+  },
+  "src/Core/Application/Contracts/CMSApi/ContentMetadataApiDto.cs": {
+    "mtime": 1786582091.3600154,
+    "ast_hash": "cbee8fd031bad3770174e622f1d7a79b",
+    "semantic_hash": "cbee8fd031bad3770174e622f1d7a79b"
+  },
+  "src/Core/Application/Contracts/CMSApi/ContentSectionApiDto.cs": {
+    "mtime": 1786582091.3601184,
+    "ast_hash": "26009872ed3a9b6b9b04da4db9f8355b",
+    "semantic_hash": "26009872ed3a9b6b9b04da4db9f8355b"
+  },
+  "src/Core/Application/Contracts/CMSApi/SectionElementApiDto.cs": {
+    "mtime": 1786582091.3602133,
+    "ast_hash": "c1fccac5fd2cb3ad619208493f97c24d",
+    "semantic_hash": "c1fccac5fd2cb3ad619208493f97c24d"
+  },
+  "src/Core/Application/Contracts/General/ApplicationDto.cs": {
+    "mtime": 1786624912.7616894,
+    "ast_hash": "b945ae85021aa73162fba86fb6f8e54a",
+    "semantic_hash": "b945ae85021aa73162fba86fb6f8e54a"
+  },
+  "src/Core/Application/Contracts/General/ApplicationSettingDto.cs": {
+    "mtime": 1786624922.7504642,
+    "ast_hash": "ad68ef5477fbb155aa0c7119b854f0dd",
+    "semantic_hash": "ad68ef5477fbb155aa0c7119b854f0dd"
+  },
+  "src/Core/Application/Contracts/General/CultureDto.cs": {
+    "mtime": 1786624931.4556904,
+    "ast_hash": "04e1fdaca1d13e5315c9eb7c13931edf",
+    "semantic_hash": "04e1fdaca1d13e5315c9eb7c13931edf"
+  },
+  "src/Core/Application/Contracts/General/SystemTypeDto.cs": {
+    "mtime": 1786624938.4447622,
+    "ast_hash": "b65d267304ff478846fc05ba2b9b4b2d",
+    "semantic_hash": "b65d267304ff478846fc05ba2b9b4b2d"
+  },
+  "src/Core/Application/Contracts/General/TagDto.cs": {
+    "mtime": 1786624945.2942288,
+    "ast_hash": "eaf5449171ccee7e801fe60e4fc4ec50",
+    "semantic_hash": "eaf5449171ccee7e801fe60e4fc4ec50"
+  },
+  "src/Core/Application/Contracts/General/UserInApplicationDto.cs": {
+    "mtime": 1786624950.3065264,
+    "ast_hash": "4348d63f8229c759c0ed7eaa72c0e634",
+    "semantic_hash": "4348d63f8229c759c0ed7eaa72c0e634"
+  },
+  "src/Core/Application/Contracts/Tenancy/CurrentApplicationContextExtensions.cs": {
+    "mtime": 1790068361.1005898,
+    "ast_hash": "7386870d9fc77209cee60377b72343dc",
+    "semantic_hash": "7386870d9fc77209cee60377b72343dc"
+  },
+  "src/Core/Application/Contracts/Tenancy/ICurrentApplicationContext.cs": {
+    "mtime": 1790068361.10072,
+    "ast_hash": "ba43b761592ea7dc5f9c0275b84dc439",
+    "semantic_hash": "ba43b761592ea7dc5f9c0275b84dc439"
+  },
+  "src/Core/Application/Contracts/Tenancy/ITenantAccessGuard.cs": {
+    "mtime": 1790068361.1008313,
+    "ast_hash": "dabb7e3181a660747df677fc7b91d47f",
+    "semantic_hash": "dabb7e3181a660747df677fc7b91d47f"
+  },
+  "src/Core/Application/Contracts/UserManagement/UserAttachmentDto.cs": {
+    "mtime": 1790068361.100942,
+    "ast_hash": "15ad675ac9e76ce1c0c8430b8aad667a",
+    "semantic_hash": "15ad675ac9e76ce1c0c8430b8aad667a"
+  },
+  "src/Core/Application/Contracts/UserManagement/UserDto.cs": {
+    "mtime": 1790068361.1010916,
+    "ast_hash": "940dc8178f1ac8310ee746ed19b106e0",
+    "semantic_hash": "940dc8178f1ac8310ee746ed19b106e0"
+  },
+  "src/Core/Application/GeneralRepository/IApplicationRepository.cs": {
+    "mtime": 1790068361.1012425,
+    "ast_hash": "205a976ba4432f0e6090bae1f97a5c3b",
+    "semantic_hash": "205a976ba4432f0e6090bae1f97a5c3b"
+  },
+  "src/Core/Application/GeneralRepository/ICultureRepository.cs": {
+    "mtime": 1790068361.1013865,
+    "ast_hash": "44496bf6c5c933b60300a31cebe07c51",
+    "semantic_hash": "44496bf6c5c933b60300a31cebe07c51"
+  },
+  "src/Core/Application/GeneralRepository/ISystemTypeRepository.cs": {
+    "mtime": 1790068361.1015415,
+    "ast_hash": "201a6edd1e5819e8ab88f9f80e5f3cf3",
+    "semantic_hash": "201a6edd1e5819e8ab88f9f80e5f3cf3"
+  },
+  "src/Core/Application/GeneralRepository/ITagRepository.cs": {
+    "mtime": 1790068361.1017025,
+    "ast_hash": "b0034639dbaddeef6e4fd02931b7f0f9",
+    "semantic_hash": "b0034639dbaddeef6e4fd02931b7f0f9"
+  },
+  "src/Core/Application/Mapper/ApplicationMapperProfile.cs": {
+    "mtime": 1790068361.1018677,
+    "ast_hash": "41a393ae99666ddd3493b36161495c3a",
+    "semantic_hash": "41a393ae99666ddd3493b36161495c3a"
+  },
+  "src/Core/Application/Repository/IRepository.cs": {
+    "mtime": 1790068361.1020274,
+    "ast_hash": "b9ba53013b3dcdcf4a96b9268162d987",
+    "semantic_hash": "b9ba53013b3dcdcf4a96b9268162d987"
+  },
+  "src/Core/Application/ResultModels/ContentListResultModel.cs": {
+    "mtime": 1758545314.714241,
+    "ast_hash": "04809d08b28edeac06d92bc2c7b62770",
+    "semantic_hash": "04809d08b28edeac06d92bc2c7b62770"
+  },
+  "src/Core/Application/SCMRepository/ISliderRepository.cs": {
+    "mtime": 1790068361.10217,
+    "ast_hash": "905577456cb74f0500539e408a21b312",
+    "semantic_hash": "905577456cb74f0500539e408a21b312"
+  },
+  "src/Core/Application/UnitOfWork/IUnitOfWork.cs": {
+    "mtime": 1790068361.1023223,
+    "ast_hash": "a0cfaff32cdb275bb45c94a7915acfa4",
+    "semantic_hash": "a0cfaff32cdb275bb45c94a7915acfa4"
+  },
+  "src/Core/Application/UseCases/AccessManagerServices/EntityAccessServices.cs": {
+    "mtime": 1790068361.1024976,
+    "ast_hash": "3ed69e2a4c5df46ec0582d1707ccf3cc",
+    "semantic_hash": "3ed69e2a4c5df46ec0582d1707ccf3cc"
+  },
+  "src/Core/Application/UseCases/AccessManagerServices/IEntityAccessServices.cs": {
+    "mtime": 1790068361.1026163,
+    "ast_hash": "a8d0a2f55575fd21ddf560ee69aa0136",
+    "semantic_hash": "a8d0a2f55575fd21ddf560ee69aa0136"
+  },
+  "src/Core/Application/UseCases/AccessManagerServices/ISectorEntityServices.cs": {
+    "mtime": 1790068361.1027246,
+    "ast_hash": "d0229d41a359b173abeef0c25be1aa2b",
+    "semantic_hash": "d0229d41a359b173abeef0c25be1aa2b"
+  },
+  "src/Core/Application/UseCases/AccessManagerServices/ISectorServices.cs": {
+    "mtime": 1790068361.1028407,
+    "ast_hash": "84142c8863fc4aea77f272ed0cff77e7",
+    "semantic_hash": "84142c8863fc4aea77f272ed0cff77e7"
+  },
+  "src/Core/Application/UseCases/AccessManagerServices/SectorEntityServices.cs": {
+    "mtime": 1790068361.1029665,
+    "ast_hash": "7726cd7445927aa4366ce69f6d6b7107",
+    "semantic_hash": "7726cd7445927aa4366ce69f6d6b7107"
+  },
+  "src/Core/Application/UseCases/AccessManagerServices/SectorServices.cs": {
+    "mtime": 1790068361.103081,
+    "ast_hash": "dcbb4cda34c9a6d4d57302b71eb9738d",
+    "semantic_hash": "dcbb4cda34c9a6d4d57302b71eb9738d"
+  },
+  "src/Core/Application/UseCases/CMSServices/CategoryServices.cs": {
+    "mtime": 1790068361.1032355,
+    "ast_hash": "a5f5fd2069f40561428743f1f6d2317d",
+    "semantic_hash": "a5f5fd2069f40561428743f1f6d2317d"
+  },
+  "src/Core/Application/UseCases/CMSServices/ContentServices.cs": {
+    "mtime": 1790068361.1033647,
+    "ast_hash": "d363dad2d67f51ba9a9ec856e78f8120",
+    "semantic_hash": "d363dad2d67f51ba9a9ec856e78f8120"
+  },
+  "src/Core/Application/UseCases/CMSServices/ICategoryServices.cs": {
+    "mtime": 1790068361.1035097,
+    "ast_hash": "bef219028fb959430eb822ccd7a2c7c6",
+    "semantic_hash": "bef219028fb959430eb822ccd7a2c7c6"
+  },
+  "src/Core/Application/UseCases/CMSServices/IContentServices.cs": {
+    "mtime": 1790068361.1036434,
+    "ast_hash": "f35ee68ee95bec33d55be2d497e9c857",
+    "semantic_hash": "f35ee68ee95bec33d55be2d497e9c857"
+  },
+  "src/Core/Application/UseCases/CMSServices/ISchemaServices.cs": {
+    "mtime": 1790068361.1037612,
+    "ast_hash": "e0061e4641432232f227ed41895e1253",
+    "semantic_hash": "e0061e4641432232f227ed41895e1253"
+  },
+  "src/Core/Application/UseCases/CMSServices/SchemaServices.cs": {
+    "mtime": 1790068361.1039045,
+    "ast_hash": "b586873b96b2df68260d56e5f21923a0",
+    "semantic_hash": "b586873b96b2df68260d56e5f21923a0"
+  },
+  "src/Core/Application/UseCases/GeneralServices/ApplicationServices.cs": {
+    "mtime": 1790068361.1040819,
+    "ast_hash": "edc21b5a1f4a8e174568220f1b2e1fc4",
+    "semantic_hash": "edc21b5a1f4a8e174568220f1b2e1fc4"
+  },
+  "src/Core/Application/UseCases/GeneralServices/CultureServices.cs": {
+    "mtime": 1790068361.1042109,
+    "ast_hash": "fbdd464bf0dd6f767ea15893f2119321",
+    "semantic_hash": "fbdd464bf0dd6f767ea15893f2119321"
+  },
+  "src/Core/Application/UseCases/GeneralServices/IApplicationServices.cs": {
+    "mtime": 1790068361.1043372,
+    "ast_hash": "33228fc019c953505d428e7013fb2510",
+    "semantic_hash": "33228fc019c953505d428e7013fb2510"
+  },
+  "src/Core/Application/UseCases/GeneralServices/ICultureServices.cs": {
+    "mtime": 1790068361.1044664,
+    "ast_hash": "22d1b0660e4b740c9b23098e5293d9cc",
+    "semantic_hash": "22d1b0660e4b740c9b23098e5293d9cc"
+  },
+  "src/Core/Application/UseCases/GeneralServices/ISystemTypeServices.cs": {
+    "mtime": 1790068361.1045942,
+    "ast_hash": "ea4affb0543b54729b6225a9c0ad6522",
+    "semantic_hash": "ea4affb0543b54729b6225a9c0ad6522"
+  },
+  "src/Core/Application/UseCases/GeneralServices/ITagServices.cs": {
+    "mtime": 1790068361.1047266,
+    "ast_hash": "2b008d12dd445f39cc196f0ab1be2e66",
+    "semantic_hash": "2b008d12dd445f39cc196f0ab1be2e66"
+  },
+  "src/Core/Application/UseCases/GeneralServices/SystemTypeServices.cs": {
+    "mtime": 1790068361.1048372,
+    "ast_hash": "1320716fcba3304349e9d7fb379a7b2c",
+    "semantic_hash": "1320716fcba3304349e9d7fb379a7b2c"
+  },
+  "src/Core/Application/UseCases/GeneralServices/TagServices.cs": {
+    "mtime": 1790068361.104946,
+    "ast_hash": "9aea6d92d30691b478a06f01ed4de68f",
+    "semantic_hash": "9aea6d92d30691b478a06f01ed4de68f"
+  },
+  "src/Core/Application/UseCases/SCMServices/ISliderServices.cs": {
+    "mtime": 1790068361.1051075,
+    "ast_hash": "02c8f7f0bc592c33b5ff359f536bf89e",
+    "semantic_hash": "02c8f7f0bc592c33b5ff359f536bf89e"
+  },
+  "src/Core/Application/UseCases/SCMServices/SliderServices.cs": {
+    "mtime": 1790068361.10524,
+    "ast_hash": "da3ca46f6f3132aeaaa5a5936e2990f3",
+    "semantic_hash": "da3ca46f6f3132aeaaa5a5936e2990f3"
+  },
+  "src/Core/Application/UseCases/Tenancy/TenantAccessGuard.cs": {
+    "mtime": 1790068361.1054473,
+    "ast_hash": "204199ccc9cb8c1ca67765981a44abd5",
+    "semantic_hash": "204199ccc9cb8c1ca67765981a44abd5"
+  },
+  "src/Core/Application/UseCases/TranslatorServices/ContentTranslationDocument.cs": {
+    "mtime": 1790068361.1057863,
+    "ast_hash": "8f18386b16a4e879f266247d6638de68",
+    "semantic_hash": "8f18386b16a4e879f266247d6638de68"
+  },
+  "src/Core/Application/UseCases/TranslatorServices/ContentTranslator.cs": {
+    "mtime": 1790068361.1059868,
+    "ast_hash": "8238c4d9fdce7abed6be2a9efbb0587b",
+    "semantic_hash": "8238c4d9fdce7abed6be2a9efbb0587b"
+  },
+  "src/Core/Application/UseCases/TranslatorServices/IContentTranslator.cs": {
+    "mtime": 1790068361.106169,
+    "ast_hash": "91fc3b58ffb22a721f5bc150da00aee8",
+    "semantic_hash": "91fc3b58ffb22a721f5bc150da00aee8"
+  },
+  "src/Core/Application/UseCases/TranslatorServices/ITranslationPort.cs": {
+    "mtime": 1790068361.1063385,
+    "ast_hash": "2b391728018cef3fe030ee77683163a4",
+    "semantic_hash": "2b391728018cef3fe030ee77683163a4"
+  },
+  "src/Core/Application/UseCases/TranslatorServices/TranslationOutputValidator.cs": {
+    "mtime": 1790068361.1065245,
+    "ast_hash": "3b56dac6a2525add33121c555f4cb1af",
+    "semantic_hash": "3b56dac6a2525add33121c555f4cb1af"
+  },
+  "src/Core/Application/UseCases/TranslatorServices/TranslationRequest.cs": {
+    "mtime": 1790068361.1066756,
+    "ast_hash": "45b0a3d743207f8a4c201dbc8eab4850",
+    "semantic_hash": "45b0a3d743207f8a4c201dbc8eab4850"
+  },
+  "src/Core/Application/UseCases/TranslatorServices/TranslationResult.cs": {
+    "mtime": 1790068361.1068392,
+    "ast_hash": "9671f869db760a5085162fc3592cdd46",
+    "semantic_hash": "9671f869db760a5085162fc3592cdd46"
+  },
+  "src/Core/Application/UseCases/UserManagementServices/IUserManagementServices.cs": {
+    "mtime": 1790068361.1070662,
+    "ast_hash": "d4b54d38437dd504439747ab6e553228",
+    "semantic_hash": "d4b54d38437dd504439747ab6e553228"
+  },
+  "src/Core/Application/UseCases/UserManagementServices/UserManagementServices.cs": {
+    "mtime": 1790068361.1072314,
+    "ast_hash": "0939e07176eb657b41f1baa09f5cf96b",
+    "semantic_hash": "0939e07176eb657b41f1baa09f5cf96b"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationConst/ApplicationId.cs": {
+    "mtime": 1790068361.1074495,
+    "ast_hash": "009ec020d9de42ca9d385e4934b38589",
+    "semantic_hash": "009ec020d9de42ca9d385e4934b38589"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationConst/ApplicationRoles.cs": {
+    "mtime": 1790068361.1075752,
+    "ast_hash": "a74560c6222cffb016041eef46e13102",
+    "semantic_hash": "a74560c6222cffb016041eef46e13102"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationConst/ApplicationSettingId.cs": {
+    "mtime": 1790068361.1077232,
+    "ast_hash": "0f356b4e402d32fab36bacf5d5ad4700",
+    "semantic_hash": "0f356b4e402d32fab36bacf5d5ad4700"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationConst/BoxId.cs": {
+    "mtime": 1790068361.10788,
+    "ast_hash": "c0752df96471942692556a0472c660e2",
+    "semantic_hash": "c0752df96471942692556a0472c660e2"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationConst/OperationCode.cs": {
+    "mtime": 1790068361.1081538,
+    "ast_hash": "243782426101bbd208848fe1257adb39",
+    "semantic_hash": "243782426101bbd208848fe1257adb39"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationConst/Status.cs": {
+    "mtime": 1790068361.108373,
+    "ast_hash": "1748026f7dcf1c89981aa2eab87aff80",
+    "semantic_hash": "1748026f7dcf1c89981aa2eab87aff80"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationConst/TypeId.cs": {
+    "mtime": 1790068361.1085112,
+    "ast_hash": "dfff6f22ea9c0aa4055d17a1c0a7ba6b",
+    "semantic_hash": "dfff6f22ea9c0aa4055d17a1c0a7ba6b"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationFunctions/CodeGenerator.cs": {
+    "mtime": 1790068361.1086805,
+    "ast_hash": "b8704c8a5c31c0eeb451f9b021530093",
+    "semantic_hash": "b8704c8a5c31c0eeb451f9b021530093"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationFunctions/GetDistrict.cs": {
+    "mtime": 1790068361.1088402,
+    "ast_hash": "f07383c65a73aceb6badf0666a824aa5",
+    "semantic_hash": "f07383c65a73aceb6badf0666a824aa5"
+  },
+  "src/Core/Application/UseCases/Utilities/ApplicationFunctions/SlugGenerator.cs": {
+    "mtime": 1790068361.1089673,
+    "ast_hash": "909c045f07c7e367589d06b18359ebd7",
+    "semantic_hash": "909c045f07c7e367589d06b18359ebd7"
+  },
+  "src/Core/Application/UserManagementRepository/IUserAttachmentRepository.cs": {
+    "mtime": 1790068361.1091044,
+    "ast_hash": "78ea0151e33621769594d707031b2d1f",
+    "semantic_hash": "78ea0151e33621769594d707031b2d1f"
+  },
+  "src/Core/Application/UserManagementRepository/IUserManagementRepository.cs": {
+    "mtime": 1790068361.1092746,
+    "ast_hash": "0e6bdfc0923ff37d0e2684c441af4ed9",
+    "semantic_hash": "0e6bdfc0923ff37d0e2684c441af4ed9"
+  },
+  "src/Core/Application/Using.cs": {
+    "mtime": 1790068361.1093967,
+    "ast_hash": "ca7100f2cf01a96047a4cba141417754",
+    "semantic_hash": "ca7100f2cf01a96047a4cba141417754"
+  },
+  "src/Core/Domain/Domain.csproj": {
+    "mtime": 1790068361.1095674,
+    "ast_hash": "6bb1ce319e74d2e08afc171433499566",
+    "semantic_hash": "6bb1ce319e74d2e08afc171433499566"
+  },
+  "src/Core/Domain/Entities/AccessManagement/EntityAccess.cs": {
+    "mtime": 1790068361.1097426,
+    "ast_hash": "415192e4d8ad13b4f1162616e86fd106",
+    "semantic_hash": "415192e4d8ad13b4f1162616e86fd106"
+  },
+  "src/Core/Domain/Entities/AccessManagement/Sector.cs": {
+    "mtime": 1790068361.110002,
+    "ast_hash": "9b8da66a31919d30a6d9b24e64a3e15a",
+    "semantic_hash": "9b8da66a31919d30a6d9b24e64a3e15a"
+  },
+  "src/Core/Domain/Entities/AccessManagement/SectorEntity.cs": {
+    "mtime": 1790068361.1101582,
+    "ast_hash": "08567a38de68bca0a108736ee4fabc32",
+    "semantic_hash": "08567a38de68bca0a108736ee4fabc32"
+  },
+  "src/Core/Domain/Entities/BaseEntity.cs": {
+    "mtime": 1790068361.110319,
+    "ast_hash": "9335243f440437a74d0d93f841c2bf0e",
+    "semantic_hash": "9335243f440437a74d0d93f841c2bf0e"
+  },
+  "src/Core/Domain/Entities/ContentManagement/Category.cs": {
+    "mtime": 1790068361.110482,
+    "ast_hash": "3eac43eafeec6881cebaa108bc8223ad",
+    "semantic_hash": "3eac43eafeec6881cebaa108bc8223ad"
+  },
+  "src/Core/Domain/Entities/ContentManagement/Comment.cs": {
+    "mtime": 1790068361.110642,
+    "ast_hash": "5e7e60426dea2c763d469fe73cbbd5b4",
+    "semantic_hash": "5e7e60426dea2c763d469fe73cbbd5b4"
+  },
+  "src/Core/Domain/Entities/ContentManagement/Content.cs": {
+    "mtime": 1790068361.1108036,
+    "ast_hash": "0da5bb2767c980254e05857937492738",
+    "semantic_hash": "0da5bb2767c980254e05857937492738"
+  },
+  "src/Core/Domain/Entities/ContentManagement/ContentAttachment.cs": {
+    "mtime": 1790068361.110949,
+    "ast_hash": "01ab7d2def9b0c617c269da688b171b8",
+    "semantic_hash": "01ab7d2def9b0c617c269da688b171b8"
+  },
+  "src/Core/Domain/Entities/ContentManagement/ContentAttachmentItem.cs": {
+    "mtime": 1790068361.1110935,
+    "ast_hash": "047b78b006dfc39d93f6ff4e89e4788b",
+    "semantic_hash": "047b78b006dfc39d93f6ff4e89e4788b"
+  },
+  "src/Core/Domain/Entities/ContentManagement/ContentImage.cs": {
+    "mtime": 1790068361.1112523,
+    "ast_hash": "9c4204f277f47e39f8634a3c573bc20e",
+    "semantic_hash": "9c4204f277f47e39f8634a3c573bc20e"
+  },
+  "src/Core/Domain/Entities/ContentManagement/ContentInCategory.cs": {
+    "mtime": 1786582091.3627424,
+    "ast_hash": "dca4df93181bcf222570d48ff8624e92",
+    "semantic_hash": "dca4df93181bcf222570d48ff8624e92"
+  },
+  "src/Core/Domain/Entities/ContentManagement/ContentInCulture.cs": {
+    "mtime": 1790068361.1113977,
+    "ast_hash": "3b4e8cb06cc9860e06d684ae0bd34907",
+    "semantic_hash": "3b4e8cb06cc9860e06d684ae0bd34907"
+  },
+  "src/Core/Domain/Entities/ContentManagement/ContentInTag.cs": {
+    "mtime": 1790068361.1115382,
+    "ast_hash": "f8decb7d10634f9956f8a37fcdd77833",
+    "semantic_hash": "f8decb7d10634f9956f8a37fcdd77833"
+  },
+  "src/Core/Domain/Entities/ContentManagement/ContentMetadata.cs": {
+    "mtime": 1790068361.111685,
+    "ast_hash": "a22f5213906ccc5687a7f525de23b315",
+    "semantic_hash": "a22f5213906ccc5687a7f525de23b315"
+  },
+  "src/Core/Domain/Entities/ContentManagement/ContentSection.cs": {
+    "mtime": 1790068361.111855,
+    "ast_hash": "b2250a43106ee2663645fea292fd59e7",
+    "semantic_hash": "b2250a43106ee2663645fea292fd59e7"
+  },
+  "src/Core/Domain/Entities/ContentManagement/Schema.cs": {
+    "mtime": 1790068361.1120355,
+    "ast_hash": "811ca116a6e558e4c3fd24fca114571b",
+    "semantic_hash": "811ca116a6e558e4c3fd24fca114571b"
+  },
+  "src/Core/Domain/Entities/ContentManagement/SchemaDetails.cs": {
+    "mtime": 1790068361.1122067,
+    "ast_hash": "f745095634c98c52739f93edd198edf1",
+    "semantic_hash": "f745095634c98c52739f93edd198edf1"
+  },
+  "src/Core/Domain/Entities/ContentManagement/SectionElement.cs": {
+    "mtime": 1790068361.1123729,
+    "ast_hash": "0e1d7645c34e77ab54f10838fb08a1f0",
+    "semantic_hash": "0e1d7645c34e77ab54f10838fb08a1f0"
+  },
+  "src/Core/Domain/Entities/CustomModule/Slider.cs": {
+    "mtime": 1790068361.1125526,
+    "ast_hash": "9023ae58a1f897251d99e4463151c87a",
+    "semantic_hash": "9023ae58a1f897251d99e4463151c87a"
+  },
+  "src/Core/Domain/Entities/CustomModule/SliderItem.cs": {
+    "mtime": 1790068361.1127353,
+    "ast_hash": "f145ce3c4d5b3cb95f9e2fff447f5b63",
+    "semantic_hash": "f145ce3c4d5b3cb95f9e2fff447f5b63"
+  },
+  "src/Core/Domain/Entities/General/Application.cs": {
+    "mtime": 1790068361.1129088,
+    "ast_hash": "747833cfa11da2ffed43726b5225e7d5",
+    "semantic_hash": "747833cfa11da2ffed43726b5225e7d5"
+  },
+  "src/Core/Domain/Entities/General/ApplicationSetting.cs": {
+    "mtime": 1790068361.1130722,
+    "ast_hash": "d8adf2ddb64c59bdf13fbe1630a1b969",
+    "semantic_hash": "d8adf2ddb64c59bdf13fbe1630a1b969"
+  },
+  "src/Core/Domain/Entities/General/Culture.cs": {
+    "mtime": 1790068361.1133785,
+    "ast_hash": "4ed918ce73a20892023b45550cd0f1fb",
+    "semantic_hash": "4ed918ce73a20892023b45550cd0f1fb"
+  },
+  "src/Core/Domain/Entities/General/SystemLog.cs": {
+    "mtime": 1790068361.1135578,
+    "ast_hash": "9cddd5f2521525441593254b4b0e2926",
+    "semantic_hash": "9cddd5f2521525441593254b4b0e2926"
+  },
+  "src/Core/Domain/Entities/General/SystemType.cs": {
+    "mtime": 1790068361.1137302,
+    "ast_hash": "e3eb89535718e017ecf9a9cdc2cd830f",
+    "semantic_hash": "e3eb89535718e017ecf9a9cdc2cd830f"
+  },
+  "src/Core/Domain/Entities/General/Tag.cs": {
+    "mtime": 1790068361.1138918,
+    "ast_hash": "c79132df3e42da5ed370ec578ed8c7ee",
+    "semantic_hash": "c79132df3e42da5ed370ec578ed8c7ee"
+  },
+  "src/Core/Domain/Entities/General/UserAccess.cs": {
+    "mtime": 1790068361.114059,
+    "ast_hash": "1e3f51e94e5e0ac8f837df530e85bee5",
+    "semantic_hash": "1e3f51e94e5e0ac8f837df530e85bee5"
+  },
+  "src/Core/Domain/Entities/General/UserInApplication.cs": {
+    "mtime": 1790068361.11424,
+    "ast_hash": "66294afc6dbceb816fbe6767f7ebf7ad",
+    "semantic_hash": "66294afc6dbceb816fbe6767f7ebf7ad"
+  },
+  "src/Core/Domain/Entities/User/UserAttachment.cs": {
+    "mtime": 1790068361.114416,
+    "ast_hash": "adc19c9e193afe2e9a8141d66dc98438",
+    "semantic_hash": "adc19c9e193afe2e9a8141d66dc98438"
+  },
+  "src/Core/Infrastructure/AccessManagerRepository/EntityAccessRepository.cs": {
+    "mtime": 1790068361.1146016,
+    "ast_hash": "55861e57537f7158d73f1dd9ad91da41",
+    "semantic_hash": "55861e57537f7158d73f1dd9ad91da41"
+  },
+  "src/Core/Infrastructure/AccessManagerRepository/SectorEntityRepository.cs": {
+    "mtime": 1790068361.114777,
+    "ast_hash": "076a9802586d5474791d24b9e0fb5f16",
+    "semantic_hash": "076a9802586d5474791d24b9e0fb5f16"
+  },
+  "src/Core/Infrastructure/AccessManagerRepository/SectorRepository.cs": {
+    "mtime": 1790068361.1149406,
+    "ast_hash": "584317f58a231c72ec30d65e94bbd973",
+    "semantic_hash": "584317f58a231c72ec30d65e94bbd973"
+  },
+  "src/Core/Infrastructure/CMSRepository/CategoryRepository.cs": {
+    "mtime": 1790068361.1151145,
+    "ast_hash": "435fb40cde37f5c189e707c8704dd1f0",
+    "semantic_hash": "435fb40cde37f5c189e707c8704dd1f0"
+  },
+  "src/Core/Infrastructure/CMSRepository/ContentCommandRepository.cs": {
+    "mtime": 1790068361.1152432,
+    "ast_hash": "bc2ba36cb9cc47b57901a158e31ae0b2",
+    "semantic_hash": "bc2ba36cb9cc47b57901a158e31ae0b2"
+  },
+  "src/Core/Infrastructure/CMSRepository/ContentQueryRepository.cs": {
+    "mtime": 1790068361.115381,
+    "ast_hash": "b81f7288f2d738ee50b383eb8e661504",
+    "semantic_hash": "b81f7288f2d738ee50b383eb8e661504"
+  },
+  "src/Core/Infrastructure/CMSRepository/ContentRelationRepository.cs": {
+    "mtime": 1790068361.1155267,
+    "ast_hash": "f6a3705706ab10c354867aca4fcb0456",
+    "semantic_hash": "f6a3705706ab10c354867aca4fcb0456"
+  },
+  "src/Core/Infrastructure/CMSRepository/ContentsInCategoryQueryAdapter.cs": {
+    "mtime": 1790068361.1156664,
+    "ast_hash": "147ba690ab69acc94940d68b01f5f43a",
+    "semantic_hash": "147ba690ab69acc94940d68b01f5f43a"
+  },
+  "src/Core/Infrastructure/CMSRepository/SchemaRepository.cs": {
+    "mtime": 1790068361.1158657,
+    "ast_hash": "486ac4e0feaf8e531d3ba37c8800dde2",
+    "semantic_hash": "486ac4e0feaf8e531d3ba37c8800dde2"
+  },
+  "src/Core/Infrastructure/ContentManagement/ContentProvider.cs": {
+    "mtime": 1790068361.116103,
+    "ast_hash": "c26e3ee5d430d94ae0d534c55c0d9fa6",
+    "semantic_hash": "c26e3ee5d430d94ae0d534c55c0d9fa6"
+  },
+  "src/Core/Infrastructure/Data/ApplicationDbContext.cs": {
+    "mtime": 1790068361.1163032,
+    "ast_hash": "9f591b949e6c721104494931414b798f",
+    "semantic_hash": "9f591b949e6c721104494931414b798f"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/CategoryConfiguration.cs": {
+    "mtime": 1790068361.116542,
+    "ast_hash": "b6c1cf5598f5945a5eb929e4a5d79bdc",
+    "semantic_hash": "b6c1cf5598f5945a5eb929e4a5d79bdc"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/CommentConfiguration.cs": {
+    "mtime": 1790068361.1166685,
+    "ast_hash": "d2fb0ddcfe48cb7a8b8781e82ec4dbf2",
+    "semantic_hash": "d2fb0ddcfe48cb7a8b8781e82ec4dbf2"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/ContentAttachmentConfiguration.cs": {
+    "mtime": 1790068361.1167963,
+    "ast_hash": "b57fdfc42436c0b5f28deed642a8e37f",
+    "semantic_hash": "b57fdfc42436c0b5f28deed642a8e37f"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/ContentAttachmentItemConfiguration.cs": {
+    "mtime": 1790068361.1169164,
+    "ast_hash": "37c29126a4bb5ece51b73785cf570ff5",
+    "semantic_hash": "37c29126a4bb5ece51b73785cf570ff5"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/ContentConfiguration.cs": {
+    "mtime": 1790068361.1170378,
+    "ast_hash": "91fd9d8b81a9a34adb6e7281dd955708",
+    "semantic_hash": "91fd9d8b81a9a34adb6e7281dd955708"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/ContentImageConfiguration.cs": {
+    "mtime": 1790068361.117157,
+    "ast_hash": "548c44497743fcb497eed66dabcbdab0",
+    "semantic_hash": "548c44497743fcb497eed66dabcbdab0"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/ContentInCategoryConfiguration.cs": {
+    "mtime": 1790068361.1172802,
+    "ast_hash": "ad94c26a99e2caa1a5185b49b995a1f8",
+    "semantic_hash": "ad94c26a99e2caa1a5185b49b995a1f8"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/ContentInCultureConfiguration.cs": {
+    "mtime": 1790068361.117431,
+    "ast_hash": "acdd26c08e1dbf724009aeaeaad9d2be",
+    "semantic_hash": "acdd26c08e1dbf724009aeaeaad9d2be"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/ContentInTagConfiguration.cs": {
+    "mtime": 1790068361.1175723,
+    "ast_hash": "239a3769a46cf0650d3123358e6b0c47",
+    "semantic_hash": "239a3769a46cf0650d3123358e6b0c47"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/ContentMetadataConfiguration.cs": {
+    "mtime": 1790068361.1177053,
+    "ast_hash": "456342e73977989df1a008e0b48ffef5",
+    "semantic_hash": "456342e73977989df1a008e0b48ffef5"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/ContentSectionConfiguration.cs": {
+    "mtime": 1790068361.1178403,
+    "ast_hash": "cd87858d261596147e88f6500e2739a2",
+    "semantic_hash": "cd87858d261596147e88f6500e2739a2"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/SchemaConfiguration.cs": {
+    "mtime": 1790068361.1179757,
+    "ast_hash": "4847c43446edd89d631783c188844a27",
+    "semantic_hash": "4847c43446edd89d631783c188844a27"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/SchemaDetailsConfiguration.cs": {
+    "mtime": 1790068361.118097,
+    "ast_hash": "d73787ccdcaf57803b7fc2e399c0d760",
+    "semantic_hash": "d73787ccdcaf57803b7fc2e399c0d760"
+  },
+  "src/Core/Infrastructure/Data/Configurations/CMS/SectionElementConfiguration.cs": {
+    "mtime": 1790068361.1182714,
+    "ast_hash": "1e2b22c43d3f1672ca76f73b601635ee",
+    "semantic_hash": "1e2b22c43d3f1672ca76f73b601635ee"
+  },
+  "src/Core/Infrastructure/Data/Configurations/EntityTypeBuilderExtensions.cs": {
+    "mtime": 1790068361.118392,
+    "ast_hash": "52d6583d6801158c6f5de64d5e3ba729",
+    "semantic_hash": "52d6583d6801158c6f5de64d5e3ba729"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/ApplicationConfiguration.cs": {
+    "mtime": 1790068361.1185377,
+    "ast_hash": "6d0b7cf9616193766e7cdf84f5836517",
+    "semantic_hash": "6d0b7cf9616193766e7cdf84f5836517"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/ApplicationSettingConfiguration.cs": {
+    "mtime": 1790068361.118646,
+    "ast_hash": "8514ef7d08bec260e9e1eb856d2230b7",
+    "semantic_hash": "8514ef7d08bec260e9e1eb856d2230b7"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/CultureConfiguration.cs": {
+    "mtime": 1790068361.11876,
+    "ast_hash": "32986980937310d113091281e2ed6ee8",
+    "semantic_hash": "32986980937310d113091281e2ed6ee8"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/EntityAccessConfiguration.cs": {
+    "mtime": 1790068361.1188781,
+    "ast_hash": "5b15f39b01d187025a1d6997c106c770",
+    "semantic_hash": "5b15f39b01d187025a1d6997c106c770"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/SectorConfiguration.cs": {
+    "mtime": 1790068361.1189964,
+    "ast_hash": "2be530d1cd5dc9dfb2cff0824669180b",
+    "semantic_hash": "2be530d1cd5dc9dfb2cff0824669180b"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/SectorEntityConfiguration.cs": {
+    "mtime": 1790068361.1191068,
+    "ast_hash": "c3237acfd0e57d1204c86450dab6e4fc",
+    "semantic_hash": "c3237acfd0e57d1204c86450dab6e4fc"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/SystemLogConfiguration.cs": {
+    "mtime": 1790068361.1192229,
+    "ast_hash": "cb03cad960a591cc50ea799e15bb392b",
+    "semantic_hash": "cb03cad960a591cc50ea799e15bb392b"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/SystemTypeConfiguration.cs": {
+    "mtime": 1790068361.119332,
+    "ast_hash": "c4ecd4236fe964f41b068fc288daf05f",
+    "semantic_hash": "c4ecd4236fe964f41b068fc288daf05f"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/TagConfiguration.cs": {
+    "mtime": 1790068361.119448,
+    "ast_hash": "d3fe02be71309b8946f66164d31822d1",
+    "semantic_hash": "d3fe02be71309b8946f66164d31822d1"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/UserAccessConfiguration.cs": {
+    "mtime": 1790068361.1195753,
+    "ast_hash": "afa394fdc8f0bf0fa1574538ae0c9bfb",
+    "semantic_hash": "afa394fdc8f0bf0fa1574538ae0c9bfb"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/UserAttachmentConfiguration.cs": {
+    "mtime": 1790068361.1196926,
+    "ast_hash": "375539ef4999a1e56f5df158b3e3911f",
+    "semantic_hash": "375539ef4999a1e56f5df158b3e3911f"
+  },
+  "src/Core/Infrastructure/Data/Configurations/General/UserInApplicationConfiguration.cs": {
+    "mtime": 1790068361.119823,
+    "ast_hash": "0b8b4644078cf7c941137ae5b80e90be",
+    "semantic_hash": "0b8b4644078cf7c941137ae5b80e90be"
+  },
+  "src/Core/Infrastructure/Data/Configurations/SCM/SliderConfiguration.cs": {
+    "mtime": 1790068361.119983,
+    "ast_hash": "99a04f441975a27f92921752d6bf8365",
+    "semantic_hash": "99a04f441975a27f92921752d6bf8365"
+  },
+  "src/Core/Infrastructure/Data/Configurations/SCM/SliderItemConfiguration.cs": {
+    "mtime": 1790068361.1201203,
+    "ast_hash": "5dc9d7e436fcfe33f169aae256c30e73",
+    "semantic_hash": "5dc9d7e436fcfe33f169aae256c30e73"
+  },
+  "src/Core/Infrastructure/Dto/BaseEntity.cs": {
+    "mtime": 1758545314.7282348,
+    "ast_hash": "71a661858e77bf1c7bfb7a2f95860b6b",
+    "semantic_hash": "71a661858e77bf1c7bfb7a2f95860b6b"
+  },
+  "src/Core/Infrastructure/Dto/CMSDtos/ContentAttachmentDto.cs": {
+    "mtime": 1758545314.7284741,
+    "ast_hash": "b01321f55a3e5a4735dc4258aad9642f",
+    "semantic_hash": "b01321f55a3e5a4735dc4258aad9642f"
+  },
+  "src/Core/Infrastructure/Dto/CMSDtos/ContentAttachmentItemDto.cs": {
+    "mtime": 1758545314.7285311,
+    "ast_hash": "3001b7f18c30cbc71cc62763be26715b",
+    "semantic_hash": "3001b7f18c30cbc71cc62763be26715b"
+  },
+  "src/Core/Infrastructure/Dto/GeneralDtos/JqueryDatatableParam.cs": {
+    "mtime": 1758545314.7297204,
+    "ast_hash": "b348bcaa32d7cf44d0ea1ebc22c43658",
+    "semantic_hash": "b348bcaa32d7cf44d0ea1ebc22c43658"
+  },
+  "src/Core/Infrastructure/Dto/GeneralDtos/ScrapeDataDto.cs": {
+    "mtime": 1758545314.7297704,
+    "ast_hash": "6f5a3ae57545642f0732e375d6a35c67",
+    "semantic_hash": "6f5a3ae57545642f0732e375d6a35c67"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/AmenityDto.cs": {
+    "mtime": 1758545314.7300417,
+    "ast_hash": "b447554984a80d5ef644175cfee33eee",
+    "semantic_hash": "b447554984a80d5ef644175cfee33eee"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/AttributeGroupDto.cs": {
+    "mtime": 1758545314.7300932,
+    "ast_hash": "61dd889c3a2ec830f19669f37424d402",
+    "semantic_hash": "61dd889c3a2ec830f19669f37424d402"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/AttributeGroupItemDto.cs": {
+    "mtime": 1758545314.7301385,
+    "ast_hash": "69dc51a1464b1c43f7744a84e901b19c",
+    "semantic_hash": "69dc51a1464b1c43f7744a84e901b19c"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/AttributeGroupItemValueDto.cs": {
+    "mtime": 1758545314.7301867,
+    "ast_hash": "22a6351985131239671aaddadbaef75c",
+    "semantic_hash": "22a6351985131239671aaddadbaef75c"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/CompanyDto.cs": {
+    "mtime": 1758545314.730235,
+    "ast_hash": "8512c955f3268986df52c80bf92decec",
+    "semantic_hash": "8512c955f3268986df52c80bf92decec"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/CurrencyDto.cs": {
+    "mtime": 1758545314.7302775,
+    "ast_hash": "56fba11f6e826d286044739c95059454",
+    "semantic_hash": "56fba11f6e826d286044739c95059454"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/DevelopmentApiDto.cs": {
+    "mtime": 1758545314.7303295,
+    "ast_hash": "cae73f515717e20a179e3e23962295b3",
+    "semantic_hash": "cae73f515717e20a179e3e23962295b3"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/DevelopmentAttachmentDto.cs": {
+    "mtime": 1758545314.730372,
+    "ast_hash": "87fc0376104a350827b2d14cfd2d0309",
+    "semantic_hash": "87fc0376104a350827b2d14cfd2d0309"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/DevelopmentAttachmentItemDto.cs": {
+    "mtime": 1758545314.7304144,
+    "ast_hash": "6855a8a9b4a2b057c2e16ec1e3342019",
+    "semantic_hash": "6855a8a9b4a2b057c2e16ec1e3342019"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/DevelopmentDto.cs": {
+    "mtime": 1758545314.7304614,
+    "ast_hash": "255bd78a05d401d89dfe82b9728741cf",
+    "semantic_hash": "255bd78a05d401d89dfe82b9728741cf"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/DevelopmentImageDto.cs": {
+    "mtime": 1758545314.7305024,
+    "ast_hash": "c7498c88b202bbc8d349730bedae1d01",
+    "semantic_hash": "c7498c88b202bbc8d349730bedae1d01"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/LeadDto.cs": {
+    "mtime": 1758545314.7305536,
+    "ast_hash": "098cf7470bb601f14667054f84bca97d",
+    "semantic_hash": "098cf7470bb601f14667054f84bca97d"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/PropertyAttachmentDto.cs": {
+    "mtime": 1758545314.7305925,
+    "ast_hash": "8ed564f2ffcb87c98effa5a3367120f2",
+    "semantic_hash": "8ed564f2ffcb87c98effa5a3367120f2"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/PropertyAttachmentItemDto.cs": {
+    "mtime": 1758545314.7306306,
+    "ast_hash": "2e04e9a23a96f13d345586e20dbabf7e",
+    "semantic_hash": "2e04e9a23a96f13d345586e20dbabf7e"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/PropertyDto.cs": {
+    "mtime": 1758545314.7306693,
+    "ast_hash": "4d180246630a52d8f3218738a334a26f",
+    "semantic_hash": "4d180246630a52d8f3218738a334a26f"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/PropertyImageDto.cs": {
+    "mtime": 1758545314.7307093,
+    "ast_hash": "8f0301c54caa543318093e033a5405d3",
+    "semantic_hash": "8f0301c54caa543318093e033a5405d3"
+  },
+  "src/Core/Infrastructure/Dto/PropTechDtos/PropertyPriceDto.cs": {
+    "mtime": 1758545314.7307618,
+    "ast_hash": "20ecdaa8ba323cdb4493b9e86e7c9357",
+    "semantic_hash": "20ecdaa8ba323cdb4493b9e86e7c9357"
+  },
+  "src/Core/Infrastructure/Dto/SCMDtos/BoxDto.cs": {
+    "mtime": 1758545314.730831,
+    "ast_hash": "d849e851444f6ba9e3b259c27791f373",
+    "semantic_hash": "d849e851444f6ba9e3b259c27791f373"
+  },
+  "src/Core/Infrastructure/Dto/SCMDtos/BoxItemDto.cs": {
+    "mtime": 1758545314.7308748,
+    "ast_hash": "298d10ae2ab8292164860e06205af734",
+    "semantic_hash": "298d10ae2ab8292164860e06205af734"
+  },
+  "src/Core/Infrastructure/Dto/SCMDtos/SliderDto.cs": {
+    "mtime": 1758545314.7309124,
+    "ast_hash": "c214a42b9e6dc68494a96938050837fc",
+    "semantic_hash": "c214a42b9e6dc68494a96938050837fc"
+  },
+  "src/Core/Infrastructure/Dto/SCMDtos/SliderItemDto.cs": {
+    "mtime": 1758545314.7309558,
+    "ast_hash": "97f0a040080ef67f19afe14f75207316",
+    "semantic_hash": "97f0a040080ef67f19afe14f75207316"
+  },
+  "src/Core/Infrastructure/Dto/SPDtos/AlgoliaListDto.cs": {
+    "mtime": 1758545314.7310305,
+    "ast_hash": "07635aa64f676b1d0ee1721cdef0ad03",
+    "semantic_hash": "07635aa64f676b1d0ee1721cdef0ad03"
+  },
+  "src/Core/Infrastructure/Dto/SPDtos/DevelopmentAdvanceSearchDto.cs": {
+    "mtime": 1758545314.731074,
+    "ast_hash": "b445317b484454bbda5666826baab0ce",
+    "semantic_hash": "b445317b484454bbda5666826baab0ce"
+  },
+  "src/Core/Infrastructure/Dto/SPDtos/LatestRateDto.cs": {
+    "mtime": 1758545314.7311327,
+    "ast_hash": "d4e3e399de6217389f4784158a8abb7f",
+    "semantic_hash": "d4e3e399de6217389f4784158a8abb7f"
+  },
+  "src/Core/Infrastructure/Dto/SPDtos/PagingDto.cs": {
+    "mtime": 1758545314.7311893,
+    "ast_hash": "60bc5c4084b1c5bc7adfbc8901e606fb",
+    "semantic_hash": "60bc5c4084b1c5bc7adfbc8901e606fb"
+  },
+  "src/Core/Infrastructure/Dto/SPDtos/PropTechStatsDto.cs": {
+    "mtime": 1758545314.7312367,
+    "ast_hash": "1c4bda75314608fe72eddcf6b089d438",
+    "semantic_hash": "1c4bda75314608fe72eddcf6b089d438"
+  },
+  "src/Core/Infrastructure/Dto/SPDtos/PropertyOfDevelopmentDto.cs": {
+    "mtime": 1758545314.731278,
+    "ast_hash": "6d36bbc502367c3ab54f17bf2e488dcc",
+    "semantic_hash": "6d36bbc502367c3ab54f17bf2e488dcc"
+  },
+  "src/Core/Infrastructure/Dto/SPDtos/PropertyOfDevelopmentGalleryDto.cs": {
+    "mtime": 1758545314.7313213,
+    "ast_hash": "42367e5c52f6f34a5249138c8a487960",
+    "semantic_hash": "42367e5c52f6f34a5249138c8a487960"
+  },
+  "src/Core/Infrastructure/Dto/SPDtos/PropertyOfDevelopmentImagesDto.cs": {
+    "mtime": 1758545314.7313623,
+    "ast_hash": "063a8dae25acdf63e80f11d402a173d2",
+    "semantic_hash": "063a8dae25acdf63e80f11d402a173d2"
+  },
+  "src/Core/Infrastructure/Dto/SPDtos/PropertyOfDevelopmentPricesDto.cs": {
+    "mtime": 1758545314.7314057,
+    "ast_hash": "cfdf6f6ec5fd66e2829b669cbc0426ec",
+    "semantic_hash": "cfdf6f6ec5fd66e2829b669cbc0426ec"
+  },
+  "src/Core/Infrastructure/Dto/UIServicesDtos/ApiDevelopmentDetailsDto.cs": {
+    "mtime": 1758545314.731478,
+    "ast_hash": "2a160040ec61b46f6271c1c7021f465f",
+    "semantic_hash": "2a160040ec61b46f6271c1c7021f465f"
+  },
+  "src/Core/Infrastructure/Dto/UIServicesDtos/ApiDevelopmentDto.cs": {
+    "mtime": 1758545314.7315273,
+    "ast_hash": "c3b98de62cd51c245ba7030240f19db2",
+    "semantic_hash": "c3b98de62cd51c245ba7030240f19db2"
+  },
+  "src/Core/Infrastructure/Dto/UIServicesDtos/ApiPriceDto.cs": {
+    "mtime": 1758545314.7315745,
+    "ast_hash": "b52d9eec827b93897b292413b6757a94",
+    "semantic_hash": "b52d9eec827b93897b292413b6757a94"
+  },
+  "src/Core/Infrastructure/Dto/UIServicesDtos/ApiPropertyDto.cs": {
+    "mtime": 1758545314.7316177,
+    "ast_hash": "a4756c48b315244d6d05215bb041dc1f",
+    "semantic_hash": "a4756c48b315244d6d05215bb041dc1f"
+  },
+  "src/Core/Infrastructure/Dto/UserManagementDtos/EventResellerDto.cs": {
+    "mtime": 1758545314.7317243,
+    "ast_hash": "4c67c9a45b6177444f4ac816f6105964",
+    "semantic_hash": "4c67c9a45b6177444f4ac816f6105964"
+  },
+  "src/Core/Infrastructure/Extensions/StringExtensions.cs": {
+    "mtime": 1758545314.7319322,
+    "ast_hash": "edca5b1d62d905abd7b7a05e14f9262e",
+    "semantic_hash": "edca5b1d62d905abd7b7a05e14f9262e"
+  },
+  "src/Core/Infrastructure/GeneralRepository/ApplicationRepository.cs": {
+    "mtime": 1790068361.1204534,
+    "ast_hash": "ea47b4d7c90c11954659770c758bb0b6",
+    "semantic_hash": "ea47b4d7c90c11954659770c758bb0b6"
+  },
+  "src/Core/Infrastructure/GeneralRepository/CultureRepository.cs": {
+    "mtime": 1790068361.120644,
+    "ast_hash": "7c811d095b1c8bf67a2091212f8e0594",
+    "semantic_hash": "7c811d095b1c8bf67a2091212f8e0594"
+  },
+  "src/Core/Infrastructure/GeneralRepository/SystemTypeRepository.cs": {
+    "mtime": 1790068361.120816,
+    "ast_hash": "9a724ab2f1ee76ccb6fe1ff150187647",
+    "semantic_hash": "9a724ab2f1ee76ccb6fe1ff150187647"
+  },
+  "src/Core/Infrastructure/GeneralRepository/TagRepository.cs": {
+    "mtime": 1790068361.1209908,
+    "ast_hash": "b584a945a12b400b618669d3372fd73a",
+    "semantic_hash": "b584a945a12b400b618669d3372fd73a"
+  },
+  "src/Core/Infrastructure/Identity/ApplicationUser.cs": {
+    "mtime": 1790068361.1211727,
+    "ast_hash": "58fb0dbf1eb855ee9503d9dfce545298",
+    "semantic_hash": "58fb0dbf1eb855ee9503d9dfce545298"
+  },
+  "src/Core/Infrastructure/Infrastructure.csproj": {
+    "mtime": 1790068361.1213143,
+    "ast_hash": "69dd7bd40e419fd1019b4c440cb706bb",
+    "semantic_hash": "69dd7bd40e419fd1019b4c440cb706bb"
+  },
+  "src/Core/Infrastructure/Mapper/MapperProfile.cs": {
+    "mtime": 1790068361.1214554,
+    "ast_hash": "5feb4c039da5aba013820bd6f5b67202",
+    "semantic_hash": "5feb4c039da5aba013820bd6f5b67202"
+  },
+  "src/Core/Infrastructure/Repository/Repository.cs": {
+    "mtime": 1790068361.121619,
+    "ast_hash": "4ffb2e3186297c1d4beb4aa7580d9121",
+    "semantic_hash": "4ffb2e3186297c1d4beb4aa7580d9121"
+  },
+  "src/Core/Infrastructure/SCMRepository/SliderRepository.cs": {
+    "mtime": 1790068361.121781,
+    "ast_hash": "37b0cfa1d6b559a31f6c109abff5b918",
+    "semantic_hash": "37b0cfa1d6b559a31f6c109abff5b918"
+  },
+  "src/Core/Infrastructure/TranslatorServices/OpenAiTranslationOptions.cs": {
+    "mtime": 1790068361.1219194,
+    "ast_hash": "1e98a07d3cd6e62192bd29fc1f27b8ea",
+    "semantic_hash": "1e98a07d3cd6e62192bd29fc1f27b8ea"
+  },
+  "src/Core/Infrastructure/TranslatorServices/OpenAiTranslationPort.cs": {
+    "mtime": 1790068361.1220486,
+    "ast_hash": "f676948bbc628da04b2a7808341271ef",
+    "semantic_hash": "f676948bbc628da04b2a7808341271ef"
+  },
+  "src/Core/Infrastructure/UnitOfWork/UnitOfWork.cs": {
+    "mtime": 1790068361.1222155,
+    "ast_hash": "c7c68bdbd7055ba4beb9a4464e3254c8",
+    "semantic_hash": "c7c68bdbd7055ba4beb9a4464e3254c8"
+  },
+  "src/Core/Infrastructure/UserManagementRepository/UserAttachmentRepository.cs": {
+    "mtime": 1790068361.1223388,
+    "ast_hash": "7b4865da189b71221df71bcb7b51885b",
+    "semantic_hash": "7b4865da189b71221df71bcb7b51885b"
+  },
+  "src/Core/Infrastructure/UserManagementRepository/UserManagementRepository.cs": {
+    "mtime": 1790068361.1225033,
+    "ast_hash": "61ca8f16bbe6067ff388ec5276cab287",
+    "semantic_hash": "61ca8f16bbe6067ff388ec5276cab287"
+  },
+  "src/Core/Infrastructure/Using.cs": {
+    "mtime": 1790068361.1226983,
+    "ast_hash": "f237904c444bdb66f18616a5c1e47713",
+    "semantic_hash": "f237904c444bdb66f18616a5c1e47713"
+  },
+  "src/Core/Tests/AccessManagerRepository/EntityAccessRepositoryTests.cs": {
+    "mtime": 1790068361.122955,
+    "ast_hash": "26f9d84da24c0c00425bc07953c6828a",
+    "semantic_hash": "26f9d84da24c0c00425bc07953c6828a"
+  },
+  "src/Core/Tests/AccessManagerRepository/SectorEntityRepositoryTests.cs": {
+    "mtime": 1790068361.1231022,
+    "ast_hash": "7ec9e21d37179978798aeca5445bb677",
+    "semantic_hash": "7ec9e21d37179978798aeca5445bb677"
+  },
+  "src/Core/Tests/AccessManagerRepository/SectorRepositoryTests.cs": {
+    "mtime": 1790068361.123233,
+    "ast_hash": "050b16e32f44c48bd5dfbf505145bf2e",
+    "semantic_hash": "050b16e32f44c48bd5dfbf505145bf2e"
+  },
+  "src/Core/Tests/Architecture/ApplicationRootAdministrationAuthorizationTests.cs": {
+    "mtime": 1790068361.1233912,
+    "ast_hash": "12365e486af6920c118c63ea2e705244",
+    "semantic_hash": "12365e486af6920c118c63ea2e705244"
+  },
+  "src/Core/Tests/Architecture/ApplicationUseCaseBoundaryTests.cs": {
+    "mtime": 1790068361.1235294,
+    "ast_hash": "5c37c9c84abb9c45a0ec2083fef2c0a5",
+    "semantic_hash": "5c37c9c84abb9c45a0ec2083fef2c0a5"
+  },
+  "src/Core/Tests/Architecture/CompositionRootTests.cs": {
+    "mtime": 1790068361.1236565,
+    "ast_hash": "a81a3d87e3280ccb9b6c0249496ce0cd",
+    "semantic_hash": "a81a3d87e3280ccb9b6c0249496ce0cd"
+  },
+  "src/Core/Tests/Architecture/DomainPersistenceDecouplingTests.cs": {
+    "mtime": 1790068361.123775,
+    "ast_hash": "2a0606e5bd204ebf17d8612ac2376288",
+    "semantic_hash": "2a0606e5bd204ebf17d8612ac2376288"
+  },
+  "src/Core/Tests/Architecture/EfSchemaConfigurationTests.cs": {
+    "mtime": 1790068361.1238842,
+    "ast_hash": "01c00c3dfa3a99c8fd1dab6c4c248aaa",
+    "semantic_hash": "01c00c3dfa3a99c8fd1dab6c4c248aaa"
+  },
+  "src/Core/Tests/Architecture/GenericRepositoryInjectionTests.cs": {
+    "mtime": 1790068361.1240122,
+    "ast_hash": "4ccf485a61fee6820bc4ec1aa0af4f6f",
+    "semantic_hash": "4ccf485a61fee6820bc4ec1aa0af4f6f"
+  },
+  "src/Core/Tests/Architecture/IdentityDecouplingTests.cs": {
+    "mtime": 1790068361.1241195,
+    "ast_hash": "90b7b0d6125697561d63dee3eccd2959",
+    "semantic_hash": "90b7b0d6125697561d63dee3eccd2959"
+  },
+  "src/Core/Tests/Architecture/LayerBoundaryTests.cs": {
+    "mtime": 1790068361.12423,
+    "ast_hash": "ab68ba8475010e8f8d50900fad7cbe4c",
+    "semantic_hash": "ab68ba8475010e8f8d50900fad7cbe4c"
+  },
+  "src/Core/Tests/Architecture/MappingConfigurationTests.cs": {
+    "mtime": 1790068361.1243544,
+    "ast_hash": "fe70f749c7343479dd9f4d0e8f7125d4",
+    "semantic_hash": "fe70f749c7343479dd9f4d0e8f7125d4"
+  },
+  "src/Core/Tests/Architecture/MembershipAdministrationAuthorizationTests.cs": {
+    "mtime": 1790068361.1244748,
+    "ast_hash": "1b703c98208859063a5628978ca079a8",
+    "semantic_hash": "1b703c98208859063a5628978ca079a8"
+  },
+  "src/Core/Tests/Architecture/NoZeroTenantFallbackTests.cs": {
+    "mtime": 1790068361.1245885,
+    "ast_hash": "6f8fb7edeb8b0a0193293667f763c772",
+    "semantic_hash": "6f8fb7edeb8b0a0193293667f763c772"
+  },
+  "src/Core/Tests/Architecture/RoleAdministrationAuthorizationTests.cs": {
+    "mtime": 1790068361.1247149,
+    "ast_hash": "915dbda9c6b976a49e950d10cc36c4c6",
+    "semantic_hash": "915dbda9c6b976a49e950d10cc36c4c6"
+  },
+  "src/Core/Tests/Architecture/SectorEntityScopingGuardTests.cs": {
+    "mtime": 1790068361.1248252,
+    "ast_hash": "557984a4a754ebfce47d3507a25f5865",
+    "semantic_hash": "557984a4a754ebfce47d3507a25f5865"
+  },
+  "src/Core/Tests/Architecture/TenantContextGuardCoverageTests.cs": {
+    "mtime": 1790068361.1249452,
+    "ast_hash": "9c35beb765d5bf1bbf029fc7defe153b",
+    "semantic_hash": "9c35beb765d5bf1bbf029fc7defe153b"
+  },
+  "src/Core/Tests/Architecture/TransactionOwnershipTests.cs": {
+    "mtime": 1790068361.125066,
+    "ast_hash": "534485487e672d043ecded8d191277b7",
+    "semantic_hash": "534485487e672d043ecded8d191277b7"
+  },
+  "src/Core/Tests/Architecture/TranslationContentAccessTests.cs": {
+    "mtime": 1790068361.1251876,
+    "ast_hash": "5fc769ef9357dd953f82221be409bdb4",
+    "semantic_hash": "5fc769ef9357dd953f82221be409bdb4"
+  },
+  "src/Core/Tests/Architecture/UserAdministrationAuthorizationTests.cs": {
+    "mtime": 1790068361.1255229,
+    "ast_hash": "25546f88e150823141f9251cc4af6eaa",
+    "semantic_hash": "25546f88e150823141f9251cc4af6eaa"
+  },
+  "src/Core/Tests/AsyncBoundaries/AsyncCancellationAndErrorBoundaryTests.cs": {
+    "mtime": 1790068361.1257167,
+    "ast_hash": "83e3e6a084f8065d3216b50555398c8a",
+    "semantic_hash": "83e3e6a084f8065d3216b50555398c8a"
+  },
+  "src/Core/Tests/CMSRepository/CategoryRepositoryTests.cs": {
+    "mtime": 1790068361.1258352,
+    "ast_hash": "0a449531969a1032d7a361902424c771",
+    "semantic_hash": "0a449531969a1032d7a361902424c771"
+  },
+  "src/Core/Tests/CMSRepository/ContentApiCompatibilityTests.cs": {
+    "mtime": 1786582091.3710656,
+    "ast_hash": "50d268a5c2cb978cddfa78b7fdbff263",
+    "semantic_hash": "50d268a5c2cb978cddfa78b7fdbff263"
+  },
+  "src/Core/Tests/CMSRepository/ContentApiReadTests.cs": {
+    "mtime": 1790068361.126,
+    "ast_hash": "338f390e2c5d912f778c4ad67f955e3f",
+    "semantic_hash": "338f390e2c5d912f778c4ad67f955e3f"
+  },
+  "src/Core/Tests/CMSRepository/ContentCommandRepositoryTests.cs": {
+    "mtime": 1790068361.1261344,
+    "ast_hash": "70869034a824acb2403b9d6ad264ce32",
+    "semantic_hash": "70869034a824acb2403b9d6ad264ce32"
+  },
+  "src/Core/Tests/CMSRepository/ContentOwnershipTests.cs": {
+    "mtime": 1790068361.126258,
+    "ast_hash": "961155eef6c1342de51d21643a228205",
+    "semantic_hash": "961155eef6c1342de51d21643a228205"
+  },
+  "src/Core/Tests/CMSRepository/ContentQueryRepositoryTests.cs": {
+    "mtime": 1790068361.12638,
+    "ast_hash": "0e1fdccdd7f6b76eaf93f77b4fafbd58",
+    "semantic_hash": "0e1fdccdd7f6b76eaf93f77b4fafbd58"
+  },
+  "src/Core/Tests/CMSRepository/ContentRelationRepositoryTests.cs": {
+    "mtime": 1790068361.1266105,
+    "ast_hash": "990ce4438944d4c9c673326f5d08d0c1",
+    "semantic_hash": "990ce4438944d4c9c673326f5d08d0c1"
+  },
+  "src/Core/Tests/CMSRepository/ContentsInCategoryQueryAdapterTests.cs": {
+    "mtime": 1790068361.1267343,
+    "ast_hash": "f41b441b152809fbbb3011f7dd221eb7",
+    "semantic_hash": "f41b441b152809fbbb3011f7dd221eb7"
+  },
+  "src/Core/Tests/CMSServices/CategoryServicesTests.cs": {
+    "mtime": 1790068361.126853,
+    "ast_hash": "f15f78f226280a8152b7674e0cd49f95",
+    "semantic_hash": "f15f78f226280a8152b7674e0cd49f95"
+  },
+  "src/Core/Tests/CMSServices/ContentServicesTests.cs": {
+    "mtime": 1790068361.1270156,
+    "ast_hash": "b5287115ffb80ca254d5732a61852961",
+    "semantic_hash": "b5287115ffb80ca254d5732a61852961"
+  },
+  "src/Core/Tests/CMSServices/SchemaServicesTests.cs": {
+    "mtime": 1790068361.1271439,
+    "ast_hash": "3886d64c150a0f35b979216b0e8cbec1",
+    "semantic_hash": "3886d64c150a0f35b979216b0e8cbec1"
+  },
+  "src/Core/Tests/ContentManagement/ContentProviderTests.cs": {
+    "mtime": 1790068361.1272953,
+    "ast_hash": "368de2f93c2c8f2edbf4a2b2a73a0cd6",
+    "semantic_hash": "368de2f93c2c8f2edbf4a2b2a73a0cd6"
+  },
+  "src/Core/Tests/Core.Tests.csproj": {
+    "mtime": 1790068361.1274793,
+    "ast_hash": "323e8941c95ec298b99cc6f0a9de14fe",
+    "semantic_hash": "323e8941c95ec298b99cc6f0a9de14fe"
+  },
+  "src/Core/Tests/Data/EntityLifecyclePolicyTests.cs": {
+    "mtime": 1790068361.1276512,
+    "ast_hash": "4c91ed6f11fefdf09e1243939be3e7e7",
+    "semantic_hash": "4c91ed6f11fefdf09e1243939be3e7e7"
+  },
+  "src/Core/Tests/Domain/DomainEntityJsonIgnoreTests.cs": {
+    "mtime": 1786582091.3718452,
+    "ast_hash": "23da49fb95402ef089a27d4fd32cfa49",
+    "semantic_hash": "23da49fb95402ef089a27d4fd32cfa49"
+  },
+  "src/Core/Tests/GeneralRepository/ApplicationRepositoryTests.cs": {
+    "mtime": 1790068361.1279376,
+    "ast_hash": "78b060d0133d3422833cea6f24299700",
+    "semantic_hash": "78b060d0133d3422833cea6f24299700"
+  },
+  "src/Core/Tests/GeneralRepository/TagRepositoryTests.cs": {
+    "mtime": 1790068361.1280818,
+    "ast_hash": "7d6dd4620f31a704b4bb5fcec0bc2274",
+    "semantic_hash": "7d6dd4620f31a704b4bb5fcec0bc2274"
+  },
+  "src/Core/Tests/GeneralServices/ApplicationServicesTests.cs": {
+    "mtime": 1790068361.1282609,
+    "ast_hash": "be82ea30dec66eb35b55bb8f0d4a1d6d",
+    "semantic_hash": "be82ea30dec66eb35b55bb8f0d4a1d6d"
+  },
+  "src/Core/Tests/GeneralServices/TagServicesTests.cs": {
+    "mtime": 1790068361.1284046,
+    "ast_hash": "130bf81a3dfe90323ba633cbad223970",
+    "semantic_hash": "130bf81a3dfe90323ba633cbad223970"
+  },
+  "src/Core/Tests/Integration/SqlServerIntegrationTests.cs": {
+    "mtime": 1790068361.128585,
+    "ast_hash": "16810fb025ce89d2c3e07fa5186256db",
+    "semantic_hash": "16810fb025ce89d2c3e07fa5186256db"
+  },
+  "src/Core/Tests/Repository/RepositoryTests.cs": {
+    "mtime": 1790068361.1287398,
+    "ast_hash": "883d912dcf1f8d729c82ef626f193093",
+    "semantic_hash": "883d912dcf1f8d729c82ef626f193093"
+  },
+  "src/Core/Tests/SCMServices/SliderServicesTests.cs": {
+    "mtime": 1790068361.1289327,
+    "ast_hash": "be6cabec769c9e03f40c2f298d8fe95a",
+    "semantic_hash": "be6cabec769c9e03f40c2f298d8fe95a"
+  },
+  "src/Core/Tests/TestSupport/AuthorizeRoleTestHelper.cs": {
+    "mtime": 1790068361.1290658,
+    "ast_hash": "f17c6d0d54ce051780175bba1d307a81",
+    "semantic_hash": "f17c6d0d54ce051780175bba1d307a81"
+  },
+  "src/Core/Tests/TestSupport/FakeTimeProvider.cs": {
+    "mtime": 1790068361.1291866,
+    "ast_hash": "3a9906cfb66777d7038a9b5feaa314e2",
+    "semantic_hash": "3a9906cfb66777d7038a9b5feaa314e2"
+  },
+  "src/Core/Tests/TestSupport/SqliteContextFactory.cs": {
+    "mtime": 1790068361.1293182,
+    "ast_hash": "a5fb89ceee7e89cf4c5544ae120bb4d1",
+    "semantic_hash": "a5fb89ceee7e89cf4c5544ae120bb4d1"
+  },
+  "src/Core/Tests/TestSupport/TestConfiguration.cs": {
+    "mtime": 1786582091.372192,
+    "ast_hash": "5d9861ade0e516f10a848f7a1b304067",
+    "semantic_hash": "5d9861ade0e516f10a848f7a1b304067"
+  },
+  "src/Core/Tests/TranslatorServices/ContentTranslatorTests.cs": {
+    "mtime": 1790068361.1294675,
+    "ast_hash": "d44848e7135aaf13dcb8277830ed526e",
+    "semantic_hash": "d44848e7135aaf13dcb8277830ed526e"
+  },
+  "src/Core/Tests/TranslatorServices/TranslationOutputValidatorTests.cs": {
+    "mtime": 1790068361.12959,
+    "ast_hash": "90c33e4f436f51e094ce9bc1f493d87e",
+    "semantic_hash": "90c33e4f436f51e094ce9bc1f493d87e"
+  },
+  "src/Core/Tests/UnitOfWork/UnitOfWorkTests.cs": {
+    "mtime": 1790068361.129742,
+    "ast_hash": "5d5fafa8ee36e25d92bd13402ae5bbbe",
+    "semantic_hash": "5d5fafa8ee36e25d92bd13402ae5bbbe"
+  },
+  "src/Core/Tests/UserManagementRepository/UserManagementRepositoryTests.cs": {
+    "mtime": 1790068361.1299057,
+    "ast_hash": "1e2f4461a453f4b0804703cfd7c87cbe",
+    "semantic_hash": "1e2f4461a453f4b0804703cfd7c87cbe"
+  },
+  "src/Core/Tests/UserManagementServices/CurrentApplicationContextExtensionsTests.cs": {
+    "mtime": 1790068361.1300623,
+    "ast_hash": "717d11eb1514e3e89d4fa3d05cecd79c",
+    "semantic_hash": "717d11eb1514e3e89d4fa3d05cecd79c"
+  },
+  "src/Core/Tests/UserManagementServices/TenantAccessGuardTests.cs": {
+    "mtime": 1790068361.1303177,
+    "ast_hash": "87eae825da6fc396d632e6b1628ae381",
+    "semantic_hash": "87eae825da6fc396d632e6b1628ae381"
+  },
+  "src/Core/Tests/UserManagementServices/UserManagementServicesTests.cs": {
+    "mtime": 1790068361.1304295,
+    "ast_hash": "2765b3bbc20e98c5a1cc1910b0bd8a6a",
+    "semantic_hash": "2765b3bbc20e98c5a1cc1910b0bd8a6a"
+  },
+  "src/Core/Tests/Using.cs": {
+    "mtime": 1790068361.1305344,
+    "ast_hash": "ca7100f2cf01a96047a4cba141417754",
+    "semantic_hash": "ca7100f2cf01a96047a4cba141417754"
+  },
+  "src/Core/Tests/Utilities/CodeGeneratorTests.cs": {
+    "mtime": 1790068361.1306636,
+    "ast_hash": "c8d6ebc5d2cc17eeaf984278d7992c14",
+    "semantic_hash": "c8d6ebc5d2cc17eeaf984278d7992c14"
+  },
+  "src/Core/Tests/Utilities/SlugGeneratorTests.cs": {
+    "mtime": 1790068361.1307895,
+    "ast_hash": "45122129ca024fe5b9efc336ddb6aaf0",
+    "semantic_hash": "45122129ca024fe5b9efc336ddb6aaf0"
+  },
+  "src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs": {
+    "mtime": 1790068361.1309516,
+    "ast_hash": "b33c6c883a33ceec1bad7ce8c18e1fc4",
+    "semantic_hash": "b33c6c883a33ceec1bad7ce8c18e1fc4"
+  },
+  "src/SonicCoreSystem.sln": {
+    "mtime": 1790068361.131111,
+    "ast_hash": "164fa10581f1d5b03da6940045ee0c4d",
+    "semantic_hash": "164fa10581f1d5b03da6940045ee0c4d"
+  },
+  "src/Web/Areas/Api/CategoryController.cs": {
+    "mtime": 1786718894.5879376,
+    "ast_hash": "dbb3e25c5b05e07db4310529d43df75f",
+    "semantic_hash": "dbb3e25c5b05e07db4310529d43df75f"
+  },
+  "src/Web/Areas/Api/ContentController.cs": {
+    "mtime": 1790068361.131283,
+    "ast_hash": "c899f40bdaf8d84fecc19e1379a9b5b3",
+    "semantic_hash": "c899f40bdaf8d84fecc19e1379a9b5b3"
+  },
+  "src/Web/Areas/Api/Models/CheckTicketValidityResultViewModel.cs": {
+    "mtime": 1758545314.7380488,
+    "ast_hash": "1fa4f83e8d8f7168295f930a2e909f2a",
+    "semantic_hash": "1fa4f83e8d8f7168295f930a2e909f2a"
+  },
+  "src/Web/Areas/Api/Models/CheckTicketValidityViewModel.cs": {
+    "mtime": 1758545314.7380955,
+    "ast_hash": "f9f740b901b8e6be840b895b89da3ffd",
+    "semantic_hash": "f9f740b901b8e6be840b895b89da3ffd"
+  },
+  "src/Web/Areas/Api/Models/ExpireTicketViewModel.cs": {
+    "mtime": 1758545314.738139,
+    "ast_hash": "ddc720600efba72e7d3ca29d0ad90c8b",
+    "semantic_hash": "ddc720600efba72e7d3ca29d0ad90c8b"
+  },
+  "src/Web/Areas/Api/SliderController.cs": {
+    "mtime": 1790068361.131428,
+    "ast_hash": "c84f6163a8828e52a41dc163cdaf1129",
+    "semantic_hash": "c84f6163a8828e52a41dc163cdaf1129"
+  },
+  "src/Web/Areas/BackOffice/Controllers/AccessManagementController.cs": {
+    "mtime": 1790068361.1315992,
+    "ast_hash": "dd79dd09818b02a240dc650e74961a37",
+    "semantic_hash": "dd79dd09818b02a240dc650e74961a37"
+  },
+  "src/Web/Areas/BackOffice/Controllers/AccountController.cs": {
+    "mtime": 1790068361.1317513,
+    "ast_hash": "95ce2bf55873bf984bca6a4f8dc8f23f",
+    "semantic_hash": "95ce2bf55873bf984bca6a4f8dc8f23f"
+  },
+  "src/Web/Areas/BackOffice/Controllers/ApplicationController.cs": {
+    "mtime": 1790068361.1319196,
+    "ast_hash": "46bb230ae4a68a4ee9aec8a70990a666",
+    "semantic_hash": "46bb230ae4a68a4ee9aec8a70990a666"
+  },
+  "src/Web/Areas/BackOffice/Controllers/BaseController.cs": {
+    "mtime": 1790068361.1320794,
+    "ast_hash": "cb245a5f0e329738fff0993dcc62553e",
+    "semantic_hash": "cb245a5f0e329738fff0993dcc62553e"
+  },
+  "src/Web/Areas/BackOffice/Controllers/CategoryController.cs": {
+    "mtime": 1790068361.132234,
+    "ast_hash": "f6aed12a86ef7134d261730e04e834d2",
+    "semantic_hash": "f6aed12a86ef7134d261730e04e834d2"
+  },
+  "src/Web/Areas/BackOffice/Controllers/ContentController.cs": {
+    "mtime": 1790068361.1323948,
+    "ast_hash": "6fc910e6f2775c5f31f6a6fe142b2629",
+    "semantic_hash": "6fc910e6f2775c5f31f6a6fe142b2629"
+  },
+  "src/Web/Areas/BackOffice/Controllers/GeneralController.cs": {
+    "mtime": 1790068361.1325684,
+    "ast_hash": "82a8b2791932288f68c92724cdf5ebdc",
+    "semantic_hash": "82a8b2791932288f68c92724cdf5ebdc"
+  },
+  "src/Web/Areas/BackOffice/Controllers/HomeController.cs": {
+    "mtime": 1758545314.7393134,
+    "ast_hash": "1a38df7cc07126186ea3135937e422e2",
+    "semantic_hash": "1a38df7cc07126186ea3135937e422e2"
+  },
+  "src/Web/Areas/BackOffice/Controllers/SchemaController.cs": {
+    "mtime": 1790068361.1327143,
+    "ast_hash": "46444930ed15b6758901a3cffcef48a8",
+    "semantic_hash": "46444930ed15b6758901a3cffcef48a8"
+  },
+  "src/Web/Areas/BackOffice/Controllers/SliderController.cs": {
+    "mtime": 1790068361.1328702,
+    "ast_hash": "70bc9256d4ab78ffa9a5ac23c818f060",
+    "semantic_hash": "70bc9256d4ab78ffa9a5ac23c818f060"
+  },
+  "src/Web/Areas/BackOffice/Controllers/UserAttachmentController.cs": {
+    "mtime": 1786718894.5898564,
+    "ast_hash": "0a65181835da00cce2128f4dbefcdb54",
+    "semantic_hash": "0a65181835da00cce2128f4dbefcdb54"
+  },
+  "src/Web/Areas/BackOffice/Models/ErrorViewModel.cs": {
+    "mtime": 1758545314.7397182,
+    "ast_hash": "826c2debef1757d447eee8af6df239d3",
+    "semantic_hash": "826c2debef1757d447eee8af6df239d3"
+  },
+  "src/Web/Areas/BackOffice/Models/SaveAccessViewModel.cs": {
+    "mtime": 1758545314.7397635,
+    "ast_hash": "f38967bd5b56778086dce3f1d9a008ff",
+    "semantic_hash": "f38967bd5b56778086dce3f1d9a008ff"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/AccessForm.cshtml": {
+    "mtime": 1786625916.9695234,
+    "ast_hash": "beb4ba5c2fb2fc0ea5e343934dbcd859",
+    "semantic_hash": "beb4ba5c2fb2fc0ea5e343934dbcd859"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/AccessList.cshtml": {
+    "mtime": 1786734076.0649755,
+    "ast_hash": "e219de6e87f9029b13ef8142ce0179a5",
+    "semantic_hash": "e219de6e87f9029b13ef8142ce0179a5"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/Accesses.cshtml": {
+    "mtime": 1758545314.739976,
+    "ast_hash": "1588692fc781f17ccb6b2a00f80087a8",
+    "semantic_hash": "1588692fc781f17ccb6b2a00f80087a8"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/EntityForm.cshtml": {
+    "mtime": 1786625916.9813123,
+    "ast_hash": "896472fbd9610745ab0f1954d5533ebe",
+    "semantic_hash": "896472fbd9610745ab0f1954d5533ebe"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/EntityList.cshtml": {
+    "mtime": 1786734076.0650914,
+    "ast_hash": "d85470c87983caf481dd59db8178ddd4",
+    "semantic_hash": "d85470c87983caf481dd59db8178ddd4"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/SectorForm.cshtml": {
+    "mtime": 1786625916.9784536,
+    "ast_hash": "f21bf0a931e67a513edefbcd10f61f91",
+    "semantic_hash": "f21bf0a931e67a513edefbcd10f61f91"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/SectorList.cshtml": {
+    "mtime": 1786734076.0651932,
+    "ast_hash": "6a7a9471c903db219bc6d2f124006d63",
+    "semantic_hash": "6a7a9471c903db219bc6d2f124006d63"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/Sectors.cshtml": {
+    "mtime": 1758545314.7402225,
+    "ast_hash": "84ae363070eb7c70c67124832d0d4684",
+    "semantic_hash": "84ae363070eb7c70c67124832d0d4684"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/__AccessManagementJSFunctions.cshtml": {
+    "mtime": 1758545314.7403207,
+    "ast_hash": "f3553b0314de644283721b70c6d7fa7c",
+    "semantic_hash": "f3553b0314de644283721b70c6d7fa7c"
+  },
+  "src/Web/Areas/BackOffice/Views/AccessManagement/__SectorEntityModal.cshtml": {
+    "mtime": 1758545314.7403698,
+    "ast_hash": "0ebf804658dee09870e1230c38591f69",
+    "semantic_hash": "0ebf804658dee09870e1230c38591f69"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/CreateUser.cshtml": {
+    "mtime": 1758545314.740457,
+    "ast_hash": "af7acd89d2f71d428eb7071fa2db8be8",
+    "semantic_hash": "af7acd89d2f71d428eb7071fa2db8be8"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/Entities.cshtml": {
+    "mtime": 1790068361.1330283,
+    "ast_hash": "2689456e086cede92d6d43040b43e541",
+    "semantic_hash": "2689456e086cede92d6d43040b43e541"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/EntityAccesses.cshtml": {
+    "mtime": 1758545314.7405481,
+    "ast_hash": "6564d477eeacb33950e00596ee9e8e64",
+    "semantic_hash": "6564d477eeacb33950e00596ee9e8e64"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/Login.cshtml": {
+    "mtime": 1790068361.1331885,
+    "ast_hash": "624908d6343cff8022e6a35249a50c3d",
+    "semantic_hash": "624908d6343cff8022e6a35249a50c3d"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/Roles.cshtml": {
+    "mtime": 1758545314.740651,
+    "ast_hash": "b71d980ca6081d0d91ab269419836dac",
+    "semantic_hash": "b71d980ca6081d0d91ab269419836dac"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/Sectors.cshtml": {
+    "mtime": 1786625917.0667858,
+    "ast_hash": "8da0167e9ae90a5f89b0e165325eceb3",
+    "semantic_hash": "8da0167e9ae90a5f89b0e165325eceb3"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/UserForm.cshtml": {
+    "mtime": 1790068361.1333425,
+    "ast_hash": "a3e5548b7297c1a3b5209688d6434e10",
+    "semantic_hash": "a3e5548b7297c1a3b5209688d6434e10"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/UserList.cshtml": {
+    "mtime": 1786734076.0654025,
+    "ast_hash": "d7e773316f29cb922f9c86aaee4f55ea",
+    "semantic_hash": "d7e773316f29cb922f9c86aaee4f55ea"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/UserSettingForm.cshtml": {
+    "mtime": 1786625917.0603352,
+    "ast_hash": "d68ea878e38999f7ff8cf103e649e606",
+    "semantic_hash": "d68ea878e38999f7ff8cf103e649e606"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/Users.cshtml": {
+    "mtime": 1786734076.0655262,
+    "ast_hash": "d628d0584942f93c20917f74237ff772",
+    "semantic_hash": "d628d0584942f93c20917f74237ff772"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/__AccountJSFunctions.cshtml": {
+    "mtime": 1786718894.590075,
+    "ast_hash": "013b2f2b695df68f3033300bafa85b39",
+    "semantic_hash": "013b2f2b695df68f3033300bafa85b39"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/__UserAttachmentModal.cshtml": {
+    "mtime": 1758545314.7410417,
+    "ast_hash": "6c35ec2149001e95629d5de752853939",
+    "semantic_hash": "6c35ec2149001e95629d5de752853939"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/__UserModal.cshtml": {
+    "mtime": 1758545314.7410884,
+    "ast_hash": "a84b38eee958455d71ae7499834353fb",
+    "semantic_hash": "a84b38eee958455d71ae7499834353fb"
+  },
+  "src/Web/Areas/BackOffice/Views/Account/__UserSettingModal.cshtml": {
+    "mtime": 1758545314.74113,
+    "ast_hash": "c91036eb39143e293ebdd373a5435804",
+    "semantic_hash": "c91036eb39143e293ebdd373a5435804"
+  },
+  "src/Web/Areas/BackOffice/Views/Application/ApplicationForm.cshtml": {
+    "mtime": 1786625917.0553813,
+    "ast_hash": "42639307a02e5a4598b0d1de5d48fbc3",
+    "semantic_hash": "42639307a02e5a4598b0d1de5d48fbc3"
+  },
+  "src/Web/Areas/BackOffice/Views/Application/SelectApp.cshtml": {
+    "mtime": 1790068361.1335273,
+    "ast_hash": "e5fee180f85f5691eebfdcf51d1996ca",
+    "semantic_hash": "e5fee180f85f5691eebfdcf51d1996ca"
+  },
+  "src/Web/Areas/BackOffice/Views/Application/WaitingForApproval.cshtml": {
+    "mtime": 1758545314.7413292,
+    "ast_hash": "b583bba96ab922bac59a278d1c471072",
+    "semantic_hash": "b583bba96ab922bac59a278d1c471072"
+  },
+  "src/Web/Areas/BackOffice/Views/Application/__ApplicationJSFunctions.cshtml": {
+    "mtime": 1758716183.9224486,
+    "ast_hash": "a96939134f7d7479e89938705d641d78",
+    "semantic_hash": "a96939134f7d7479e89938705d641d78"
+  },
+  "src/Web/Areas/BackOffice/Views/Application/__ApplicationModal.cshtml": {
+    "mtime": 1758545314.7414458,
+    "ast_hash": "804db7149f8f4722d25d25e59021c61c",
+    "semantic_hash": "804db7149f8f4722d25d25e59021c61c"
+  },
+  "src/Web/Areas/BackOffice/Views/Category/Form.cshtml": {
+    "mtime": 1786625916.987061,
+    "ast_hash": "d0fd949dfc48e489847113a7a94062ac",
+    "semantic_hash": "d0fd949dfc48e489847113a7a94062ac"
+  },
+  "src/Web/Areas/BackOffice/Views/Category/Index.cshtml": {
+    "mtime": 1786734076.065633,
+    "ast_hash": "a4b03c37909f1a75ab6b42c41aeb0b4c",
+    "semantic_hash": "a4b03c37909f1a75ab6b42c41aeb0b4c"
+  },
+  "src/Web/Areas/BackOffice/Views/Category/List.cshtml": {
+    "mtime": 1786734076.0657368,
+    "ast_hash": "d2d46b2ef70691748b5894d18b2f6454",
+    "semantic_hash": "d2d46b2ef70691748b5894d18b2f6454"
+  },
+  "src/Web/Areas/BackOffice/Views/Category/__CategoryJSFunctions.cshtml": {
+    "mtime": 1758545314.742359,
+    "ast_hash": "bb448a7618cf1589116023acc05e7d60",
+    "semantic_hash": "bb448a7618cf1589116023acc05e7d60"
+  },
+  "src/Web/Areas/BackOffice/Views/Category/__CategoryModal.cshtml": {
+    "mtime": 1758545314.7423987,
+    "ast_hash": "8b03f110fa7b5d945f96de81480ab64e",
+    "semantic_hash": "8b03f110fa7b5d945f96de81480ab64e"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/ContentForm.cshtml": {
+    "mtime": 1786734076.0658562,
+    "ast_hash": "c336fe2cf9d4a0c8db6fe7f48f83f98e",
+    "semantic_hash": "c336fe2cf9d4a0c8db6fe7f48f83f98e"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/ContentImages.cshtml": {
+    "mtime": 1790068361.1336944,
+    "ast_hash": "b49cc788cdcc1ca7d0eb18319052634c",
+    "semantic_hash": "b49cc788cdcc1ca7d0eb18319052634c"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/ContentList.cshtml": {
+    "mtime": 1786734076.0659707,
+    "ast_hash": "63ae8ba6f77e55d43b2b97541a4c98a8",
+    "semantic_hash": "63ae8ba6f77e55d43b2b97541a4c98a8"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/ContentMetadata.cshtml": {
+    "mtime": 1790068361.1338603,
+    "ast_hash": "df1ad1808461db015f7b961f4d356f13",
+    "semantic_hash": "df1ad1808461db015f7b961f4d356f13"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/ContentRelations.cshtml": {
+    "mtime": 1790068361.1340272,
+    "ast_hash": "10bc2e1876e1e7c64bd5ae46cb247e07",
+    "semantic_hash": "10bc2e1876e1e7c64bd5ae46cb247e07"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/ContentSections.cshtml": {
+    "mtime": 1790068361.1342218,
+    "ast_hash": "359ebda19129837879567a22aa80d50b",
+    "semantic_hash": "359ebda19129837879567a22aa80d50b"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/CreateContentSection.cshtml": {
+    "mtime": 1786625917.038305,
+    "ast_hash": "08aad4728d8aea452dcacefa888fa88c",
+    "semantic_hash": "08aad4728d8aea452dcacefa888fa88c"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/FarsiContentForm.cshtml": {
+    "mtime": 1790068361.134396,
+    "ast_hash": "6371bab8d1203271d85f2b2782920d19",
+    "semantic_hash": "6371bab8d1203271d85f2b2782920d19"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/Index.cshtml": {
+    "mtime": 1790068361.1345472,
+    "ast_hash": "62e08710e1b62ad0303b3e16413abf8d",
+    "semantic_hash": "62e08710e1b62ad0303b3e16413abf8d"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/_ContentFormSaveButton.cshtml": {
+    "mtime": 1790068361.1348543,
+    "ast_hash": "9ebe8747b1a5b8e3351d73641cd9650e",
+    "semantic_hash": "9ebe8747b1a5b8e3351d73641cd9650e"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/_ContentFormTabs.cshtml": {
+    "mtime": 1790068361.1350172,
+    "ast_hash": "d6b267527fe4f30b88908da7aca0024f",
+    "semantic_hash": "d6b267527fe4f30b88908da7aca0024f"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/_ContentFormTabsBody.cshtml": {
+    "mtime": 1790068361.1351905,
+    "ast_hash": "d8af3f8bc6ae0b6d064d8f43f9e92f25",
+    "semantic_hash": "d8af3f8bc6ae0b6d064d8f43f9e92f25"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/_ContentListActionsButton.cshtml": {
+    "mtime": 1790068361.135367,
+    "ast_hash": "dea987bd62c2064b2776426e274f871f",
+    "semantic_hash": "dea987bd62c2064b2776426e274f871f"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/_CreateContentButton.cshtml": {
+    "mtime": 1790068361.1355355,
+    "ast_hash": "140256435fa4554a3f2214838cdb513b",
+    "semantic_hash": "140256435fa4554a3f2214838cdb513b"
+  },
+  "src/Web/Areas/BackOffice/Views/Content/__ContentJSFunctions.cshtml": {
+    "mtime": 1786719026.8959956,
+    "ast_hash": "8db60150214b3cc3d09336d578e35eaf",
+    "semantic_hash": "8db60150214b3cc3d09336d578e35eaf"
+  },
+  "src/Web/Areas/BackOffice/Views/General/ApplicationSetting.cshtml": {
+    "mtime": 1758545314.7459636,
+    "ast_hash": "e6e9e082f20e23f6998bc599bc7affc2",
+    "semantic_hash": "e6e9e082f20e23f6998bc599bc7affc2"
+  },
+  "src/Web/Areas/BackOffice/Views/General/ApplicationSettingForm.cshtml": {
+    "mtime": 1790068361.1358325,
+    "ast_hash": "2c935fd4cd5391e2d4067e7654c73ed5",
+    "semantic_hash": "2c935fd4cd5391e2d4067e7654c73ed5"
+  },
+  "src/Web/Areas/BackOffice/Views/General/ApplicationSettingList.cshtml": {
+    "mtime": 1790068361.1359992,
+    "ast_hash": "cb1668fe3d79e866b8daae44f4c0e10b",
+    "semantic_hash": "cb1668fe3d79e866b8daae44f4c0e10b"
+  },
+  "src/Web/Areas/BackOffice/Views/General/CultureForm.cshtml": {
+    "mtime": 1790068361.1361628,
+    "ast_hash": "d17d6d05fd2dd3acb36e5b3db9355ddb",
+    "semantic_hash": "d17d6d05fd2dd3acb36e5b3db9355ddb"
+  },
+  "src/Web/Areas/BackOffice/Views/General/CultureList.cshtml": {
+    "mtime": 1786734076.0664887,
+    "ast_hash": "485016f1c36cbc8f23e3fbe1fa201040",
+    "semantic_hash": "485016f1c36cbc8f23e3fbe1fa201040"
+  },
+  "src/Web/Areas/BackOffice/Views/General/Cultures.cshtml": {
+    "mtime": 1786625917.0097032,
+    "ast_hash": "90db5cb6ffa2e69b51ecef37673130f6",
+    "semantic_hash": "90db5cb6ffa2e69b51ecef37673130f6"
+  },
+  "src/Web/Areas/BackOffice/Views/General/Currencies.cshtml": {
+    "mtime": 1758545314.7462623,
+    "ast_hash": "5b7cd52561a88dc5947f7855326f3d6b",
+    "semantic_hash": "5b7cd52561a88dc5947f7855326f3d6b"
+  },
+  "src/Web/Areas/BackOffice/Views/General/CurrenciesForm.cshtml": {
+    "mtime": 1790068361.1363173,
+    "ast_hash": "776d1658371a0588f95011129e978845",
+    "semantic_hash": "776d1658371a0588f95011129e978845"
+  },
+  "src/Web/Areas/BackOffice/Views/General/CurrenciesList.cshtml": {
+    "mtime": 1790068361.1364598,
+    "ast_hash": "d42529f62e9b74e1a6a9b7650ecf6f4f",
+    "semantic_hash": "d42529f62e9b74e1a6a9b7650ecf6f4f"
+  },
+  "src/Web/Areas/BackOffice/Views/General/Logs.cshtml": {
+    "mtime": 1758545314.7463946,
+    "ast_hash": "d6c8db32ff850db1a1e746e0d7b49431",
+    "semantic_hash": "d6c8db32ff850db1a1e746e0d7b49431"
+  },
+  "src/Web/Areas/BackOffice/Views/General/SystemTypeForm.cshtml": {
+    "mtime": 1790068361.13661,
+    "ast_hash": "2b412e3c4bad529d7992dce7e6995b14",
+    "semantic_hash": "2b412e3c4bad529d7992dce7e6995b14"
+  },
+  "src/Web/Areas/BackOffice/Views/General/SystemTypes.cshtml": {
+    "mtime": 1786734076.0667078,
+    "ast_hash": "c294720edaecd080de0c2f386b1620ea",
+    "semantic_hash": "c294720edaecd080de0c2f386b1620ea"
+  },
+  "src/Web/Areas/BackOffice/Views/General/SystemTypesList.cshtml": {
+    "mtime": 1790068361.1367588,
+    "ast_hash": "73a00f44e28bcbf7bbb7f77a5b31439f",
+    "semantic_hash": "73a00f44e28bcbf7bbb7f77a5b31439f"
+  },
+  "src/Web/Areas/BackOffice/Views/General/TagForm.cshtml": {
+    "mtime": 1790068361.1369143,
+    "ast_hash": "f5197cd76be37bca9c793a7c1900a199",
+    "semantic_hash": "f5197cd76be37bca9c793a7c1900a199"
+  },
+  "src/Web/Areas/BackOffice/Views/General/TagList.cshtml": {
+    "mtime": 1786734076.0669575,
+    "ast_hash": "3103b4c4808bcc224c74de6f81cdea62",
+    "semantic_hash": "3103b4c4808bcc224c74de6f81cdea62"
+  },
+  "src/Web/Areas/BackOffice/Views/General/Tags.cshtml": {
+    "mtime": 1790068361.1370726,
+    "ast_hash": "cb53c014ef010f45c925078cccd0d38a",
+    "semantic_hash": "cb53c014ef010f45c925078cccd0d38a"
+  },
+  "src/Web/Areas/BackOffice/Views/General/ZoneForm.cshtml": {
+    "mtime": 1790068361.1372375,
+    "ast_hash": "4b0446c32e66302fa5ae4a89799a47fa",
+    "semantic_hash": "4b0446c32e66302fa5ae4a89799a47fa"
+  },
+  "src/Web/Areas/BackOffice/Views/General/ZoneList.cshtml": {
+    "mtime": 1790068361.1373904,
+    "ast_hash": "2a1c8d96ac1c1e0e1e74e61a416639d4",
+    "semantic_hash": "2a1c8d96ac1c1e0e1e74e61a416639d4"
+  },
+  "src/Web/Areas/BackOffice/Views/General/Zones.cshtml": {
+    "mtime": 1758545314.746812,
+    "ast_hash": "3b13f62c4dd8250583a82321b99c8eae",
+    "semantic_hash": "3b13f62c4dd8250583a82321b99c8eae"
+  },
+  "src/Web/Areas/BackOffice/Views/General/__GeneralJSFunctions.cshtml": {
+    "mtime": 1786734076.0672095,
+    "ast_hash": "7b1d8f751cd9380dc6b98da904b61010",
+    "semantic_hash": "7b1d8f751cd9380dc6b98da904b61010"
+  },
+  "src/Web/Areas/BackOffice/Views/General/__GeneralModal.cshtml": {
+    "mtime": 1758545314.7469366,
+    "ast_hash": "98d42f23bd668f199b3aba909389d71f",
+    "semantic_hash": "98d42f23bd668f199b3aba909389d71f"
+  },
+  "src/Web/Areas/BackOffice/Views/Home/Index.cshtml": {
+    "mtime": 1790068361.1375792,
+    "ast_hash": "c6ec4afe9bfb88803a3c6315720486f5",
+    "semantic_hash": "c6ec4afe9bfb88803a3c6315720486f5"
+  },
+  "src/Web/Areas/BackOffice/Views/Home/StartPage.cshtml": {
+    "mtime": 1758545314.7470524,
+    "ast_hash": "481ac500554a620217ec359fbea09035",
+    "semantic_hash": "481ac500554a620217ec359fbea09035"
+  },
+  "src/Web/Areas/BackOffice/Views/Schema/Index.cshtml": {
+    "mtime": 1786734076.0675056,
+    "ast_hash": "85254eba1a0a48c805a720a152d12c87",
+    "semantic_hash": "85254eba1a0a48c805a720a152d12c87"
+  },
+  "src/Web/Areas/BackOffice/Views/Schema/SchemaDetailsForm.cshtml": {
+    "mtime": 1790068361.1377757,
+    "ast_hash": "d3449babc54559b4292831af7d4246f6",
+    "semantic_hash": "d3449babc54559b4292831af7d4246f6"
+  },
+  "src/Web/Areas/BackOffice/Views/Schema/SchemaDetailsList.cshtml": {
+    "mtime": 1786734076.0676327,
+    "ast_hash": "cac080ea3774cb1d883b578dd61d006f",
+    "semantic_hash": "cac080ea3774cb1d883b578dd61d006f"
+  },
+  "src/Web/Areas/BackOffice/Views/Schema/SchemaForm.cshtml": {
+    "mtime": 1786625917.050888,
+    "ast_hash": "f761770fb81676c334bce19f0a519be6",
+    "semantic_hash": "f761770fb81676c334bce19f0a519be6"
+  },
+  "src/Web/Areas/BackOffice/Views/Schema/SchemaList.cshtml": {
+    "mtime": 1786734076.0677602,
+    "ast_hash": "8b18bdc1940c328a1a542bbbd9975b64",
+    "semantic_hash": "8b18bdc1940c328a1a542bbbd9975b64"
+  },
+  "src/Web/Areas/BackOffice/Views/Schema/__SchemaDetailsModal.cshtml": {
+    "mtime": 1758545314.748538,
+    "ast_hash": "141b0425f2b49d72ebdd9b0994834d53",
+    "semantic_hash": "141b0425f2b49d72ebdd9b0994834d53"
+  },
+  "src/Web/Areas/BackOffice/Views/Schema/__SchemaJSFunctions.cshtml": {
+    "mtime": 1786718894.5907872,
+    "ast_hash": "be26835848c7c6c3d7c8e2c2d9f9443a",
+    "semantic_hash": "be26835848c7c6c3d7c8e2c2d9f9443a"
+  },
+  "src/Web/Areas/BackOffice/Views/Schema/__SchemaModal.cshtml": {
+    "mtime": 1786625917.0530124,
+    "ast_hash": "5578b3aaab6295ad6b120b43cb0c61fe",
+    "semantic_hash": "5578b3aaab6295ad6b120b43cb0c61fe"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/Error.cshtml": {
+    "mtime": 1758545314.7486978,
+    "ast_hash": "566b2feb3f1f25291a8baf34849675cd",
+    "semantic_hash": "566b2feb3f1f25291a8baf34849675cd"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_CSSAssets.cshtml": {
+    "mtime": 1786734076.0678833,
+    "ast_hash": "a09821bb22b2e0ef05bea981d8a43002",
+    "semantic_hash": "a09821bb22b2e0ef05bea981d8a43002"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_EntityAccessCheckboxesPartial.cshtml": {
+    "mtime": 1786718894.5909097,
+    "ast_hash": "9f81f3cd2c6de5edc8c080c8b8f18601",
+    "semantic_hash": "9f81f3cd2c6de5edc8c080c8b8f18601"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_JSAssets.cshtml": {
+    "mtime": 1758716721.456769,
+    "ast_hash": "e16e3db9bc963bdf31391723b8cec7db",
+    "semantic_hash": "e16e3db9bc963bdf31391723b8cec7db"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_Layout.cshtml": {
+    "mtime": 1786734076.068027,
+    "ast_hash": "1827a19b026ca21b745f57bdd19a34de",
+    "semantic_hash": "1827a19b026ca21b745f57bdd19a34de"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_Navbar.cshtml": {
+    "mtime": 1790068361.1379445,
+    "ast_hash": "adbcd07b85c07659641e76a681db09ca",
+    "semantic_hash": "adbcd07b85c07659641e76a681db09ca"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_SectorEntityLinksPartial.cshtml": {
+    "mtime": 1786718894.5912485,
+    "ast_hash": "ef5cd5e3864924d53d3dcdff641774ca",
+    "semantic_hash": "ef5cd5e3864924d53d3dcdff641774ca"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_SectorEntityOptionsPartial.cshtml": {
+    "mtime": 1786718894.591372,
+    "ast_hash": "46286e54c06df445b9f60504016c5513",
+    "semantic_hash": "46286e54c06df445b9f60504016c5513"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_SectorOptionsPartial.cshtml": {
+    "mtime": 1786718894.591499,
+    "ast_hash": "2c44ba0d01c475bb511fd80f81971d2e",
+    "semantic_hash": "2c44ba0d01c475bb511fd80f81971d2e"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_SideBar.cshtml": {
+    "mtime": 1790068361.1380985,
+    "ast_hash": "7470261e3d1dc82b295965fa1c3f1088",
+    "semantic_hash": "7470261e3d1dc82b295965fa1c3f1088"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_SideBarAdminMenu.cshtml": {
+    "mtime": 1786734076.0683792,
+    "ast_hash": "0bc90f952a868bc2358f6bf516509f63",
+    "semantic_hash": "0bc90f952a868bc2358f6bf516509f63"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_SideBarCMS.cshtml": {
+    "mtime": 1790068361.1382735,
+    "ast_hash": "f957d42895cc124846ee97e3bb2c5d8c",
+    "semantic_hash": "f957d42895cc124846ee97e3bb2c5d8c"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_SideBarSCM.cshtml": {
+    "mtime": 1790068361.1384408,
+    "ast_hash": "294f69dbba826873df13b7b3eb8ccc64",
+    "semantic_hash": "294f69dbba826873df13b7b3eb8ccc64"
+  },
+  "src/Web/Areas/BackOffice/Views/Shared/_SideBarUserManagement.cshtml": {
+    "mtime": 1758545314.7492642,
+    "ast_hash": "537df9f5a9caeab74a2b5bddaaffa76b",
+    "semantic_hash": "537df9f5a9caeab74a2b5bddaaffa76b"
+  },
+  "src/Web/Areas/BackOffice/Views/Slider/Create.cshtml": {
+    "mtime": 1790068361.1385953,
+    "ast_hash": "4f1cdbfef7c66b8d632a3354b02bb556",
+    "semantic_hash": "4f1cdbfef7c66b8d632a3354b02bb556"
+  },
+  "src/Web/Areas/BackOffice/Views/Slider/GetSliderItemForm.cshtml": {
+    "mtime": 1790068361.1388724,
+    "ast_hash": "1c799d85dbbc4814c296e076daed824c",
+    "semantic_hash": "1c799d85dbbc4814c296e076daed824c"
+  },
+  "src/Web/Areas/BackOffice/Views/Slider/GetSliderItemList.cshtml": {
+    "mtime": 1790068361.1390524,
+    "ast_hash": "b95270719306d6eac2897ca787215083",
+    "semantic_hash": "b95270719306d6eac2897ca787215083"
+  },
+  "src/Web/Areas/BackOffice/Views/Slider/Index.cshtml": {
+    "mtime": 1758545314.7494755,
+    "ast_hash": "4e11e2c5f3e6705709e2e43607ae5ff2",
+    "semantic_hash": "4e11e2c5f3e6705709e2e43607ae5ff2"
+  },
+  "src/Web/Areas/BackOffice/Views/Slider/List.cshtml": {
+    "mtime": 1790068361.1392052,
+    "ast_hash": "3c3a6e788e40500790ee7fbb5eb3f3c8",
+    "semantic_hash": "3c3a6e788e40500790ee7fbb5eb3f3c8"
+  },
+  "src/Web/Areas/BackOffice/Views/Slider/SliderItems.cshtml": {
+    "mtime": 1758545314.7495782,
+    "ast_hash": "01f2e5b64398c7c6378b3950247ccd96",
+    "semantic_hash": "01f2e5b64398c7c6378b3950247ccd96"
+  },
+  "src/Web/Areas/BackOffice/Views/Slider/_CreateSliderButton.cshtml": {
+    "mtime": 1790068361.1393874,
+    "ast_hash": "65fad81785f5d17377c9aa39dcfb8451",
+    "semantic_hash": "65fad81785f5d17377c9aa39dcfb8451"
+  },
+  "src/Web/Areas/BackOffice/Views/Slider/__SliderItemModal.cshtml": {
+    "mtime": 1758545314.7496772,
+    "ast_hash": "752c3e73b94e2c126adfddbccf3fe6b4",
+    "semantic_hash": "752c3e73b94e2c126adfddbccf3fe6b4"
+  },
+  "src/Web/Areas/BackOffice/Views/Slider/__SliderJSFunctions.cshtml": {
+    "mtime": 1786718894.5916975,
+    "ast_hash": "f09ccc9bd4bf1cb7a3f7ad3485ac1ac0",
+    "semantic_hash": "f09ccc9bd4bf1cb7a3f7ad3485ac1ac0"
+  },
+  "src/Web/Areas/BackOffice/Views/_ViewImports.cshtml": {
+    "mtime": 1758545314.7499442,
+    "ast_hash": "f5b3b6d04c9fc939c71c70fb9fafdf03",
+    "semantic_hash": "f5b3b6d04c9fc939c71c70fb9fafdf03"
+  },
+  "src/Web/Areas/BackOffice/Views/_ViewStart.cshtml": {
+    "mtime": 1758545314.749983,
+    "ast_hash": "78bb48cc4f4b0b9cc118c253298c4577",
+    "semantic_hash": "78bb48cc4f4b0b9cc118c253298c4577"
+  },
+  "src/Web/Controllers/HomeController.cs": {
+    "mtime": 1790068361.139573,
+    "ast_hash": "cec28a00e88665d154605ba6b40192ba",
+    "semantic_hash": "cec28a00e88665d154605ba6b40192ba"
+  },
+  "src/Web/Extensions/ServiceCollectionExtensions.cs": {
+    "mtime": 1790068361.1397705,
+    "ast_hash": "f3ade77819d20dc761d988b1c714ad2d",
+    "semantic_hash": "f3ade77819d20dc761d988b1c714ad2d"
+  },
+  "src/Web/Filters/RequireTenantContextFilter.cs": {
+    "mtime": 1790068361.1399648,
+    "ast_hash": "981f0c2b76141e548524c4809d030650",
+    "semantic_hash": "981f0c2b76141e548524c4809d030650"
+  },
+  "src/Web/Filters/SkipTenantContextCheckAttribute.cs": {
+    "mtime": 1790068361.1401272,
+    "ast_hash": "48347f8712c5cc08bf285db0175c767c",
+    "semantic_hash": "48347f8712c5cc08bf285db0175c767c"
+  },
+  "src/Web/Models/AccessManager/SetAccessDto.cs": {
+    "mtime": 1790068361.1403065,
+    "ast_hash": "4252875fab69e7c7f50485a5876d8bb6",
+    "semantic_hash": "4252875fab69e7c7f50485a5876d8bb6"
+  },
+  "src/Web/Models/CMS/FarsiContentEditDto.cs": {
+    "mtime": 1790068361.1404674,
+    "ast_hash": "3d76c3766b4bd3f3b0752f1fe3097d51",
+    "semantic_hash": "3d76c3766b4bd3f3b0752f1fe3097d51"
+  },
+  "src/Web/Models/CMS/FarsiContentMetadataEditDto.cs": {
+    "mtime": 1790068361.140591,
+    "ast_hash": "50c8689dd2ab523202ad7f19b4781c69",
+    "semantic_hash": "50c8689dd2ab523202ad7f19b4781c69"
+  },
+  "src/Web/Models/CMS/FarsiSectionEditDto.cs": {
+    "mtime": 1790068361.1407118,
+    "ast_hash": "0b4ef9c10d9a94ec9c8c532d6623cea7",
+    "semantic_hash": "0b4ef9c10d9a94ec9c8c532d6623cea7"
+  },
+  "src/Web/Models/CMS/FarsiSectionElementEditDto.cs": {
+    "mtime": 1790068361.1408343,
+    "ast_hash": "9dee22b5472d2d512af2dbb70d111a0c",
+    "semantic_hash": "9dee22b5472d2d512af2dbb70d111a0c"
+  },
+  "src/Web/Models/CMS/SaveContentBodyDto.cs": {
+    "mtime": 1790068361.1409636,
+    "ast_hash": "2dcaba270d0f1ee62ed9062db66762fb",
+    "semantic_hash": "2dcaba270d0f1ee62ed9062db66762fb"
+  },
+  "src/Web/Models/FilterQueryStringModel.cs": {
+    "mtime": 1758545314.7501261,
+    "ast_hash": "11b000984350de2c5d56be0f5836eb63",
+    "semantic_hash": "11b000984350de2c5d56be0f5836eb63"
+  },
+  "src/Web/Models/General/ZoneDto.cs": {
+    "mtime": 1790068361.14111,
+    "ast_hash": "74a8931da0d59995764a93cf849e2527",
+    "semantic_hash": "74a8931da0d59995764a93cf849e2527"
+  },
+  "src/Web/Models/UserManagement/CreateUserDto.cs": {
+    "mtime": 1790068361.1412737,
+    "ast_hash": "337ecd48e0ca0af64a703d9a6d8c3fd5",
+    "semantic_hash": "337ecd48e0ca0af64a703d9a6d8c3fd5"
+  },
+  "src/Web/Models/UserManagement/UserLoginDto.cs": {
+    "mtime": 1790068361.141394,
+    "ast_hash": "9346f673a74395589be3e411ade6fc5b",
+    "semantic_hash": "9346f673a74395589be3e411ade6fc5b"
+  },
+  "src/Web/Program.cs": {
+    "mtime": 1790068361.1416547,
+    "ast_hash": "5f51d173a02d6626386583996252afe9",
+    "semantic_hash": "5f51d173a02d6626386583996252afe9"
+  },
+  "src/Web/Properties/launchSettings.json": {
+    "mtime": 1758545314.7503207,
+    "ast_hash": "a7429e692eb4bb5cd00692cfcc4707e9",
+    "semantic_hash": "a7429e692eb4bb5cd00692cfcc4707e9"
+  },
+  "src/Web/Services/FileUpload/FileUploadResult.cs": {
+    "mtime": 1786718894.5924785,
+    "ast_hash": "82dded30788dbcad3e268adc04a4e7f6",
+    "semantic_hash": "82dded30788dbcad3e268adc04a4e7f6"
+  },
+  "src/Web/Services/FileUpload/FileUploadService.cs": {
+    "mtime": 1788262911.378622,
+    "ast_hash": "f48731cf31b6ec14fdbd72f0410655ce",
+    "semantic_hash": "f48731cf31b6ec14fdbd72f0410655ce"
+  },
+  "src/Web/Services/FileUpload/IFileUploadService.cs": {
+    "mtime": 1786718894.5927925,
+    "ast_hash": "5eddae036e5c19740033dbc93ecf63ad",
+    "semantic_hash": "5eddae036e5c19740033dbc93ecf63ad"
+  },
+  "src/Web/Services/Tenancy/SessionCurrentApplicationContext.cs": {
+    "mtime": 1790068361.1418252,
+    "ast_hash": "a543cef86a4aef0edda7957df788bff4",
+    "semantic_hash": "a543cef86a4aef0edda7957df788bff4"
+  },
+  "src/Web/Using.cs": {
+    "mtime": 1790068361.1419823,
+    "ast_hash": "8ca9105aa6a412201acf10fc6e834bc9",
+    "semantic_hash": "8ca9105aa6a412201acf10fc6e834bc9"
+  },
+  "src/Web/Views/Home/Index.cshtml": {
+    "mtime": 1786734076.068863,
+    "ast_hash": "8071ab46dda29f77f7ce4adefc1984c9",
+    "semantic_hash": "8071ab46dda29f77f7ce4adefc1984c9"
+  },
+  "src/Web/Views/Home/Privacy.cshtml": {
+    "mtime": 1758545314.7505238,
+    "ast_hash": "207072e5b2a4c94482b252e0b3ae957d",
+    "semantic_hash": "207072e5b2a4c94482b252e0b3ae957d"
+  },
+  "src/Web/Views/Shared/_Layout.cshtml": {
+    "mtime": 1786734076.0690117,
+    "ast_hash": "b9b6c1cf15bdf419e646ff6e8c1d655d",
+    "semantic_hash": "b9b6c1cf15bdf419e646ff6e8c1d655d"
+  },
+  "src/Web/Web.csproj": {
+    "mtime": 1790068361.1421614,
+    "ast_hash": "afa7d389484213a622be665d7e4af26e",
+    "semantic_hash": "afa7d389484213a622be665d7e4af26e"
+  },
+  "src/Web/appsettings.Development.json": {
+    "mtime": 1759144436.0015304,
+    "ast_hash": "547d34ae773474cb3a15a87cac43b5da",
+    "semantic_hash": "547d34ae773474cb3a15a87cac43b5da"
+  },
+  "src/Web/appsettings.json": {
+    "mtime": 1766762927.8669846,
+    "ast_hash": "33b2814389ebb4fd8585b9cde4d9963e",
+    "semantic_hash": "33b2814389ebb4fd8585b9cde4d9963e"
+  },
+  "README.md": {
+    "mtime": 1758576430.9996736,
+    "ast_hash": "3f4ae401e4c4160b78055616f0394840",
+    "semantic_hash": "3f4ae401e4c4160b78055616f0394840"
+  },
+  "docs/schema-readiness.md": {
+    "mtime": 1790068361.096905,
+    "ast_hash": "85d5157cf8ca624a2a638fb9d61ddb89",
+    "semantic_hash": "85d5157cf8ca624a2a638fb9d61ddb89"
+  },
+  "src/Web/Views/Home/index.html": {
+    "mtime": 1758583560.8440056,
+    "ast_hash": "e052a27d01b38c2dd0983db4fc630b5c",
+    "semantic_hash": "e052a27d01b38c2dd0983db4fc630b5c"
+  }
+}

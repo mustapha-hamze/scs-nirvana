@@ -27,3 +27,4 @@ TestResults/
 *.coverage
 *.coveragexml
 prompts
+graphify-out/cache
