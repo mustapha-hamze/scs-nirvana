@@ -1435,13 +1435,13 @@
     "semantic_hash": "b33c6c883a33ceec1bad7ce8c18e1fc4"
   },
   "src/SonicCoreSystem.sln": {
-    "mtime": 1790068361.131111,
-    "ast_hash": "164fa10581f1d5b03da6940045ee0c4d",
-    "semantic_hash": "164fa10581f1d5b03da6940045ee0c4d"
+    "mtime": 1790075450.2234735,
+    "ast_hash": "067b0ffc390fc16d81025fbcccaf547a",
+    "semantic_hash": ""
   },
   "src/Web/Areas/Api/CategoryController.cs": {
-    "mtime": 1790074525.3799086,
-    "ast_hash": "ed5fa36c62ce584671203362754afb05",
+    "mtime": 1790076387.281495,
+    "ast_hash": "4e0036ee85da4cb45dd5953c578abe4d",
     "semantic_hash": ""
   },
   "src/Web/Areas/Api/ContentController.cs": {
@@ -1475,13 +1475,13 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/AccountController.cs": {
-    "mtime": 1790074675.493206,
-    "ast_hash": "f576a0dc46953d50eccb1ef4bfb39e1e",
+    "mtime": 1790075247.896442,
+    "ast_hash": "f30c8ecd7f76fcbd1166e4a2eb66644e",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/ApplicationController.cs": {
-    "mtime": 1790074542.1762931,
-    "ast_hash": "c000fd4c32d5f79c0e11b2f9a6de542a",
+    "mtime": 1790075272.2541869,
+    "ast_hash": "126de01eb4c2d47f7ac91d7e4ef8da84",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/BaseController.cs": {
@@ -1600,9 +1600,9 @@
     "semantic_hash": "6564d477eeacb33950e00596ee9e8e64"
   },
   "src/Web/Areas/BackOffice/Views/Account/Login.cshtml": {
-    "mtime": 1790068361.1331885,
-    "ast_hash": "624908d6343cff8022e6a35249a50c3d",
-    "semantic_hash": "624908d6343cff8022e6a35249a50c3d"
+    "mtime": 1790076319.4641109,
+    "ast_hash": "e49afa8405573ad74d3f7d6e947d515d",
+    "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/Account/Roles.cshtml": {
     "mtime": 1758545314.740651,
@@ -1960,9 +1960,9 @@
     "semantic_hash": "1827a19b026ca21b745f57bdd19a34de"
   },
   "src/Web/Areas/BackOffice/Views/Shared/_Navbar.cshtml": {
-    "mtime": 1790068361.1379445,
-    "ast_hash": "adbcd07b85c07659641e76a681db09ca",
-    "semantic_hash": "adbcd07b85c07659641e76a681db09ca"
+    "mtime": 1790075276.8620026,
+    "ast_hash": "eea2e0f088d74364fe82f34bfd1d74bb",
+    "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/Shared/_SectorEntityLinksPartial.cshtml": {
     "mtime": 1786718894.5912485,
@@ -2125,14 +2125,14 @@
     "semantic_hash": ""
   },
   "src/Web/Models/UserManagement/UserLoginDto.cs": {
-    "mtime": 1790074685.1434507,
-    "ast_hash": "9f88144258b1a69a955e8a8aab59e307",
+    "mtime": 1790076310.9677296,
+    "ast_hash": "b3ee2bfabc84d61c2b0a6e8ba3b601ba",
     "semantic_hash": ""
   },
   "src/Web/Program.cs": {
-    "mtime": 1790068361.1416547,
-    "ast_hash": "5f51d173a02d6626386583996252afe9",
-    "semantic_hash": "5f51d173a02d6626386583996252afe9"
+    "mtime": 1790075394.0546443,
+    "ast_hash": "a116d6946359d207cc2fe213487a5a33",
+    "semantic_hash": ""
   },
   "src/Web/Properties/launchSettings.json": {
     "mtime": 1758545314.7503207,
@@ -2180,8 +2180,8 @@
     "semantic_hash": "b9b6c1cf15bdf419e646ff6e8c1d655d"
   },
   "src/Web/Web.csproj": {
-    "mtime": 1790074764.996686,
-    "ast_hash": "e3e1cf46bac345bd4940647f48860888",
+    "mtime": 1790076387.281217,
+    "ast_hash": "4643cf2cc0c477e3eb8982544aee4501",
     "semantic_hash": ""
   },
   "src/Web/appsettings.Development.json": {
@@ -2217,6 +2217,31 @@
   "CLAUDE.md": {
     "mtime": 1790071520.0231156,
     "ast_hash": "82efb97a359f5c7290bf2513d14686be",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/AccountFlowHelper.cs": {
+    "mtime": 1790076228.0414004,
+    "ast_hash": "3bf92149c1ed54988507e11bf6313e42",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/LogoutTests.cs": {
+    "mtime": 1790076246.2801156,
+    "ast_hash": "97e5b20a95c020e910006fc1041b496a",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/TestWebApplicationFactory.cs": {
+    "mtime": 1790076152.1945148,
+    "ast_hash": "7e181606e5edbd10a0590864e573a0f2",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/UserLoginDtoValidationTests.cs": {
+    "mtime": 1790076330.968105,
+    "ast_hash": "599119c5554ef24fb1162ced12882bb1",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/Web.Tests.csproj": {
+    "mtime": 1790075447.0726428,
+    "ast_hash": "e23ff50757aa66640bb88d3b30a3c3ff",
     "semantic_hash": ""
   }
 }

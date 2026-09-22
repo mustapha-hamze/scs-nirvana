@@ -125,7 +125,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "cancellationtoken",
-      "community": 17,
+      "community": 2,
       "norm_label": "cancellationtoken"
     },
     {
@@ -595,7 +595,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "cmsrepository_icontentcommandrepository_icontentcommandrepository_createsection",
-      "community": 4,
+      "community": 0,
       "norm_label": ".createsection()"
     },
     {
@@ -655,7 +655,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "cmsrepository_icontentcommandrepository_icontentcommandrepository_createcontentimage",
-      "community": 0,
+      "community": 55,
       "norm_label": ".createcontentimage()"
     },
     {
@@ -715,7 +715,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "cmsrepository_icontentqueryrepository_icontentqueryrepository_getcontentsections",
-      "community": 4,
+      "community": 0,
       "norm_label": ".getcontentsections()"
     },
     {
@@ -745,7 +745,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "cmsrepository_icontentqueryrepository_icontentqueryrepository_getallcontentimages",
-      "community": 0,
+      "community": 55,
       "norm_label": ".getallcontentimages()"
     },
     {
@@ -765,7 +765,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "cmsrepository_icontentqueryrepository_icontentqueryrepository_getsectionforapplication",
-      "community": 4,
+      "community": 0,
       "norm_label": ".getsectionforapplication()"
     },
     {
@@ -905,7 +905,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cmsrepository_icontentsincategoryqueryadapter",
-      "community": 17,
+      "community": 34,
       "norm_label": "icontentsincategoryqueryadapter.cs"
     },
     {
@@ -915,7 +915,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "cmsrepository_icontentsincategoryqueryadapter_icontentsincategoryqueryadapter",
-      "community": 17,
+      "community": 34,
       "norm_label": "icontentsincategoryqueryadapter"
     },
     {
@@ -925,7 +925,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "cmsrepository_icontentsincategoryqueryadapter_icontentsincategoryqueryadapter_getcontentsincategory",
-      "community": 17,
+      "community": 34,
       "norm_label": ".getcontentsincategory()"
     },
     {
@@ -935,7 +935,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cmsrepository_ischemarepository",
-      "community": 35,
+      "community": 38,
       "norm_label": "ischemarepository.cs"
     },
     {
@@ -945,7 +945,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "cmsrepository_ischemarepository_application_cmsrepository",
-      "community": 35,
+      "community": 38,
       "norm_label": "application.cmsrepository"
     },
     {
@@ -955,7 +955,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "cmsrepository_ischemarepository_ischemarepository",
-      "community": 35,
+      "community": 38,
       "norm_label": "ischemarepository"
     },
     {
@@ -965,7 +965,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "cmsrepository_ischemarepository_ischemarepository_create",
-      "community": 35,
+      "community": 38,
       "norm_label": ".create()"
     },
     {
@@ -975,7 +975,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "cmsrepository_ischemarepository_ischemarepository_update",
-      "community": 35,
+      "community": 38,
       "norm_label": ".update()"
     },
     {
@@ -985,7 +985,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "cmsrepository_ischemarepository_ischemarepository_delete",
-      "community": 35,
+      "community": 38,
       "norm_label": ".delete()"
     },
     {
@@ -995,7 +995,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "cmsrepository_ischemarepository_ischemarepository_list",
-      "community": 35,
+      "community": 38,
       "norm_label": ".list()"
     },
     {
@@ -1015,7 +1015,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "cmsrepository_ischemarepository_ischemarepository_getbyidforapplication",
-      "community": 35,
+      "community": 38,
       "norm_label": ".getbyidforapplication()"
     },
     {
@@ -1045,7 +1045,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "cmsrepository_ischemarepository_ischemarepository_deletedetail",
-      "community": 35,
+      "community": 38,
       "norm_label": ".deletedetail()"
     },
     {
@@ -1285,7 +1285,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "contentmanagement_icontentprovider",
-      "community": 50,
+      "community": 3,
       "norm_label": "icontentprovider.cs"
     },
     {
@@ -1295,7 +1295,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "contentmanagement_icontentprovider_icontentprovider",
-      "community": 50,
+      "community": 3,
       "norm_label": "icontentprovider"
     },
     {
@@ -1305,7 +1305,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "contentmanagement_icontentprovider_icontentprovider_getcontentfortranslate",
-      "community": 50,
+      "community": 3,
       "norm_label": ".getcontentfortranslate()"
     },
     {
@@ -1315,7 +1315,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "contentmanagement_icontentprovider_icontentprovider_getcontentslistbycategoryid",
-      "community": 50,
+      "community": 3,
       "norm_label": ".getcontentslistbycategoryid()"
     },
     {
@@ -1325,7 +1325,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "contentmanagement_icontentprovider_icontentprovider_getcontentslistbytagid",
-      "community": 50,
+      "community": 3,
       "norm_label": ".getcontentslistbytagid()"
     },
     {
@@ -1335,7 +1335,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "accessmanagement_entityaccessdto",
-      "community": 111,
+      "community": 37,
       "norm_label": "entityaccessdto.cs"
     },
     {
@@ -1345,7 +1345,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "accessmanagement_entityaccessdto_application_contracts_accessmanagement",
-      "community": 111,
+      "community": 37,
       "norm_label": "application.contracts.accessmanagement"
     },
     {
@@ -1355,7 +1355,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "accessmanagement_entityaccessdto_entityaccessdto",
-      "community": 111,
+      "community": 37,
       "norm_label": "entityaccessdto"
     },
     {
@@ -1405,7 +1405,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "accessmanagement_sectorentitydto",
-      "community": 113,
+      "community": 37,
       "norm_label": "sectorentitydto.cs"
     },
     {
@@ -1415,7 +1415,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "accessmanagement_sectorentitydto_application_contracts_accessmanagement",
-      "community": 113,
+      "community": 37,
       "norm_label": "application.contracts.accessmanagement"
     },
     {
@@ -1425,7 +1425,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "accessmanagement_sectorentitydto_sectorentitydto",
-      "community": 113,
+      "community": 37,
       "norm_label": "sectorentitydto"
     },
     {
@@ -1465,7 +1465,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cms_contentdto",
-      "community": 17,
+      "community": 34,
       "norm_label": "contentdto.cs"
     },
     {
@@ -1475,7 +1475,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "cms_contentdto_application_contracts_cms",
-      "community": 17,
+      "community": 34,
       "norm_label": "application.contracts.cms"
     },
     {
@@ -1485,7 +1485,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "cms_contentdto_contentdto",
-      "community": 17,
+      "community": 34,
       "norm_label": "contentdto"
     },
     {
@@ -1615,7 +1615,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cms_sectiondto",
-      "community": 17,
+      "community": 66,
       "norm_label": "sectiondto.cs"
     },
     {
@@ -1625,7 +1625,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "cms_sectiondto_application_contracts_cms",
-      "community": 17,
+      "community": 66,
       "norm_label": "application.contracts.cms"
     },
     {
@@ -1635,7 +1635,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "cms_sectiondto_sectiondto",
-      "community": 17,
+      "community": 66,
       "norm_label": "sectiondto"
     },
     {
@@ -2105,7 +2105,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tenancy_itenantaccessguard",
-      "community": 7,
+      "community": 60,
       "norm_label": "itenantaccessguard.cs"
     },
     {
@@ -2115,7 +2115,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tenancy_itenantaccessguard_application_contracts_tenancy",
-      "community": 7,
+      "community": 60,
       "norm_label": "application.contracts.tenancy"
     },
     {
@@ -2125,7 +2125,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "tenancy_itenantaccessguard_itenantaccessguard",
-      "community": 7,
+      "community": 60,
       "norm_label": "itenantaccessguard"
     },
     {
@@ -2135,7 +2135,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "tenancy_itenantaccessguard_itenantaccessguard_hasaccessasync",
-      "community": 7,
+      "community": 60,
       "norm_label": ".hasaccessasync()"
     },
     {
@@ -2205,7 +2205,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "generalrepository_iapplicationrepository",
-      "community": 23,
+      "community": 53,
       "norm_label": "iapplicationrepository.cs"
     },
     {
@@ -2215,7 +2215,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "generalrepository_iapplicationrepository_application_generalrepository",
-      "community": 23,
+      "community": 53,
       "norm_label": "application.generalrepository"
     },
     {
@@ -2225,7 +2225,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "generalrepository_iapplicationrepository_iapplicationrepository",
-      "community": 23,
+      "community": 53,
       "norm_label": "iapplicationrepository"
     },
     {
@@ -2235,7 +2235,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "generalrepository_iapplicationrepository_iapplicationrepository_create",
-      "community": 23,
+      "community": 53,
       "norm_label": ".create()"
     },
     {
@@ -2265,7 +2265,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "generalrepository_iapplicationrepository_iapplicationrepository_delete",
-      "community": 23,
+      "community": 53,
       "norm_label": ".delete()"
     },
     {
@@ -2305,7 +2305,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "generalrepository_iapplicationrepository_iapplicationrepository_addusertoapplication",
-      "community": 23,
+      "community": 53,
       "norm_label": ".addusertoapplication()"
     },
     {
@@ -2315,7 +2315,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "generalrepository_iapplicationrepository_iapplicationrepository_removeuserfromapplication",
-      "community": 23,
+      "community": 53,
       "norm_label": ".removeuserfromapplication()"
     },
     {
@@ -2345,7 +2345,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "generalrepository_iapplicationrepository_iapplicationrepository_existsactiveapplication",
-      "community": 23,
+      "community": 53,
       "norm_label": ".existsactiveapplication()"
     },
     {
@@ -2675,7 +2675,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "resultmodels_contentlistresultmodel",
-      "community": 50,
+      "community": 3,
       "norm_label": "contentlistresultmodel.cs"
     },
     {
@@ -2685,7 +2685,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "resultmodels_contentlistresultmodel_contentlistresultmodel",
-      "community": 50,
+      "community": 3,
       "norm_label": "contentlistresultmodel"
     },
     {
@@ -3515,7 +3515,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "cmsservices_contentservices_contentservices_create",
-      "community": 17,
+      "community": 34,
       "norm_label": ".create()"
     },
     {
@@ -3615,7 +3615,7 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "cmsservices_contentservices_contentservices_getbyid",
-      "community": 17,
+      "community": 34,
       "norm_label": ".getbyid()"
     },
     {
@@ -3635,7 +3635,7 @@
       "source_location": "L142",
       "_origin": "ast",
       "id": "cmsservices_contentservices_contentservices_ourblogboxlist",
-      "community": 17,
+      "community": 34,
       "norm_label": ".ourblogboxlist()"
     },
     {
@@ -3645,7 +3645,7 @@
       "source_location": "L147",
       "_origin": "ast",
       "id": "cmsservices_contentservices_contentservices_createsection",
-      "community": 17,
+      "community": 66,
       "norm_label": ".createsection()"
     },
     {
@@ -3675,7 +3675,7 @@
       "source_location": "L184",
       "_origin": "ast",
       "id": "cmsservices_contentservices_contentservices_getsections",
-      "community": 17,
+      "community": 66,
       "norm_label": ".getsections()"
     },
     {
@@ -3905,7 +3905,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cmsservices_icontentservices",
-      "community": 17,
+      "community": 34,
       "norm_label": "icontentservices.cs"
     },
     {
@@ -3915,7 +3915,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_application_usecases_cmsservices",
-      "community": 17,
+      "community": 34,
       "norm_label": "application.usecases.cmsservices"
     },
     {
@@ -3925,7 +3925,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices",
-      "community": 17,
+      "community": 34,
       "norm_label": "icontentservices"
     },
     {
@@ -3935,7 +3935,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_create",
-      "community": 17,
+      "community": 34,
       "norm_label": ".create()"
     },
     {
@@ -3945,7 +3945,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_delete",
-      "community": 17,
+      "community": 34,
       "norm_label": ".delete()"
     },
     {
@@ -3955,7 +3955,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_changecontentactivemode",
-      "community": 17,
+      "community": 34,
       "norm_label": ".changecontentactivemode()"
     },
     {
@@ -3965,7 +3965,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_update",
-      "community": 17,
+      "community": 34,
       "norm_label": ".update()"
     },
     {
@@ -3975,7 +3975,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_getbyid",
-      "community": 17,
+      "community": 34,
       "norm_label": ".getbyid()"
     },
     {
@@ -3985,7 +3985,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_list",
-      "community": 17,
+      "community": 34,
       "norm_label": ".list()"
     },
     {
@@ -3995,7 +3995,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_ourblogboxlist",
-      "community": 17,
+      "community": 34,
       "norm_label": ".ourblogboxlist()"
     },
     {
@@ -4005,7 +4005,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_contentcount",
-      "community": 17,
+      "community": 34,
       "norm_label": ".contentcount()"
     },
     {
@@ -4015,7 +4015,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_createsection",
-      "community": 17,
+      "community": 66,
       "norm_label": ".createsection()"
     },
     {
@@ -4045,7 +4045,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_getsections",
-      "community": 17,
+      "community": 66,
       "norm_label": ".getsections()"
     },
     {
@@ -4055,7 +4055,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_updatesectionpriority",
-      "community": 17,
+      "community": 34,
       "norm_label": ".updatesectionpriority()"
     },
     {
@@ -4065,7 +4065,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_createcontentcategories",
-      "community": 17,
+      "community": 34,
       "norm_label": ".createcontentcategories()"
     },
     {
@@ -4075,7 +4075,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_createcontenttags",
-      "community": 17,
+      "community": 34,
       "norm_label": ".createcontenttags()"
     },
     {
@@ -4085,7 +4085,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_createcontentcultures",
-      "community": 17,
+      "community": 34,
       "norm_label": ".createcontentcultures()"
     },
     {
@@ -4135,7 +4135,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_deleteallcontentimages",
-      "community": 17,
+      "community": 34,
       "norm_label": ".deleteallcontentimages()"
     },
     {
@@ -4155,7 +4155,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_deletesection",
-      "community": 17,
+      "community": 34,
       "norm_label": ".deletesection()"
     },
     {
@@ -4165,7 +4165,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_getcontentsincategory",
-      "community": 17,
+      "community": 34,
       "norm_label": ".getcontentsincategory()"
     },
     {
@@ -4175,7 +4175,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_updatetranslate",
-      "community": 17,
+      "community": 34,
       "norm_label": ".updatetranslate()"
     },
     {
@@ -4185,7 +4185,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_activatetranslatedcontent",
-      "community": 17,
+      "community": 34,
       "norm_label": ".activatetranslatedcontent()"
     },
     {
@@ -4195,7 +4195,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_getcontentbyidfull",
-      "community": 17,
+      "community": 4,
       "norm_label": ".getcontentbyidfull()"
     },
     {
@@ -4215,7 +4215,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_getcontentbycategoryid",
-      "community": 17,
+      "community": 4,
       "norm_label": ".getcontentbycategoryid()"
     },
     {
@@ -4225,7 +4225,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_getcontentbycategoryidbydate",
-      "community": 17,
+      "community": 4,
       "norm_label": ".getcontentbycategoryidbydate()"
     },
     {
@@ -4235,7 +4235,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "cmsservices_icontentservices_icontentservices_getcontentincategoryasbox",
-      "community": 17,
+      "community": 4,
       "norm_label": ".getcontentincategoryasbox()"
     },
     {
@@ -5405,7 +5405,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tenancy_tenantaccessguard",
-      "community": 7,
+      "community": 60,
       "norm_label": "tenantaccessguard.cs"
     },
     {
@@ -5415,7 +5415,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "tenancy_tenantaccessguard_application_usecases_tenancy",
-      "community": 7,
+      "community": 60,
       "norm_label": "application.usecases.tenancy"
     },
     {
@@ -5425,7 +5425,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "tenancy_tenantaccessguard_tenantaccessguard",
-      "community": 7,
+      "community": 60,
       "norm_label": "tenantaccessguard"
     },
     {
@@ -5435,7 +5435,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "tenancy_tenantaccessguard_tenantaccessguard_hasaccessasync",
-      "community": 7,
+      "community": 60,
       "norm_label": ".hasaccessasync()"
     },
     {
@@ -5675,7 +5675,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "string",
-      "community": 28,
+      "community": 44,
       "norm_label": "string"
     },
     {
@@ -5865,7 +5865,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "translatorservices_translationresult_translationresult_ok",
-      "community": 24,
+      "community": 91,
       "norm_label": ".ok()"
     },
     {
@@ -6085,7 +6085,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "applicationconst_applicationroles",
-      "community": 28,
+      "community": 44,
       "norm_label": "applicationroles.cs"
     },
     {
@@ -6095,7 +6095,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "applicationconst_applicationroles_application_usecases_utilities_applicationconst",
-      "community": 28,
+      "community": 44,
       "norm_label": "application.usecases.utilities.applicationconst"
     },
     {
@@ -6105,7 +6105,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "applicationconst_applicationroles_applicationroles",
-      "community": 28,
+      "community": 44,
       "norm_label": "applicationroles"
     },
     {
@@ -6265,7 +6265,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "applicationfunctions_codegenerator",
-      "community": 70,
+      "community": 3,
       "norm_label": "codegenerator.cs"
     },
     {
@@ -6275,7 +6275,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "applicationfunctions_codegenerator_application_usecases_utilities_applicationfunctions",
-      "community": 70,
+      "community": 3,
       "norm_label": "application.usecases.utilities.applicationfunctions"
     },
     {
@@ -6285,7 +6285,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "applicationfunctions_codegenerator_codegenerator",
-      "community": 70,
+      "community": 3,
       "norm_label": "codegenerator"
     },
     {
@@ -6295,7 +6295,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "timeprovider",
-      "community": 19,
+      "community": 3,
       "norm_label": "timeprovider"
     },
     {
@@ -6305,7 +6305,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "applicationfunctions_codegenerator_codegenerator_generateappkey",
-      "community": 70,
+      "community": 3,
       "norm_label": ".generateappkey()"
     },
     {
@@ -6355,7 +6355,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "applicationfunctions_sluggenerator",
-      "community": 71,
+      "community": 52,
       "norm_label": "sluggenerator.cs"
     },
     {
@@ -6365,7 +6365,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "applicationfunctions_sluggenerator_application_usecases_utilities_applicationfunctions",
-      "community": 71,
+      "community": 52,
       "norm_label": "application.usecases.utilities.applicationfunctions"
     },
     {
@@ -6375,7 +6375,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "applicationfunctions_sluggenerator_sluggenerator",
-      "community": 71,
+      "community": 52,
       "norm_label": "sluggenerator"
     },
     {
@@ -6385,7 +6385,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "applicationfunctions_sluggenerator_sluggenerator_generateslug",
-      "community": 71,
+      "community": 52,
       "norm_label": ".generateslug()"
     },
     {
@@ -6695,7 +6695,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "contentmanagement_contentattachment",
-      "community": 88,
+      "community": 30,
       "norm_label": "contentattachment.cs"
     },
     {
@@ -6705,7 +6705,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "contentmanagement_contentattachment_contentattachment",
-      "community": 88,
+      "community": 30,
       "norm_label": "contentattachment"
     },
     {
@@ -6715,7 +6715,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "contentmanagement_contentattachmentitem",
-      "community": 89,
+      "community": 30,
       "norm_label": "contentattachmentitem.cs"
     },
     {
@@ -6725,7 +6725,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "contentmanagement_contentattachmentitem_contentattachmentitem",
-      "community": 89,
+      "community": 30,
       "norm_label": "contentattachmentitem"
     },
     {
@@ -6735,7 +6735,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "contentmanagement_contentimage",
-      "community": 0,
+      "community": 55,
       "norm_label": "contentimage.cs"
     },
     {
@@ -6745,7 +6745,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "contentmanagement_contentimage_domains_entities_contentmanagement",
-      "community": 0,
+      "community": 55,
       "norm_label": "domains.entities.contentmanagement"
     },
     {
@@ -6755,7 +6755,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "contentmanagement_contentimage_contentimage",
-      "community": 0,
+      "community": 55,
       "norm_label": "contentimage"
     },
     {
@@ -6885,7 +6885,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "contentmanagement_contentsection",
-      "community": 4,
+      "community": 0,
       "norm_label": "contentsection.cs"
     },
     {
@@ -6895,7 +6895,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "contentmanagement_contentsection_domains_entities_contentmanagement",
-      "community": 4,
+      "community": 0,
       "norm_label": "domains.entities.contentmanagement"
     },
     {
@@ -6905,7 +6905,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "contentmanagement_contentsection_contentsection",
-      "community": 4,
+      "community": 0,
       "norm_label": "contentsection"
     },
     {
@@ -6915,7 +6915,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "contentmanagement_schema",
-      "community": 35,
+      "community": 38,
       "norm_label": "schema.cs"
     },
     {
@@ -6925,7 +6925,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "contentmanagement_schema_domains_entities_contentmanagement",
-      "community": 35,
+      "community": 38,
       "norm_label": "domains.entities.contentmanagement"
     },
     {
@@ -6935,7 +6935,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "contentmanagement_schema_schema",
-      "community": 35,
+      "community": 38,
       "norm_label": "schema"
     },
     {
@@ -7655,7 +7655,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "cmsrepository_contentcommandrepository_contentcommandrepository_createsection",
-      "community": 4,
+      "community": 0,
       "norm_label": ".createsection()"
     },
     {
@@ -7715,7 +7715,7 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "cmsrepository_contentcommandrepository_contentcommandrepository_createcontentimage",
-      "community": 0,
+      "community": 55,
       "norm_label": ".createcontentimage()"
     },
     {
@@ -7845,7 +7845,7 @@
       "source_location": "L446",
       "_origin": "ast",
       "id": "cmsrepository_contentqueryrepository_contentqueryrepository_getsectionforapplication",
-      "community": 4,
+      "community": 0,
       "norm_label": ".getsectionforapplication()"
     },
     {
@@ -7875,7 +7875,7 @@
       "source_location": "L468",
       "_origin": "ast",
       "id": "cmsrepository_contentqueryrepository_contentqueryrepository_getcontentsections",
-      "community": 4,
+      "community": 0,
       "norm_label": ".getcontentsections()"
     },
     {
@@ -7885,7 +7885,7 @@
       "source_location": "L475",
       "_origin": "ast",
       "id": "cmsrepository_contentqueryrepository_contentqueryrepository_getsectionelements",
-      "community": 4,
+      "community": 0,
       "norm_label": ".getsectionelements()"
     },
     {
@@ -7905,7 +7905,7 @@
       "source_location": "L495",
       "_origin": "ast",
       "id": "cmsrepository_contentqueryrepository_contentqueryrepository_getallcontentimages",
-      "community": 0,
+      "community": 55,
       "norm_label": ".getallcontentimages()"
     },
     {
@@ -7965,7 +7965,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cmsrepository_contentsincategoryqueryadapter",
-      "community": 17,
+      "community": 34,
       "norm_label": "contentsincategoryqueryadapter.cs"
     },
     {
@@ -7975,7 +7975,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "cmsrepository_contentsincategoryqueryadapter_contentsincategoryqueryadapter",
-      "community": 17,
+      "community": 34,
       "norm_label": "contentsincategoryqueryadapter"
     },
     {
@@ -7985,7 +7985,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "cmsrepository_contentsincategoryqueryadapter_contentsincategoryqueryadapter_getcontentsincategory",
-      "community": 17,
+      "community": 34,
       "norm_label": ".getcontentsincategory()"
     },
     {
@@ -8095,7 +8095,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "contentmanagement_contentprovider",
-      "community": 50,
+      "community": 3,
       "norm_label": "contentprovider.cs"
     },
     {
@@ -8105,7 +8105,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "contentmanagement_contentprovider_contentprovider",
-      "community": 50,
+      "community": 3,
       "norm_label": "contentprovider"
     },
     {
@@ -8115,7 +8115,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "contentmanagement_contentprovider_contentprovider_getcontentfortranslate",
-      "community": 50,
+      "community": 3,
       "norm_label": ".getcontentfortranslate()"
     },
     {
@@ -8125,7 +8125,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "contentmanagement_contentprovider_contentprovider_getcontentslistbycategoryid",
-      "community": 50,
+      "community": 3,
       "norm_label": ".getcontentslistbycategoryid()"
     },
     {
@@ -8135,7 +8135,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "contentmanagement_contentprovider_contentprovider_getcontentslistbytagid",
-      "community": 50,
+      "community": 3,
       "norm_label": ".getcontentslistbytagid()"
     },
     {
@@ -8145,7 +8145,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "data_applicationdbcontext",
-      "community": 19,
+      "community": 3,
       "norm_label": "applicationdbcontext.cs"
     },
     {
@@ -8155,7 +8155,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "data_applicationdbcontext_infrastructure_data",
-      "community": 19,
+      "community": 3,
       "norm_label": "infrastructure.data"
     },
     {
@@ -8165,7 +8165,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "data_applicationdbcontext_applicationdbcontext",
-      "community": 19,
+      "community": 3,
       "norm_label": "applicationdbcontext"
     },
     {
@@ -8175,7 +8175,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "identitydbcontext",
-      "community": 19,
+      "community": 3,
       "norm_label": "identitydbcontext"
     },
     {
@@ -8185,7 +8185,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "data_applicationdbcontext_applicationdbcontext_onmodelcreating",
-      "community": 19,
+      "community": 3,
       "norm_label": ".onmodelcreating()"
     },
     {
@@ -8195,7 +8195,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "modelbuilder",
-      "community": 19,
+      "community": 3,
       "norm_label": "modelbuilder"
     },
     {
@@ -8205,7 +8205,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "data_applicationdbcontext_applicationdbcontext_applylifecyclepolicy",
-      "community": 19,
+      "community": 3,
       "norm_label": ".applylifecyclepolicy()"
     },
     {
@@ -8215,7 +8215,7 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "data_applicationdbcontext_applicationdbcontext_savechanges",
-      "community": 19,
+      "community": 3,
       "norm_label": ".savechanges()"
     },
     {
@@ -8225,7 +8225,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "data_applicationdbcontext_applicationdbcontext_savechangesasync",
-      "community": 19,
+      "community": 3,
       "norm_label": ".savechangesasync()"
     },
     {
@@ -8235,7 +8235,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cms_categoryconfiguration",
-      "community": 29,
+      "community": 30,
       "norm_label": "categoryconfiguration.cs"
     },
     {
@@ -8245,7 +8245,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "cms_categoryconfiguration_categoryconfiguration",
-      "community": 29,
+      "community": 30,
       "norm_label": "categoryconfiguration"
     },
     {
@@ -8265,7 +8265,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "cms_categoryconfiguration_categoryconfiguration_configure",
-      "community": 29,
+      "community": 30,
       "norm_label": ".configure()"
     },
     {
@@ -8315,7 +8315,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cms_contentattachmentconfiguration",
-      "community": 88,
+      "community": 30,
       "norm_label": "contentattachmentconfiguration.cs"
     },
     {
@@ -8325,7 +8325,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "cms_contentattachmentconfiguration_contentattachmentconfiguration",
-      "community": 88,
+      "community": 30,
       "norm_label": "contentattachmentconfiguration"
     },
     {
@@ -8335,7 +8335,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "cms_contentattachmentconfiguration_contentattachmentconfiguration_configure",
-      "community": 88,
+      "community": 30,
       "norm_label": ".configure()"
     },
     {
@@ -8345,7 +8345,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cms_contentattachmentitemconfiguration",
-      "community": 89,
+      "community": 30,
       "norm_label": "contentattachmentitemconfiguration.cs"
     },
     {
@@ -8355,7 +8355,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "cms_contentattachmentitemconfiguration_contentattachmentitemconfiguration",
-      "community": 89,
+      "community": 30,
       "norm_label": "contentattachmentitemconfiguration"
     },
     {
@@ -8365,7 +8365,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "cms_contentattachmentitemconfiguration_contentattachmentitemconfiguration_configure",
-      "community": 89,
+      "community": 30,
       "norm_label": ".configure()"
     },
     {
@@ -8405,7 +8405,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cms_contentimageconfiguration",
-      "community": 30,
+      "community": 55,
       "norm_label": "contentimageconfiguration.cs"
     },
     {
@@ -8415,7 +8415,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "cms_contentimageconfiguration_contentimageconfiguration",
-      "community": 30,
+      "community": 55,
       "norm_label": "contentimageconfiguration"
     },
     {
@@ -8425,7 +8425,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "cms_contentimageconfiguration_contentimageconfiguration_configure",
-      "community": 30,
+      "community": 55,
       "norm_label": ".configure()"
     },
     {
@@ -8525,7 +8525,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cms_contentmetadataconfiguration",
-      "community": 0,
+      "community": 30,
       "norm_label": "contentmetadataconfiguration.cs"
     },
     {
@@ -8535,7 +8535,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "cms_contentmetadataconfiguration_contentmetadataconfiguration",
-      "community": 0,
+      "community": 30,
       "norm_label": "contentmetadataconfiguration"
     },
     {
@@ -8545,7 +8545,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "cms_contentmetadataconfiguration_contentmetadataconfiguration_configure",
-      "community": 0,
+      "community": 30,
       "norm_label": ".configure()"
     },
     {
@@ -8585,7 +8585,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cms_schemaconfiguration",
-      "community": 35,
+      "community": 38,
       "norm_label": "schemaconfiguration.cs"
     },
     {
@@ -8595,7 +8595,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "cms_schemaconfiguration_schemaconfiguration",
-      "community": 35,
+      "community": 38,
       "norm_label": "schemaconfiguration"
     },
     {
@@ -8605,7 +8605,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "cms_schemaconfiguration_schemaconfiguration_configure",
-      "community": 35,
+      "community": 38,
       "norm_label": ".configure()"
     },
     {
@@ -9065,7 +9065,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scm_sliderconfiguration",
-      "community": 2,
+      "community": 30,
       "norm_label": "sliderconfiguration.cs"
     },
     {
@@ -9075,7 +9075,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "scm_sliderconfiguration_sliderconfiguration",
-      "community": 2,
+      "community": 30,
       "norm_label": "sliderconfiguration"
     },
     {
@@ -9085,7 +9085,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "scm_sliderconfiguration_sliderconfiguration_configure",
-      "community": 2,
+      "community": 30,
       "norm_label": ".configure()"
     },
     {
@@ -9315,7 +9315,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "proptechdtos_attributegroupitemdto",
-      "community": 156,
+      "community": 37,
       "norm_label": "attributegroupitemdto.cs"
     },
     {
@@ -9325,7 +9325,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "proptechdtos_attributegroupitemdto_infrastructure_dto_proptechdtos",
-      "community": 156,
+      "community": 37,
       "norm_label": "infrastructure.dto.proptechdtos"
     },
     {
@@ -9335,7 +9335,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "proptechdtos_attributegroupitemdto_attributegroupitemdto",
-      "community": 156,
+      "community": 37,
       "norm_label": "attributegroupitemdto"
     },
     {
@@ -9375,7 +9375,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "proptechdtos_companydto",
-      "community": 37,
+      "community": 68,
       "norm_label": "companydto.cs"
     },
     {
@@ -9385,7 +9385,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "proptechdtos_companydto_infrastructure_dto_proptechdtos",
-      "community": 37,
+      "community": 68,
       "norm_label": "infrastructure.dto.proptechdtos"
     },
     {
@@ -9395,7 +9395,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "proptechdtos_companydto_companydto",
-      "community": 37,
+      "community": 68,
       "norm_label": "companydto"
     },
     {
@@ -9495,7 +9495,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "proptechdtos_developmentattachmentitemdto",
-      "community": 159,
+      "community": 38,
       "norm_label": "developmentattachmentitemdto.cs"
     },
     {
@@ -9505,7 +9505,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "proptechdtos_developmentattachmentitemdto_infrastructure_dto_proptechdtos",
-      "community": 159,
+      "community": 38,
       "norm_label": "infrastructure.dto.proptechdtos"
     },
     {
@@ -9515,7 +9515,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "proptechdtos_developmentattachmentitemdto_developmentattachmentitemdto",
-      "community": 159,
+      "community": 38,
       "norm_label": "developmentattachmentitemdto"
     },
     {
@@ -9645,7 +9645,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "proptechdtos_propertyattachmentitemdto",
-      "community": 164,
+      "community": 37,
       "norm_label": "propertyattachmentitemdto.cs"
     },
     {
@@ -9655,7 +9655,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "proptechdtos_propertyattachmentitemdto_infrastructure_dto_proptechdtos",
-      "community": 164,
+      "community": 37,
       "norm_label": "infrastructure.dto.proptechdtos"
     },
     {
@@ -9665,7 +9665,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "proptechdtos_propertyattachmentitemdto_propertyattachmentitemdto",
-      "community": 164,
+      "community": 37,
       "norm_label": "propertyattachmentitemdto"
     },
     {
@@ -9675,7 +9675,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "proptechdtos_propertydto",
-      "community": 165,
+      "community": 161,
       "norm_label": "propertydto.cs"
     },
     {
@@ -9685,7 +9685,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "proptechdtos_propertydto_infrastructure_dto_proptechdtos",
-      "community": 165,
+      "community": 161,
       "norm_label": "infrastructure.dto.proptechdtos"
     },
     {
@@ -9695,7 +9695,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "proptechdtos_propertydto_propertydto",
-      "community": 165,
+      "community": 161,
       "norm_label": "propertydto"
     },
     {
@@ -9705,7 +9705,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "proptechdtos_propertyimagedto",
-      "community": 166,
+      "community": 37,
       "norm_label": "propertyimagedto.cs"
     },
     {
@@ -9715,7 +9715,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "proptechdtos_propertyimagedto_infrastructure_dto_proptechdtos",
-      "community": 166,
+      "community": 37,
       "norm_label": "infrastructure.dto.proptechdtos"
     },
     {
@@ -9725,7 +9725,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "proptechdtos_propertyimagedto_propertyimagedto",
-      "community": 166,
+      "community": 37,
       "norm_label": "propertyimagedto"
     },
     {
@@ -9735,7 +9735,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "proptechdtos_propertypricedto",
-      "community": 167,
+      "community": 37,
       "norm_label": "propertypricedto.cs"
     },
     {
@@ -9745,7 +9745,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "proptechdtos_propertypricedto_infrastructure_dto_proptechdtos",
-      "community": 167,
+      "community": 37,
       "norm_label": "infrastructure.dto.proptechdtos"
     },
     {
@@ -9755,7 +9755,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "proptechdtos_propertypricedto_propertypricedto",
-      "community": 167,
+      "community": 37,
       "norm_label": "propertypricedto"
     },
     {
@@ -9765,7 +9765,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scmdtos_boxdto",
-      "community": 168,
+      "community": 37,
       "norm_label": "boxdto.cs"
     },
     {
@@ -9775,7 +9775,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "scmdtos_boxdto_infrastructure_dto_scmdtos",
-      "community": 168,
+      "community": 37,
       "norm_label": "infrastructure.dto.scmdtos"
     },
     {
@@ -9785,7 +9785,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "scmdtos_boxdto_boxdto",
-      "community": 168,
+      "community": 37,
       "norm_label": "boxdto"
     },
     {
@@ -9795,7 +9795,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scmdtos_boxitemdto",
-      "community": 169,
+      "community": 37,
       "norm_label": "boxitemdto.cs"
     },
     {
@@ -9805,7 +9805,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "scmdtos_boxitemdto_infrastructure_dto_scmdtos",
-      "community": 169,
+      "community": 37,
       "norm_label": "infrastructure.dto.scmdtos"
     },
     {
@@ -9815,7 +9815,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "scmdtos_boxitemdto_boxitemdto",
-      "community": 169,
+      "community": 37,
       "norm_label": "boxitemdto"
     },
     {
@@ -10225,7 +10225,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "uiservicesdtos_apipricedto",
-      "community": 37,
+      "community": 69,
       "norm_label": "apipricedto.cs"
     },
     {
@@ -10235,7 +10235,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "uiservicesdtos_apipricedto_infrastructure_dto_uiservicesdtos",
-      "community": 37,
+      "community": 69,
       "norm_label": "infrastructure.dto.uiservicesdtos"
     },
     {
@@ -10245,7 +10245,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "uiservicesdtos_apipricedto_apipricedto",
-      "community": 37,
+      "community": 69,
       "norm_label": "apipricedto"
     },
     {
@@ -10255,7 +10255,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "uiservicesdtos_apipropertydto",
-      "community": 185,
+      "community": 37,
       "norm_label": "apipropertydto.cs"
     },
     {
@@ -10265,7 +10265,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "uiservicesdtos_apipropertydto_infrastructure_dto_uiservicesdtos",
-      "community": 185,
+      "community": 37,
       "norm_label": "infrastructure.dto.uiservicesdtos"
     },
     {
@@ -10275,7 +10275,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "uiservicesdtos_apipropertydto_apipropertydto",
-      "community": 185,
+      "community": 37,
       "norm_label": "apipropertydto"
     },
     {
@@ -11425,7 +11425,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests",
-      "community": 36,
+      "community": 0,
       "norm_label": "sectorentityrepositorytests.cs"
     },
     {
@@ -11435,7 +11435,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests_sectorentityrepositorytests",
-      "community": 36,
+      "community": 0,
       "norm_label": "sectorentityrepositorytests"
     },
     {
@@ -11445,7 +11445,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests_sectorentityrepositorytests_getbyidforapplication_sameapplication_returnssectorentity",
-      "community": 36,
+      "community": 0,
       "norm_label": ".getbyidforapplication_sameapplication_returnssectorentity()"
     },
     {
@@ -11455,7 +11455,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests_sectorentityrepositorytests_getbyidforapplication_crossapplicationid_throws",
-      "community": 36,
+      "community": 0,
       "norm_label": ".getbyidforapplication_crossapplicationid_throws()"
     },
     {
@@ -11465,7 +11465,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests_sectorentityrepositorytests_getbyidforapplication_softdeletedsameapplication_throws",
-      "community": 36,
+      "community": 0,
       "norm_label": ".getbyidforapplication_softdeletedsameapplication_throws()"
     },
     {
@@ -11475,7 +11475,7 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests_sectorentityrepositorytests_getbyidforapplication_parentsectorsoftdeleted_throws",
-      "community": 36,
+      "community": 0,
       "norm_label": ".getbyidforapplication_parentsectorsoftdeleted_throws()"
     },
     {
@@ -11485,7 +11485,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests_sectorentityrepositorytests_getentitiesforapplication_sameapplication_returnsentity",
-      "community": 36,
+      "community": 0,
       "norm_label": ".getentitiesforapplication_sameapplication_returnsentity()"
     },
     {
@@ -11495,7 +11495,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests_sectorentityrepositorytests_getentitiesforapplication_crossapplicationentity_isexcluded",
-      "community": 36,
+      "community": 0,
       "norm_label": ".getentitiesforapplication_crossapplicationentity_isexcluded()"
     },
     {
@@ -11505,7 +11505,7 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests_sectorentityrepositorytests_getentitiesforapplication_softdeletedentity_isexcluded",
-      "community": 36,
+      "community": 0,
       "norm_label": ".getentitiesforapplication_softdeletedentity_isexcluded()"
     },
     {
@@ -11515,7 +11515,7 @@
       "source_location": "L149",
       "_origin": "ast",
       "id": "accessmanagerrepository_sectorentityrepositorytests_sectorentityrepositorytests_getentitiesforapplication_softdeletedparentsector_isexcluded",
-      "community": 36,
+      "community": 0,
       "norm_label": ".getentitiesforapplication_softdeletedparentsector_isexcluded()"
     },
     {
@@ -11685,7 +11685,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "architecture_applicationusecaseboundarytests",
-      "community": 53,
+      "community": 1,
       "norm_label": "applicationusecaseboundarytests.cs"
     },
     {
@@ -11695,7 +11695,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "architecture_applicationusecaseboundarytests_applicationusecaseboundarytests",
-      "community": 53,
+      "community": 1,
       "norm_label": "applicationusecaseboundarytests"
     },
     {
@@ -11705,7 +11705,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "architecture_applicationusecaseboundarytests_applicationusecaseboundarytests_applicationassembly_hasnolegacyservicesnamespace",
-      "community": 53,
+      "community": 1,
       "norm_label": ".applicationassembly_hasnolegacyservicesnamespace()"
     },
     {
@@ -11715,7 +11715,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "architecture_applicationusecaseboundarytests_applicationusecaseboundarytests_getcategorieshandler_delegatestocategoryservices_notdirectlytorepository",
-      "community": 53,
+      "community": 1,
       "norm_label": ".getcategorieshandler_delegatestocategoryservices_notdirectlytorepository()"
     },
     {
@@ -11725,7 +11725,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "architecture_applicationusecaseboundarytests_applicationusecaseboundarytests_servicecollection_resolvesgetcategoriesquery_throughmediatrandcategoryservices",
-      "community": 53,
+      "community": 1,
       "norm_label": ".servicecollection_resolvesgetcategoriesquery_throughmediatrandcategoryservices()"
     },
     {
@@ -11735,7 +11735,7 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "architecture_applicationusecaseboundarytests_applicationusecaseboundarytests_mapperconfiguration_buildsandmaps_acrossapplicationandinfrastructureprofiles",
-      "community": 53,
+      "community": 1,
       "norm_label": ".mapperconfiguration_buildsandmaps_acrossapplicationandinfrastructureprofiles()"
     },
     {
@@ -11885,7 +11885,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "architecture_genericrepositoryinjectiontests",
-      "community": 44,
+      "community": 1,
       "norm_label": "genericrepositoryinjectiontests.cs"
     },
     {
@@ -11895,7 +11895,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "architecture_genericrepositoryinjectiontests_genericrepositoryinjectiontests",
-      "community": 44,
+      "community": 1,
       "norm_label": "genericrepositoryinjectiontests"
     },
     {
@@ -11905,7 +11905,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "architecture_genericrepositoryinjectiontests_genericrepositoryinjectiontests_inheritsgenericrepository",
-      "community": 44,
+      "community": 1,
       "norm_label": ".inheritsgenericrepository()"
     },
     {
@@ -11915,7 +11915,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "architecture_genericrepositoryinjectiontests_genericrepositoryinjectiontests_tenantownedports_donotinheritgenericirepository",
-      "community": 44,
+      "community": 1,
       "norm_label": ".tenantownedports_donotinheritgenericirepository()"
     },
     {
@@ -11925,7 +11925,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "architecture_genericrepositoryinjectiontests_genericrepositoryinjectiontests_applicationservices_donotdependongenericrepositoryforatenantport",
-      "community": 44,
+      "community": 1,
       "norm_label": ".applicationservices_donotdependongenericrepositoryforatenantport()"
     },
     {
@@ -11935,7 +11935,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "architecture_genericrepositoryinjectiontests_genericrepositoryinjectiontests_specializedtenantrepositories_donotconstructgenericrepositoryfortenantchildren",
-      "community": 44,
+      "community": 1,
       "norm_label": ".specializedtenantrepositories_donotconstructgenericrepositoryfortenantchildren()"
     },
     {
@@ -11945,7 +11945,7 @@
       "source_location": "L110",
       "_origin": "ast",
       "id": "architecture_genericrepositoryinjectiontests_genericrepositoryinjectiontests_applicationrepository_doesnotinheritgenericrepository",
-      "community": 44,
+      "community": 1,
       "norm_label": ".applicationrepository_doesnotinheritgenericrepository()"
     },
     {
@@ -12025,7 +12025,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "architecture_mappingconfigurationtests",
-      "community": 73,
+      "community": 1,
       "norm_label": "mappingconfigurationtests.cs"
     },
     {
@@ -12035,7 +12035,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "architecture_mappingconfigurationtests_mappingconfigurationtests",
-      "community": 73,
+      "community": 1,
       "norm_label": "mappingconfigurationtests"
     },
     {
@@ -12045,7 +12045,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "architecture_mappingconfigurationtests_mappingconfigurationtests_applicationprofile_configurationisvalid",
-      "community": 73,
+      "community": 1,
       "norm_label": ".applicationprofile_configurationisvalid()"
     },
     {
@@ -12055,7 +12055,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "architecture_mappingconfigurationtests_mappingconfigurationtests_infrastructureprofile_configurationisvalid",
-      "community": 73,
+      "community": 1,
       "norm_label": ".infrastructureprofile_configurationisvalid()"
     },
     {
@@ -12275,7 +12275,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "architecture_sectorentityscopingguardtests",
-      "community": 81,
+      "community": 1,
       "norm_label": "sectorentityscopingguardtests.cs"
     },
     {
@@ -12285,7 +12285,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "architecture_sectorentityscopingguardtests_sectorentityscopingguardtests",
-      "community": 81,
+      "community": 1,
       "norm_label": "sectorentityscopingguardtests"
     },
     {
@@ -12295,7 +12295,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "architecture_sectorentityscopingguardtests_sectorentityscopingguardtests_sectorentityrepositoryport_hasnounscopedlistmethod",
-      "community": 81,
+      "community": 1,
       "norm_label": ".sectorentityrepositoryport_hasnounscopedlistmethod()"
     },
     {
@@ -12305,7 +12305,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "architecture_sectorentityscopingguardtests_sectorentityscopingguardtests_sectorentityservicesport_hasnounscopedlistmethod",
-      "community": 81,
+      "community": 1,
       "norm_label": ".sectorentityservicesport_hasnounscopedlistmethod()"
     },
     {
@@ -12495,7 +12495,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "asyncboundaries_asynccancellationanderrorboundarytests",
-      "community": 60,
+      "community": 0,
       "norm_label": "asynccancellationanderrorboundarytests.cs"
     },
     {
@@ -12505,7 +12505,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "asyncboundaries_asynccancellationanderrorboundarytests_asynccancellationanderrorboundarytests",
-      "community": 60,
+      "community": 0,
       "norm_label": "asynccancellationanderrorboundarytests"
     },
     {
@@ -12515,7 +12515,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "asyncboundaries_asynccancellationanderrorboundarytests_asynccancellationanderrorboundarytests_contentqueryrepository_list_precanceledtoken_throwsinsteadofrunningthequery",
-      "community": 60,
+      "community": 0,
       "norm_label": ".contentqueryrepository_list_precanceledtoken_throwsinsteadofrunningthequery()"
     },
     {
@@ -12525,7 +12525,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "asyncboundaries_asynccancellationanderrorboundarytests_asynccancellationanderrorboundarytests_categoryrepository_getallfullpath_propagatesrealfailures_insteadofreturningemptylist",
-      "community": 60,
+      "community": 0,
       "norm_label": ".categoryrepository_getallfullpath_propagatesrealfailures_insteadofreturningemptylist()"
     },
     {
@@ -12535,7 +12535,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "asyncboundaries_asynccancellationanderrorboundarytests_asynccancellationanderrorboundarytests_unitofwork_executeintransactionasync_operationthrows_rollsbackandpropagates",
-      "community": 60,
+      "community": 0,
       "norm_label": ".unitofwork_executeintransactionasync_operationthrows_rollsbackandpropagates()"
     },
     {
@@ -12545,7 +12545,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cmsrepository_categoryrepositorytests",
-      "community": 63,
+      "community": 0,
       "norm_label": "categoryrepositorytests.cs"
     },
     {
@@ -12555,7 +12555,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "cmsrepository_categoryrepositorytests_categoryrepositorytests",
-      "community": 63,
+      "community": 0,
       "norm_label": "categoryrepositorytests"
     },
     {
@@ -12565,7 +12565,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "cmsrepository_categoryrepositorytests_categoryrepositorytests_getbyidforapplication_sameapplication_returnscategory",
-      "community": 63,
+      "community": 0,
       "norm_label": ".getbyidforapplication_sameapplication_returnscategory()"
     },
     {
@@ -12575,7 +12575,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "cmsrepository_categoryrepositorytests_categoryrepositorytests_getbyidforapplication_differentapplication_throws",
-      "community": 63,
+      "community": 0,
       "norm_label": ".getbyidforapplication_differentapplication_throws()"
     },
     {
@@ -12585,7 +12585,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "cmsrepository_categoryrepositorytests_categoryrepositorytests_getbyidforapplication_softdeleted_throws",
-      "community": 63,
+      "community": 0,
       "norm_label": ".getbyidforapplication_softdeleted_throws()"
     },
     {
@@ -12595,7 +12595,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests",
-      "community": 34,
+      "community": 1,
       "norm_label": "contentapicompatibilitytests.cs"
     },
     {
@@ -12605,7 +12605,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests_contentapicompatibilitytests",
-      "community": 34,
+      "community": 1,
       "norm_label": "contentapicompatibilitytests"
     },
     {
@@ -12615,7 +12615,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "jsonserializeroptions",
-      "community": 34,
+      "community": 1,
       "norm_label": "jsonserializeroptions"
     },
     {
@@ -12625,7 +12625,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests_contentapicompatibilitytests_contentapidto_fullypopulatedgraph_producesexpectedtoplevelkeys",
-      "community": 34,
+      "community": 1,
       "norm_label": ".contentapidto_fullypopulatedgraph_producesexpectedtoplevelkeys()"
     },
     {
@@ -12635,7 +12635,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests_contentapicompatibilitytests_contentsectionapidto_withelements_nestscorrectly",
-      "community": 34,
+      "community": 1,
       "norm_label": ".contentsectionapidto_withelements_nestscorrectly()"
     },
     {
@@ -12645,7 +12645,7 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests_contentapicompatibilitytests_contentsectionapidto_withoutelements_serializeselementsasnull",
-      "community": 34,
+      "community": 1,
       "norm_label": ".contentsectionapidto_withoutelements_serializeselementsasnull()"
     },
     {
@@ -12655,7 +12655,7 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests_contentapicompatibilitytests_contentapidto_withoutmetadata_serializesmetadataasnull",
-      "community": 34,
+      "community": 1,
       "norm_label": ".contentapidto_withoutmetadata_serializesmetadataasnull()"
     },
     {
@@ -12665,7 +12665,7 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests_contentapicompatibilitytests_contentmetadataapidto_serializesscalarfields",
-      "community": 34,
+      "community": 1,
       "norm_label": ".contentmetadataapidto_serializesscalarfields()"
     },
     {
@@ -12675,7 +12675,7 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests_contentapicompatibilitytests_contentimageapidto_serializesscalarfields",
-      "community": 34,
+      "community": 1,
       "norm_label": ".contentimageapidto_serializesscalarfields()"
     },
     {
@@ -12685,7 +12685,7 @@
       "source_location": "L142",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests_contentapicompatibilitytests_blogindexapidto_fullshape_producesexpectedtoplevelkeysandnestedcontents",
-      "community": 34,
+      "community": 1,
       "norm_label": ".blogindexapidto_fullshape_producesexpectedtoplevelkeysandnestedcontents()"
     },
     {
@@ -12695,7 +12695,7 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "cmsrepository_contentapicompatibilitytests_contentapicompatibilitytests_blogindexapidto_emptycontents_serializesasemptyarraynotnull",
-      "community": 34,
+      "community": 1,
       "norm_label": ".blogindexapidto_emptycontents_serializesasemptyarraynotnull()"
     },
     {
@@ -14364,7 +14364,7 @@
       "source_file": "src/Core/Tests/Core.Tests.csproj",
       "source_location": null,
       "_origin": "ast",
-      "id": "nuget_microsoft_net_test_sdk",
+      "id": "src_core_tests_core_tests_csproj_nuget_microsoft_net_test_sdk",
       "community": 65,
       "norm_label": "microsoft.net.test.sdk (17.11.1)"
     },
@@ -14374,7 +14374,7 @@
       "source_file": "src/Core/Tests/Core.Tests.csproj",
       "source_location": null,
       "_origin": "ast",
-      "id": "nuget_xunit",
+      "id": "src_core_tests_core_tests_csproj_nuget_xunit",
       "community": 65,
       "norm_label": "xunit (2.9.2)"
     },
@@ -14384,7 +14384,7 @@
       "source_file": "src/Core/Tests/Core.Tests.csproj",
       "source_location": null,
       "_origin": "ast",
-      "id": "nuget_xunit_runner_visualstudio",
+      "id": "src_core_tests_core_tests_csproj_nuget_xunit_runner_visualstudio",
       "community": 65,
       "norm_label": "xunit.runner.visualstudio (2.8.2)"
     },
@@ -14925,7 +14925,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "integration_sqlserverintegrationtests",
-      "community": 68,
+      "community": 3,
       "norm_label": "sqlserverintegrationtests.cs"
     },
     {
@@ -14935,7 +14935,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "integration_sqlserverintegrationtests_sqlserverintegrationtests",
-      "community": 68,
+      "community": 3,
       "norm_label": "sqlserverintegrationtests"
     },
     {
@@ -14945,7 +14945,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "integration_sqlserverintegrationtests_sqlserverintegrationtests_createcontext",
-      "community": 68,
+      "community": 3,
       "norm_label": ".createcontext()"
     },
     {
@@ -14955,7 +14955,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "integration_sqlserverintegrationtests_sqlserverintegrationtests_getbyidforapplication_tenantscopingandsoftdeletefiltering_againstrealsqlserver",
-      "community": 68,
+      "community": 3,
       "norm_label": ".getbyidforapplication_tenantscopingandsoftdeletefiltering_againstrealsqlserver()"
     },
     {
@@ -14965,7 +14965,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "integration_sqlserverintegrationtests_sqlserverintegrationtests_getcontentsincategory_storedprocedure_executesagainstrealsqlserver",
-      "community": 68,
+      "community": 3,
       "norm_label": ".getcontentsincategory_storedprocedure_executesagainstrealsqlserver()"
     },
     {
@@ -15285,7 +15285,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "testsupport_faketimeprovider",
-      "community": 66,
+      "community": 3,
       "norm_label": "faketimeprovider.cs"
     },
     {
@@ -15295,7 +15295,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "testsupport_faketimeprovider_faketimeprovider",
-      "community": 66,
+      "community": 3,
       "norm_label": "faketimeprovider"
     },
     {
@@ -15305,7 +15305,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "datetimeoffset",
-      "community": 66,
+      "community": 3,
       "norm_label": "datetimeoffset"
     },
     {
@@ -15315,7 +15315,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "testsupport_faketimeprovider_faketimeprovider_getutcnow",
-      "community": 66,
+      "community": 3,
       "norm_label": ".getutcnow()"
     },
     {
@@ -15325,7 +15325,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "testsupport_faketimeprovider_faketimeprovider_setutcnow",
-      "community": 66,
+      "community": 3,
       "norm_label": ".setutcnow()"
     },
     {
@@ -15335,7 +15335,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "testsupport_sqlitecontextfactory",
-      "community": 67,
+      "community": 3,
       "norm_label": "sqlitecontextfactory.cs"
     },
     {
@@ -15345,7 +15345,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "testsupport_sqlitecontextfactory_sqlitecontextfactory",
-      "community": 67,
+      "community": 3,
       "norm_label": "sqlitecontextfactory"
     },
     {
@@ -15355,7 +15355,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "idisposable",
-      "community": 67,
+      "community": 3,
       "norm_label": "idisposable"
     },
     {
@@ -15365,7 +15365,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "sqliteconnection",
-      "community": 67,
+      "community": 3,
       "norm_label": "sqliteconnection"
     },
     {
@@ -15375,7 +15375,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "testsupport_sqlitecontextfactory_sqlitecontextfactory_createcontext",
-      "community": 19,
+      "community": 3,
       "norm_label": ".createcontext()"
     },
     {
@@ -15385,7 +15385,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "testsupport_sqlitecontextfactory_sqlitecontextfactory_dispose",
-      "community": 67,
+      "community": 3,
       "norm_label": ".dispose()"
     },
     {
@@ -15465,7 +15465,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "translatorservices_contenttranslatortests_contenttranslatortests",
-      "community": 1,
+      "community": 67,
       "norm_label": "contenttranslatortests"
     },
     {
@@ -15495,7 +15495,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "translatorservices_contenttranslatortests_contenttranslatortests_translate_success_returnstranslatedjson",
-      "community": 1,
+      "community": 67,
       "norm_label": ".translate_success_returnstranslatedjson()"
     },
     {
@@ -15505,7 +15505,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "translatorservices_contenttranslatortests_contenttranslatortests_translate_invalidmodeljson_throwswitherror",
-      "community": 1,
+      "community": 67,
       "norm_label": ".translate_invalidmodeljson_throwswitherror()"
     },
     {
@@ -15515,7 +15515,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "translatorservices_contenttranslatortests_contenttranslatortests_translate_cancelled_propagatescancellation",
-      "community": 1,
+      "community": 67,
       "norm_label": ".translate_cancelled_propagatescancellation()"
     },
     {
@@ -15525,7 +15525,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "translatorservices_contenttranslatortests_contenttranslatortests_translate_missingconfiguration_throwswitherror",
-      "community": 1,
+      "community": 67,
       "norm_label": ".translate_missingconfiguration_throwswitherror()"
     },
     {
@@ -16025,7 +16025,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "usermanagementservices_tenantaccessguardtests",
-      "community": 7,
+      "community": 63,
       "norm_label": "tenantaccessguardtests.cs"
     },
     {
@@ -16035,7 +16035,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests",
-      "community": 7,
+      "community": 63,
       "norm_label": "tenantaccessguardtests"
     },
     {
@@ -16045,7 +16045,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_createsut",
-      "community": 7,
+      "community": 63,
       "norm_label": ".createsut()"
     },
     {
@@ -16055,7 +16055,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_activemembershipandactiveapplication_returnstrue",
-      "community": 7,
+      "community": 63,
       "norm_label": ".hasaccessasync_activemembershipandactiveapplication_returnstrue()"
     },
     {
@@ -16065,7 +16065,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_revokedmembership_returnsfalse",
-      "community": 7,
+      "community": 63,
       "norm_label": ".hasaccessasync_revokedmembership_returnsfalse()"
     },
     {
@@ -16075,7 +16075,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_inactiveordeletedmembership_returnsfalse",
-      "community": 7,
+      "community": 63,
       "norm_label": ".hasaccessasync_inactiveordeletedmembership_returnsfalse()"
     },
     {
@@ -16085,7 +16085,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_inactiveordeletedapplication_returnsfalse",
-      "community": 7,
+      "community": 63,
       "norm_label": ".hasaccessasync_inactiveordeletedapplication_returnsfalse()"
     },
     {
@@ -16095,7 +16095,7 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_unknownuser_returnsfalse",
-      "community": 7,
+      "community": 63,
       "norm_label": ".hasaccessasync_unknownuser_returnsfalse()"
     },
     {
@@ -16105,7 +16105,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "usermanagementservices_usermanagementservicestests",
-      "community": 62,
+      "community": 28,
       "norm_label": "usermanagementservicestests.cs"
     },
     {
@@ -16125,7 +16125,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "usermanagementservices_usermanagementservicestests_fakecurrentapplicationcontext",
-      "community": 62,
+      "community": 28,
       "norm_label": "fakecurrentapplicationcontext"
     },
     {
@@ -16225,7 +16225,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utilities_codegeneratortests",
-      "community": 69,
+      "community": 1,
       "norm_label": "codegeneratortests.cs"
     },
     {
@@ -16235,7 +16235,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "utilities_codegeneratortests_codegeneratortests",
-      "community": 69,
+      "community": 1,
       "norm_label": "codegeneratortests"
     },
     {
@@ -16245,7 +16245,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "utilities_codegeneratortests_codegeneratortests_generateappkey_keepsexpectedprefixandapplicationid",
-      "community": 69,
+      "community": 1,
       "norm_label": ".generateappkey_keepsexpectedprefixandapplicationid()"
     },
     {
@@ -16255,7 +16255,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "utilities_codegeneratortests_codegeneratortests_generateappkey_formatscapturedinstantasutcyyyymmddhhmmss",
-      "community": 69,
+      "community": 1,
       "norm_label": ".generateappkey_formatscapturedinstantasutcyyyymmddhhmmss()"
     },
     {
@@ -16265,7 +16265,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "utilities_codegeneratortests_codegeneratortests_generateappkey_randomcomponent_differsacrosscalls",
-      "community": 69,
+      "community": 1,
       "norm_label": ".generateappkey_randomcomponent_differsacrosscalls()"
     },
     {
@@ -16507,6 +16507,396 @@
       "id": "users_mustapha_desktop_repositories_scs_nirvana_src_tests",
       "community": 78,
       "norm_label": "tests"
+    },
+    {
+      "label": "Web.Tests.csproj",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "web_tests_web_tests",
+      "community": 50,
+      "norm_label": "web.tests.csproj"
+    },
+    {
+      "label": "AccountFlowHelper.cs",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "web_tests_accountflowhelper",
+      "community": 19,
+      "norm_label": "accountflowhelper.cs"
+    },
+    {
+      "label": "AccountFlowHelper",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "web_tests_accountflowhelper_accountflowhelper",
+      "community": 19,
+      "norm_label": "accountflowhelper"
+    },
+    {
+      "label": ".SeedAdminUserAsync()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "web_tests_accountflowhelper_accountflowhelper_seedadminuserasync",
+      "community": 19,
+      "norm_label": ".seedadminuserasync()"
+    },
+    {
+      "label": ".LoginAsync()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "web_tests_accountflowhelper_accountflowhelper_loginasync",
+      "community": 19,
+      "norm_label": ".loginasync()"
+    },
+    {
+      "label": "HttpClient",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "httpclient",
+      "community": 19,
+      "norm_label": "httpclient"
+    },
+    {
+      "label": ".RefreshAntiForgeryTokenAsync()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "web_tests_accountflowhelper_accountflowhelper_refreshantiforgerytokenasync",
+      "community": 19,
+      "norm_label": ".refreshantiforgerytokenasync()"
+    },
+    {
+      "label": ".ExtractAntiForgeryToken()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L82",
+      "_origin": "ast",
+      "id": "web_tests_accountflowhelper_accountflowhelper_extractantiforgerytoken",
+      "community": 19,
+      "norm_label": ".extractantiforgerytoken()"
+    },
+    {
+      "label": "LogoutTests.cs",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "web_tests_logouttests",
+      "community": 19,
+      "norm_label": "logouttests.cs"
+    },
+    {
+      "label": "LogoutTests",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "web_tests_logouttests_logouttests",
+      "community": 19,
+      "norm_label": "logouttests"
+    },
+    {
+      "label": "IClassFixture",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "iclassfixture",
+      "community": 19,
+      "norm_label": "iclassfixture"
+    },
+    {
+      "label": ".IsAuthenticatedAsync()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "web_tests_logouttests_logouttests_isauthenticatedasync",
+      "community": 19,
+      "norm_label": ".isauthenticatedasync()"
+    },
+    {
+      "label": ".Get_Logout_DoesNotExecute_AndDoesNotSignOut()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "web_tests_logouttests_logouttests_get_logout_doesnotexecute_anddoesnotsignout",
+      "community": 19,
+      "norm_label": ".get_logout_doesnotexecute_anddoesnotsignout()"
+    },
+    {
+      "label": ".Get_LogoutApp_DoesNotExecute_AndDoesNotSignOut()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "web_tests_logouttests_logouttests_get_logoutapp_doesnotexecute_anddoesnotsignout",
+      "community": 19,
+      "norm_label": ".get_logoutapp_doesnotexecute_anddoesnotsignout()"
+    },
+    {
+      "label": ".Post_Logout_WithoutAntiforgeryToken_IsRejected_AndDoesNotSignOut()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "web_tests_logouttests_logouttests_post_logout_withoutantiforgerytoken_isrejected_anddoesnotsignout",
+      "community": 19,
+      "norm_label": ".post_logout_withoutantiforgerytoken_isrejected_anddoesnotsignout()"
+    },
+    {
+      "label": ".Post_Logout_WithValidAntiforgery_SignsOutAndRedirectsHome()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "web_tests_logouttests_logouttests_post_logout_withvalidantiforgery_signsoutandredirectshome",
+      "community": 19,
+      "norm_label": ".post_logout_withvalidantiforgery_signsoutandredirectshome()"
+    },
+    {
+      "label": ".Post_LogoutApp_WithValidAntiforgery_SignsOutAndRedirectsToLogin()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L94",
+      "_origin": "ast",
+      "id": "web_tests_logouttests_logouttests_post_logoutapp_withvalidantiforgery_signsoutandredirectstologin",
+      "community": 19,
+      "norm_label": ".post_logoutapp_withvalidantiforgery_signsoutandredirectstologin()"
+    },
+    {
+      "label": "TestWebApplicationFactory.cs",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/TestWebApplicationFactory.cs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "web_tests_testwebapplicationfactory",
+      "community": 19,
+      "norm_label": "testwebapplicationfactory.cs"
+    },
+    {
+      "label": "TestWebApplicationFactory",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/TestWebApplicationFactory.cs",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
+      "community": 19,
+      "norm_label": "testwebapplicationfactory"
+    },
+    {
+      "label": "WebApplicationFactory",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "webapplicationfactory",
+      "community": 19,
+      "norm_label": "webapplicationfactory"
+    },
+    {
+      "label": ".ConfigureWebHost()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/TestWebApplicationFactory.cs",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "web_tests_testwebapplicationfactory_testwebapplicationfactory_configurewebhost",
+      "community": 19,
+      "norm_label": ".configurewebhost()"
+    },
+    {
+      "label": "IWebHostBuilder",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "iwebhostbuilder",
+      "community": 19,
+      "norm_label": "iwebhostbuilder"
+    },
+    {
+      "label": "UserLoginDtoValidationTests.cs",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "web_tests_userlogindtovalidationtests",
+      "community": 36,
+      "norm_label": "userlogindtovalidationtests.cs"
+    },
+    {
+      "label": "UserLoginDtoValidationTests",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests",
+      "community": 36,
+      "norm_label": "userlogindtovalidationtests"
+    },
+    {
+      "label": ".MakeDto()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_makedto",
+      "community": 36,
+      "norm_label": ".makedto()"
+    },
+    {
+      "label": ".IsValid()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_isvalid",
+      "community": 36,
+      "norm_label": ".isvalid()"
+    },
+    {
+      "label": "ValidationResult",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "validationresult",
+      "community": 36,
+      "norm_label": "validationresult"
+    },
+    {
+      "label": ".SevenCharacterPassword_PassesValidation()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sevencharacterpassword_passesvalidation",
+      "community": 36,
+      "norm_label": ".sevencharacterpassword_passesvalidation()"
+    },
+    {
+      "label": ".SixtyFiveCharacterPassword_FailsValidation()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfivecharacterpassword_failsvalidation",
+      "community": 36,
+      "norm_label": ".sixtyfivecharacterpassword_failsvalidation()"
+    },
+    {
+      "label": ".SixtyFourCharacterPassword_PassesValidation()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfourcharacterpassword_passesvalidation",
+      "community": 36,
+      "norm_label": ".sixtyfourcharacterpassword_passesvalidation()"
+    },
+    {
+      "label": ".EmptyPassword_FailsValidation_BecauseRequired()",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_emptypassword_failsvalidation_becauserequired",
+      "community": 36,
+      "norm_label": ".emptypassword_failsvalidation_becauserequired()"
+    },
+    {
+      "label": "net9.0",
+      "file_type": "concept",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "src_web_tests_web_tests_csproj_framework_net9_0",
+      "community": 50,
+      "norm_label": "net9.0"
+    },
+    {
+      "label": "coverlet.collector (6.0.2)",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "nuget_coverlet_collector",
+      "community": 50,
+      "norm_label": "coverlet.collector (6.0.2)"
+    },
+    {
+      "label": "Microsoft.AspNetCore.Mvc.Testing (9.0.20)",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "nuget_microsoft_aspnetcore_mvc_testing",
+      "community": 50,
+      "norm_label": "microsoft.aspnetcore.mvc.testing (9.0.20)"
+    },
+    {
+      "label": "Microsoft.EntityFrameworkCore.InMemory (9.0.20)",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "nuget_microsoft_entityframeworkcore_inmemory",
+      "community": 50,
+      "norm_label": "microsoft.entityframeworkcore.inmemory (9.0.20)"
+    },
+    {
+      "label": "Microsoft.NET.Test.Sdk (17.12.0)",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "src_web_tests_web_tests_csproj_nuget_microsoft_net_test_sdk",
+      "community": 50,
+      "norm_label": "microsoft.net.test.sdk (17.12.0)"
+    },
+    {
+      "label": "xunit (2.9.2)",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "src_web_tests_web_tests_csproj_nuget_xunit",
+      "community": 50,
+      "norm_label": "xunit (2.9.2)"
+    },
+    {
+      "label": "xunit.runner.visualstudio (2.8.2)",
+      "file_type": "code",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "src_web_tests_web_tests_csproj_nuget_xunit_runner_visualstudio",
+      "community": 50,
+      "norm_label": "xunit.runner.visualstudio (2.8.2)"
+    },
+    {
+      "label": "Microsoft.NET.Sdk",
+      "file_type": "concept",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "source_location": null,
+      "_origin": "ast",
+      "id": "src_web_tests_web_tests_csproj_sdk_microsoft_net_sdk",
+      "community": 50,
+      "norm_label": "microsoft.net.sdk"
     },
     {
       "label": "CategoryController.cs",
@@ -16825,7 +17215,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "httppost",
-      "community": 25,
+      "community": 91,
       "norm_label": "httppost"
     },
     {
@@ -16835,7 +17225,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "controllers_accessmanagementcontroller_accessmanagementcontroller_entityform",
-      "community": 22,
+      "community": 24,
       "norm_label": ".entityform()"
     },
     {
@@ -16905,7 +17295,7 @@
       "source_location": "L137",
       "_origin": "ast",
       "id": "controllers_accessmanagementcontroller_accessmanagementcontroller_saveaccess",
-      "community": 25,
+      "community": 22,
       "norm_label": ".saveaccess()"
     },
     {
@@ -17172,7 +17562,7 @@
       "label": ".EntityAccesses()",
       "file_type": "code",
       "source_file": "src/Web/Areas/BackOffice/Controllers/AccountController.cs",
-      "source_location": "L390",
+      "source_location": "L391",
       "_origin": "ast",
       "id": "controllers_accountcontroller_accountcontroller_entityaccesses",
       "community": 16,
@@ -17182,7 +17572,7 @@
       "label": ".Attachment()",
       "file_type": "code",
       "source_file": "src/Web/Areas/BackOffice/Controllers/AccountController.cs",
-      "source_location": "L398",
+      "source_location": "L399",
       "_origin": "ast",
       "id": "controllers_accountcontroller_accountcontroller_attachment",
       "community": 16,
@@ -17215,7 +17605,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "ihostenvironment",
-      "community": 42,
+      "community": 24,
       "norm_label": "ihostenvironment"
     },
     {
@@ -17255,7 +17645,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "controllers_applicationcontroller_applicationcontroller_uploadapplicationlogo",
-      "community": 25,
+      "community": 91,
       "norm_label": ".uploadapplicationlogo()"
     },
     {
@@ -17265,7 +17655,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "iformfile",
-      "community": 25,
+      "community": 91,
       "norm_label": "iformfile"
     },
     {
@@ -17605,7 +17995,7 @@
       "source_location": "L373",
       "_origin": "ast",
       "id": "controllers_contentcontroller_contentcontroller_deletecontent",
-      "community": 91,
+      "community": 25,
       "norm_label": ".deletecontent()"
     },
     {
@@ -17615,7 +18005,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "httpdelete",
-      "community": 91,
+      "community": 25,
       "norm_label": "httpdelete"
     },
     {
@@ -17665,7 +18055,7 @@
       "source_location": "L704",
       "_origin": "ast",
       "id": "controllers_contentcontroller_contentcontroller_updatesectionslayoutorder",
-      "community": 25,
+      "community": 91,
       "norm_label": ".updatesectionslayoutorder()"
     },
     {
@@ -17675,7 +18065,7 @@
       "source_location": "L721",
       "_origin": "ast",
       "id": "controllers_contentcontroller_contentcontroller_uploadbodyimage",
-      "community": 25,
+      "community": 91,
       "norm_label": ".uploadbodyimage()"
     },
     {
@@ -17685,7 +18075,7 @@
       "source_location": "L731",
       "_origin": "ast",
       "id": "controllers_contentcontroller_contentcontroller_uploadbodyfile",
-      "community": 25,
+      "community": 91,
       "norm_label": ".uploadbodyfile()"
     },
     {
@@ -17705,7 +18095,7 @@
       "source_location": "L758",
       "_origin": "ast",
       "id": "controllers_contentcontroller_contentcontroller_uploadcontentimage",
-      "community": 25,
+      "community": 91,
       "norm_label": ".uploadcontentimage()"
     },
     {
@@ -17715,7 +18105,7 @@
       "source_location": "L806",
       "_origin": "ast",
       "id": "controllers_contentcontroller_contentcontroller_deletesection",
-      "community": 91,
+      "community": 25,
       "norm_label": ".deletesection()"
     },
     {
@@ -18005,7 +18395,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "controllers_schemacontroller_schemacontroller_uploadschemalogo",
-      "community": 25,
+      "community": 91,
       "norm_label": ".uploadschemalogo()"
     },
     {
@@ -18025,7 +18415,7 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "controllers_schemacontroller_schemacontroller_deleteschema",
-      "community": 91,
+      "community": 25,
       "norm_label": ".deleteschema()"
     },
     {
@@ -18065,7 +18455,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "controllers_slidercontroller",
-      "community": 24,
+      "community": 91,
       "norm_label": "slidercontroller.cs"
     },
     {
@@ -18075,7 +18465,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller",
-      "community": 24,
+      "community": 91,
       "norm_label": "slidercontroller"
     },
     {
@@ -18085,7 +18475,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_index",
-      "community": 24,
+      "community": 91,
       "norm_label": ".index()"
     },
     {
@@ -18095,7 +18485,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_list",
-      "community": 24,
+      "community": 91,
       "norm_label": ".list()"
     },
     {
@@ -18105,7 +18495,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_create",
-      "community": 24,
+      "community": 91,
       "norm_label": ".create()"
     },
     {
@@ -18115,7 +18505,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_createitem",
-      "community": 24,
+      "community": 91,
       "norm_label": ".createitem()"
     },
     {
@@ -18125,7 +18515,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_uploadslideritemimage",
-      "community": 25,
+      "community": 91,
       "norm_label": ".uploadslideritemimage()"
     },
     {
@@ -18135,7 +18525,7 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_slideritems",
-      "community": 24,
+      "community": 91,
       "norm_label": ".slideritems()"
     },
     {
@@ -18145,7 +18535,7 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_getslideritemlist",
-      "community": 24,
+      "community": 91,
       "norm_label": ".getslideritemlist()"
     },
     {
@@ -18155,7 +18545,7 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_getslideritemform",
-      "community": 24,
+      "community": 91,
       "norm_label": ".getslideritemform()"
     },
     {
@@ -18165,7 +18555,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_updateitem",
-      "community": 24,
+      "community": 91,
       "norm_label": ".updateitem()"
     },
     {
@@ -18175,7 +18565,7 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_activeitem",
-      "community": 24,
+      "community": 91,
       "norm_label": ".activeitem()"
     },
     {
@@ -18185,7 +18575,7 @@
       "source_location": "L131",
       "_origin": "ast",
       "id": "controllers_slidercontroller_slidercontroller_deactiveitem",
-      "community": 24,
+      "community": 91,
       "norm_label": ".deactiveitem()"
     },
     {
@@ -18205,7 +18595,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "controllers_userattachmentcontroller",
-      "community": 42,
+      "community": 24,
       "norm_label": "userattachmentcontroller.cs"
     },
     {
@@ -18215,7 +18605,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "controllers_userattachmentcontroller_userattachmentcontroller",
-      "community": 42,
+      "community": 24,
       "norm_label": "userattachmentcontroller"
     },
     {
@@ -18225,7 +18615,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "controllers_userattachmentcontroller_userattachmentcontroller_userattachmentform",
-      "community": 42,
+      "community": 24,
       "norm_label": ".userattachmentform()"
     },
     {
@@ -18235,7 +18625,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "controllers_userattachmentcontroller_userattachmentcontroller_userattachmentslist",
-      "community": 42,
+      "community": 24,
       "norm_label": ".userattachmentslist()"
     },
     {
@@ -18245,7 +18635,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "controllers_userattachmentcontroller_userattachmentcontroller_saveuserattachment",
-      "community": 42,
+      "community": 24,
       "norm_label": ".saveuserattachment()"
     },
     {
@@ -18255,7 +18645,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "controllers_userattachmentcontroller_userattachmentcontroller_uploadattachmentfile",
-      "community": 25,
+      "community": 91,
       "norm_label": ".uploadattachmentfile()"
     },
     {
@@ -20985,7 +21375,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "usermanagement_userlogindto",
-      "community": 16,
+      "community": 36,
       "norm_label": "userlogindto.cs"
     },
     {
@@ -20995,7 +21385,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "usermanagement_userlogindto_web_models_usermanagement",
-      "community": 16,
+      "community": 36,
       "norm_label": "web.models.usermanagement"
     },
     {
@@ -21005,7 +21395,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "usermanagement_userlogindto_userlogindto",
-      "community": 16,
+      "community": 36,
       "norm_label": "userlogindto"
     },
     {
@@ -21015,8 +21405,18 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_program",
-      "community": 281,
+      "community": 19,
       "norm_label": "program.cs"
+    },
+    {
+      "label": "Program",
+      "file_type": "code",
+      "source_file": "src/Web/Program.cs",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "web_program_program",
+      "community": 19,
+      "norm_label": "program"
     },
     {
       "label": "FileUploadResult.cs",
@@ -21315,7 +21715,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "fileupload_ifileuploadservice",
-      "community": 42,
+      "community": 91,
       "norm_label": "ifileuploadservice.cs"
     },
     {
@@ -21325,7 +21725,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "fileupload_ifileuploadservice_ifileuploadservice",
-      "community": 42,
+      "community": 91,
       "norm_label": "ifileuploadservice"
     },
     {
@@ -21335,7 +21735,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "fileupload_ifileuploadservice_ifileuploadservice_saveimageasync",
-      "community": 42,
+      "community": 91,
       "norm_label": ".saveimageasync()"
     },
     {
@@ -21355,7 +21755,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "fileupload_ifileuploadservice_ifileuploadservice_savefileasync",
-      "community": 42,
+      "community": 91,
       "norm_label": ".savefileasync()"
     },
     {
@@ -21365,7 +21765,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tenancy_sessioncurrentapplicationcontext",
-      "community": 28,
+      "community": 44,
       "norm_label": "sessioncurrentapplicationcontext.cs"
     },
     {
@@ -21375,7 +21775,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "tenancy_sessioncurrentapplicationcontext_sessioncurrentapplicationcontext",
-      "community": 28,
+      "community": 44,
       "norm_label": "sessioncurrentapplicationcontext"
     },
     {
@@ -21385,7 +21785,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "ihttpcontextaccessor",
-      "community": 28,
+      "community": 44,
       "norm_label": "ihttpcontextaccessor"
     },
     {
@@ -21395,7 +21795,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_using",
-      "community": 29,
+      "community": 12,
       "norm_label": "using.cs"
     },
     {
@@ -30642,6 +31042,105 @@
     {
       "relation": "references",
       "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L48",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_accountflowhelper_accountflowhelper_loginasync",
+      "target": "task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L74",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_accountflowhelper_accountflowhelper_refreshantiforgerytokenasync",
+      "target": "task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L19",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_accountflowhelper_accountflowhelper_seedadminuserasync",
+      "target": "task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L36",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_logouttests_logouttests_get_logout_doesnotexecute_anddoesnotsignout",
+      "target": "task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L51",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_logouttests_logouttests_get_logoutapp_doesnotexecute_anddoesnotsignout",
+      "target": "task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L24",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_logouttests_logouttests_isauthenticatedasync",
+      "target": "task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L66",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_logouttests_logouttests_post_logout_withoutantiforgerytoken_isrejected_anddoesnotsignout",
+      "target": "task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L80",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_logouttests_logouttests_post_logout_withvalidantiforgery_signsoutandredirectshome",
+      "target": "task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L94",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_logouttests_logouttests_post_logoutapp_withvalidantiforgery_signsoutandredirectstologin",
+      "target": "task",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
       "source_file": "src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs",
       "source_location": "L105",
       "weight": 1.0,
@@ -36336,6 +36835,17 @@
       "confidence_score": 1.0,
       "source": "usermanagementservices_usermanagementservices_usermanagementservices_list",
       "target": "list"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L21",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_isvalid",
+      "target": "list",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -46972,6 +47482,17 @@
       "target": "string"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/TestWebApplicationFactory.cs",
+      "source_location": "L17",
+      "weight": 1.0,
+      "context": "field",
+      "source": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
+      "target": "string",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -54088,6 +54609,17 @@
       "target": "identityuser"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L19",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "source": "web_tests_accountflowhelper_accountflowhelper_seedadminuserasync",
+      "target": "identity_applicationuser_applicationuser",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "src/Core/Infrastructure/Infrastructure.csproj",
@@ -58330,6 +58862,105 @@
       "confidence_score": 1.0,
       "source": "utilities_sluggeneratortests_sluggeneratortests_generateslug_repeatedseparators_collapsedeterministically",
       "target": "fact"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L36",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "web_tests_logouttests_logouttests_get_logout_doesnotexecute_anddoesnotsignout",
+      "target": "fact",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L51",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "web_tests_logouttests_logouttests_get_logoutapp_doesnotexecute_anddoesnotsignout",
+      "target": "fact",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L66",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "web_tests_logouttests_logouttests_post_logout_withoutantiforgerytoken_isrejected_anddoesnotsignout",
+      "target": "fact",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L80",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "web_tests_logouttests_logouttests_post_logout_withvalidantiforgery_signsoutandredirectshome",
+      "target": "fact",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L94",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "web_tests_logouttests_logouttests_post_logoutapp_withvalidantiforgery_signsoutandredirectstologin",
+      "target": "fact",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L52",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_emptypassword_failsvalidation_becauserequired",
+      "target": "fact",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L27",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sevencharacterpassword_passesvalidation",
+      "target": "fact",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L35",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfivecharacterpassword_failsvalidation",
+      "target": "fact",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L44",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfourcharacterpassword_passesvalidation",
+      "target": "fact",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -63135,34 +63766,7 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "tests_core_tests",
-      "target": "nuget_microsoft_net_test_sdk"
-    },
-    {
-      "relation": "imports",
-      "confidence": "EXTRACTED",
-      "source_file": "src/Core/Tests/Core.Tests.csproj",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "tests_core_tests",
       "target": "nuget_moq"
-    },
-    {
-      "relation": "imports",
-      "confidence": "EXTRACTED",
-      "source_file": "src/Core/Tests/Core.Tests.csproj",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "tests_core_tests",
-      "target": "nuget_xunit"
-    },
-    {
-      "relation": "imports",
-      "confidence": "EXTRACTED",
-      "source_file": "src/Core/Tests/Core.Tests.csproj",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "tests_core_tests",
-      "target": "nuget_xunit_runner_visualstudio"
     },
     {
       "relation": "references",
@@ -63172,6 +63776,33 @@
       "confidence_score": 1.0,
       "source": "tests_core_tests",
       "target": "src_core_tests_core_tests_csproj_framework_net9_0"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Core/Tests/Core.Tests.csproj",
+      "weight": 1.0,
+      "source": "tests_core_tests",
+      "target": "src_core_tests_core_tests_csproj_nuget_microsoft_net_test_sdk",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Core/Tests/Core.Tests.csproj",
+      "weight": 1.0,
+      "source": "tests_core_tests",
+      "target": "src_core_tests_core_tests_csproj_nuget_xunit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Core/Tests/Core.Tests.csproj",
+      "weight": 1.0,
+      "source": "tests_core_tests",
+      "target": "src_core_tests_core_tests_csproj_nuget_xunit_runner_visualstudio",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -63199,6 +63830,15 @@
       "confidence_score": 1.0,
       "source": "src_soniccoresystem",
       "target": "web_web"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "weight": 1.0,
+      "source": "web_tests_web_tests",
+      "target": "web_web",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -65947,6 +66587,614 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/SonicCoreSystem.sln",
+      "weight": 1.0,
+      "source": "src_soniccoresystem",
+      "target": "web_tests_web_tests",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "weight": 1.0,
+      "source": "web_tests_web_tests",
+      "target": "nuget_coverlet_collector",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "weight": 1.0,
+      "source": "web_tests_web_tests",
+      "target": "nuget_microsoft_aspnetcore_mvc_testing",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "weight": 1.0,
+      "source": "web_tests_web_tests",
+      "target": "nuget_microsoft_entityframeworkcore_inmemory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "weight": 1.0,
+      "source": "web_tests_web_tests",
+      "target": "src_web_tests_web_tests_csproj_framework_net9_0",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "weight": 1.0,
+      "source": "web_tests_web_tests",
+      "target": "src_web_tests_web_tests_csproj_nuget_microsoft_net_test_sdk",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "weight": 1.0,
+      "source": "web_tests_web_tests",
+      "target": "src_web_tests_web_tests_csproj_nuget_xunit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "weight": 1.0,
+      "source": "web_tests_web_tests",
+      "target": "src_web_tests_web_tests_csproj_nuget_xunit_runner_visualstudio",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/Web.Tests.csproj",
+      "weight": 1.0,
+      "source": "web_tests_web_tests",
+      "target": "src_web_tests_web_tests_csproj_sdk_microsoft_net_sdk",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "web_tests_accountflowhelper",
+      "target": "web_tests_accountflowhelper_accountflowhelper",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L82",
+      "weight": 1.0,
+      "source": "web_tests_accountflowhelper_accountflowhelper",
+      "target": "web_tests_accountflowhelper_accountflowhelper_extractantiforgerytoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "web_tests_accountflowhelper_accountflowhelper",
+      "target": "web_tests_accountflowhelper_accountflowhelper_loginasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L74",
+      "weight": 1.0,
+      "source": "web_tests_accountflowhelper_accountflowhelper",
+      "target": "web_tests_accountflowhelper_accountflowhelper_refreshantiforgerytokenasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "web_tests_accountflowhelper_accountflowhelper",
+      "target": "web_tests_accountflowhelper_accountflowhelper_seedadminuserasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L19",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "web_tests_accountflowhelper_accountflowhelper_seedadminuserasync",
+      "target": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L48",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "source": "web_tests_accountflowhelper_accountflowhelper_loginasync",
+      "target": "httpclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "web_tests_accountflowhelper_accountflowhelper_loginasync",
+      "target": "web_tests_accountflowhelper_accountflowhelper_extractantiforgerytoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L69",
+      "weight": 1.0,
+      "source": "web_tests_accountflowhelper_accountflowhelper_loginasync",
+      "target": "web_tests_accountflowhelper_accountflowhelper_refreshantiforgerytokenasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L48",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "web_tests_accountflowhelper_accountflowhelper_loginasync",
+      "target": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L74",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "web_tests_accountflowhelper_accountflowhelper_refreshantiforgerytokenasync",
+      "target": "httpclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L24",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "web_tests_logouttests_logouttests_isauthenticatedasync",
+      "target": "httpclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/AccountFlowHelper.cs",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "web_tests_accountflowhelper_accountflowhelper_refreshantiforgerytokenasync",
+      "target": "web_tests_accountflowhelper_accountflowhelper_extractantiforgerytoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "web_tests_logouttests",
+      "target": "web_tests_logouttests_logouttests",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests",
+      "target": "iclassfixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests",
+      "target": "web_tests_logouttests_logouttests_get_logout_doesnotexecute_anddoesnotsignout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests",
+      "target": "web_tests_logouttests_logouttests_get_logoutapp_doesnotexecute_anddoesnotsignout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests",
+      "target": "web_tests_logouttests_logouttests_isauthenticatedasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L66",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests",
+      "target": "web_tests_logouttests_logouttests_post_logout_withoutantiforgerytoken_isrejected_anddoesnotsignout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests",
+      "target": "web_tests_logouttests_logouttests_post_logout_withvalidantiforgery_signsoutandredirectshome",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L94",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests",
+      "target": "web_tests_logouttests_logouttests_post_logoutapp_withvalidantiforgery_signsoutandredirectstologin",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L17",
+      "weight": 1.0,
+      "context": "field",
+      "source": "web_tests_logouttests_logouttests",
+      "target": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests_get_logout_doesnotexecute_anddoesnotsignout",
+      "target": "web_tests_logouttests_logouttests_isauthenticatedasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests_get_logoutapp_doesnotexecute_anddoesnotsignout",
+      "target": "web_tests_logouttests_logouttests_isauthenticatedasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests_post_logout_withoutantiforgerytoken_isrejected_anddoesnotsignout",
+      "target": "web_tests_logouttests_logouttests_isauthenticatedasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L91",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests_post_logout_withvalidantiforgery_signsoutandredirectshome",
+      "target": "web_tests_logouttests_logouttests_isauthenticatedasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/LogoutTests.cs",
+      "source_location": "L105",
+      "weight": 1.0,
+      "source": "web_tests_logouttests_logouttests_post_logoutapp_withvalidantiforgery_signsoutandredirectstologin",
+      "target": "web_tests_logouttests_logouttests_isauthenticatedasync",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/TestWebApplicationFactory.cs",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "web_tests_testwebapplicationfactory",
+      "target": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/TestWebApplicationFactory.cs",
+      "source_location": "L15",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "source": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
+      "target": "web_program_program",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/TestWebApplicationFactory.cs",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
+      "target": "web_tests_testwebapplicationfactory_testwebapplicationfactory_configurewebhost",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/TestWebApplicationFactory.cs",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
+      "target": "webapplicationfactory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/TestWebApplicationFactory.cs",
+      "source_location": "L19",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "web_tests_testwebapplicationfactory_testwebapplicationfactory_configurewebhost",
+      "target": "iwebhostbuilder",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_emptypassword_failsvalidation_becauserequired",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_isvalid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_makedto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sevencharacterpassword_passesvalidation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfivecharacterpassword_failsvalidation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L44",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfourcharacterpassword_passesvalidation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L55",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_emptypassword_failsvalidation_becauserequired",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_makedto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L15",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_makedto",
+      "target": "usermanagement_userlogindto_userlogindto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sevencharacterpassword_passesvalidation",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_makedto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfivecharacterpassword_failsvalidation",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_makedto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfourcharacterpassword_passesvalidation",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_makedto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_emptypassword_failsvalidation_becauserequired",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_isvalid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L21",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_isvalid",
+      "target": "usermanagement_userlogindto_userlogindto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L21",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_isvalid",
+      "target": "validationresult",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sevencharacterpassword_passesvalidation",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_isvalid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfivecharacterpassword_failsvalidation",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_isvalid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web.Tests/UserLoginDtoValidationTests.cs",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_sixtyfourcharacterpassword_passesvalidation",
+      "target": "web_tests_userlogindtovalidationtests_userlogindtovalidationtests_isvalid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/Web/Areas/Api/CategoryController.cs",
       "source_location": "L2",
       "weight": 1.0,
@@ -68261,6 +69509,17 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "src/Web/Areas/BackOffice/Controllers/AccountController.cs",
+      "source_location": "L376",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "controllers_accountcontroller_accountcontroller_logout",
+      "target": "httppost",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web/Areas/BackOffice/Controllers/AccountController.cs",
       "source_location": "L122",
       "weight": 1.0,
       "context": "attribute",
@@ -68322,6 +69581,17 @@
       "confidence_score": 1.0,
       "source": "controllers_accountcontroller_accountcontroller_userlist",
       "target": "httppost"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/Web/Areas/BackOffice/Controllers/ApplicationController.cs",
+      "source_location": "L129",
+      "weight": 1.0,
+      "context": "attribute",
+      "source": "controllers_applicationcontroller_applicationcontroller_logout",
+      "target": "httppost",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -72309,6 +73579,16 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/Web/Program.cs",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "web_program",
+      "target": "web_program_program",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/Web/Services/FileUpload/FileUploadResult.cs",
       "source_location": "L4",
       "weight": 1.0,
@@ -72954,9 +74234,9 @@
       "source_file": "CLAUDE.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "claude",
-      "target": "claude_graphify",
-      "confidence_score": 1.0
+      "target": "claude_graphify"
     },
     {
       "relation": "contains",
@@ -72964,9 +74244,9 @@
       "source_file": "README.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme",
-      "target": "readme_mustapha_hamze",
-      "confidence_score": 1.0
+      "target": "readme_mustapha_hamze"
     },
     {
       "relation": "contains",
@@ -72974,9 +74254,9 @@
       "source_file": "README.md",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme",
-      "target": "readme_nirvana_cms",
-      "confidence_score": 1.0
+      "target": "readme_nirvana_cms"
     },
     {
       "relation": "contains",
@@ -72984,9 +74264,9 @@
       "source_file": "README.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme",
-      "target": "readme_sonic_core_system",
-      "confidence_score": 1.0
+      "target": "readme_sonic_core_system"
     },
     {
       "relation": "references",
@@ -73034,9 +74314,9 @@
       "source_file": "docs/schema-readiness.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_schema_readiness",
-      "target": "docs_schema_readiness_core_sql_server_schema_readiness",
-      "confidence_score": 1.0
+      "target": "docs_schema_readiness_core_sql_server_schema_readiness"
     },
     {
       "relation": "contains",
@@ -73044,9 +74324,9 @@
       "source_file": "docs/schema-readiness.md",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_schema_readiness_core_sql_server_schema_readiness",
-      "target": "docs_schema_readiness_1_how_to_use_this_document",
-      "confidence_score": 1.0
+      "target": "docs_schema_readiness_1_how_to_use_this_document"
     },
     {
       "relation": "contains",
@@ -73054,9 +74334,9 @@
       "source_file": "docs/schema-readiness.md",
       "source_location": "L23",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_schema_readiness_core_sql_server_schema_readiness",
-      "target": "docs_schema_readiness_2_table_inventory",
-      "confidence_score": 1.0
+      "target": "docs_schema_readiness_2_table_inventory"
     },
     {
       "relation": "contains",
@@ -73064,9 +74344,9 @@
       "source_file": "docs/schema-readiness.md",
       "source_location": "L62",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_schema_readiness_core_sql_server_schema_readiness",
-      "target": "docs_schema_readiness_3_foreign_keys_and_delete_behavior",
-      "confidence_score": 1.0
+      "target": "docs_schema_readiness_3_foreign_keys_and_delete_behavior"
     },
     {
       "relation": "contains",
@@ -73074,9 +74354,9 @@
       "source_file": "docs/schema-readiness.md",
       "source_location": "L93",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_schema_readiness_core_sql_server_schema_readiness",
-      "target": "docs_schema_readiness_4_required_membership_access_uniqueness_constraints",
-      "confidence_score": 1.0
+      "target": "docs_schema_readiness_4_required_membership_access_uniqueness_constraints"
     },
     {
       "relation": "contains",
@@ -73084,9 +74364,9 @@
       "source_file": "docs/schema-readiness.md",
       "source_location": "L108",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_schema_readiness_core_sql_server_schema_readiness",
-      "target": "docs_schema_readiness_5_sp_contentsincategory",
-      "confidence_score": 1.0
+      "target": "docs_schema_readiness_5_sp_contentsincategory"
     },
     {
       "relation": "contains",
@@ -73094,9 +74374,9 @@
       "source_file": "docs/schema-readiness.md",
       "source_location": "L132",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_schema_readiness_core_sql_server_schema_readiness",
-      "target": "docs_schema_readiness_6_production_baseline_and_future_migration_procedure",
-      "confidence_score": 1.0
+      "target": "docs_schema_readiness_6_production_baseline_and_future_migration_procedure"
     },
     {
       "relation": "contains",
@@ -73104,9 +74384,9 @@
       "source_file": "docs/schema-readiness.md",
       "source_location": "L156",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_schema_readiness_core_sql_server_schema_readiness",
-      "target": "docs_schema_readiness_7_optimistic_concurrency_not_implemented",
-      "confidence_score": 1.0
+      "target": "docs_schema_readiness_7_optimistic_concurrency_not_implemented"
     },
     {
       "relation": "contains",
@@ -73114,9 +74394,9 @@
       "source_file": "docs/schema-readiness.md",
       "source_location": "L175",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_schema_readiness_core_sql_server_schema_readiness",
-      "target": "docs_schema_readiness_8_sqlite_vs_sql_server_test_coverage",
-      "confidence_score": 1.0
+      "target": "docs_schema_readiness_8_sqlite_vs_sql_server_test_coverage"
     },
     {
       "relation": "cites",
@@ -73563,5 +74843,5 @@
       "source_file": "docs/schema-readiness.md"
     }
   ],
-  "built_at_commit": "38c1102d4b8c1c4a4bedbb5324b365a6b0d1afe8"
+  "built_at_commit": "7e74e3739a291d27a9fe6d049c5c8002ab587c29"
 }
