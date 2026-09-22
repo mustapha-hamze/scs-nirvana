@@ -1,4 +1,5 @@
 
+using Web.Areas.BackOffice.Features.Slider.ViewModels;
 
 namespace Web.Areas.BackOffice.Controllers;
 [Authorize]
@@ -11,16 +12,18 @@ public class SliderController : BaseController
     private readonly ICurrentApplicationContext _currentApplicationContext;
     private readonly IHostEnvironment _appEnvironment;
     private readonly IFileUploadService _fileUploadService;
+    private readonly AccessKeyAuthorizer _accessKeyAuthorizer;
 
     // constructor
     public SliderController(ISliderServices sliderServices,
         ICurrentApplicationContext currentApplicationContext, IHostEnvironment appEnvironment,
-        IFileUploadService fileUploadService)
+        IFileUploadService fileUploadService, AccessKeyAuthorizer accessKeyAuthorizer)
     {
         _sliderServices = sliderServices;
         _currentApplicationContext = currentApplicationContext;
         _appEnvironment = appEnvironment;
         _fileUploadService = fileUploadService;
+        _accessKeyAuthorizer = accessKeyAuthorizer;
     }
 
 
@@ -37,18 +40,27 @@ public class SliderController : BaseController
     public async Task<IActionResult> List()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        var slider = await _sliderServices.GetSliders(currentApplicationId);
-        return View(slider);
+        var sliders = await _sliderServices.GetSliders(currentApplicationId);
+        var canAccessItems = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.AccessItems);
+
+        var items = sliders.Select(s => new SliderListItemViewModel
+        {
+            Id = s.Id,
+            Title = s.Title,
+            CanAccessItems = canAccessItems,
+        }).ToList();
+
+        return View(new SliderListViewModel { Items = items });
     }
     // Views/Slider/_CreateSliderButton.cshtml gates navigation here with the (CMS-prefixed,
     // established as-is) AccessKeys.Slider.Add key - see AccessKeys.Slider.Add's own comment.
     [HttpGet]
     [RequireAccess(AccessKeys.Slider.Add)]
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        ViewData["ApplicationId"] = currentApplicationId;
-        return View();
+        var canSave = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.Save);
+        return View(new SliderCreateViewModel(currentApplicationId, canSave));
     }
 
     [HttpPost]
@@ -114,7 +126,27 @@ public class SliderController : BaseController
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var sliderItems = await _sliderServices.GetSliderItems(sliderId, currentApplicationId);
-        return View(sliderItems);
+        var canToggleActivity = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.Activity);
+        var canDelete = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.DeleteItem);
+        var canUpdate = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.UpdateItem);
+
+        var items = sliderItems.Select(i => new SliderItemRowViewModel
+        {
+            Id = i.Id,
+            SliderId = i.SliderId,
+            Title = i.Title,
+            ImageFileName = i.ImageFileName,
+            IsActive = i.IsActive,
+        }).ToList();
+
+        return View(new SliderItemListViewModel
+        {
+            Items = items,
+            ImageVersion = Guid.NewGuid(),
+            CanToggleActivity = canToggleActivity,
+            CanDelete = canDelete,
+            CanUpdate = canUpdate,
+        });
     }
 
     [HttpGet]
@@ -122,15 +154,32 @@ public class SliderController : BaseController
     [Route("/{area}/{controller}/GetSliderItemForm/{sliderId}/{sliderItemId}")]
     public async Task<IActionResult> GetSliderItemForm(int sliderId, int sliderItemId = 0)
     {
-        if (sliderItemId != 0)
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var sliderItem = sliderItemId != 0
+            ? await _sliderServices.GetSliderItem(sliderItemId, currentApplicationId)
+            : new SliderItem { SliderId = sliderId };
+
+        var canCreateItem = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.SaveItem);
+        var canUpdateItem = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.UpdateItem);
+
+        var model = new SliderItemFormViewModel
         {
-            var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-            return View(await _sliderServices.GetSliderItem(sliderItemId, currentApplicationId));
-        }
-        else
-        {
-            return View(new SliderItem { SliderId = sliderId });
-        }
+            Id = sliderItem.Id,
+            SliderId = sliderItem.SliderId,
+            Title = sliderItem.Title,
+            Description = sliderItem.Description,
+            Link = sliderItem.Link,
+            ImageFileName = sliderItem.ImageFileName,
+            Status = sliderItem.Status,
+            IsDeleted = sliderItem.IsDeleted,
+            IsActive = sliderItem.IsActive,
+            UpdatedDT = sliderItem.UpdatedDT,
+            CreatedDT = sliderItem.CreatedDT,
+            ImageVersion = Guid.NewGuid(),
+            CanCreateItem = canCreateItem,
+            CanUpdateItem = canUpdateItem,
+        };
+        return View(model);
     }
 
     [HttpPost]

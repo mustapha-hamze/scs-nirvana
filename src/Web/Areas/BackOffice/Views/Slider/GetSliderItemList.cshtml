@@ -1,14 +1,7 @@
+@model SliderItemListViewModel
 @{
     Layout = null;
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
-
-    var _version = Guid.NewGuid();
 }
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-@model List<Domains.Entities.CustomModule.SliderItem>
 <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
     <thead>
         <tr>
@@ -19,16 +12,16 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Items)
         {
             <tr>
                 <td>@item.Id</td>
                 <td>@item.Title</td>
                 <td>
-                    <img src="/Storage/Slider/@item.SliderId/@item.ImageFileName?@_version" width="290" alt="" srcset="">
+                    <img src="/Storage/Slider/@item.SliderId/@item.ImageFileName?@Model.ImageVersion" width="290" alt="" srcset="">
                 </td>
                 <td>
-                    @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001_ACTIVITY_1003"))
+                    @if (Model.CanToggleActivity)
                     {
                         @if (item.IsActive)
                         {
@@ -41,12 +34,12 @@
                                 class="btn btn-sm btn-danger p-1" title="Inactive — click to activate">Inactive</button>
                         }
                     }
-                    @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001_DELETE_1004"))
+                    @if (Model.CanDelete)
                     {
                         <button onclick="deleteSliderItem(@item.Id)" type="button"
                             class="btn btn-sm btn-danger p-1 ml-2">Delete</button>
                     }
-                    @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001_UPDATE_1005"))
+                    @if (Model.CanUpdate)
                     {
                         <button onclick="editSliderItem(@item.Id, @item.SliderId)" type="button"
                             class="btn btn-sm btn-primary p-1 ml-2">Edit</button>

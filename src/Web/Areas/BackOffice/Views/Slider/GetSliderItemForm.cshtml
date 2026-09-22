@@ -1,14 +1,7 @@
+@model SliderItemFormViewModel
 @{
     Layout = null;
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
-
-    var _version = Guid.NewGuid();
 }
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-@model Domains.Entities.CustomModule.SliderItem
 <form action="" method="post" id="__frmCreateSliderItemForm__">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="SliderId" id="__sliderItem_FRM_SliderId" value="@Model.SliderId">
@@ -40,14 +33,14 @@
         {
             <div class="col-md-12 mt-3">
                 <img asp-append-version="true" style="width: 100%;"
-                    src="/Storage/Slider/@Model.SliderId/@Model.ImageFileName?@_version" alt="">
+                    src="/Storage/Slider/@Model.SliderId/@Model.ImageFileName?@Model.ImageVersion" alt="">
             </div>
         }
     </div>
 </form>
 <div class="row">
     <div class="col-md-12">
-        @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001_SAVEITEM_1002"))
+        @if (Model.CanCreateItem)
         {
             if (Model.Id == 0)
             {
@@ -55,7 +48,7 @@
                     slider item</button>
             }
         }
-        @if (User.IsInRole("SuperAdmin") || accesses.Contains("SCM3000_1001_UPDATE_1005"))
+        @if (Model.CanUpdateItem)
         {
             if (Model.Id != 0)
             {

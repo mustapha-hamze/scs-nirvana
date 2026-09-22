@@ -1,8 +1,6 @@
-@{
-    Layout = null;
-}
+// Slider feature JS: shared by Index, List, Create, and the slider-item form/list (moved from
+// Areas/BackOffice/Views/Slider/__SliderJSFunctions.cshtml).
 
-<script>
     function createSliderItem() {
         const fileInput = $('#sliderItemImage');
         const fileName = fileInput.val();
@@ -185,4 +183,3 @@
             }
         });
     }
-</script>
