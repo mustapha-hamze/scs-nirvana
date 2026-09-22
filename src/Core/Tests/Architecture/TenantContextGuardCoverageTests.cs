@@ -51,8 +51,6 @@ public class TenantContextGuardCoverageTests
         var expectedMethodLevelSkips = new[]
         {
             $"{typeof(AccountController).FullName}.Login",
-            $"{typeof(AccountController).FullName}.ExternalLogin",
-            $"{typeof(AccountController).FullName}.ExternalLoginCallBack",
             $"{typeof(AccountController).FullName}.Logout",
         };
 
