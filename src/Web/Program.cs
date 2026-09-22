@@ -66,6 +66,12 @@ if (app.Configuration.GetValue<bool>("SuperAdminSeed:Enabled"))
 }
 
 // Configure the HTTP request pipeline.
+var reverseProxyOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<Web.ReverseProxyOptions>>().Value;
+if (reverseProxyOptions.Enabled)
+{
+    app.UseForwardedHeaders(reverseProxyOptions.ToForwardedHeadersOptions());
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();

@@ -18,7 +18,10 @@ using Infrastructure.UserManagementRepository;
 using Infrastructure.UnitOfWork;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Web.Services.Tenancy;
+
+using ReverseProxyOptions = Web.ReverseProxyOptions;
 
 namespace Web.Extensions;
 
@@ -144,6 +147,12 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<IFileUploadService, FileUploadService>();
         services.AddTransient<CodeGenerator>();
+
+        // Disabled by default; see ReverseProxyOptions and its use in Program.cs.
+        services.AddOptions<ReverseProxyOptions>()
+            .BindConfiguration(ReverseProxyOptions.SectionName)
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<ReverseProxyOptions>, Web.ReverseProxyOptionsValidator>();
 
         services.ConfigureApplicationCookie(options =>
         {
