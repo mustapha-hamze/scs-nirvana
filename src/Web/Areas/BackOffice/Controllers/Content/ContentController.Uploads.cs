@@ -95,9 +95,23 @@ public partial class ContentController
         if (file == null || file.Length == 0)
             return Content("Failed");
 
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+
+        // contentId is caller-controlled (route/form) and must never be trusted as authority over
+        // which tenant's storage directory/DB rows this call may touch. GetById's tenant-scoped
+        // SingleAsync is the same ownership check every other Content action already goes
+        // through - proven here before any path is built or any file/DB work happens.
+        try
+        {
+            await _contentServices.GetById(contentId, currentApplicationId);
+        }
+        catch (InvalidOperationException)
+        {
+            return Content("Failed");
+        }
+
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Content/Image/" + contentId);
 
-        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var imageSettings = await _applicationServices.GetApplicationSetting(currentApplicationId, 1000);
         var currentImageSettings = imageSettings.SingleOrDefault(s => s.Id == settingId);
         if (currentImageSettings == null)

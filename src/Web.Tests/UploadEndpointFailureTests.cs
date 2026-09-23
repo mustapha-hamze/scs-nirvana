@@ -220,6 +220,23 @@ public sealed class UploadEndpointFailureTests : IClassFixture<TestWebApplicatio
         return await context.ContentImages.CountAsync(ci => ci.ContentId == contentId);
     }
 
+    private async Task<int> SeedContentImageAsync(int contentId, string imageFileName)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var contentImage = new ContentImage { ContentId = contentId, ImageFileName = imageFileName, IsActive = true, Size = 50 };
+        context.ContentImages.Add(contentImage);
+        await context.SaveChangesAsync();
+        return contentImage.Id;
+    }
+
+    private async Task<bool> ContentImageExistsAsync(int contentImageId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        return await context.ContentImages.AnyAsync(ci => ci.Id == contentImageId);
+    }
+
     [Fact]
     public async Task UploadContentImage_InvalidSettingId_ReturnsFailed_WithoutCreatingContentImage()
     {
@@ -238,6 +255,53 @@ public sealed class UploadEndpointFailureTests : IClassFixture<TestWebApplicatio
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("Failed", body);
         Assert.Equal(0, await ContentImageCountAsync(contentId));
+    }
+
+    [Fact]
+    public async Task UploadContentImage_CrossTenantContentId_ReturnsFailed_WithoutTouchingOtherTenantFilesOrRecords()
+    {
+        var (clientA, _, applicationIdA) = await AuthenticatedClientAsync("content-img-tenant-a", AccessKeys.Content.UploadImages);
+        var (_, _, applicationIdB) = await AuthenticatedClientAsync("content-img-tenant-b", AccessKeys.Content.UploadImages);
+
+        // A valid, same-tenant (A) setting id, so the request would otherwise fully succeed - the
+        // only thing that must reject it is that contentId belongs to tenant B, not A.
+        var settingIdA = await SeedImageSizeSettingAsync(applicationIdA, "50-50");
+
+        // Tenant B's content, with a pre-existing image file and DB record that a cross-tenant
+        // attacker submitting B's contentId must not be able to touch.
+        var contentIdB = await SeedContentAsync(applicationIdB);
+        var dirB = StorageDir("Content", "Image", contentIdB.ToString());
+        Directory.CreateDirectory(dirB);
+        var sentinelFile = Path.Combine(dirB, "sentinel.png");
+        await File.WriteAllBytesAsync(sentinelFile, ValidPngBytes());
+        var existingContentImageId = await SeedContentImageAsync(contentIdB, "sentinel.png");
+
+        try
+        {
+            using var content = new MultipartFormDataContent
+            {
+                { new ByteArrayContent(ValidPngBytes()), "File", "attack.png" },
+                { new StringContent(contentIdB.ToString()), "ContentId" },
+                { new StringContent(settingIdA.ToString()), "SettingId" }
+            };
+            // clientA is authenticated and holds Content.UploadImages, but only within tenant A -
+            // it submits tenant B's contentId directly.
+            var response = await clientA.PostAsync("/BackOffice/Content/UploadContentImage", content);
+            var body = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Failed", body);
+
+            Assert.True(File.Exists(sentinelFile));
+            Assert.Single(Directory.GetFiles(dirB));
+            Assert.Equal(1, await ContentImageCountAsync(contentIdB));
+            Assert.True(await ContentImageExistsAsync(existingContentImageId));
+        }
+        finally
+        {
+            if (Directory.Exists(dirB))
+                Directory.Delete(dirB, recursive: true);
+        }
     }
 
     [Fact]
