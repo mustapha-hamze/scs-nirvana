@@ -1480,8 +1480,8 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/ApplicationController.cs": {
-    "mtime": 1790159706.1883304,
-    "ast_hash": "8e0904adfdd4e00337dfad4d94aa8d60",
+    "mtime": 1790162730.4989786,
+    "ast_hash": "b9aa56a1e978108b36bb98342a0b78c4",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/BaseController.cs": {
@@ -2447,6 +2447,11 @@
   "src/Web/WebRequestLimitsOptions.cs": {
     "mtime": 1790158563.1778712,
     "ast_hash": "8c06eca2ba8c78a3e175000f97e811e4",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/SelectAppRenderingTests.cs": {
+    "mtime": 1790162706.1356015,
+    "ast_hash": "31c7f49cc8eadb7ed780976b96a1456d",
     "semantic_hash": ""
   }
 }

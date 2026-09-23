@@ -230,9 +230,9 @@
     "semantic_hash": "ba43b761592ea7dc5f9c0275b84dc439"
   },
   "src/Core/Application/Contracts/Tenancy/ITenantAccessGuard.cs": {
-    "mtime": 1790068361.1008313,
-    "ast_hash": "dabb7e3181a660747df677fc7b91d47f",
-    "semantic_hash": "dabb7e3181a660747df677fc7b91d47f"
+    "mtime": 1790163540.7247093,
+    "ast_hash": "02237222c54c3c21070599237eeb0d5f",
+    "semantic_hash": ""
   },
   "src/Core/Application/Contracts/UserManagement/UserAttachmentDto.cs": {
     "mtime": 1790068361.100942,
@@ -400,9 +400,9 @@
     "semantic_hash": "da3ca46f6f3132aeaaa5a5936e2990f3"
   },
   "src/Core/Application/UseCases/Tenancy/TenantAccessGuard.cs": {
-    "mtime": 1790068361.1054473,
-    "ast_hash": "204199ccc9cb8c1ca67765981a44abd5",
-    "semantic_hash": "204199ccc9cb8c1ca67765981a44abd5"
+    "mtime": 1790163977.2412956,
+    "ast_hash": "9051cb4f053c75ca14c8b242e1ca2a97",
+    "semantic_hash": ""
   },
   "src/Core/Application/UseCases/TranslatorServices/ContentTranslationDocument.cs": {
     "mtime": 1790068361.1057863,
@@ -440,14 +440,14 @@
     "semantic_hash": "9671f869db760a5085162fc3592cdd46"
   },
   "src/Core/Application/UseCases/UserManagementServices/IUserManagementServices.cs": {
-    "mtime": 1790068361.1070662,
-    "ast_hash": "d4b54d38437dd504439747ab6e553228",
-    "semantic_hash": "d4b54d38437dd504439747ab6e553228"
+    "mtime": 1790163564.926406,
+    "ast_hash": "01d693fb78a96b22258805b9d8b6a0d2",
+    "semantic_hash": ""
   },
   "src/Core/Application/UseCases/UserManagementServices/UserManagementServices.cs": {
-    "mtime": 1790068361.1072314,
-    "ast_hash": "0939e07176eb657b41f1baa09f5cf96b",
-    "semantic_hash": "0939e07176eb657b41f1baa09f5cf96b"
+    "mtime": 1790163579.114812,
+    "ast_hash": "98050de8e32c08d06848673984a718bc",
+    "semantic_hash": ""
   },
   "src/Core/Application/UseCases/Utilities/ApplicationConst/ApplicationId.cs": {
     "mtime": 1790068361.1074495,
@@ -1405,14 +1405,14 @@
     "semantic_hash": "717d11eb1514e3e89d4fa3d05cecd79c"
   },
   "src/Core/Tests/UserManagementServices/TenantAccessGuardTests.cs": {
-    "mtime": 1790068361.1303177,
-    "ast_hash": "87eae825da6fc396d632e6b1628ae381",
-    "semantic_hash": "87eae825da6fc396d632e6b1628ae381"
+    "mtime": 1790163784.2967963,
+    "ast_hash": "7694ccea37be4dbcc4ffb3f2ca8032af",
+    "semantic_hash": ""
   },
   "src/Core/Tests/UserManagementServices/UserManagementServicesTests.cs": {
-    "mtime": 1790068361.1304295,
-    "ast_hash": "2765b3bbc20e98c5a1cc1910b0bd8a6a",
-    "semantic_hash": "2765b3bbc20e98c5a1cc1910b0bd8a6a"
+    "mtime": 1790163795.6356218,
+    "ast_hash": "6ebc4d2b3e15c244fac81c8c96b9c9ef",
+    "semantic_hash": ""
   },
   "src/Core/Tests/Using.cs": {
     "mtime": 1790068361.1305344,
@@ -1430,9 +1430,9 @@
     "semantic_hash": "45122129ca024fe5b9efc336ddb6aaf0"
   },
   "src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs": {
-    "mtime": 1790068361.1309516,
-    "ast_hash": "b33c6c883a33ceec1bad7ce8c18e1fc4",
-    "semantic_hash": "b33c6c883a33ceec1bad7ce8c18e1fc4"
+    "mtime": 1790163739.5371163,
+    "ast_hash": "c94b7b773236e3faf185c3e3397c30ed",
+    "semantic_hash": ""
   },
   "src/SonicCoreSystem.sln": {
     "mtime": 1790075450.2234735,
@@ -1480,8 +1480,8 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/ApplicationController.cs": {
-    "mtime": 1790162730.4989786,
-    "ast_hash": "b9aa56a1e978108b36bb98342a0b78c4",
+    "mtime": 1790163636.1151626,
+    "ast_hash": "6ac072d501fea2207c82f5fb9963f2d0",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/BaseController.cs": {
@@ -1655,9 +1655,9 @@
     "semantic_hash": "42639307a02e5a4598b0d1de5d48fbc3"
   },
   "src/Web/Areas/BackOffice/Views/Application/SelectApp.cshtml": {
-    "mtime": 1790068361.1335273,
-    "ast_hash": "e5fee180f85f5691eebfdcf51d1996ca",
-    "semantic_hash": "e5fee180f85f5691eebfdcf51d1996ca"
+    "mtime": 1790163999.2242181,
+    "ast_hash": "632b24792afc928f10e55f64f0f01cfd",
+    "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/Application/WaitingForApproval.cshtml": {
     "mtime": 1758545314.7413292,
@@ -2025,9 +2025,9 @@
     "semantic_hash": ""
   },
   "src/Web/Filters/RequireTenantContextFilter.cs": {
-    "mtime": 1790068361.1399648,
-    "ast_hash": "981f0c2b76141e548524c4809d030650",
-    "semantic_hash": "981f0c2b76141e548524c4809d030650"
+    "mtime": 1790163623.513583,
+    "ast_hash": "053418951ba2d36639eb5200e91d662d",
+    "semantic_hash": ""
   },
   "src/Web/Filters/SkipTenantContextCheckAttribute.cs": {
     "mtime": 1790068361.1401272,
@@ -2200,8 +2200,8 @@
     "semantic_hash": ""
   },
   "src/Web.Tests/AccessKeyAuthorizerTests.cs": {
-    "mtime": 1790155901.4085236,
-    "ast_hash": "65996014e0063dbf3e56fcbf41a9d880",
+    "mtime": 1790163690.5243018,
+    "ast_hash": "b0794f84c1f74b4e3e62e4fb63bb92ce",
     "semantic_hash": ""
   },
   "src/Web.Tests/AuthorizationConventionsTests.cs": {
@@ -2355,8 +2355,8 @@
     "semantic_hash": ""
   },
   "src/Web.Tests/BackOfficeShellRenderingTests.cs": {
-    "mtime": 1790156479.3559792,
-    "ast_hash": "95c06b71c0dd222002d6db71ce8f37a2",
+    "mtime": 1790163678.4192123,
+    "ast_hash": "2eb116adfda88e6779dcc19dfc32c8af",
     "semantic_hash": ""
   },
   "src/Web.Tests/ContentFeatureSourceGuardTests.cs": {
@@ -2365,8 +2365,8 @@
     "semantic_hash": ""
   },
   "src/Web.Tests/ContentFeatureViewModelRenderingTests.cs": {
-    "mtime": 1790155993.120532,
-    "ast_hash": "7e8713f36da49cbbe577ad04c23c17ea",
+    "mtime": 1790163678.43954,
+    "ast_hash": "e19ae08f988fe291db27da24ecd8f5bb",
     "semantic_hash": ""
   },
   "src/Web.Tests/SliderFeatureScriptTests.cs": {
@@ -2380,8 +2380,8 @@
     "semantic_hash": ""
   },
   "src/Web.Tests/SliderFeatureViewModelRenderingTests.cs": {
-    "mtime": 1790156059.8489132,
-    "ast_hash": "e9546ac06b56f23decd1dafda4cfb29c",
+    "mtime": 1790163678.4002566,
+    "ast_hash": "5eb845ef676a9860ed002b9bfa59513c",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Features/Content/ViewModels/ContentFormViewModels.cs": {
@@ -2452,6 +2452,11 @@
   "src/Web.Tests/SelectAppRenderingTests.cs": {
     "mtime": 1790162706.1356015,
     "ast_hash": "31c7f49cc8eadb7ed780976b96a1456d",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/SelectAppSuperAdminTests.cs": {
+    "mtime": 1790163917.986286,
+    "ast_hash": "8aff2f58b76f259474f19ad7a5ca0389",
     "semantic_hash": ""
   }
 }
