@@ -21,6 +21,7 @@ public interface IContentCommandRepository
     // GetContentForTranslate) instead of creating a second, conflicting tracked instance.
     Task UpdateFarsiContent(int contentId, string farsiContent, CancellationToken cancellationToken = default);
     Task ActivateTranslatedContent(int contentId, string translatedContent, CancellationToken cancellationToken = default);
+    Task ActivateExistingContent(int contentId, CancellationToken cancellationToken = default);
 
     Task DeleteAllContentImages(int contentId, CancellationToken cancellationToken = default);
     Task UpdateSectionPriority(int sectionId, int priority, CancellationToken cancellationToken = default);

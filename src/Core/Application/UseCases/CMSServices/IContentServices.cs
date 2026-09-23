@@ -42,6 +42,14 @@ namespace Application.UseCases.CMSServices
         Task UpdateTranslate(int contentId, string translatedContent, int applicationId, CancellationToken cancellationToken = default);
         Task ActivateTranslatedContent(int contentId, string translatedContent, int applicationId, CancellationToken cancellationToken = default);
 
+        // Activates content that already has non-empty Farsi content, without touching the
+        // stored Farsi payload. See ContentController.ChangeContentActiveMode's existing-Farsi
+        // branch: never call ChangeContentActiveMode here instead, since its AsNoTracking
+        // GetByIdForApplication + Update(content) re-attach conflicts with the tracked instance
+        // GetContentForTranslate already loaded earlier in the same request (EF throws "already
+        // being tracked").
+        Task ActivateExistingContent(int contentId, int applicationId, CancellationToken cancellationToken = default);
+
         Task<List<ContentApiDto>> GetContentByIdFull(int id, int applicationId, CancellationToken cancellationToken = default);
         Task<List<ContentApiDto>> GetContentByTypeId(int typeId, int applicationId, CancellationToken cancellationToken = default);
         Task<BlogIndexApiDto> GetContentByTypeId(int typeId, int applicationId, int pageIndex = 1, CancellationToken cancellationToken = default);

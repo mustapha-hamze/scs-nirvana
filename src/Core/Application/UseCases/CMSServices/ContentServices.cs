@@ -109,6 +109,13 @@ namespace Application.UseCases.CMSServices
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
+        public async Task ActivateExistingContent(int contentId, int applicationId, CancellationToken cancellationToken = default)
+        {
+            await _contentQueryRepository.GetByIdForApplication(contentId, applicationId, cancellationToken);
+            await _contentCommandRepository.ActivateExistingContent(contentId, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
         public async Task<ContentDto> Update(ContentDto content, int applicationId, CancellationToken cancellationToken = default)
         {
             // Confirms the content being edited already belongs to this application, and

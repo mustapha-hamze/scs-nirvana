@@ -162,6 +162,15 @@ public partial class ContentController
                 var result = await _contentTranslator.Translate(content);
                 await _contentServices.ActivateTranslatedContent(contentId, result, currentApplicationId);
             }
+            else
+            {
+                // Farsi content already exists (manually saved or previously translated) - just
+                // flip IsActive, never re-translate or touch the stored Farsi payload. Must be
+                // ActivateExistingContent, not ChangeContentActiveMode: the latter re-fetches
+                // AsNoTracking then Update()-attaches a detached instance, which conflicts with
+                // the tracked instance GetContentForTranslate already loaded above.
+                await _contentServices.ActivateExistingContent(contentId, currentApplicationId);
+            }
         }
         else
         {

@@ -48,6 +48,15 @@ public class ContentCommandRepository : Repository<Content>, IContentCommandRepo
         content.IsActive = true;
     }
 
+    public async Task ActivateExistingContent(int contentId, CancellationToken cancellationToken = default)
+    {
+        // No AsNoTracking, same reasoning as UpdateFarsiContent above: resolves to the
+        // already-tracked instance from IContentProvider.GetContentForTranslate when called from
+        // the existing-Farsi activation branch, instead of creating a conflicting second one.
+        var content = await _dbContext.Contents.SingleAsync(c => c.Id == contentId, cancellationToken);
+        content.IsActive = true;
+    }
+
     public Task<ContentSection> CreateSection(ContentSection section)
     {
         _dbContext.ContentSections.Add(section);
