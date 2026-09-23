@@ -1115,7 +1115,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "irequesthandler",
-      "community": 54,
+      "community": 160,
       "norm_label": "irequesthandler"
     },
     {
@@ -19489,20 +19489,20 @@
       "norm_label": ".validate_enabledwithknownnetwork_succeeds()"
     },
     {
-      "label": ".ToForwardedHeadersOptions_AddsConfiguredProxy_WithoutClearingTheDefaultTrustList()",
+      "label": ".ToForwardedHeadersOptions_AddsConfiguredProxyAndNetwork_WithoutClearingTheDefaultTrustList()",
       "file_type": "code",
       "source_file": "src/Web.Tests/ReverseProxyOptionsTests.cs",
       "source_location": "L90",
       "_origin": "ast",
-      "id": "web_tests_reverseproxyoptionstests_reverseproxyoptionstests_toforwardedheadersoptions_addsconfiguredproxy_withoutclearingthedefaulttrustlist",
+      "id": "web_tests_reverseproxyoptionstests_reverseproxyoptionstests_toforwardedheadersoptions_addsconfiguredproxyandnetwork_withoutclearingthedefaulttrustlist",
       "community": 1,
-      "norm_label": ".toforwardedheadersoptions_addsconfiguredproxy_withoutclearingthedefaulttrustlist()"
+      "norm_label": ".toforwardedheadersoptions_addsconfiguredproxyandnetwork_withoutclearingthedefaulttrustlist()"
     },
     {
       "label": ".DisabledByDefault_NoConfigurationOverride_OptionsBindToDisabled()",
       "file_type": "code",
       "source_file": "src/Web.Tests/ReverseProxyOptionsTests.cs",
-      "source_location": "L103",
+      "source_location": "L113",
       "_origin": "ast",
       "id": "web_tests_reverseproxyoptionstests_reverseproxyoptionstests_disabledbydefault_noconfigurationoverride_optionsbindtodisabled",
       "community": 1,
@@ -19512,7 +19512,7 @@
       "label": ".EnabledWithoutTrustList_FailsHostStartup_NotJustTheStandaloneValidator()",
       "file_type": "code",
       "source_file": "src/Web.Tests/ReverseProxyOptionsTests.cs",
-      "source_location": "L111",
+      "source_location": "L121",
       "_origin": "ast",
       "id": "web_tests_reverseproxyoptionstests_reverseproxyoptionstests_enabledwithouttrustlist_failshoststartup_notjustthestandalonevalidator",
       "community": 1,
@@ -25792,7 +25792,7 @@
       "label": "ReverseProxyOptions",
       "file_type": "code",
       "source_file": "src/Web/ReverseProxyOptions.cs",
-      "source_location": "L12",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "web_reverseproxyoptions_reverseproxyoptions",
       "community": 61,
@@ -25802,7 +25802,7 @@
       "label": ".ParseKnownProxies()",
       "file_type": "code",
       "source_file": "src/Web/ReverseProxyOptions.cs",
-      "source_location": "L26",
+      "source_location": "L25",
       "_origin": "ast",
       "id": "web_reverseproxyoptions_reverseproxyoptions_parseknownproxies",
       "community": 61,
@@ -25832,7 +25832,7 @@
       "label": ".ParseKnownNetworks()",
       "file_type": "code",
       "source_file": "src/Web/ReverseProxyOptions.cs",
-      "source_location": "L29",
+      "source_location": "L28",
       "_origin": "ast",
       "id": "web_reverseproxyoptions_reverseproxyoptions_parseknownnetworks",
       "community": 61,
@@ -25852,7 +25852,7 @@
       "label": ".ToForwardedHeadersOptions()",
       "file_type": "code",
       "source_file": "src/Web/ReverseProxyOptions.cs",
-      "source_location": "L32",
+      "source_location": "L31",
       "_origin": "ast",
       "id": "web_reverseproxyoptions_reverseproxyoptions_toforwardedheadersoptions",
       "community": 61,
@@ -25872,7 +25872,7 @@
       "label": ".ParseNetwork()",
       "file_type": "code",
       "source_file": "src/Web/ReverseProxyOptions.cs",
-      "source_location": "L49",
+      "source_location": "L48",
       "_origin": "ast",
       "id": "web_reverseproxyoptions_reverseproxyoptions_parsenetwork",
       "community": 61,
@@ -25882,7 +25882,7 @@
       "label": ".Split()",
       "file_type": "code",
       "source_file": "src/Web/ReverseProxyOptions.cs",
-      "source_location": "L55",
+      "source_location": "L54",
       "_origin": "ast",
       "id": "web_reverseproxyoptions_reverseproxyoptions_split",
       "community": 61,
@@ -25892,7 +25892,7 @@
       "label": "ReverseProxyOptionsValidator",
       "file_type": "code",
       "source_file": "src/Web/ReverseProxyOptions.cs",
-      "source_location": "L61",
+      "source_location": "L60",
       "_origin": "ast",
       "id": "web_reverseproxyoptions_reverseproxyoptionsvalidator",
       "community": 61,
@@ -25912,7 +25912,7 @@
       "label": ".Validate()",
       "file_type": "code",
       "source_file": "src/Web/ReverseProxyOptions.cs",
-      "source_location": "L63",
+      "source_location": "L62",
       "_origin": "ast",
       "id": "web_reverseproxyoptions_reverseproxyoptionsvalidator_validate",
       "community": 61,
@@ -45020,9 +45020,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Core/Application/Application.csproj",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "application_application",
-      "target": "src_core_application_application_csproj_framework_net10_0",
-      "confidence_score": 1.0
+      "target": "src_core_application_application_csproj_framework_net10_0"
     },
     {
       "relation": "imports",
@@ -45101,9 +45101,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Core/Domain/Domain.csproj",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "domain_domain",
-      "target": "src_core_domain_domain_csproj_framework_net10_0",
-      "confidence_score": 1.0
+      "target": "src_core_domain_domain_csproj_framework_net10_0"
     },
     {
       "relation": "references",
@@ -63891,9 +63891,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Core/Infrastructure/Infrastructure.csproj",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "infrastructure_infrastructure",
-      "target": "src_core_infrastructure_infrastructure_csproj_framework_net10_0",
-      "confidence_score": 1.0
+      "target": "src_core_infrastructure_infrastructure_csproj_framework_net10_0"
     },
     {
       "relation": "imports",
@@ -69595,9 +69595,9 @@
       "source_location": "L90",
       "weight": 1.0,
       "context": "attribute",
-      "confidence_score": 1.0,
-      "source": "web_tests_reverseproxyoptionstests_reverseproxyoptionstests_toforwardedheadersoptions_addsconfiguredproxy_withoutclearingthedefaulttrustlist",
-      "target": "fact"
+      "source": "web_tests_reverseproxyoptionstests_reverseproxyoptionstests_toforwardedheadersoptions_addsconfiguredproxyandnetwork_withoutclearingthedefaulttrustlist",
+      "target": "fact",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -75955,9 +75955,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Core/Tests/Core.Tests.csproj",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_core_tests",
-      "target": "src_core_tests_core_tests_csproj_framework_net10_0",
-      "confidence_score": 1.0
+      "target": "src_core_tests_core_tests_csproj_framework_net10_0"
     },
     {
       "relation": "imports",
@@ -76090,9 +76090,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Web/Web.csproj",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_web",
-      "target": "src_web_web_csproj_framework_net10_0",
-      "confidence_score": 1.0
+      "target": "src_web_web_csproj_framework_net10_0"
     },
     {
       "relation": "imports",
@@ -79113,9 +79113,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Web.Tests/Web.Tests.csproj",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_web_tests",
-      "target": "src_web_tests_web_tests_csproj_framework_net10_0",
-      "confidence_score": 1.0
+      "target": "src_web_tests_web_tests_csproj_framework_net10_0"
     },
     {
       "relation": "imports",
@@ -84209,9 +84209,9 @@
       "source_file": "src/Web.Tests/ReverseProxyOptionsTests.cs",
       "source_location": "L90",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "web_tests_reverseproxyoptionstests_reverseproxyoptionstests",
-      "target": "web_tests_reverseproxyoptionstests_reverseproxyoptionstests_toforwardedheadersoptions_addsconfiguredproxy_withoutclearingthedefaulttrustlist"
+      "target": "web_tests_reverseproxyoptionstests_reverseproxyoptionstests_toforwardedheadersoptions_addsconfiguredproxyandnetwork_withoutclearingthedefaulttrustlist",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -96418,5 +96418,5 @@
       "source_file": "docs/schema-readiness.md"
     }
   ],
-  "built_at_commit": "43f4a66faa369c4f13d67e20020dbc23aef9b1f3"
+  "built_at_commit": "77cce34ec07b2f0a648464e85eaa3bb0ff6f263d"
 }

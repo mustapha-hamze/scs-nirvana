@@ -25,8 +25,8 @@
     "semantic_hash": "31475701abe82c0d774a6b32eba7c9f7"
   },
   "src/Core/Application/Application.csproj": {
-    "mtime": 1790165364.1385763,
-    "ast_hash": "f7681e6083158989ba785f5040356831",
+    "mtime": 1790166592.2744873,
+    "ast_hash": "6a599d9ff84f1365de917c6834983c20",
     "semantic_hash": ""
   },
   "src/Core/Application/CMSRepository/ICategoryRepository.cs": {
@@ -1095,8 +1095,8 @@
     "semantic_hash": "58fb0dbf1eb855ee9503d9dfce545298"
   },
   "src/Core/Infrastructure/Infrastructure.csproj": {
-    "mtime": 1790165492.4155066,
-    "ast_hash": "50842698247cdeaddfa2baff680fc80d",
+    "mtime": 1790166598.7025309,
+    "ast_hash": "273c6824ea8de12c240987cc885fd375",
     "semantic_hash": ""
   },
   "src/Core/Infrastructure/Mapper/MapperProfile.cs": {
@@ -1165,9 +1165,9 @@
     "semantic_hash": "12365e486af6920c118c63ea2e705244"
   },
   "src/Core/Tests/Architecture/ApplicationUseCaseBoundaryTests.cs": {
-    "mtime": 1790068361.1235294,
-    "ast_hash": "5c37c9c84abb9c45a0ec2083fef2c0a5",
-    "semantic_hash": "5c37c9c84abb9c45a0ec2083fef2c0a5"
+    "mtime": 1790166985.9138896,
+    "ast_hash": "6396bcbba3953a67fb425735d868ce37",
+    "semantic_hash": ""
   },
   "src/Core/Tests/Architecture/CompositionRootTests.cs": {
     "mtime": 1790068361.1236565,
@@ -1200,9 +1200,9 @@
     "semantic_hash": "ab68ba8475010e8f8d50900fad7cbe4c"
   },
   "src/Core/Tests/Architecture/MappingConfigurationTests.cs": {
-    "mtime": 1790068361.1243544,
-    "ast_hash": "fe70f749c7343479dd9f4d0e8f7125d4",
-    "semantic_hash": "fe70f749c7343479dd9f4d0e8f7125d4"
+    "mtime": 1790166801.2458615,
+    "ast_hash": "28bf1c1d9e392bbec3238536eab0987d",
+    "semantic_hash": ""
   },
   "src/Core/Tests/Architecture/MembershipAdministrationAuthorizationTests.cs": {
     "mtime": 1790068361.1244748,
@@ -1290,19 +1290,19 @@
     "semantic_hash": "f41b441b152809fbbb3011f7dd221eb7"
   },
   "src/Core/Tests/CMSServices/CategoryServicesTests.cs": {
-    "mtime": 1790068361.126853,
-    "ast_hash": "f15f78f226280a8152b7674e0cd49f95",
-    "semantic_hash": "f15f78f226280a8152b7674e0cd49f95"
+    "mtime": 1790166722.6885958,
+    "ast_hash": "bb6b3333beae2d7d5b60d472f65896e1",
+    "semantic_hash": ""
   },
   "src/Core/Tests/CMSServices/ContentServicesTests.cs": {
-    "mtime": 1790068361.1270156,
-    "ast_hash": "b5287115ffb80ca254d5732a61852961",
-    "semantic_hash": "b5287115ffb80ca254d5732a61852961"
+    "mtime": 1790166734.5026722,
+    "ast_hash": "062fbde16a27de79e88c05f58cf072e9",
+    "semantic_hash": ""
   },
   "src/Core/Tests/CMSServices/SchemaServicesTests.cs": {
-    "mtime": 1790068361.1271439,
-    "ast_hash": "3886d64c150a0f35b979216b0e8cbec1",
-    "semantic_hash": "3886d64c150a0f35b979216b0e8cbec1"
+    "mtime": 1790166747.3366485,
+    "ast_hash": "efad9bd412f40d4b866741103ee616f0",
+    "semantic_hash": ""
   },
   "src/Core/Tests/ContentManagement/ContentProviderTests.cs": {
     "mtime": 1790068361.1272953,
@@ -1335,14 +1335,14 @@
     "semantic_hash": "7d6dd4620f31a704b4bb5fcec0bc2274"
   },
   "src/Core/Tests/GeneralServices/ApplicationServicesTests.cs": {
-    "mtime": 1790068361.1282609,
-    "ast_hash": "be82ea30dec66eb35b55bb8f0d4a1d6d",
-    "semantic_hash": "be82ea30dec66eb35b55bb8f0d4a1d6d"
+    "mtime": 1790166825.2528734,
+    "ast_hash": "ed9a79f5a251bb604f7091cedc366d2d",
+    "semantic_hash": ""
   },
   "src/Core/Tests/GeneralServices/TagServicesTests.cs": {
-    "mtime": 1790068361.1284046,
-    "ast_hash": "130bf81a3dfe90323ba633cbad223970",
-    "semantic_hash": "130bf81a3dfe90323ba633cbad223970"
+    "mtime": 1790166838.88852,
+    "ast_hash": "b6c27dacd4f4b2fa76c17367b3433935",
+    "semantic_hash": ""
   },
   "src/Core/Tests/Integration/SqlServerIntegrationTests.cs": {
     "mtime": 1790068361.128585,
@@ -1395,9 +1395,9 @@
     "semantic_hash": "5d5fafa8ee36e25d92bd13402ae5bbbe"
   },
   "src/Core/Tests/UserManagementRepository/UserManagementRepositoryTests.cs": {
-    "mtime": 1790068361.1299057,
-    "ast_hash": "1e2f4461a453f4b0804703cfd7c87cbe",
-    "semantic_hash": "1e2f4461a453f4b0804703cfd7c87cbe"
+    "mtime": 1790166811.6637046,
+    "ast_hash": "81a5f3202eb0835dbe1717f5dcc8231d",
+    "semantic_hash": ""
   },
   "src/Core/Tests/UserManagementServices/CurrentApplicationContextExtensionsTests.cs": {
     "mtime": 1790068361.1300623,
@@ -2020,8 +2020,8 @@
     "semantic_hash": ""
   },
   "src/Web/Extensions/ServiceCollectionExtensions.cs": {
-    "mtime": 1790158494.647089,
-    "ast_hash": "0e3366568a8959ab2f439648c88a27b7",
+    "mtime": 1790166606.4492178,
+    "ast_hash": "8b8a98e243348b933fe479d96226eda1",
     "semantic_hash": ""
   },
   "src/Web/Filters/RequireTenantContextFilter.cs": {
@@ -2175,13 +2175,13 @@
     "semantic_hash": ""
   },
   "src/Core/Tests/Architecture/UserAttachmentCompositionTests.cs": {
-    "mtime": 1790078035.4773648,
-    "ast_hash": "db6604d17abe18cbfd79f6bb3b3d50cd",
+    "mtime": 1790166912.3589842,
+    "ast_hash": "13102b92f97cf2182389878900ce2f37",
     "semantic_hash": ""
   },
   "src/Core/Tests/CQRS/Handlers/UserManagement/UserAttachmentHandlerTests.cs": {
-    "mtime": 1790078068.3891811,
-    "ast_hash": "783c15e4cf7d5d9c799d6979e17a4c3e",
+    "mtime": 1790166765.8463106,
+    "ast_hash": "f459703197bdb33fe338d73f1551cd02",
     "semantic_hash": ""
   },
   "src/Core/Tests/UserManagementRepository/UserAttachmentRepositoryTests.cs": {

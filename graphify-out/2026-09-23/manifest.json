@@ -2235,8 +2235,8 @@
     "semantic_hash": ""
   },
   "src/Web.Tests/ReverseProxyOptionsTests.cs": {
-    "mtime": 1790080541.5577927,
-    "ast_hash": "47d604c14e5254d9d608854b78078669",
+    "mtime": 1790165853.083143,
+    "ast_hash": "61bde1e436ab87e775be80403f2f9922",
     "semantic_hash": ""
   },
   "src/Web.Tests/RouteMappingTests.cs": {
@@ -2340,8 +2340,8 @@
     "semantic_hash": ""
   },
   "src/Web/ReverseProxyOptions.cs": {
-    "mtime": 1790080424.3696792,
-    "ast_hash": "a2b52522327598fac0545700b4e39c64",
+    "mtime": 1790165805.5597262,
+    "ast_hash": "b6b4300fe37ce8fda1671a3c6e319c6f",
     "semantic_hash": ""
   },
   "src/Web/Views/Home/Error.cshtml": {
