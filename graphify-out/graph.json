@@ -329,14 +329,14 @@
       "norm_label": "application.csproj"
     },
     {
-      "label": "net9.0",
+      "label": "net10.0",
       "file_type": "concept",
       "source_file": "src/Core/Application/Application.csproj",
       "source_location": null,
       "_origin": "ast",
-      "id": "src_core_application_application_csproj_framework_net9_0",
+      "id": "src_core_application_application_csproj_framework_net10_0",
       "community": 59,
-      "norm_label": "net9.0"
+      "norm_label": "net10.0"
     },
     {
       "label": "EPPlus (6.2.6)",
@@ -6579,14 +6579,14 @@
       "norm_label": "using.cs"
     },
     {
-      "label": "net9.0",
+      "label": "net10.0",
       "file_type": "concept",
       "source_file": "src/Core/Domain/Domain.csproj",
       "source_location": null,
       "_origin": "ast",
-      "id": "src_core_domain_domain_csproj_framework_net9_0",
+      "id": "src_core_domain_domain_csproj_framework_net10_0",
       "community": 78,
-      "norm_label": "net9.0"
+      "norm_label": "net10.0"
     },
     {
       "label": "Microsoft.NET.Sdk",
@@ -10749,14 +10749,14 @@
       "norm_label": "infrastructure.csproj"
     },
     {
-      "label": "net9.0",
+      "label": "net10.0",
       "file_type": "concept",
       "source_file": "src/Core/Infrastructure/Infrastructure.csproj",
       "source_location": null,
       "_origin": "ast",
-      "id": "src_core_infrastructure_infrastructure_csproj_framework_net9_0",
+      "id": "src_core_infrastructure_infrastructure_csproj_framework_net10_0",
       "community": 49,
-      "norm_label": "net9.0"
+      "norm_label": "net10.0"
     },
     {
       "label": "AutoMapper.Extensions.Microsoft.DependencyInjection (12.0.1)",
@@ -10789,34 +10789,34 @@
       "norm_label": "mediatr.extensions.microsoft.dependencyinjection (11.1.0)"
     },
     {
-      "label": "Microsoft.Data.SqlClient (6.1.1)",
+      "label": "Microsoft.Data.SqlClient (6.1.7)",
       "file_type": "code",
       "source_file": "src/Core/Infrastructure/Infrastructure.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "nuget_microsoft_data_sqlclient",
       "community": 49,
-      "norm_label": "microsoft.data.sqlclient (6.1.1)"
+      "norm_label": "microsoft.data.sqlclient (6.1.7)"
     },
     {
-      "label": "Microsoft.EntityFrameworkCore.SqlServer (9.0.0)",
+      "label": "Microsoft.EntityFrameworkCore.SqlServer (10.0.12)",
       "file_type": "code",
       "source_file": "src/Core/Infrastructure/Infrastructure.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "src_core_infrastructure_infrastructure_csproj_nuget_microsoft_entityframeworkcore_sqlserver",
       "community": 49,
-      "norm_label": "microsoft.entityframeworkcore.sqlserver (9.0.0)"
+      "norm_label": "microsoft.entityframeworkcore.sqlserver (10.0.12)"
     },
     {
-      "label": "Microsoft.Extensions.Caching.StackExchangeRedis (9.0.0)",
+      "label": "Microsoft.Extensions.Caching.StackExchangeRedis (10.0.12)",
       "file_type": "code",
       "source_file": "src/Core/Infrastructure/Infrastructure.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "nuget_microsoft_extensions_caching_stackexchangeredis",
       "community": 49,
-      "norm_label": "microsoft.extensions.caching.stackexchangeredis (9.0.0)"
+      "norm_label": "microsoft.extensions.caching.stackexchangeredis (10.0.12)"
     },
     {
       "label": "Newtonsoft.Json (13.0.4)",
@@ -10829,24 +10829,24 @@
       "norm_label": "newtonsoft.json (13.0.4)"
     },
     {
-      "label": "Microsoft.EntityFrameworkCore.Design (9.0.0)",
+      "label": "Microsoft.EntityFrameworkCore.Design (10.0.12)",
       "file_type": "code",
       "source_file": "src/Core/Infrastructure/Infrastructure.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "src_core_infrastructure_infrastructure_csproj_nuget_microsoft_entityframeworkcore_design",
       "community": 49,
-      "norm_label": "microsoft.entityframeworkcore.design (9.0.0)"
+      "norm_label": "microsoft.entityframeworkcore.design (10.0.12)"
     },
     {
-      "label": "Microsoft.AspNetCore.Identity.EntityFrameworkCore (9.0.0)",
+      "label": "Microsoft.AspNetCore.Identity.EntityFrameworkCore (10.0.12)",
       "file_type": "code",
       "source_file": "src/Core/Infrastructure/Infrastructure.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "src_core_infrastructure_infrastructure_csproj_nuget_microsoft_aspnetcore_identity_entityframeworkcore",
       "community": 49,
-      "norm_label": "microsoft.aspnetcore.identity.entityframeworkcore (9.0.0)"
+      "norm_label": "microsoft.aspnetcore.identity.entityframeworkcore (10.0.12)"
     },
     {
       "label": "OpenAI (2.8.0)",
@@ -14639,14 +14639,14 @@
       "norm_label": "core.tests"
     },
     {
-      "label": "net9.0",
+      "label": "net10.0",
       "file_type": "concept",
       "source_file": "src/Core/Tests/Core.Tests.csproj",
       "source_location": null,
       "_origin": "ast",
-      "id": "src_core_tests_core_tests_csproj_framework_net9_0",
+      "id": "src_core_tests_core_tests_csproj_framework_net10_0",
       "community": 65,
-      "norm_label": "net9.0"
+      "norm_label": "net10.0"
     },
     {
       "label": "Microsoft.NET.Test.Sdk (17.11.1)",
@@ -14689,14 +14689,14 @@
       "norm_label": "moq (4.20.72)"
     },
     {
-      "label": "Microsoft.EntityFrameworkCore.Sqlite (9.0.0)",
+      "label": "Microsoft.EntityFrameworkCore.Sqlite (10.0.12)",
       "file_type": "code",
       "source_file": "src/Core/Tests/Core.Tests.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "nuget_microsoft_entityframeworkcore_sqlite",
       "community": 65,
-      "norm_label": "microsoft.entityframeworkcore.sqlite (9.0.0)"
+      "norm_label": "microsoft.entityframeworkcore.sqlite (10.0.12)"
     },
     {
       "label": "Web.csproj",
@@ -18255,7 +18255,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "callcounter",
-      "community": 90,
+      "community": 27,
       "norm_label": "callcounter"
     },
     {
@@ -20759,14 +20759,14 @@
       "norm_label": ".emptypassword_failsvalidation_becauserequired()"
     },
     {
-      "label": "net9.0",
+      "label": "net10.0",
       "file_type": "concept",
       "source_file": "src/Web.Tests/Web.Tests.csproj",
       "source_location": null,
       "_origin": "ast",
-      "id": "src_web_tests_web_tests_csproj_framework_net9_0",
+      "id": "src_web_tests_web_tests_csproj_framework_net10_0",
       "community": 50,
-      "norm_label": "net9.0"
+      "norm_label": "net10.0"
     },
     {
       "label": "coverlet.collector (6.0.2)",
@@ -20779,24 +20779,24 @@
       "norm_label": "coverlet.collector (6.0.2)"
     },
     {
-      "label": "Microsoft.AspNetCore.Mvc.Testing (9.0.20)",
+      "label": "Microsoft.AspNetCore.Mvc.Testing (10.0.12)",
       "file_type": "code",
       "source_file": "src/Web.Tests/Web.Tests.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "nuget_microsoft_aspnetcore_mvc_testing",
       "community": 50,
-      "norm_label": "microsoft.aspnetcore.mvc.testing (9.0.20)"
+      "norm_label": "microsoft.aspnetcore.mvc.testing (10.0.12)"
     },
     {
-      "label": "Microsoft.EntityFrameworkCore.InMemory (9.0.20)",
+      "label": "Microsoft.EntityFrameworkCore.InMemory (10.0.12)",
       "file_type": "code",
       "source_file": "src/Web.Tests/Web.Tests.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "nuget_microsoft_entityframeworkcore_inmemory",
       "community": 50,
-      "norm_label": "microsoft.entityframeworkcore.inmemory (9.0.20)"
+      "norm_label": "microsoft.entityframeworkcore.inmemory (10.0.12)"
     },
     {
       "label": "Microsoft.NET.Test.Sdk (17.12.0)",
@@ -26329,14 +26329,14 @@
       "norm_label": "_layout.cshtml"
     },
     {
-      "label": "net9.0",
+      "label": "net10.0",
       "file_type": "concept",
       "source_file": "src/Web/Web.csproj",
       "source_location": null,
       "_origin": "ast",
-      "id": "src_web_web_csproj_framework_net9_0",
+      "id": "src_web_web_csproj_framework_net10_0",
       "community": 43,
-      "norm_label": "net9.0"
+      "norm_label": "net10.0"
     },
     {
       "label": "DotNetEnv (3.2.0)",
@@ -26349,64 +26349,64 @@
       "norm_label": "dotnetenv (3.2.0)"
     },
     {
-      "label": "Microsoft.EntityFrameworkCore (9.0.20)",
+      "label": "Microsoft.EntityFrameworkCore (10.0.12)",
       "file_type": "code",
       "source_file": "src/Web/Web.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "nuget_microsoft_entityframeworkcore",
       "community": 43,
-      "norm_label": "microsoft.entityframeworkcore (9.0.20)"
+      "norm_label": "microsoft.entityframeworkcore (10.0.12)"
     },
     {
-      "label": "Microsoft.EntityFrameworkCore.SqlServer (9.0.20)",
+      "label": "Microsoft.EntityFrameworkCore.SqlServer (10.0.12)",
       "file_type": "code",
       "source_file": "src/Web/Web.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "src_web_web_csproj_nuget_microsoft_entityframeworkcore_sqlserver",
       "community": 43,
-      "norm_label": "microsoft.entityframeworkcore.sqlserver (9.0.20)"
+      "norm_label": "microsoft.entityframeworkcore.sqlserver (10.0.12)"
     },
     {
-      "label": "Microsoft.AspNetCore.Identity.EntityFrameworkCore (9.0.20)",
+      "label": "Microsoft.AspNetCore.Identity.EntityFrameworkCore (10.0.12)",
       "file_type": "code",
       "source_file": "src/Web/Web.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "src_web_web_csproj_nuget_microsoft_aspnetcore_identity_entityframeworkcore",
       "community": 43,
-      "norm_label": "microsoft.aspnetcore.identity.entityframeworkcore (9.0.20)"
+      "norm_label": "microsoft.aspnetcore.identity.entityframeworkcore (10.0.12)"
     },
     {
-      "label": "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore (9.0.20)",
+      "label": "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore (10.0.12)",
       "file_type": "code",
       "source_file": "src/Web/Web.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "nuget_microsoft_aspnetcore_diagnostics_entityframeworkcore",
       "community": 43,
-      "norm_label": "microsoft.aspnetcore.diagnostics.entityframeworkcore (9.0.20)"
+      "norm_label": "microsoft.aspnetcore.diagnostics.entityframeworkcore (10.0.12)"
     },
     {
-      "label": "Microsoft.AspNetCore.Identity.UI (9.0.20)",
+      "label": "Microsoft.AspNetCore.Identity.UI (10.0.12)",
       "file_type": "code",
       "source_file": "src/Web/Web.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "nuget_microsoft_aspnetcore_identity_ui",
       "community": 43,
-      "norm_label": "microsoft.aspnetcore.identity.ui (9.0.20)"
+      "norm_label": "microsoft.aspnetcore.identity.ui (10.0.12)"
     },
     {
-      "label": "Microsoft.EntityFrameworkCore.Design (9.0.20)",
+      "label": "Microsoft.EntityFrameworkCore.Design (10.0.12)",
       "file_type": "code",
       "source_file": "src/Web/Web.csproj",
       "source_location": null,
       "_origin": "ast",
       "id": "src_web_web_csproj_nuget_microsoft_entityframeworkcore_design",
       "community": 43,
-      "norm_label": "microsoft.entityframeworkcore.design (9.0.20)"
+      "norm_label": "microsoft.entityframeworkcore.design (10.0.12)"
     },
     {
       "label": "ZXing.Net (0.16.9)",
@@ -35707,9 +35707,9 @@
       "source_location": "L133",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_nonsuperadmindefault_stillrequiresmembership",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -35729,9 +35729,9 @@
       "source_location": "L119",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithinactiveordeletedapplication_returnsfalse",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -35740,9 +35740,9 @@
       "source_location": "L101",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithnomembership_returnstrueforactiveapplication",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -35872,9 +35872,9 @@
       "source_location": "L165",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadmininactiveapplication_throwsanddoesnotselect",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -35883,9 +35883,9 @@
       "source_location": "L147",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadminnomembership_selectsactiveapplication",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -37687,9 +37687,9 @@
       "source_location": "L38",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_addmembershipasync",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -37698,9 +37698,9 @@
       "source_location": "L28",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -37709,9 +37709,9 @@
       "source_location": "L47",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapp_superadminwithnomembership_showsonlyactiveapplications",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -37720,9 +37720,9 @@
       "source_location": "L114",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_normalmember_cannotselectanotheractiveapplicationwithoutmembership",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -37731,9 +37731,9 @@
       "source_location": "L92",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadmininactiveapplication_isdenied_andnotenantcontextresults",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -37742,9 +37742,9 @@
       "source_location": "L73",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadminwithnomembership_selectsactiveapplication_andreachestenantprotectedendpoint",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -38545,9 +38545,9 @@
       "source_location": "L167",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_passessuperadmintoguard_andcallsnextwhenapproved",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -38556,9 +38556,9 @@
       "source_location": "L185",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_stilldeniedwhenguardrejects",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -45020,9 +45020,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Core/Application/Application.csproj",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "application_application",
-      "target": "src_core_application_application_csproj_framework_net9_0"
+      "target": "src_core_application_application_csproj_framework_net10_0",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -45101,9 +45101,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Core/Domain/Domain.csproj",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "domain_domain",
-      "target": "src_core_domain_domain_csproj_framework_net9_0"
+      "target": "src_core_domain_domain_csproj_framework_net10_0",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -63891,9 +63891,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Core/Infrastructure/Infrastructure.csproj",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "infrastructure_infrastructure",
-      "target": "src_core_infrastructure_infrastructure_csproj_framework_net9_0"
+      "target": "src_core_infrastructure_infrastructure_csproj_framework_net10_0",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -68099,9 +68099,9 @@
       "source_location": "L133",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_nonsuperadmindefault_stillrequiresmembership",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -68121,9 +68121,9 @@
       "source_location": "L119",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithinactiveordeletedapplication_returnsfalse",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -68132,9 +68132,9 @@
       "source_location": "L101",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithnomembership_returnstrueforactiveapplication",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -68209,9 +68209,9 @@
       "source_location": "L165",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadmininactiveapplication_throwsanddoesnotselect",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -68220,9 +68220,9 @@
       "source_location": "L147",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadminnomembership_selectsactiveapplication",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -69716,9 +69716,9 @@
       "source_location": "L47",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapp_superadminwithnomembership_showsonlyactiveapplications",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -69727,9 +69727,9 @@
       "source_location": "L114",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_normalmember_cannotselectanotheractiveapplicationwithoutmembership",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -69738,9 +69738,9 @@
       "source_location": "L92",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadmininactiveapplication_isdenied_andnotenantcontextresults",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -69749,9 +69749,9 @@
       "source_location": "L73",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadminwithnomembership_selectsactiveapplication_andreachestenantprotectedendpoint",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -70398,9 +70398,9 @@
       "source_location": "L167",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_passessuperadmintoguard_andcallsnextwhenapproved",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -70409,9 +70409,9 @@
       "source_location": "L185",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_stilldeniedwhenguardrejects",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -75955,9 +75955,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Core/Tests/Core.Tests.csproj",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "tests_core_tests",
-      "target": "src_core_tests_core_tests_csproj_framework_net9_0"
+      "target": "src_core_tests_core_tests_csproj_framework_net10_0",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -76090,9 +76090,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Web/Web.csproj",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "web_web",
-      "target": "src_web_web_csproj_framework_net9_0"
+      "target": "src_web_web_csproj_framework_net10_0",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -78219,9 +78219,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/TenantAccessGuardTests.cs",
       "source_location": "L133",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests",
-      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_nonsuperadmindefault_stillrequiresmembership",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_nonsuperadmindefault_stillrequiresmembership"
     },
     {
       "relation": "method",
@@ -78239,9 +78239,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/TenantAccessGuardTests.cs",
       "source_location": "L119",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests",
-      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithinactiveordeletedapplication_returnsfalse",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithinactiveordeletedapplication_returnsfalse"
     },
     {
       "relation": "method",
@@ -78249,9 +78249,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/TenantAccessGuardTests.cs",
       "source_location": "L101",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests",
-      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithnomembership_returnstrueforactiveapplication",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithnomembership_returnstrueforactiveapplication"
     },
     {
       "relation": "method",
@@ -78303,9 +78303,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/TenantAccessGuardTests.cs",
       "source_location": "L146",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_nonsuperadmindefault_stillrequiresmembership",
-      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_createsut",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_createsut"
     },
     {
       "relation": "calls",
@@ -78325,9 +78325,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/TenantAccessGuardTests.cs",
       "source_location": "L128",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithinactiveordeletedapplication_returnsfalse",
-      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_createsut",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_createsut"
     },
     {
       "relation": "calls",
@@ -78336,9 +78336,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/TenantAccessGuardTests.cs",
       "source_location": "L111",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_hasaccessasync_superadminwithnomembership_returnstrueforactiveapplication",
-      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_createsut",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_tenantaccessguardtests_tenantaccessguardtests_createsut"
     },
     {
       "relation": "calls",
@@ -78437,9 +78437,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/UserManagementServicesTests.cs",
       "source_location": "L165",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_usermanagementservicestests_usermanagementservicestests",
-      "target": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadmininactiveapplication_throwsanddoesnotselect",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadmininactiveapplication_throwsanddoesnotselect"
     },
     {
       "relation": "method",
@@ -78447,9 +78447,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/UserManagementServicesTests.cs",
       "source_location": "L147",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_usermanagementservicestests_usermanagementservicestests",
-      "target": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadminnomembership_selectsactiveapplication",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadminnomembership_selectsactiveapplication"
     },
     {
       "relation": "method",
@@ -78533,9 +78533,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/UserManagementServicesTests.cs",
       "source_location": "L174",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadmininactiveapplication_throwsanddoesnotselect",
-      "target": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_createsut",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_createsut"
     },
     {
       "relation": "calls",
@@ -78544,9 +78544,9 @@
       "source_file": "src/Core/Tests/UserManagementServices/UserManagementServicesTests.cs",
       "source_location": "L158",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_setcurrentapplicationid_superadminnomembership_selectsactiveapplication",
-      "target": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_createsut",
-      "confidence_score": 1.0
+      "target": "usermanagementservices_usermanagementservicestests_usermanagementservicestests_createsut"
     },
     {
       "relation": "calls",
@@ -78756,9 +78756,9 @@
       "source_file": "src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs",
       "source_location": "L167",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests",
-      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_passessuperadmintoguard_andcallsnextwhenapproved",
-      "confidence_score": 1.0
+      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_passessuperadmintoguard_andcallsnextwhenapproved"
     },
     {
       "relation": "method",
@@ -78766,9 +78766,9 @@
       "source_file": "src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs",
       "source_location": "L185",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests",
-      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_stilldeniedwhenguardrejects",
-      "confidence_score": 1.0
+      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_stilldeniedwhenguardrejects"
     },
     {
       "relation": "method",
@@ -78863,9 +78863,9 @@
       "source_file": "src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs",
       "source_location": "L175",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_passessuperadmintoguard_andcallsnextwhenapproved",
-      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_createcontext",
-      "confidence_score": 1.0
+      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_createcontext"
     },
     {
       "relation": "calls",
@@ -78874,9 +78874,9 @@
       "source_file": "src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs",
       "source_location": "L195",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_stilldeniedwhenguardrejects",
-      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_createcontext",
-      "confidence_score": 1.0
+      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_createcontext"
     },
     {
       "relation": "calls",
@@ -78995,9 +78995,9 @@
       "source_file": "src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs",
       "source_location": "L178",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_passessuperadmintoguard_andcallsnextwhenapproved",
-      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_next",
-      "confidence_score": 1.0
+      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_next"
     },
     {
       "relation": "calls",
@@ -79006,9 +79006,9 @@
       "source_file": "src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs",
       "source_location": "L198",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_superadminselection_stilldeniedwhenguardrejects",
-      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_next",
-      "confidence_score": 1.0
+      "target": "webfilters_requiretenantcontextfiltertests_requiretenantcontextfiltertests_next"
     },
     {
       "relation": "calls",
@@ -79113,9 +79113,9 @@
       "confidence": "EXTRACTED",
       "source_file": "src/Web.Tests/Web.Tests.csproj",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "web_tests_web_tests",
-      "target": "src_web_tests_web_tests_csproj_framework_net9_0"
+      "target": "src_web_tests_web_tests_csproj_framework_net10_0",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -79640,9 +79640,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests",
-      "target": "iclassfixture",
-      "confidence_score": 1.0
+      "target": "iclassfixture"
     },
     {
       "relation": "implements",
@@ -84382,9 +84382,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests"
     },
     {
       "relation": "method",
@@ -84392,9 +84392,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_addmembershipasync",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_addmembershipasync"
     },
     {
       "relation": "method",
@@ -84402,9 +84402,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync"
     },
     {
       "relation": "method",
@@ -84412,9 +84412,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L47",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapp_superadminwithnomembership_showsonlyactiveapplications",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapp_superadminwithnomembership_showsonlyactiveapplications"
     },
     {
       "relation": "method",
@@ -84422,9 +84422,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L114",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_normalmember_cannotselectanotheractiveapplicationwithoutmembership",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_normalmember_cannotselectanotheractiveapplicationwithoutmembership"
     },
     {
       "relation": "method",
@@ -84432,9 +84432,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L92",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadmininactiveapplication_isdenied_andnotenantcontextresults",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadmininactiveapplication_isdenied_andnotenantcontextresults"
     },
     {
       "relation": "method",
@@ -84442,9 +84442,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L73",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadminwithnomembership_selectsactiveapplication_andreachestenantprotectedendpoint",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadminwithnomembership_selectsactiveapplication_andreachestenantprotectedendpoint"
     },
     {
       "relation": "references",
@@ -84453,9 +84453,9 @@
       "source_location": "L21",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests",
-      "target": "web_tests_testwebapplicationfactory_testwebapplicationfactory",
-      "confidence_score": 1.0
+      "target": "web_tests_testwebapplicationfactory_testwebapplicationfactory"
     },
     {
       "relation": "calls",
@@ -84464,9 +84464,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L56",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapp_superadminwithnomembership_showsonlyactiveapplications",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync"
     },
     {
       "relation": "calls",
@@ -84475,9 +84475,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L120",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_normalmember_cannotselectanotheractiveapplicationwithoutmembership",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync"
     },
     {
       "relation": "calls",
@@ -84486,9 +84486,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L97",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadmininactiveapplication_isdenied_andnotenantcontextresults",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync"
     },
     {
       "relation": "calls",
@@ -84497,9 +84497,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L78",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_superadminwithnomembership_selectsactiveapplication_andreachestenantprotectedendpoint",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_seedapplicationasync"
     },
     {
       "relation": "calls",
@@ -84508,9 +84508,9 @@
       "source_file": "src/Web.Tests/SelectAppSuperAdminTests.cs",
       "source_location": "L121",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_selectappsuperadmintests_selectappsuperadmintests_selectapptoenter_normalmember_cannotselectanotheractiveapplicationwithoutmembership",
-      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_addmembershipasync",
-      "confidence_score": 1.0
+      "target": "web_tests_selectappsuperadmintests_selectappsuperadmintests_addmembershipasync"
     },
     {
       "relation": "contains",
@@ -96418,5 +96418,5 @@
       "source_file": "docs/schema-readiness.md"
     }
   ],
-  "built_at_commit": "607e6ffcc43fc29cbc7516453d02bda52efddbbe"
+  "built_at_commit": "43f4a66faa369c4f13d67e20020dbc23aef9b1f3"
 }
