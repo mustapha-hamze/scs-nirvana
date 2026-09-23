@@ -102,12 +102,18 @@ public static class ServiceCollectionExtensions
     /// <summary>Cross-cutting ASP.NET Core hosting concerns: identity, MVC, MediatR, mapping, sessions, uploads.</summary>
     public static IServiceCollection AddWebInfrastructure(this IServiceCollection services)
     {
-        services.Configure<FormOptions>(options =>
-        {
-            options.ValueCountLimit = int.MaxValue;
-            options.ValueLengthLimit = int.MaxValue;
-            options.MultipartBodyLengthLimit = 60000000; // Change this value to the desired maximum size in bytes
-        });
+        services.AddOptions<WebRequestLimitsOptions>()
+            .BindConfiguration(WebRequestLimitsOptions.SectionName)
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<WebRequestLimitsOptions>, WebRequestLimitsOptionsValidator>();
+
+        services.AddOptions<FormOptions>()
+            .Configure<IOptions<WebRequestLimitsOptions>>((formOptions, limits) =>
+            {
+                formOptions.ValueCountLimit = limits.Value.ValueCountLimit;
+                formOptions.ValueLengthLimit = limits.Value.ValueLengthLimitBytes;
+                formOptions.MultipartBodyLengthLimit = limits.Value.MultipartBodyLengthLimitBytes;
+            });
 
         services.AddDefaultIdentity<ApplicationUser>(options =>
             {
