@@ -112,15 +112,22 @@ public sealed class FileUploadService : IFileUploadService
                     variants.Add(new ImageVariant(width, height, fileName));
                 }
             }
-            // Expected failure modes (filesystem, codec, argument/dimension, write) are turned
-            // into a clean failed-upload result with full cleanup. Cancellation and fatal runtime
-            // resource conditions are not "the upload failed" - forcing them through the same
-            // cleanup-and-report path would misreport a cancelled request or an out-of-memory
-            // condition as an ordinary validation failure. The `when` filter (not a catch-and-
-            // rethrow) means the exception never enters this block for those types - it keeps
-            // unwinding past this catch, running the surrounding using/await using disposals
-            // exactly as it would if this catch weren't here at all.
-            catch (Exception ex) when (ex is not OperationCanceledException and not OutOfMemoryException)
+            // Cancellation is not "the upload failed" - it must propagate as itself, not become
+            // ImageVariantsUploadResult.Failure. This is the one place that still owes cleanup:
+            // the same best-effort delete of everything this call created (prior completed
+            // variants and the current, possibly-partial one), then an unchanged rethrow so the
+            // caller sees the original OperationCanceledException/TaskCanceledException.
+            catch (OperationCanceledException)
+            {
+                CleanUpFiles(writtenPaths);
+                throw;
+            }
+            // Every other expected failure mode (filesystem, codec, argument/dimension, write) is
+            // turned into a clean failed-upload result with the same cleanup. OutOfMemoryException
+            // is deliberately excluded: attempting filesystem cleanup while the process may be out
+            // of memory is itself unreliable and could throw again, so it propagates untouched,
+            // with no cleanup attempt, exactly as before.
+            catch (Exception ex) when (ex is not OutOfMemoryException)
             {
                 return Failure($"Unable to produce image variant {width}x{height}: {ex.Message}", writtenPaths);
             }
@@ -128,14 +135,18 @@ public sealed class FileUploadService : IFileUploadService
 
         return ImageVariantsUploadResult.Success(variants);
 
-        static ImageVariantsUploadResult Failure(string error, List<string> writtenPaths)
+        static void CleanUpFiles(List<string> paths)
         {
-            foreach (var path in writtenPaths)
+            foreach (var path in paths)
             {
                 try { File.Delete(path); }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
             }
+        }
 
+        static ImageVariantsUploadResult Failure(string error, List<string> writtenPaths)
+        {
+            CleanUpFiles(writtenPaths);
             return ImageVariantsUploadResult.Failure(error);
         }
     }

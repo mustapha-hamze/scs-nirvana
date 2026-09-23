@@ -243,35 +243,42 @@ public sealed class FileUploadServiceTests : IDisposable
 
     // A cancelled request isn't "the upload failed validation" - converting it into an ordinary
     // ImageVariantsUploadResult.Failure would misreport it as ordinary bad input instead of an
-    // aborted operation. The exception must come out of the awaited call itself.
+    // aborted operation. The exception must come out of the awaited call itself, but cancellation
+    // still owes the same atomic cleanup as an ordinary failure: two sizes prove both the already-
+    // completed first variant and the just-created (partial) second variant are removed by the
+    // method's own cleanup - not by the test - while a pre-existing sentinel file survives.
     [Fact]
-    public async Task SaveImageVariantsAsync_OperationCanceledDuringWrite_PropagatesInsteadOfReturningAResult()
+    public async Task SaveImageVariantsAsync_OperationCanceledDuringWrite_CleansUpAllCreatedFiles_ThenPropagates()
     {
         var service = CreateService();
+        var sentinel = Path.Combine(_directory, "sentinel.txt");
+        File.WriteAllText(sentinel, "keep me");
+
         var bytes = EncodeImage(400, 400);
         var file = MakeFormFile(bytes, "src.png");
 
-        string? capturedPath = null;
-        service.TestOnlyBeforeVariantWrite = path =>
+        var writeCallCount = 0;
+        service.TestOnlyBeforeVariantWrite = _ =>
         {
-            capturedPath = path;
-            throw new OperationCanceledException("simulated cancellation");
+            writeCallCount++;
+            if (writeCallCount == 2)
+                throw new OperationCanceledException("simulated cancellation");
         };
 
         await Assert.ThrowsAsync<OperationCanceledException>(
-            () => service.SaveImageVariantsAsync(file, _directory, new[] { (100, 100) }));
+            () => service.SaveImageVariantsAsync(file, _directory, new[] { (100, 100), (50, 50) }));
 
-        // The hook fired (so the exception really came from inside the write path, not before
-        // it), and the surrounding using/await using blocks still ran their disposal despite the
-        // exception not being caught here - the FileStream is closed, so deleting the file it had
-        // open doesn't fail with a locking error.
-        Assert.NotNull(capturedPath);
-        File.Delete(capturedPath!);
+        Assert.Equal(2, writeCallCount); // proves the second variant's file was created and the hook actually ran
+        var remaining = Directory.GetFiles(_directory);
+        Assert.Equal(new[] { sentinel }, remaining);
     }
 
-    // Same shape as the cancellation case: an out-of-memory condition is a fatal runtime resource
-    // failure, not a normal "this upload is invalid" outcome, and must not be swallowed into a
-    // misleading success/failure result.
+    // An out-of-memory condition is a fatal runtime resource failure, not a normal "this upload is
+    // invalid" outcome, and must not be swallowed into a misleading success/failure result. Unlike
+    // cancellation, the service deliberately does NOT attempt filesystem cleanup here - doing I/O
+    // while the process may be out of memory is itself unreliable and could throw again - so this
+    // test only proves propagation, not any cleanup guarantee. The manual delete below just proves
+    // the FileStream was still disposed (no locking error), not that the service removed it.
     [Fact]
     public async Task SaveImageVariantsAsync_OutOfMemoryDuringWrite_PropagatesInsteadOfReturningAResult()
     {
