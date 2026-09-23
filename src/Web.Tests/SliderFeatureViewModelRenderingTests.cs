@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using Domains.Entities.CustomModule;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Web.Authorization;
 using Xunit;
 
@@ -319,5 +322,169 @@ public sealed class SliderFeatureViewModelRenderingTests : IClassFixture<TestWeb
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         Assert.Equal("Item", await SliderItemTitleAsync(itemId));
+    }
+
+    // ---- Web Phase 4 fix: strict per-request access-resolution counting ----
+
+    private Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> BuildCounterFactory(out CallCounter counter)
+    {
+        var counterFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddSingleton<CallCounter>();
+                services.RemoveAll<Application.UseCases.UserManagementServices.IUserManagementServices>();
+                services.AddTransient<Application.UseCases.UserManagementServices.IUserManagementServices>(sp =>
+                    new CountingUserManagementServicesDecorator(
+                        ActivatorUtilities.CreateInstance<Application.UseCases.UserManagementServices.UserManagementServices>(sp),
+                        sp.GetRequiredService<CallCounter>()));
+            });
+        });
+        counter = counterFactory.Services.GetRequiredService<CallCounter>();
+        return counterFactory;
+    }
+
+    [Fact]
+    public async Task SliderCreate_ResolvesAccessesExactlyOncePerRequest()
+    {
+        var counterFactory = BuildCounterFactory(out var counter);
+
+        var email = $"slider-create-dupcheck-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(counterFactory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(counterFactory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(counterFactory, client, user);
+        await AccountFlowHelper.GrantAccessAsync(counterFactory, user, applicationId,
+            string.Join(',', AccessKeys.Slider.Add, AccessKeys.Slider.Save));
+        counter.Reset();
+
+        var response = await client.GetAsync("/BackOffice/Slider/Create");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("id=\"__btnCreateSlider__\"", body); // confirms CanSave was actually evaluated
+        Assert.Equal(1, counter.GetUserAccessesCalls);
+    }
+
+    [Fact]
+    public async Task SliderItemForm_ResolvesAccessesExactlyOncePerRequest()
+    {
+        var counterFactory = BuildCounterFactory(out var counter);
+
+        var email = $"slider-itemform-dupcheck-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(counterFactory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(counterFactory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(counterFactory, client, user);
+        await AccountFlowHelper.GrantAccessAsync(counterFactory, user, applicationId,
+            string.Join(',', AccessKeys.Slider.AccessItems, AccessKeys.Slider.SaveItem, AccessKeys.Slider.UpdateItem));
+        int sliderId;
+        using (var scope = counterFactory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var slider = new Slider { ApplicationId = applicationId, Title = "Dup-check slider" };
+            context.Sliders.Add(slider);
+            await context.SaveChangesAsync();
+            sliderId = slider.Id;
+        }
+        counter.Reset();
+
+        var response = await client.GetAsync($"/BackOffice/Slider/GetSliderItemForm/{sliderId}/0");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("id=\"__btnCreateSliderItem__\"", body); // confirms CanCreateItem was actually evaluated
+        Assert.Equal(1, counter.GetUserAccessesCalls);
+    }
+
+    [Fact]
+    public async Task SliderItemList_ResolvesAccessesExactlyOncePerRequest_RegardlessOfRowCount()
+    {
+        var counterFactory = BuildCounterFactory(out var counter);
+
+        var email = $"slider-itemlist-dupcheck-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(counterFactory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(counterFactory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(counterFactory, client, user);
+        await AccountFlowHelper.GrantAccessAsync(counterFactory, user, applicationId, string.Join(',',
+            AccessKeys.Slider.AccessItems, AccessKeys.Slider.Activity, AccessKeys.Slider.DeleteItem, AccessKeys.Slider.UpdateItem));
+        int sliderId;
+        using (var scope = counterFactory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var slider = new Slider { ApplicationId = applicationId, Title = "Dup-check slider" };
+            context.Sliders.Add(slider);
+            await context.SaveChangesAsync();
+            sliderId = slider.Id;
+        }
+
+        async Task<int> AddItemsAndGetCallCountAsync(int itemsToAdd)
+        {
+            using (var scope = counterFactory.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                for (var i = 0; i < itemsToAdd; i++)
+                    context.SliderItems.Add(new SliderItem { SliderId = sliderId, Title = $"Item {i}", ImageFileName = "img.jpg" });
+                await context.SaveChangesAsync();
+            }
+            counter.Reset();
+            var response = await client.GetAsync($"/BackOffice/Slider/GetSliderItemList/{sliderId}");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            return counter.GetUserAccessesCalls;
+        }
+
+        Assert.Equal(1, await AddItemsAndGetCallCountAsync(1));
+        Assert.Equal(1, await AddItemsAndGetCallCountAsync(3)); // 1 + 3 = 4 items total now
+    }
+
+    [Fact]
+    public async Task Slider_SuperAdmin_NeedsNoPersistedAccessLookup()
+    {
+        var counterFactory = BuildCounterFactory(out var counter);
+
+        var email = $"slider-superadmin-dupcheck-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(counterFactory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(counterFactory, email, "CorrectHorseBattery12");
+        await AccountFlowHelper.SelectApplicationAsync(counterFactory, client, user);
+        counter.Reset();
+
+        var response = await client.GetAsync("/BackOffice/Slider/Create");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(0, counter.GetUserAccessesCalls);
+    }
+
+    private sealed class CallCounter
+    {
+        public int GetUserAccessesCalls;
+        public void Reset() => GetUserAccessesCalls = 0;
+    }
+
+    private sealed class CountingUserManagementServicesDecorator : Application.UseCases.UserManagementServices.IUserManagementServices
+    {
+        private readonly Application.UseCases.UserManagementServices.IUserManagementServices _inner;
+        private readonly CallCounter _counter;
+
+        public CountingUserManagementServicesDecorator(Application.UseCases.UserManagementServices.IUserManagementServices inner, CallCounter counter)
+        {
+            _inner = inner;
+            _counter = counter;
+        }
+
+        public Task<List<Application.Contracts.UserManagement.UserDto>> List(bool isAdminUser, string email = "", CancellationToken cancellationToken = default) =>
+            _inner.List(isAdminUser, email, cancellationToken);
+
+        public Task<Application.Contracts.UserManagement.UserDto> GetUserByEmailAddress(string email, CancellationToken cancellationToken = default) =>
+            _inner.GetUserByEmailAddress(email, cancellationToken);
+
+        public Task<string> GetUserAccesses(string email, int appId, CancellationToken cancellationToken = default)
+        {
+            System.Threading.Interlocked.Increment(ref _counter.GetUserAccessesCalls);
+            return _inner.GetUserAccesses(email, appId, cancellationToken);
+        }
+
+        public Task SetCurrentApplicationId(string email, int appId, CancellationToken cancellationToken = default) =>
+            _inner.SetCurrentApplicationId(email, appId, cancellationToken);
+
+        public Task SetUserAccesses(string accesses, string userId, int appId, CancellationToken cancellationToken = default) =>
+            _inner.SetUserAccesses(accesses, userId, appId, cancellationToken);
     }
 }

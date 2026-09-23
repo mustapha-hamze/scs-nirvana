@@ -11,12 +11,11 @@ public partial class ContentController
     [Route("/{area}/{controller}/Index/{id}")]
     public async Task<IActionResult> Index(int id)
     {
-        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var shell = await _shellContext.GetSnapshotAsync();
         var typeTitle = shell.ContentTypes.FirstOrDefault(t => t.Id == id)?.Title
             ?? shell.AppPages.FirstOrDefault(p => p.PageType == id.ToString())?.Title
             ?? "Content";
-        var canCreateContent = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.Add);
+        var canCreateContent = shell.Access.CanAccess(AccessKeys.Content.Add);
 
         ViewData["Title"] = typeTitle;
         return View(new ContentIndexViewModel(id, typeTitle, canCreateContent));
@@ -52,13 +51,13 @@ public partial class ContentController
             };
         }
 
-        var canSaveOrUpdateContent = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, id == 0 ? AccessKeys.Content.Save : AccessKeys.Content.Update);
-        var canChangeActivity = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.ChangeActivity);
-        var canPreviewBody = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewBody);
-        var canPreviewImages = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewImages);
-        var canPreviewAttachments = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewAttachments);
-        var canPreviewRelations = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewRelations);
-        var canPreviewMetadata = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.PreviewMetadata);
+        var canSaveOrUpdateContent = shell.Access.CanAccess(id == 0 ? AccessKeys.Content.Save : AccessKeys.Content.Update);
+        var canChangeActivity = shell.Access.CanAccess(AccessKeys.Content.ChangeActivity);
+        var canPreviewBody = shell.Access.CanAccess(AccessKeys.Content.PreviewBody);
+        var canPreviewImages = shell.Access.CanAccess(AccessKeys.Content.PreviewImages);
+        var canPreviewAttachments = shell.Access.CanAccess(AccessKeys.Content.PreviewAttachments);
+        var canPreviewRelations = shell.Access.CanAccess(AccessKeys.Content.PreviewRelations);
+        var canPreviewMetadata = shell.Access.CanAccess(AccessKeys.Content.PreviewMetadata);
 
         var model = new ContentFormViewModel
         {
@@ -127,8 +126,8 @@ public partial class ContentController
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var contents = (await _contentServices.List(currentApplicationId)).Where(c => c.TypeId == id).ToList();
         var shell = await _shellContext.GetSnapshotAsync();
-        var canEdit = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.Edit);
-        var canDelete = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.Delete);
+        var canEdit = shell.Access.CanAccess(AccessKeys.Content.Edit);
+        var canDelete = shell.Access.CanAccess(AccessKeys.Content.Delete);
 
         var items = contents.Select(c => new ContentListItemViewModel
         {

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.UseCases.GeneralServices;
 using Application.UseCases.UserManagementServices;
 using Application.UseCases.Utilities.ApplicationConst;
@@ -7,36 +8,47 @@ using Web.Authorization;
 
 namespace Web.Areas.BackOffice.Presentation.Shell;
 
-// Web Phase 4 task 2: the request-scoped, tenant-aware presentation boundary for the shared
-// BackOffice shell (_Layout and its navbar/sidebar partials). Nothing outside this file may call
+// Web Phase 4 task 2 (revised by the Phase 4 fix pass): the request-scoped, tenant-aware
+// presentation boundary for the shared BackOffice shell (_Layout and its navbar/sidebar
+// partials), and the single presentation-facing read of the current user's access tokens for
+// Content/Slider Can* view-model flags. Nothing outside this file may call
 // IUserManagementServices.GetUserAccesses, IApplicationServices.GetById, ISystemTypeServices, or
 // ICurrentApplicationContext.RequireApplicationId from a shared Razor file - they call
-// IBackOfficeShellContext.GetSnapshotAsync() instead, which resolves everything at most once per
-// request (cached on this scoped instance) and only when first asked - i.e. only after
-// RequireTenantContextFilter has already validated the selected application, since shared views
-// only render once a BaseController action executes.
+// IBackOfficeShellContext.GetSnapshotAsync()/GetAccessSnapshotAsync() instead, which resolve at
+// most once per request (cached on this scoped instance) and only when first asked - i.e. only
+// after RequireTenantContextFilter has already validated the selected application, since shared
+// views only render once a BaseController action executes.
+//
+// The access tokens themselves come from AccessKeyAuthorizer.GetTokensAsync, not a separate
+// GetUserAccesses call - AccessKeyAuthorizer is the single per-request cache of that value (see
+// its own doc comment), shared by every RequireAccessAttribute check and this presentation read.
+// This snapshot is read-only display data derived from that cache; it is never the authorization
+// authority - every actual allow/deny decision still runs through AccessKeyAuthorizer.HasAccessAsync.
 
 public sealed record BackOfficeContentTypeLink(int Id, string Title);
 
 public sealed record BackOfficeAppPageLink(string PageType, string Title);
 
 // Exact AccessKeys token semantics - the same comparison AccessKeyAuthorizer uses server-side, not
-// Razor's previous accesses.Contains(prefix). HasModuleAccess mirrors a module key's own real
-// sub-action keys (e.g. Slider's key sharing AccessKeys.Content's CMS-prefix family, as documented
-// in AccessKeys.cs); HasFamilyAccess mirrors a bare top-level family prefix. Neither ever matches
-// a similar/prefix key across a token boundary the way Contains did (see
-// AccessKeyAuthorizationTests' Content_SimilarPrefixPermission_ReadIsStillDenied for the server-side
-// proof of the same bug class).
+// Razor's accesses.Contains(prefix). HasModuleAccess mirrors a module key's own real sub-action
+// keys (e.g. Slider's key sharing AccessKeys.Content's CMS-prefix family, as documented in
+// AccessKeys.cs); HasFamilyAccess mirrors a bare top-level family prefix - both still used by the
+// shared sidebar. CanAccess is the plain exact-token check Content/Slider Can* view-model flags
+// use, replacing the AccessKeyAuthorizer.HasAccessAsync call they used to issue on their own.
 public sealed class BackOfficeAccessSnapshot
 {
     private readonly bool _isSuperAdmin;
-    private readonly HashSet<string> _tokens;
+    private readonly IReadOnlySet<string> _tokens;
 
-    public BackOfficeAccessSnapshot(bool isSuperAdmin, HashSet<string> tokens)
+    public BackOfficeAccessSnapshot(bool isSuperAdmin, IReadOnlySet<string> tokens)
     {
         _isSuperAdmin = isSuperAdmin;
         _tokens = tokens;
     }
+
+    public bool IsSuperAdmin => _isSuperAdmin;
+
+    public bool CanAccess(string key) => _isSuperAdmin || _tokens.Contains(key);
 
     public bool HasModuleAccess(string moduleKey) =>
         _isSuperAdmin || _tokens.Contains(moduleKey) || _tokens.Any(t => t.StartsWith(moduleKey + "_", StringComparison.Ordinal));
@@ -58,6 +70,12 @@ public sealed record BackOfficeShellSnapshot(
 public interface IBackOfficeShellContext
 {
     Task<BackOfficeShellSnapshot> GetSnapshotAsync();
+
+    // Lightweight alternative to GetSnapshotAsync for callers that only need access-key flags
+    // (e.g. Content/Slider Can* view-model fields) - skips the user/application/content-type/
+    // app-page fetches GetSnapshotAsync also does, while still sharing the same underlying
+    // AccessKeyAuthorizer token cache.
+    Task<BackOfficeAccessSnapshot> GetAccessSnapshotAsync();
 }
 
 public sealed class BackOfficeShellContext : IBackOfficeShellContext
@@ -67,54 +85,78 @@ public sealed class BackOfficeShellContext : IBackOfficeShellContext
     private readonly IApplicationServices _applicationServices;
     private readonly ISystemTypeServices _systemTypeServices;
     private readonly ICurrentApplicationContext _currentApplicationContext;
-    private BackOfficeShellSnapshot _cached;
+    private readonly AccessKeyAuthorizer _accessKeyAuthorizer;
+    private BackOfficeShellSnapshot _cachedSnapshot;
+    private BackOfficeAccessSnapshot _cachedAccess;
 
     public BackOfficeShellContext(
         IHttpContextAccessor httpContextAccessor,
         IUserManagementServices userManagementServices,
         IApplicationServices applicationServices,
         ISystemTypeServices systemTypeServices,
-        ICurrentApplicationContext currentApplicationContext)
+        ICurrentApplicationContext currentApplicationContext,
+        AccessKeyAuthorizer accessKeyAuthorizer)
     {
         _httpContextAccessor = httpContextAccessor;
         _userManagementServices = userManagementServices;
         _applicationServices = applicationServices;
         _systemTypeServices = systemTypeServices;
         _currentApplicationContext = currentApplicationContext;
+        _accessKeyAuthorizer = accessKeyAuthorizer;
+    }
+
+    private ClaimsPrincipal RequirePrincipal() =>
+        _httpContextAccessor.HttpContext?.User
+            ?? throw new InvalidOperationException("BackOfficeShellContext requires an active HTTP request.");
+
+    private static string RequireEmail(ClaimsPrincipal principal) =>
+        principal.Identity?.Name
+            ?? throw new InvalidOperationException("BackOfficeShellContext requires an authenticated user.");
+
+    public async Task<BackOfficeAccessSnapshot> GetAccessSnapshotAsync()
+    {
+        if (_cachedAccess is not null)
+            return _cachedAccess;
+
+        var principal = RequirePrincipal();
+        var isSuperAdmin = principal.IsInRole(ApplicationRoles.SuperAdmin);
+
+        // SuperAdmin never needs a persisted-access lookup - CanAccess/CanAnyAccess short-circuit
+        // on IsSuperAdmin before ever consulting the (here, empty) token set.
+        var tokens = isSuperAdmin
+            ? (IReadOnlySet<string>)new HashSet<string>()
+            : await _accessKeyAuthorizer.GetTokensAsync(RequireEmail(principal), _currentApplicationContext.RequireApplicationId());
+
+        _cachedAccess = new BackOfficeAccessSnapshot(isSuperAdmin, tokens);
+        return _cachedAccess;
     }
 
     public async Task<BackOfficeShellSnapshot> GetSnapshotAsync()
     {
-        if (_cached is not null)
-            return _cached;
+        if (_cachedSnapshot is not null)
+            return _cachedSnapshot;
 
-        var principal = _httpContextAccessor.HttpContext?.User
-            ?? throw new InvalidOperationException("BackOfficeShellContext requires an active HTTP request.");
-        var email = principal.Identity?.Name
-            ?? throw new InvalidOperationException("BackOfficeShellContext requires an authenticated user.");
+        var principal = RequirePrincipal();
+        var email = RequireEmail(principal);
         var applicationId = _currentApplicationContext.RequireApplicationId();
-        var isSuperAdmin = principal.IsInRole(ApplicationRoles.SuperAdmin);
 
+        var access = await GetAccessSnapshotAsync();
         var user = await _userManagementServices.GetUserByEmailAddress(email);
         var application = await _applicationServices.GetById(applicationId);
         var userApplications = await _applicationServices.GetUserApplications(email);
-        var rawAccesses = await _userManagementServices.GetUserAccesses(email, applicationId);
-        var tokens = (rawAccesses ?? string.Empty)
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .ToHashSet();
         var contentTypes = await _systemTypeServices.GetTypesInTypeGroup(applicationId, TypeId.Content);
         var appPages = await _applicationServices.GetApplicationSetting(applicationId, 6000);
 
-        _cached = new BackOfficeShellSnapshot(
+        _cachedSnapshot = new BackOfficeShellSnapshot(
             UserDisplayName: $"{user.FirstName} {user.LastName}",
-            IsSuperAdmin: isSuperAdmin,
+            IsSuperAdmin: access.IsSuperAdmin,
             ApplicationId: applicationId,
             ApplicationTitle: application.Title,
             HasMultipleApplications: userApplications.Count > 1,
-            Access: new BackOfficeAccessSnapshot(isSuperAdmin, tokens),
+            Access: access,
             ContentTypes: contentTypes.Select(t => new BackOfficeContentTypeLink(t.Id, t.Title)).ToArray(),
             AppPages: appPages.OrderBy(p => p.Value).Select(p => new BackOfficeAppPageLink("100" + p.Value, p.Title)).ToArray());
 
-        return _cached;
+        return _cachedSnapshot;
     }
 }

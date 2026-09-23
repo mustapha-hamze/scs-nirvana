@@ -5,6 +5,7 @@ using Application.UseCases.UserManagementServices;
 using Domains.Entities.ContentManagement;
 using Domains.Entities.General;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -13,12 +14,14 @@ using Xunit;
 
 namespace Web.Tests;
 
-// Web Phase 4 task 3: rendering/binding regression coverage for the Content feature's strongly
-// typed view models (Web/Areas/BackOffice/Features/Content/ViewModels). Proves the create/edit
-// ContentForm tab and button visibility, ContentList's per-row action controls, Farsi, sections,
-// images, and relations/metadata forms still gate on the same access keys the old ViewData/
-// accesses.Contains checks used, now resolved once per request from ContentController via
-// AccessKeyAuthorizer rather than re-read per partial.
+// Web Phase 4 tasks 3 and its fix pass: rendering/binding regression coverage for the Content
+// feature's strongly typed view models (Web/Areas/BackOffice/Features/Content/ViewModels). Proves
+// the create/edit ContentForm tab and button visibility, ContentList's per-row action controls,
+// Farsi, sections, images, and relations/metadata forms still gate on the same access keys the
+// old ViewData/accesses.Contains checks used, and that every Can* flag in a request - however
+// many - is resolved from the single request-scoped access snapshot
+// (BackOfficeShellContext/AccessKeyAuthorizer's shared per-request cache), never a second
+// GetUserAccesses call.
 public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly TestWebApplicationFactory _factory;
@@ -142,8 +145,7 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
         Assert.Contains($"/BackOffice/Content/FarsiContentForm/{contentId}/1000", body);
     }
 
-    [Fact]
-    public async Task ContentList_AccessResolutionCallCount_DoesNotScaleWithRowCount()
+    private WebApplicationFactory<Program> BuildCounterFactory(out CallCounter counter)
     {
         var counterFactory = _factory.WithWebHostBuilder(builder =>
         {
@@ -157,16 +159,25 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
                         sp.GetRequiredService<CallCounter>()));
             });
         });
+        counter = counterFactory.Services.GetRequiredService<CallCounter>();
+        return counterFactory;
+    }
+
+    // Web Phase 4 fix: proves GetUserAccesses is called exactly once for the whole request -
+    // RequireAccessAttribute's own check plus ContentList's CanEdit/CanDelete flags share
+    // AccessKeyAuthorizer's per-request cache - not merely that the count stays constant across
+    // row counts (row-count independence is a corollary of "exactly once", checked here too).
+    [Fact]
+    public async Task ContentList_ResolvesAccessesExactlyOncePerRequest_RegardlessOfRowCount()
+    {
+        var counterFactory = BuildCounterFactory(out var counter);
 
         var email = $"content-list-dupcheck-{Guid.NewGuid():N}@test.local";
-        // Non-SuperAdmin with both row-action keys granted, so CanEdit/CanDelete each actually
-        // resolve through GetUserAccesses instead of short-circuiting on the SuperAdmin bypass.
         var user = await AccountFlowHelper.SeedAdminUserAsync(counterFactory, email, "CorrectHorseBattery12");
         var client = await AccountFlowHelper.LoginAsync(counterFactory, email, "CorrectHorseBattery12");
         var applicationId = await AccountFlowHelper.SelectApplicationAsync(counterFactory, client, user);
         await AccountFlowHelper.GrantAccessAsync(counterFactory, user, applicationId,
             string.Join(',', AccessKeys.Content.Module, AccessKeys.Content.Edit, AccessKeys.Content.Delete));
-        var counter = counterFactory.Services.GetRequiredService<CallCounter>();
 
         async Task<int> AddRowsAndGetCallCountAsync(int rowsToAdd)
         {
@@ -183,11 +194,53 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
             return counter.GetUserAccessesCalls;
         }
 
-        var callCountWithOneRow = await AddRowsAndGetCallCountAsync(1);
-        var callCountWithFourRows = await AddRowsAndGetCallCountAsync(3); // 1 + 3 = 4 rows total now
+        Assert.Equal(1, await AddRowsAndGetCallCountAsync(1));
+        Assert.Equal(1, await AddRowsAndGetCallCountAsync(3)); // 1 + 3 = 4 rows total now
+    }
 
-        Assert.True(callCountWithOneRow > 0);
-        Assert.Equal(callCountWithOneRow, callCountWithFourRows);
+    // Web Phase 4 fix: a fully rendered ContentForm resolves seven distinct Can* flags
+    // (CanSaveOrUpdateContent, CanChangeActivity, and five CanPreview* tab flags) plus
+    // DenyIfMissingAccessAsync's own dynamic check - all from the same request-scoped snapshot,
+    // so GetUserAccesses is still called exactly once for a non-SuperAdmin holding every one of
+    // those keys (the case with the most visible controls, and so the most checks).
+    [Fact]
+    public async Task ContentForm_FullyRendered_ResolvesAccessesExactlyOncePerRequest()
+    {
+        var counterFactory = BuildCounterFactory(out var counter);
+
+        var email = $"content-form-dupcheck-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(counterFactory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(counterFactory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(counterFactory, client, user);
+        await AccountFlowHelper.GrantAccessAsync(counterFactory, user, applicationId, string.Join(',',
+            AccessKeys.Content.Edit, AccessKeys.Content.Update, AccessKeys.Content.ChangeActivity,
+            AccessKeys.Content.PreviewBody, AccessKeys.Content.PreviewImages, AccessKeys.Content.PreviewAttachments,
+            AccessKeys.Content.PreviewRelations, AccessKeys.Content.PreviewMetadata));
+        int contentId;
+        using (var scope = counterFactory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var content = new Content { ApplicationId = applicationId, TypeId = 1000, Title = "Dup-check content", PublishDt = DateTime.UtcNow };
+            context.Contents.Add(content);
+            await context.SaveChangesAsync();
+            context.ApplicationSettings.Add(new ApplicationSetting { ApplicationId = applicationId, SettingId = 5000, Title = "WebsiteUrl", Value = "https://example.test" });
+            await context.SaveChangesAsync();
+            contentId = content.Id;
+        }
+        counter.Reset();
+
+        var response = await client.GetAsync($"/BackOffice/Content/ContentForm/{contentId}/1000");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        // Confirm this really is the "multiple visible controls" case, not an early-out.
+        Assert.Contains("id=\"btnSaveContentForm\"", body);
+        Assert.Contains("href=\"#body\"", body);
+        Assert.Contains("href=\"#images\"", body);
+        Assert.Contains("href=\"#attachment\"", body);
+        Assert.Contains("href=\"#relations\"", body);
+        Assert.Contains("href=\"#metadata\"", body);
+        Assert.Equal(1, counter.GetUserAccessesCalls);
     }
 
     // ---- Farsi ----

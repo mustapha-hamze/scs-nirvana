@@ -5,6 +5,7 @@ using Application.UseCases.UserManagementServices;
 using Domains.Entities.General;
 using Infrastructure.Data;
 using Infrastructure.Identity;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -156,8 +157,7 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
         Assert.Contains("<i class=\"mdi mdi-logout me-1\"></i>", body);
     }
 
-    [Fact]
-    public async Task BackOfficeShellSnapshot_ResolvesUserAndAccessesOnlyOncePerRenderedRequest()
+    private WebApplicationFactory<Program> BuildCounterFactory(out CallCounter counter)
     {
         var counterFactory = _factory.WithWebHostBuilder(builder =>
         {
@@ -171,25 +171,50 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
                         sp.GetRequiredService<CallCounter>()));
             });
         });
+        counter = counterFactory.Services.GetRequiredService<CallCounter>();
+        return counterFactory;
+    }
+
+    // Category/Index has no view-level calls of its own to these services (unlike Home/Index,
+    // which - outside this task's Views/Shared scope - still makes its own separate calls), so
+    // every GetUserAccesses call below is attributable to RequireAccessAttribute's own check plus
+    // the shared shell (_Navbar/_SideBar/_SideBarCMS/_SideBarSCM) - proving they share one fetch
+    // (AccessKeyAuthorizer's per-request cache - Web Phase 4 fix), not that the count merely stays
+    // constant.
+    [Fact]
+    public async Task BackOfficeShellSnapshot_ResolvesAccessesExactlyOncePerRenderedRequest_ForNonSuperAdmin()
+    {
+        var counterFactory = BuildCounterFactory(out var counter);
 
         var email = $"shell-dupcheck-{Guid.NewGuid():N}@test.local";
-        // SuperAdmin so the request needs no separately-granted access key - this test is about
-        // call counts, not permission classification.
-        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(counterFactory, email, "CorrectHorseBattery12");
+        var user = await AccountFlowHelper.SeedAdminUserAsync(counterFactory, email, "CorrectHorseBattery12");
         var client = await AccountFlowHelper.LoginAsync(counterFactory, email, "CorrectHorseBattery12");
-        await AccountFlowHelper.SelectApplicationAsync(counterFactory, client, user);
-        var counter = counterFactory.Services.GetRequiredService<CallCounter>();
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(counterFactory, client, user);
+        await AccountFlowHelper.GrantAccessAsync(counterFactory, user, applicationId, Web.Authorization.AccessKeys.Category.Module);
         counter.Reset();
 
-        // Category/Index has no view-level calls of its own to these services (unlike Home/Index,
-        // which - outside this task's Views/Shared scope - still makes its own separate calls) so
-        // every call below is attributable to the shared shell (_Navbar/_SideBar/_SideBarCMS/
-        // _SideBarSCM) alone.
         var response = await client.GetAsync("/BackOffice/Category/Index");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(1, counter.GetUserAccessesCalls);
         Assert.Equal(1, counter.GetUserByEmailAddressCalls);
+    }
+
+    [Fact]
+    public async Task BackOfficeShellSnapshot_SuperAdmin_NeedsNoPersistedAccessLookup()
+    {
+        var counterFactory = BuildCounterFactory(out var counter);
+
+        var email = $"shell-superadmin-dupcheck-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(counterFactory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(counterFactory, email, "CorrectHorseBattery12");
+        await AccountFlowHelper.SelectApplicationAsync(counterFactory, client, user);
+        counter.Reset();
+
+        var response = await client.GetAsync("/BackOffice/Category/Index");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(0, counter.GetUserAccessesCalls);
     }
 
     private async Task<string> GetHomeIndexAsync(HttpClient client)

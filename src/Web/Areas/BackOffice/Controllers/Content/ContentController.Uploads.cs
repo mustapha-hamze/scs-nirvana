@@ -18,7 +18,8 @@ public partial class ContentController
         var aspectRatio = await _applicationServices.GetApplicationSetting(currentApplicationId, 1001);
         var sizes = await _applicationServices.GetApplicationSetting(currentApplicationId, 1000);
         var images = await _contentServices.GetAllContentImages(contentId, currentApplicationId);
-        var canUploadImages = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.UploadImages);
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canUploadImages = access.CanAccess(AccessKeys.Content.UploadImages);
 
         return View(new ContentImagesViewModel
         {

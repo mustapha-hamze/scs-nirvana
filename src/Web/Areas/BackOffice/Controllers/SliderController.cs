@@ -1,5 +1,6 @@
 
 using Web.Areas.BackOffice.Features.Slider.ViewModels;
+using Web.Areas.BackOffice.Presentation.Shell;
 
 namespace Web.Areas.BackOffice.Controllers;
 [Authorize]
@@ -12,18 +13,18 @@ public class SliderController : BaseController
     private readonly ICurrentApplicationContext _currentApplicationContext;
     private readonly IHostEnvironment _appEnvironment;
     private readonly IFileUploadService _fileUploadService;
-    private readonly AccessKeyAuthorizer _accessKeyAuthorizer;
+    private readonly IBackOfficeShellContext _shellContext;
 
     // constructor
     public SliderController(ISliderServices sliderServices,
         ICurrentApplicationContext currentApplicationContext, IHostEnvironment appEnvironment,
-        IFileUploadService fileUploadService, AccessKeyAuthorizer accessKeyAuthorizer)
+        IFileUploadService fileUploadService, IBackOfficeShellContext shellContext)
     {
         _sliderServices = sliderServices;
         _currentApplicationContext = currentApplicationContext;
         _appEnvironment = appEnvironment;
         _fileUploadService = fileUploadService;
-        _accessKeyAuthorizer = accessKeyAuthorizer;
+        _shellContext = shellContext;
     }
 
 
@@ -41,7 +42,8 @@ public class SliderController : BaseController
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var sliders = await _sliderServices.GetSliders(currentApplicationId);
-        var canAccessItems = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.AccessItems);
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canAccessItems = access.CanAccess(AccessKeys.Slider.AccessItems);
 
         var items = sliders.Select(s => new SliderListItemViewModel
         {
@@ -59,8 +61,8 @@ public class SliderController : BaseController
     public async Task<IActionResult> Create()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        var canSave = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.Save);
-        return View(new SliderCreateViewModel(currentApplicationId, canSave));
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        return View(new SliderCreateViewModel(currentApplicationId, access.CanAccess(AccessKeys.Slider.Save)));
     }
 
     [HttpPost]
@@ -126,9 +128,10 @@ public class SliderController : BaseController
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var sliderItems = await _sliderServices.GetSliderItems(sliderId, currentApplicationId);
-        var canToggleActivity = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.Activity);
-        var canDelete = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.DeleteItem);
-        var canUpdate = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.UpdateItem);
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canToggleActivity = access.CanAccess(AccessKeys.Slider.Activity);
+        var canDelete = access.CanAccess(AccessKeys.Slider.DeleteItem);
+        var canUpdate = access.CanAccess(AccessKeys.Slider.UpdateItem);
 
         var items = sliderItems.Select(i => new SliderItemRowViewModel
         {
@@ -159,8 +162,9 @@ public class SliderController : BaseController
             ? await _sliderServices.GetSliderItem(sliderItemId, currentApplicationId)
             : new SliderItem { SliderId = sliderId };
 
-        var canCreateItem = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.SaveItem);
-        var canUpdateItem = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Slider.UpdateItem);
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canCreateItem = access.CanAccess(AccessKeys.Slider.SaveItem);
+        var canUpdateItem = access.CanAccess(AccessKeys.Slider.UpdateItem);
 
         var model = new SliderItemFormViewModel
         {

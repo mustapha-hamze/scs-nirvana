@@ -15,7 +15,8 @@ public partial class ContentController
         var tags = await _tagServices.FindTagsByTypeId(currentApplicationId, TypeId.Content);
         var cultures = await _cultureServices.List();
         var content = await _contentServices.GetById(contentId, currentApplicationId);
-        var canSaveRelations = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.SaveRelations);
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canSaveRelations = access.CanAccess(AccessKeys.Content.SaveRelations);
 
         return View(new ContentRelationsViewModel
         {
@@ -38,7 +39,8 @@ public partial class ContentController
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var contentMetadata = await _contentServices.GetContentMetadata(contentId, currentApplicationId);
         contentMetadata.ContentId = contentId;
-        var canSaveMetadata = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.SaveMetadata);
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canSaveMetadata = access.CanAccess(AccessKeys.Content.SaveMetadata);
 
         return View(new ContentMetadataPageModel
         {

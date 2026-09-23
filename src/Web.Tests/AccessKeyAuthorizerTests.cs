@@ -19,14 +19,18 @@ public sealed class AccessKeyAuthorizerTests
     private sealed class FakeUserManagementServices : IUserManagementServices
     {
         private readonly string _accesses;
+        public int GetUserAccessesCallCount;
         public FakeUserManagementServices(string accesses) => _accesses = accesses;
 
         public Task<List<UserDto>> List(bool isAdminUser, string email = "", CancellationToken cancellationToken = default) =>
             throw new System.NotImplementedException();
         public Task<UserDto> GetUserByEmailAddress(string email, CancellationToken cancellationToken = default) =>
             throw new System.NotImplementedException();
-        public Task<string> GetUserAccesses(string email, int appId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(_accesses);
+        public Task<string> GetUserAccesses(string email, int appId, CancellationToken cancellationToken = default)
+        {
+            GetUserAccessesCallCount++;
+            return Task.FromResult(_accesses);
+        }
         public Task SetCurrentApplicationId(string email, int appId, CancellationToken cancellationToken = default) =>
             throw new System.NotImplementedException();
         public Task SetUserAccesses(string accesses, string userId, int appId, CancellationToken cancellationToken = default) =>
@@ -108,5 +112,45 @@ public sealed class AccessKeyAuthorizerTests
     {
         var authorizer = new AccessKeyAuthorizer(new FakeUserManagementServices("CMS1000_1001"));
         Assert.False(await authorizer.HasAccessAsync(MemberUser(), 1));
+    }
+
+    // Web Phase 4 fix: AccessKeyAuthorizer is registered Scoped (one instance per HTTP request),
+    // so caching the token fetch on the instance is what makes RequireAccessAttribute and every
+    // BackOfficeShellContext presentation read in the same request share one GetUserAccesses call.
+    [Fact]
+    public async Task RepeatedChecks_OnTheSameInstance_FetchAccessesOnlyOnce()
+    {
+        var fake = new FakeUserManagementServices("CMS1000_1001,CMS1000_1002");
+        var authorizer = new AccessKeyAuthorizer(fake);
+
+        Assert.True(await authorizer.HasAccessAsync(MemberUser(), 1, "CMS1000_1001"));
+        Assert.True(await authorizer.HasAccessAsync(MemberUser(), 1, "CMS1000_1002"));
+        Assert.False(await authorizer.HasAccessAsync(MemberUser(), 1, "CMS1000_9999"));
+
+        Assert.Equal(1, fake.GetUserAccessesCallCount);
+    }
+
+    [Fact]
+    public async Task SuperAdmin_NeverFetchesPersistedAccesses()
+    {
+        var fake = new FakeUserManagementServices("");
+        var authorizer = new AccessKeyAuthorizer(fake);
+
+        Assert.True(await authorizer.HasAccessAsync(MemberUser(superAdmin: true), 1, "CMS1000_1001"));
+        Assert.True(await authorizer.HasAccessAsync(MemberUser(superAdmin: true), 1, "SCM3000_1001"));
+
+        Assert.Equal(0, fake.GetUserAccessesCallCount);
+    }
+
+    [Fact]
+    public async Task DifferentApplicationId_RefetchesInsteadOfReusingTheWrongTenantsCache()
+    {
+        var fake = new FakeUserManagementServices("CMS1000_1001");
+        var authorizer = new AccessKeyAuthorizer(fake);
+
+        Assert.True(await authorizer.HasAccessAsync(MemberUser(), 1, "CMS1000_1001"));
+        Assert.True(await authorizer.HasAccessAsync(MemberUser(), 2, "CMS1000_1001"));
+
+        Assert.Equal(2, fake.GetUserAccessesCallCount);
     }
 }

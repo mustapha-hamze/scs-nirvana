@@ -24,7 +24,8 @@ public partial class ContentController
         var schemas = await _schemaServices.List(currentApplicationId, schemaTypeId);
         var sections = await _contentServices.GetSections(contentId, currentApplicationId);
         var priority = sections.Count > 0 ? sections[^1].Priority + 1 : 0;
-        var canSaveBody = await _accessKeyAuthorizer.HasAccessAsync(User, currentApplicationId, AccessKeys.Content.SaveBody);
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canSaveBody = access.CanAccess(AccessKeys.Content.SaveBody);
 
         return View(new ContentSectionsViewModel
         {
