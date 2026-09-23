@@ -77,7 +77,18 @@ public class SchemaController : BaseController
     public async Task<IActionResult> UploadSchemaLogo(IFormFile File, int EntityId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        var schema = await _schemaServices.GetById(EntityId, currentApplicationId);
+
+        SchemaDto schema;
+        try
+        {
+            schema = await _schemaServices.GetById(EntityId, currentApplicationId);
+        }
+        catch (InvalidOperationException)
+        {
+            // GetById's SingleAsync throws for a missing/deleted/other-tenant EntityId - a
+            // deliberate, client-compatible failure instead of an unhandled 500.
+            return Content("Failed");
+        }
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Schema/Logos/");
         var baseName = Path.GetFileNameWithoutExtension(schema.LogoFileName);

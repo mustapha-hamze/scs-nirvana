@@ -74,7 +74,17 @@ public class ApplicationController : BaseController
     [HttpPost]
     public async Task<IActionResult> UploadApplicationLogo(IFormFile File, int EntityId)
     {
-        var application = await _applicationServices.GetById(EntityId);
+        ApplicationDto application;
+        try
+        {
+            application = await _applicationServices.GetById(EntityId);
+        }
+        catch (InvalidOperationException)
+        {
+            // GetById's SingleAsync throws for a missing/deleted EntityId - a deliberate,
+            // client-compatible failure instead of an unhandled 500.
+            return Content("Failed");
+        }
 
         application.ApplicationKey = _codeGenerator.GenerateAppKey(application.Id);
 

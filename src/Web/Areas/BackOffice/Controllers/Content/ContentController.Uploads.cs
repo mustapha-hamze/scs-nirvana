@@ -52,22 +52,40 @@ public partial class ContentController
         return uploadResult.Succeeded ? Content("Done|" + uploadResult.FileName) : Content("Failed");
     }
 
+    // All-or-nothing: content.js's uploadBodyImageGallery has no per-file error display, so a
+    // silently-dropped failure would leave the caller believing every selected image was saved.
+    // An empty selection and any single file's failure both fail the whole batch; only files this
+    // call itself wrote are removed on failure, matching SaveImageVariantsAsync's atomicity.
     [HttpPost]
     [RequireAccess(AccessKeys.Content.SaveBody)]
     public async Task<IActionResult> UploadBodyImageGallery()
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Section/Gallery/");
 
-        string result = string.Empty;
         var uploadedImages = Request.Form.Files;
+        if (uploadedImages.Count == 0)
+            return Content("Failed");
+
+        var savedFileNames = new List<string>();
         foreach (var item in uploadedImages)
         {
             var uploadResult = await _fileUploadService.SaveImageAsync(item, savePath, Guid.NewGuid().ToString());
-            if (uploadResult.Succeeded)
-                result += uploadResult.FileName + ",";
+            if (!uploadResult.Succeeded)
+            {
+                foreach (var fileName in savedFileNames)
+                {
+                    var path = Path.Combine(savePath, fileName);
+                    try { if (System.IO.File.Exists(path)) System.IO.File.Delete(path); }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+                }
+
+                return Content("Failed");
+            }
+
+            savedFileNames.Add(uploadResult.FileName!);
         }
 
-        return Content("Done|" + result);
+        return Content("Done|" + string.Join(",", savedFileNames) + ",");
     }
 
     [HttpPost]
@@ -81,13 +99,23 @@ public partial class ContentController
 
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var imageSettings = await _applicationServices.GetApplicationSetting(currentApplicationId, 1000);
-        var currentImageSettings = imageSettings.Single(s => s.Id == settingId);
+        var currentImageSettings = imageSettings.SingleOrDefault(s => s.Id == settingId);
+        if (currentImageSettings == null)
+            return Content("Failed");
 
-        var targetSizes = currentImageSettings.Value.Split(",").Select(item =>
+        List<(int Width, int Height)> targetSizes;
+        try
         {
-            var sizes = item.Split("-");
-            return (Width: Convert.ToInt32(sizes[0]), Height: Convert.ToInt32(sizes[1]));
-        });
+            targetSizes = currentImageSettings.Value.Split(",").Select(item =>
+            {
+                var sizes = item.Split("-");
+                return (Width: int.Parse(sizes[0]), Height: int.Parse(sizes[1]));
+            }).ToList();
+        }
+        catch (Exception ex) when (ex is FormatException or OverflowException or IndexOutOfRangeException)
+        {
+            return Content("Failed");
+        }
 
         var uploadResult = await _fileUploadService.SaveImageVariantsAsync(file, savePath, targetSizes);
         if (!uploadResult.Succeeded)
