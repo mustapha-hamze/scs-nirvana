@@ -1,6 +1,5 @@
 using System.Net;
 using Microsoft.Extensions.Options;
-using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace Web;
 
@@ -41,7 +40,7 @@ public sealed class ReverseProxyOptions
         foreach (var proxy in ParseKnownProxies())
             options.KnownProxies.Add(proxy);
         foreach (var network in ParseKnownNetworks())
-            options.KnownNetworks.Add(network);
+            options.KnownIPNetworks.Add(network);
 
         return options;
     }

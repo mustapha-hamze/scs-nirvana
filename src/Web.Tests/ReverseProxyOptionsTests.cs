@@ -83,20 +83,30 @@ public sealed class ReverseProxyOptionsTests : IClassFixture<TestWebApplicationF
 
         Assert.True(result.Succeeded);
         var network = Assert.Single(options.ParseKnownNetworks());
-        Assert.Equal(IPAddress.Parse("10.0.0.0"), network.Prefix);
+        Assert.Equal(IPAddress.Parse("10.0.0.0"), network.BaseAddress);
         Assert.Equal(24, network.PrefixLength);
     }
 
     [Fact]
-    public void ToForwardedHeadersOptions_AddsConfiguredProxy_WithoutClearingTheDefaultTrustList()
+    public void ToForwardedHeadersOptions_AddsConfiguredProxyAndNetwork_WithoutClearingTheDefaultTrustList()
     {
-        var options = new ReverseProxyOptions { Enabled = true, KnownProxies = "10.0.0.5", ForwardLimit = 2 };
+        var options = new ReverseProxyOptions
+        {
+            Enabled = true,
+            KnownProxies = "10.0.0.5",
+            KnownNetworks = "10.0.1.0/24",
+            ForwardLimit = 2,
+        };
 
         var forwardedHeadersOptions = options.ToForwardedHeadersOptions();
 
-        // ForwardedHeadersOptions itself already seeds loopback by default; this only proves the
-        // configured proxy was added on top of that, never that the list was cleared to empty.
+        // ForwardedHeadersOptions itself already seeds loopback by default (::1 in KnownProxies,
+        // 127.0.0.0/8 in KnownIPNetworks); this only proves the configured proxy/network were
+        // added on top of that, never that either list was cleared to empty.
         Assert.Contains(IPAddress.Parse("10.0.0.5"), forwardedHeadersOptions.KnownProxies);
+        Assert.Contains(IPAddress.Parse("::1"), forwardedHeadersOptions.KnownProxies);
+        Assert.Contains(new IPNetwork(IPAddress.Parse("10.0.1.0"), 24), forwardedHeadersOptions.KnownIPNetworks);
+        Assert.Contains(new IPNetwork(IPAddress.Parse("127.0.0.0"), 8), forwardedHeadersOptions.KnownIPNetworks);
         Assert.Equal(2, forwardedHeadersOptions.ForwardLimit);
     }
 
