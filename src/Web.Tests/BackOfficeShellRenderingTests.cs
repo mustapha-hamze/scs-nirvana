@@ -57,9 +57,12 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
 
         var body = await GetHomeIndexAsync(client);
 
+        // "Pages" routes to the same Content.Module-gated ContentController.Index action as
+        // "Content", so it must show under exactly the same key (Web Phase 4 fix - see
+        // AccessKeys.Content.Module's own comment).
         Assert.Contains("id=\"liCMSContent\"", body);
+        Assert.Contains("id=\"liCMSAppPages\"", body);
         Assert.Contains("id=\"liSCMSlider\"", body);
-        Assert.DoesNotContain("id=\"liCMSAppPages\"", body);
         Assert.DoesNotContain("id=\"liCMSCategory\"", body);
         Assert.DoesNotContain("id=\"liCMSSchema\"", body);
         Assert.DoesNotContain("id=\"sidebarUserManagement\"", body);
@@ -67,7 +70,7 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
     }
 
     [Fact]
-    public async Task PrefixKeyMember_DoesNotSeeContentLink()
+    public async Task PrefixKeyMember_DoesNotSeeContentGroupOrLink()
     {
         var email = $"shell-prefix-{Guid.NewGuid():N}@test.local";
         var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
@@ -75,13 +78,14 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
         var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
         // Shares "CMS1000_1001" as a string prefix but is a different key - the same false
         // positive AccessKeyAuthorizationTests' Content_SimilarPrefixPermission_ReadIsStillDenied
-        // proves server-side. The old accesses.Contains("CMS1000_1001") check would wrongly show
-        // the Content link for this key; HasModuleAccess must not.
+        // proves server-side. Holding only this key must not show any CMS link, including the
+        // "Content Management" group itself - CanAnyAccess only counts exact module keys, never a
+        // family/prefix match (Web Phase 4 fix).
         await AccountFlowHelper.GrantAccessAsync(_factory, user, applicationId, "CMS1000_10011");
 
         var body = await GetHomeIndexAsync(client);
 
-        Assert.Contains("id=\"cmsMenuLi\"", body); // still in the CMS family (starts with "CMS1000_")
+        Assert.DoesNotContain("id=\"cmsMenuLi\"", body);
         Assert.DoesNotContain("id=\"liCMSContent\"", body);
     }
 

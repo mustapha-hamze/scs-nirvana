@@ -4,7 +4,7 @@
     var shell = await ShellContext.GetSnapshotAsync();
 }
 
-@if (shell.Access.HasFamilyAccess(Web.Authorization.AccessKeys.ContentManagementFamily))
+@if (shell.Access.CanAnyAccess(Web.Authorization.AccessKeys.Content.Module, Web.Authorization.AccessKeys.Category.Module, Web.Authorization.AccessKeys.Schema.Module))
 {
     <li class="side-nav-item" id="cmsMenuLi">
         <a data-bs-toggle="collapse" href="#sidebarContentManagement" aria-expanded="false"
@@ -15,7 +15,7 @@
         </a>
         <div class="collapse" id="sidebarContentManagement">
             <ul class="side-nav-second-level">
-                @if (shell.Access.HasModuleAccess(Web.Authorization.AccessKeys.Content.Module))
+                @if (shell.Access.CanAccess(Web.Authorization.AccessKeys.Content.Module))
                 {
                     <li class="side-nav-item" id="liCMSContent">
                         <a data-bs-toggle="collapse" href="#sidebarSecondLevel" aria-expanded="false"
@@ -35,7 +35,9 @@
                         </div>
                     </li>
                 }
-                @if (shell.Access.HasModuleAccess(Web.Authorization.AccessKeys.AppPages.Module))
+                @* "Pages" routes to the same ContentController.Index action as "Content" above, gated by
+                   the same exact AccessKeys.Content.Module key - see AccessKeys.cs's comment on it. *@
+                @if (shell.Access.CanAccess(Web.Authorization.AccessKeys.Content.Module))
                 {
                     <li class="side-nav-item" id="liCMSAppPages">
                         <a data-bs-toggle="collapse" href="#sidebarSecondLevelAppPages" aria-expanded="false"
@@ -55,13 +57,13 @@
                         </div>
                     </li>
                 }
-                @if (shell.Access.HasModuleAccess(Web.Authorization.AccessKeys.Category.Module))
+                @if (shell.Access.CanAccess(Web.Authorization.AccessKeys.Category.Module))
                 {
                     <li id="liCMSCategory">
                         <a href="/BackOffice/Category/Index">Category</a>
                     </li>
                 }
-                @if (shell.Access.HasModuleAccess(Web.Authorization.AccessKeys.Schema.Module))
+                @if (shell.Access.CanAccess(Web.Authorization.AccessKeys.Schema.Module))
                 {
                     <li id="liCMSSchema">
                         <a href="/BackOffice/Schema/Index">Schema</a>

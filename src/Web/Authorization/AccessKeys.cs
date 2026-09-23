@@ -9,16 +9,15 @@ namespace Web.Authorization;
 // never grant a permission it wasn't issued. SuperAdmin always bypasses these checks.
 public static class AccessKeys
 {
-    // Top-level module-family prefixes - "does the user hold any key under this area at all".
-    // Only used for sidebar section visibility (BackOfficeAccessSnapshot.HasFamilyAccess); every
-    // real key already begins with one of these, so a token-wise StartsWith is exact here, unlike
-    // the per-module HasModuleAccess check below.
-    public const string ContentManagementFamily = "CMS1000_";
-    public const string MediaAndModulesFamily = "SCM3000_";
-
     public static class Content
     {
-        // Base module key: gates the Content list/type-navigation itself (sidebar "Content" link).
+        // Base module key: gates the Content list/type-navigation itself for every typeId,
+        // content or app-page alike - ContentController.Index has exactly this one
+        // [RequireAccess], regardless of whether the id being browsed is a "Content" type or an
+        // "app page" type. The sidebar's "Content" and "Pages" links (Views/Shared/_SideBarCMS.cshtml)
+        // both route to that same action, so both must gate on this same key - a separate
+        // "AppPages" key existed here previously but had no server-side enforcement of its own,
+        // which could render a "Pages" link that 403'd when clicked (Web Phase 4 fix).
         public const string Module = "CMS1000_1001";
 
         public const string Add = "CMS1000_1001_ADD_1000";
@@ -53,13 +52,6 @@ public static class AccessKeys
 
         public const string PreviewMetadata = "CMS1000_1001_PREVIEW_META_1012";
         public const string SaveMetadata = "CMS1000_1001_SAVE_META_1013";
-    }
-
-    public static class AppPages
-    {
-        // Sidebar "Pages" link (Views/Shared/_SideBarCMS.cshtml) - no finer-grained key exists,
-        // only the sidebar module gate.
-        public const string Module = "CMS1000_1004";
     }
 
     public static class Category

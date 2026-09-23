@@ -30,31 +30,27 @@ public sealed record BackOfficeContentTypeLink(int Id, string Title);
 public sealed record BackOfficeAppPageLink(string PageType, string Title);
 
 // Exact AccessKeys token semantics - the same comparison AccessKeyAuthorizer uses server-side, not
-// Razor's accesses.Contains(prefix). HasModuleAccess mirrors a module key's own real sub-action
-// keys (e.g. Slider's key sharing AccessKeys.Content's CMS-prefix family, as documented in
-// AccessKeys.cs); HasFamilyAccess mirrors a bare top-level family prefix - both still used by the
-// shared sidebar. CanAccess is the plain exact-token check Content/Slider Can* view-model flags
-// use, replacing the AccessKeyAuthorizer.HasAccessAsync call they used to issue on their own.
+// Razor's old accesses.Contains(prefix)/StartsWith. CanAccess/CanAnyAccess only ever return true
+// for a key (or SuperAdmin) that would also satisfy the matching [RequireAccess] check server-side
+// - callers must pass the exact key(s) that gate the link's destination, never a family/module
+// prefix, so a link is never shown for a permission that would 403 (see
+// AccessKeyAuthorizationTests' Content_SimilarPrefixPermission_ReadIsStillDenied for the
+// server-side proof of the same "similar key" bug class this also avoids).
 public sealed class BackOfficeAccessSnapshot
 {
-    private readonly bool _isSuperAdmin;
     private readonly IReadOnlySet<string> _tokens;
 
     public BackOfficeAccessSnapshot(bool isSuperAdmin, IReadOnlySet<string> tokens)
     {
-        _isSuperAdmin = isSuperAdmin;
+        IsSuperAdmin = isSuperAdmin;
         _tokens = tokens;
     }
 
-    public bool IsSuperAdmin => _isSuperAdmin;
+    public bool IsSuperAdmin { get; }
 
-    public bool CanAccess(string key) => _isSuperAdmin || _tokens.Contains(key);
+    public bool CanAccess(string key) => IsSuperAdmin || _tokens.Contains(key);
 
-    public bool HasModuleAccess(string moduleKey) =>
-        _isSuperAdmin || _tokens.Contains(moduleKey) || _tokens.Any(t => t.StartsWith(moduleKey + "_", StringComparison.Ordinal));
-
-    public bool HasFamilyAccess(string familyPrefix) =>
-        _isSuperAdmin || _tokens.Any(t => t.StartsWith(familyPrefix, StringComparison.Ordinal));
+    public bool CanAnyAccess(params string[] keys) => IsSuperAdmin || keys.Any(_tokens.Contains);
 }
 
 public sealed record BackOfficeShellSnapshot(
