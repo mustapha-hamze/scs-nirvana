@@ -285,8 +285,8 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
             return _inner.GetUserAccesses(email, appId, cancellationToken);
         }
 
-        public Task SetCurrentApplicationId(string email, int appId, CancellationToken cancellationToken = default) =>
-            _inner.SetCurrentApplicationId(email, appId, cancellationToken);
+        public Task SetCurrentApplicationId(string email, int appId, bool isSuperAdmin = false, CancellationToken cancellationToken = default) =>
+            _inner.SetCurrentApplicationId(email, appId, isSuperAdmin, cancellationToken);
 
         public Task SetUserAccesses(string accesses, string userId, int appId, CancellationToken cancellationToken = default) =>
             _inner.SetUserAccesses(accesses, userId, appId, cancellationToken);

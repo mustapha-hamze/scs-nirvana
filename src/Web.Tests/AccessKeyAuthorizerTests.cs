@@ -31,7 +31,7 @@ public sealed class AccessKeyAuthorizerTests
             GetUserAccessesCallCount++;
             return Task.FromResult(_accesses);
         }
-        public Task SetCurrentApplicationId(string email, int appId, CancellationToken cancellationToken = default) =>
+        public Task SetCurrentApplicationId(string email, int appId, bool isSuperAdmin = false, CancellationToken cancellationToken = default) =>
             throw new System.NotImplementedException();
         public Task SetUserAccesses(string accesses, string userId, int appId, CancellationToken cancellationToken = default) =>
             throw new System.NotImplementedException();

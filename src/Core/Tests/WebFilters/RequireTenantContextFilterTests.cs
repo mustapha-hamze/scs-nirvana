@@ -21,12 +21,15 @@ public class RequireTenantContextFilterTests
         public int? CurrentApplicationId { get; set; }
     }
 
-    private static ActionExecutingContext CreateContext(bool authenticated, ActionDescriptor actionDescriptor = null, bool ajax = false)
+    private static ActionExecutingContext CreateContext(bool authenticated, ActionDescriptor actionDescriptor = null, bool ajax = false, bool superAdmin = false)
     {
         var httpContext = new DefaultHttpContext();
         if (authenticated)
         {
-            var identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, "user@example.com") }, "TestAuth");
+            var claims = new List<Claim> { new(ClaimTypes.Name, "user@example.com") };
+            if (superAdmin)
+                claims.Add(new Claim(ClaimTypes.Role, "SuperAdmin"));
+            var identity = new ClaimsIdentity(claims, "TestAuth");
             httpContext.User = new ClaimsPrincipal(identity);
         }
 
@@ -52,7 +55,7 @@ public class RequireTenantContextFilterTests
     {
         var currentApplicationContext = new FakeCurrentApplicationContext { CurrentApplicationId = 5 };
         var guard = new Mock<ITenantAccessGuard>();
-        guard.Setup(g => g.HasAccessAsync("user@example.com", 5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        guard.Setup(g => g.HasAccessAsync("user@example.com", 5, false, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var sut = new RequireTenantContextFilter(currentApplicationContext, guard.Object);
         var context = CreateContext(authenticated: true);
@@ -70,7 +73,7 @@ public class RequireTenantContextFilterTests
     {
         var currentApplicationContext = new FakeCurrentApplicationContext { CurrentApplicationId = 5 };
         var guard = new Mock<ITenantAccessGuard>();
-        guard.Setup(g => g.HasAccessAsync("user@example.com", 5, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        guard.Setup(g => g.HasAccessAsync("user@example.com", 5, false, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var sut = new RequireTenantContextFilter(currentApplicationContext, guard.Object);
         var context = CreateContext(authenticated: true, ajax: false);
@@ -89,7 +92,7 @@ public class RequireTenantContextFilterTests
     {
         var currentApplicationContext = new FakeCurrentApplicationContext { CurrentApplicationId = 5 };
         var guard = new Mock<ITenantAccessGuard>();
-        guard.Setup(g => g.HasAccessAsync("user@example.com", 5, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        guard.Setup(g => g.HasAccessAsync("user@example.com", 5, false, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var sut = new RequireTenantContextFilter(currentApplicationContext, guard.Object);
         var context = CreateContext(authenticated: true, ajax: true);
@@ -116,7 +119,7 @@ public class RequireTenantContextFilterTests
 
         Assert.False(called[0]);
         Assert.IsType<RedirectResult>(context.Result);
-        guard.Verify(g => g.HasAccessAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        guard.Verify(g => g.HasAccessAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -132,7 +135,7 @@ public class RequireTenantContextFilterTests
         await sut.OnActionExecutionAsync(context, Next(called));
 
         Assert.True(called[0]);
-        guard.Verify(g => g.HasAccessAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        guard.Verify(g => g.HasAccessAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -154,6 +157,48 @@ public class RequireTenantContextFilterTests
         await sut.OnActionExecutionAsync(context, Next(called));
 
         Assert.True(called[0]);
-        guard.Verify(g => g.HasAccessAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        guard.Verify(g => g.HasAccessAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    // The filter's own job here is narrow: read the SuperAdmin role off the authenticated
+    // principal and pass it through to the guard unchanged. Whether SuperAdmin actually bypasses
+    // membership is TenantAccessGuard's decision (see TenantAccessGuardTests) - this only proves
+    // the filter asks the guard the right question.
+    [Fact]
+    public async Task SuperAdminSelection_PassesSuperAdminToGuard_AndCallsNextWhenApproved()
+    {
+        var currentApplicationContext = new FakeCurrentApplicationContext { CurrentApplicationId = 5 };
+        var guard = new Mock<ITenantAccessGuard>();
+        guard.Setup(g => g.HasAccessAsync("user@example.com", 5, true, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        var sut = new RequireTenantContextFilter(currentApplicationContext, guard.Object);
+        var context = CreateContext(authenticated: true, superAdmin: true);
+        var called = new bool[1];
+
+        await sut.OnActionExecutionAsync(context, Next(called));
+
+        Assert.True(called[0]);
+        Assert.Null(context.Result);
+        Assert.Equal(5, currentApplicationContext.CurrentApplicationId);
+    }
+
+    [Fact]
+    public async Task SuperAdminSelection_StillDeniedWhenGuardRejects()
+    {
+        // Even as SuperAdmin, an inactive/deleted/nonexistent target is still rejected - the
+        // filter doesn't grant access itself, it only forwards the role fact to the guard.
+        var currentApplicationContext = new FakeCurrentApplicationContext { CurrentApplicationId = 5 };
+        var guard = new Mock<ITenantAccessGuard>();
+        guard.Setup(g => g.HasAccessAsync("user@example.com", 5, true, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+
+        var sut = new RequireTenantContextFilter(currentApplicationContext, guard.Object);
+        var context = CreateContext(authenticated: true, superAdmin: true);
+        var called = new bool[1];
+
+        await sut.OnActionExecutionAsync(context, Next(called));
+
+        Assert.False(called[0]);
+        Assert.Null(currentApplicationContext.CurrentApplicationId);
+        Assert.IsType<RedirectResult>(context.Result);
     }
 }

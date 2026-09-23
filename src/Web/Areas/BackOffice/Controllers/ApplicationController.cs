@@ -112,7 +112,11 @@ public class ApplicationController : BaseController
 
         try
         {
-            await _userManagementServices.SetCurrentApplicationId(User.Identity.Name, applicationId);
+            // A SuperAdmin may select any active, non-deleted application without a membership
+            // row of their own (see ITenantAccessGuard.HasAccessAsync); everyone else is still
+            // limited to their own active memberships.
+            await _userManagementServices.SetCurrentApplicationId(
+                User.Identity.Name, applicationId, User.IsInRole(ApplicationRoles.SuperAdmin));
         }
         catch (KeyNotFoundException)
         {
