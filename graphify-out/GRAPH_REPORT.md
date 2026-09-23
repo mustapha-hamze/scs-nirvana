@@ -1,16 +1,16 @@
 # Graph Report - scs-nirvana  (2026-09-23)
 
 ## Corpus Check
-- 490 files · ~95,522 words
+- 491 files · ~97,590 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2595 nodes · 6039 edges · 289 communities (127 shown, 162 thin omitted)
+- 2636 nodes · 6188 edges · 286 communities (127 shown, 159 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8fceef1c`
+- Built from commit: `357320f0`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -183,7 +183,6 @@
 - [[_COMMUNITY_Community 165|Community 165]]
 - [[_COMMUNITY_Community 166|Community 166]]
 - [[_COMMUNITY_Community 167|Community 167]]
-- [[_COMMUNITY_Community 168|Community 168]]
 - [[_COMMUNITY_Community 169|Community 169]]
 - [[_COMMUNITY_Slider Item Dto|Slider Item Dto]]
 - [[_COMMUNITY_Sector Entity Links Partial|Sector Entity Links Partial]]
@@ -200,7 +199,6 @@
 - [[_COMMUNITY_Property Of Development Images Dto|Property Of Development Images Dto]]
 - [[_COMMUNITY_Property Of Development Prices Dto|Property Of Development Prices Dto]]
 - [[_COMMUNITY_Prop Tech Stats Dto|Prop Tech Stats Dto]]
-- [[_COMMUNITY_Community 185|Community 185]]
 - [[_COMMUNITY_Community 186|Community 186]]
 - [[_COMMUNITY_Access Form|Access Form]]
 - [[_COMMUNITY_Access List|Access List]]
@@ -250,7 +248,6 @@
 - [[_COMMUNITY_test() function|test() function]]
 - [[_COMMUNITY_Slider JS Functions|Slider JS Functions]]
 - [[_COMMUNITY_Community 281|Community 281]]
-- [[_COMMUNITY_Community 282|Community 282]]
 - [[_COMMUNITY_Community 283|Community 283]]
 - [[_COMMUNITY_Community 284|Community 284]]
 - [[_COMMUNITY_Community 285|Community 285]]
@@ -267,7 +264,7 @@
 7. `AccessKeyAuthorizationTests` - 35 edges
 8. `AccountController` - 32 edges
 9. `ContentServicesTests` - 31 edges
-10. `TranslationOutputValidatorTests` - 28 edges
+10. `SliderFeatureViewModelRenderingTests` - 29 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Sonic Core System` --references--> `Core solution (EF model)`  [INFERRED]
@@ -276,10 +273,10 @@
   README.md → docs/schema-readiness.md
 - `ContentFormViewModel` --inherits--> `ContentDto`  [EXTRACTED]
   src/Web/Areas/BackOffice/Features/Content/ViewModels/ContentFormViewModels.cs → src/Core/Application/Contracts/CMS/ContentDto.cs
-- `ContentMetadataPageModel` --inherits--> `ContentMetadataDto`  [EXTRACTED]
-  src/Web/Areas/BackOffice/Features/Content/ViewModels/ContentRelationsViewModels.cs → src/Core/Application/Contracts/CMS/ContentMetadataDto.cs
 - `FakeCurrentApplicationContext` --implements--> `ICurrentApplicationContext`  [EXTRACTED]
   src/Core/Tests/WebFilters/RequireTenantContextFilterTests.cs → src/Core/Application/Contracts/Tenancy/ICurrentApplicationContext.cs
+- `SliderItemFormViewModel` --inherits--> `SliderItem`  [EXTRACTED]
+  src/Web/Areas/BackOffice/Features/Slider/ViewModels/SliderViewModels.cs → src/Core/Domain/Entities/CustomModule/SliderItem.cs
 
 ## Import Cycles
 - None detected.
@@ -289,74 +286,78 @@
 - **BaseEntity / ConfigureAudit / soft-delete lifecycle policy** — docs_schema_readiness_lifecycle_policy, docs_schema_readiness_soft_delete_filter, docs_schema_readiness_baseentity, docs_schema_readiness_configureaudit [EXTRACTED 1.00]
 - **SP_ContentsInCategory read path** — docs_schema_readiness_sp_contentsincategory, docs_schema_readiness_contentsincategoryqueryadapter, docs_schema_readiness_contentdto, docs_schema_readiness_contentservices_getcontentsincategory, docs_schema_readiness_content [EXTRACTED 1.00]
 
-## Communities (289 total, 162 thin omitted)
+## Communities (286 total, 159 thin omitted)
+
+### Community 0 - "Sector Entity Repository Tests"
+Cohesion: 0.04
+Nodes (13): SectorEntityRepositoryTests, CategoryRepositoryTests, ContentCommandRepository, ContentRelationRepositoryTests, IContentCommandRepository, SchemaServicesTests, ContentMetadata, Domains.Entities.ContentManagement (+5 more)
 
 ### Community 1 - "Application Use Case Boundary Tests"
-Cohesion: 0.04
-Nodes (9): SectorRepositoryTests, ContentApiCompatibilityTests, Fact, ApplicationRepositoryTests, JsonSerializerOptions, ContentTranslatorTests, TranslationOutputValidatorTests, UserAttachmentRepositoryTests (+1 more)
+Cohesion: 0.03
+Nodes (17): EfSchemaConfigurationTests, IdentityDecouplingTests, MappingConfigurationTests, TranslationContentAccessTests, AsyncCancellationAndErrorBoundaryTests, ContentApiCompatibilityTests, EntityLifecyclePolicyTests, DomainEntityJsonIgnoreTests (+9 more)
 
 ### Community 2 - "Slider"
 Cohesion: 0.05
-Nodes (14): Domains.Entities.CustomModule, Slider, Domains.Entities.CustomModule, SliderItem, SliderConfiguration, Application.SCMRepository, ISliderRepository, SliderRepository (+6 more)
+Nodes (15): Domains.Entities.CustomModule, Slider, Domains.Entities.CustomModule, SliderItem, SliderConfiguration, Application.SCMRepository, ISliderRepository, Infrastructure.SCMRepository (+7 more)
 
 ### Community 3 - "Code Generator"
 Cohesion: 0.05
-Nodes (18): Application.UseCases.Utilities.ApplicationFunctions, CodeGenerator, ContentApiReadTests, ContentOwnershipTests, contentId, ApplicationDbContext, DateTimeOffset, elementId (+10 more)
+Nodes (20): Application.UseCases.Utilities.ApplicationFunctions, CodeGenerator, ContentOwnershipTests, contentId, ContentProvider, IContentProvider, ApplicationDbContext, DateTimeOffset (+12 more)
 
 ### Community 4 - "Content Api Dto"
-Cohesion: 0.06
-Nodes (11): Application.Contracts.CMSApi, BlogIndexApiDto, Application.Contracts.CMSApi, ContentApiDto, ContentQueryRepository, ContentRelationRepository, IContentQueryRepository, IContentRelationRepository (+3 more)
+Cohesion: 0.05
+Nodes (13): Application.Contracts.CMSApi, BlogIndexApiDto, Application.Contracts.CMSApi, ContentApiDto, ContentQueryRepository, ContentRelationRepository, IContentQueryRepository, IContentRelationRepository (+5 more)
 
 ### Community 5 - "Application Id"
-Cohesion: 0.08
-Nodes (22): FileUploadResult, ImageVariantsUploadResult, Failure(), FileUploadService, ForwardedHeadersOptions, Height, ImageDecodeResult, ImageOutputFormat (+14 more)
-
-### Community 6 - "Tag"
-Cohesion: 0.15
-Nodes (6): Application.Contracts.General, TagDto, Application.UseCases.GeneralServices, ITagServices, Application.UseCases.GeneralServices, TagServices
+Cohesion: 0.06
+Nodes (31): Application.UseCases.Utilities.ApplicationConst, ApplicationSettingId, ApplicationConst, BoxTypeId, Application.UseCases.Utilities.ApplicationConst, OperationCode, Application.UseCases.Utilities.ApplicationConst, TypeId (+23 more)
 
 ### Community 7 - "Require Tenant Context Filter"
-Cohesion: 0.15
-Nodes (5): Content, Domains.Entities.ContentManagement, HttpPost, CreateUserDto, Web.Models.UserManagement
+Cohesion: 0.11
+Nodes (6): Content, Domains.Entities.ContentManagement, GeneralController, HttpPost, IActionResult, SaveAccessViewModel
 
 ### Community 8 - "Sector"
-Cohesion: 0.07
-Nodes (12): Application.UseCases.AccessManagerServices, ISectorServices, Application.UseCases.AccessManagerServices, SectorServices, Application.Contracts.General, SystemTypeDto, Application.UseCases.GeneralServices, SystemTypeServices (+4 more)
+Cohesion: 0.17
+Nodes (5): Application.UseCases.AccessManagerServices, ISectorServices, Application.UseCases.AccessManagerServices, SectorServices, SectorDto
 
 ### Community 9 - "Sector Entity"
-Cohesion: 0.07
-Nodes (13): Sector, SectorEntity, EntityAccessRepositoryTests, Application.AccessManagerRepository, ISectorEntityRepository, Application.AccessManagerRepository, ISectorRepository, Infrastructure.AccessManagerRepository (+5 more)
+Cohesion: 0.16
+Nodes (6): SectorEntity, Application.AccessManagerRepository, ISectorEntityRepository, Infrastructure.AccessManagerRepository, SectorEntityRepository, SectorEntityConfiguration
 
 ### Community 10 - "Content Api Read Tests"
-Cohesion: 0.09
-Nodes (8): ContentMetadataConfiguration, SectionElementConfiguration, ContentCommandRepository, IContentCommandRepository, ContentMetadata, Domains.Entities.ContentManagement, Domains.Entities.ContentManagement, SectionElement
+Cohesion: 0.22
+Nodes (3): ContentImageConfiguration, ContentImage, Domains.Entities.ContentManagement
 
 ### Community 11 - "Application Dto"
 Cohesion: 0.08
-Nodes (8): Application.Contracts.General, ApplicationDto, Application.Contracts.General, ApplicationSettingDto, Application.UseCases.GeneralServices, ApplicationServices, Application.UseCases.GeneralServices, IApplicationServices
+Nodes (10): Application.Contracts.General, ApplicationDto, Application.Contracts.General, ApplicationSettingDto, Application.Contracts.General, UserInApplicationDto, Application.UseCases.GeneralServices, ApplicationServices (+2 more)
 
 ### Community 12 - "User Dto"
-Cohesion: 0.04
-Nodes (14): CancellationToken, ContentListResultModel, Application.Contracts.UserManagement, UserDto, Application.UserManagementRepository, IUserManagementRepository, UserManagementRepository, Application.UseCases.UserManagementServices (+6 more)
+Cohesion: 0.05
+Nodes (14): Application.Contracts.UserManagement, UserDto, Application.UserManagementRepository, IUserManagementRepository, Application.UseCases.UserManagementServices, IUserManagementServices, Application.UseCases.UserManagementServices, UserManagementServices (+6 more)
 
 ### Community 14 - "Culture"
-Cohesion: 0.09
-Nodes (11): ChatClient, Func, TranslationRequest, ContentTranslator, FakeTranslationPort, IContentTranslator, ITranslationPort, OpenAiTranslationPort (+3 more)
+Cohesion: 0.05
+Nodes (19): ChatClient, Func, Application.Contracts.General, SystemTypeDto, Application.UseCases.GeneralServices, ISystemTypeServices, Application.UseCases.GeneralServices, SystemTypeServices (+11 more)
 
 ### Community 15 - "Content"
-Cohesion: 0.29
-Nodes (3): ContentSectionConfiguration, ContentSection, Domains.Entities.ContentManagement
+Cohesion: 0.15
+Nodes (6): Sector, Application.AccessManagerRepository, ISectorRepository, Infrastructure.AccessManagerRepository, SectorRepository, SectorConfiguration
 
 ### Community 16 - "Account Controller"
-Cohesion: 0.17
-Nodes (6): Authorize, AccountController, SaveAccessViewModel, RoleManager, Route, SkipTenantContextCheck
+Cohesion: 0.15
+Nodes (5): Authorize, AccessManagementController, AccountController, HttpGet, RoleManager
+
+### Community 17 - "Content Dto"
+Cohesion: 0.16
+Nodes (3): CallCounter, SliderFeatureViewModelRenderingTests, WebApplicationFactory<Program>
 
 ### Community 18 - "System Type"
 Cohesion: 0.16
 Nodes (7): Domains.Entities.General, SystemType, SystemTypeConfiguration, Application.GeneralRepository, ISystemTypeRepository, Infrastructure.GeneralRepository, SystemTypeRepository
 
 ### Community 19 - "Section Dto"
-Cohesion: 0.22
+Cohesion: 0.21
 Nodes (8): HttpClient, ApplicationUser, IdentityUser, IWebHostBuilder, Program, AccountFlowHelper, TestWebApplicationFactory, WebApplicationFactory
 
 ### Community 20 - "Schema Details Dto"
@@ -368,28 +369,28 @@ Cohesion: 0.08
 Nodes (28): Application (GNR_Applications), ApplicationSetting (GNR_ApplicationSettings), Category (CMS_Categories), Content (CMS_Contents), ContentAttachment (CMS_ContentAttachments), ContentAttachmentItem (CMS_ContentAttachmentItems), ContentImage (CMS_ContentImages), ContentInCategory (CMS_ContentInCategories) (+20 more)
 
 ### Community 22 - "Access Management Controller"
-Cohesion: 0.13
-Nodes (6): AccessManagementController, CategoryController, GeneralController, SchemaController, HttpGet, IActionResult
+Cohesion: 0.09
+Nodes (9): ContentController, ApplicationController, BaseController, SchemaController, UserAttachmentController, IFileUploadService, IHostEnvironment, ILogger (+1 more)
 
 ### Community 23 - "Application"
 Cohesion: 0.06
-Nodes (9): Application, ApplicationRepository, Infrastructure.GeneralRepository, Application.GeneralRepository, IApplicationRepository, Application.Contracts.Tenancy, ITenantAccessGuard, Application.UseCases.Tenancy (+1 more)
+Nodes (12): Application, ApplicationConfiguration, ApplicationSetting, Domains.Entities.General, ApplicationSettingConfiguration, ApplicationRepository, Infrastructure.GeneralRepository, Application.GeneralRepository (+4 more)
 
 ### Community 24 - "Category Controller"
-Cohesion: 0.17
-Nodes (6): ActionResult, CategoryController, ContentController, SliderController, ControllerBase, ISender
+Cohesion: 0.11
+Nodes (9): ActionResult, CategoryController, ContentController, SliderController, ContentController, ControllerBase, ISender, Route (+1 more)
 
 ### Community 25 - "Farsi Content Edit Dto"
 Cohesion: 0.18
 Nodes (8): FarsiContentMapper, ContentEntity, FarsiContentEditDto, Web.Areas.BackOffice.Features.Content.Contracts, JsonSerializerSettings, Source, UsedEnglishFallback, FarsiContentFormPageModel
 
 ### Community 26 - "Schema Repository"
-Cohesion: 0.10
-Nodes (11): Infrastructure.CMSRepository, Infrastructure.CMSRepository, DbSet, CultureRepository, Infrastructure.GeneralRepository, Application.Repository, IRepository, Infrastructure.Repository (+3 more)
+Cohesion: 0.13
+Nodes (7): Infrastructure.CMSRepository, DbSet, Application.Repository, IRepository, Infrastructure.Repository, Repository, T
 
 ### Community 28 - "Category Controller"
-Cohesion: 0.10
-Nodes (11): AccessKeyAuthorizer, ContentController, Application.UseCases.GeneralServices, ISystemTypeServices, IHostEnvironment, Application.Contracts.Tenancy, CurrentApplicationContextExtensions, Application.Contracts.Tenancy (+3 more)
+Cohesion: 0.13
+Nodes (7): CategoryController, Application.Contracts.Tenancy, CurrentApplicationContextExtensions, Application.Contracts.Tenancy, ICurrentApplicationContext, FakeCurrentApplicationContext, FakeCurrentApplicationContext
 
 ### Community 29 - "Category Configuration"
 Cohesion: 0.13
@@ -397,47 +398,47 @@ Nodes (8): GetCategoriesHandler, Application.Contracts.CMS, CategoryDto, Applica
 
 ### Community 30 - "Content Configuration"
 Cohesion: 0.09
-Nodes (12): CommentConfiguration, ContentAttachmentConfiguration, ContentAttachmentItemConfiguration, SchemaDetailsConfiguration, EntityTypeBuilderExtensions, Comment, ContentAttachment, ContentAttachmentItem (+4 more)
+Nodes (12): CommentConfiguration, ContentAttachmentConfiguration, ContentConfiguration, ContentMetadataConfiguration, ContentSectionConfiguration, SectionElementConfiguration, EntityTypeBuilderExtensions, Comment (+4 more)
 
 ### Community 31 - "Application Controller"
-Cohesion: 0.10
-Nodes (11): AllowAnonymous, Controller, ApplicationController, BaseController, IgnoreAntiforgeryToken, ILogger, ResponseCache, SignInManager (+3 more)
+Cohesion: 0.17
+Nodes (7): AllowAnonymous, Controller, IgnoreAntiforgeryToken, ResponseCache, HomeController, HomeController, UserManager
 
 ### Community 33 - "Entity Access"
-Cohesion: 0.17
+Cohesion: 0.16
 Nodes (6): EntityAccess, EntityAccessRepository, Infrastructure.AccessManagerRepository, Application.AccessManagerRepository, IEntityAccessRepository, EntityAccessConfiguration
 
 ### Community 34 - "Category Dto"
-Cohesion: 0.04
-Nodes (14): Application.Contracts.CMS, ContentDto, Application.Contracts.CMS, ContentImageDto, Application.Contracts.CMS, ContentMetadataDto, Application.Contracts.CMS, SectionDto (+6 more)
+Cohesion: 0.08
+Nodes (6): CancellationToken, Application.Contracts.CMS, ContentDto, Application.UseCases.CMSServices, IContentServices, UserManagementRepository
 
 ### Community 35 - "Schema Configuration"
 Cohesion: 0.09
-Nodes (17): SchemaConfiguration, Application.CMSRepository, ISchemaRepository, SchemaRepository, Domains.Entities.ContentManagement, Schema, Domains.Entities.ContentManagement, SchemaDetails (+9 more)
+Nodes (13): SchemaConfiguration, Application.CMSRepository, ISchemaRepository, SchemaRepository, Domains.Entities.ContentManagement, Schema, Infrastructure.Dto.PropTechDtos, Infrastructure.Dto.PropTechDtos (+5 more)
 
 ### Community 36 - "Entity Access Services"
 Cohesion: 0.30
 Nodes (4): UserLoginDto, Web.Models.UserManagement, ValidationResult, UserLoginDtoValidationTests
 
 ### Community 37 - "Base Entity"
-Cohesion: 0.03
-Nodes (41): Application.Contracts.AccessManagement, EntityAccessDto, Application.Contracts.AccessManagement, SectorDto, Application.Contracts.AccessManagement, SectorEntityDto, BaseEntity, Application.Contracts.CMSApi (+33 more)
+Cohesion: 0.05
+Nodes (27): BaseEntity, Application.Contracts.CMSApi, SectionElementApiDto, ContentAttachmentDto, ContentAttachmentItemDto, Application, Domains.Entities.General, Web.Models.General (+19 more)
 
 ### Community 38 - "Schema Details Configuration"
 Cohesion: 0.18
 Nodes (5): Application.UseCases.AccessManagerServices, ISectorEntityServices, Application.UseCases.AccessManagerServices, SectorEntityServices, SectorEntityDto
 
 ### Community 40 - "Translation Output Validator"
-Cohesion: 0.09
-Nodes (14): BackOfficeShellSnapshot, HashSet, HtmlNode, HtmlNodeCollection, IHttpContextAccessor, JArray, JObject, JToken (+6 more)
+Cohesion: 0.05
+Nodes (27): Application.UseCases.Utilities.ApplicationConst, ApplicationRoles, LayerBoundaryTests, AccessKeyAuthorizer, AccessKeys, Category, Content, Schema (+19 more)
 
 ### Community 43 - "Web Project Dependencies"
 Cohesion: 0.14
 Nodes (13): DotNetEnv (3.2.0), Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore (9.0.20), Microsoft.AspNetCore.Identity.UI (9.0.20), Microsoft.EntityFrameworkCore (9.0.20), SixLabors.ImageSharp (3.1.12), SkiaSharp (3.119.1), Microsoft.NET.Sdk.Web, net9.0 (+5 more)
 
 ### Community 44 - "Ordinary Member Action Does Not Require"
-Cohesion: 0.13
-Nodes (4): ApplicationRootAdministrationAuthorizationTests, MembershipAdministrationAuthorizationTests, UserAdministrationAuthorizationTests, IEnumerable
+Cohesion: 0.14
+Nodes (3): ApplicationRootAdministrationAuthorizationTests, TenantContextGuardCoverageTests, IEnumerable
 
 ### Community 45 - "Domain Persistence Decoupling Tests"
 Cohesion: 0.20
@@ -452,7 +453,7 @@ Cohesion: 0.17
 Nodes (5): UserAttachmentCompositionTests, ServiceCollectionExtensions, IConfiguration, IServiceCollection, TestConfiguration
 
 ### Community 48 - "User Attachment Configuration"
-Cohesion: 0.31
+Cohesion: 0.29
 Nodes (4): UserAttachmentConfiguration, UserAttachment, IUserAttachmentRepository, UserAttachmentRepository
 
 ### Community 49 - "Infrastructure Project Dependencies"
@@ -463,36 +464,28 @@ Nodes (12): Dapper (2.0.143), MediatR.Extensions.Microsoft.DependencyInjection (
 Cohesion: 0.22
 Nodes (8): coverlet.collector (6.0.2), Microsoft.AspNetCore.Mvc.Testing (9.0.20), Microsoft.EntityFrameworkCore.InMemory (9.0.20), net9.0, Microsoft.NET.Test.Sdk (17.12.0), xunit (2.9.2), xunit.runner.visualstudio (2.8.2), Microsoft.NET.Sdk
 
-### Community 51 - "Entity Access Repository Tests"
-Cohesion: 0.15
-Nodes (4): ContentController, UserAttachmentController, IFileUploadService, IFormFile
-
 ### Community 54 - "Get User Attachment By Id Query"
 Cohesion: 0.24
 Nodes (7): GetUserAttachmentByIdQuery, GetUserAttachmentsQuery, IRequestHandler, GetUserAttachmentByIdHandler, GetUserAttachmentsHandler, Application.Contracts.UserManagement, UserAttachmentDto
 
 ### Community 55 - "Content Translation Document"
-Cohesion: 0.13
-Nodes (8): ContentImageConfiguration, ContentImage, Domains.Entities.ContentManagement, ContentImageTranslationDocument, ContentMetadataTranslationDocument, ContentSectionTranslationDocument, ContentTranslationDocument, SectionElementTranslationDocument
+Cohesion: 0.20
+Nodes (5): ContentImageTranslationDocument, ContentMetadataTranslationDocument, ContentSectionTranslationDocument, ContentTranslationDocument, SectionElementTranslationDocument
 
 ### Community 57 - "Application Roles"
-Cohesion: 0.19
-Nodes (5): UserAttachmentAuthorizationTests, HttpMethod, MemberData, MethodInfo, Theory
+Cohesion: 0.15
+Nodes (4): MembershipAdministrationAuthorizationTests, UserAdministrationAuthorizationTests, UserAttachmentAuthorizationTests, MethodInfo
 
 ### Community 58 - "Application Setting"
-Cohesion: 0.40
-Nodes (3): ApplicationSetting, Domains.Entities.General, ApplicationSettingConfiguration
+Cohesion: 0.25
+Nodes (3): SchemaDetailsConfiguration, Domains.Entities.ContentManagement, SchemaDetails
 
 ### Community 59 - "Application Project Dependencies"
 Cohesion: 0.22
 Nodes (8): EPPlus (6.2.6), HtmlAgilityPack (1.13.0), MediatR (11.1.0), net9.0, AutoMapper.Extensions.Microsoft.DependencyInjection (12.0.1), Newtonsoft.Json (13.0.4), ZXing.Net (0.16.9), Microsoft.NET.Sdk
 
-### Community 60 - "Content Metadata Dto"
-Cohesion: 0.20
-Nodes (4): ContentConfiguration, Content, ContentProvider, IContentProvider
-
 ### Community 61 - "User In Application"
-Cohesion: 0.33
+Cohesion: 0.25
 Nodes (3): Domains.Entities.General, UserInApplication, UserInApplicationConfiguration
 
 ### Community 64 - "Base Entity"
@@ -504,16 +497,16 @@ Cohesion: 0.25
 Nodes (8): Microsoft.EntityFrameworkCore.Sqlite (9.0.0), Moq (4.20.72), net9.0, Microsoft.NET.Test.Sdk (17.11.1), xunit (2.9.2), xunit.runner.visualstudio (2.8.2), Microsoft.NET.Sdk, Core.Tests
 
 ### Community 66 - "Sector Repository Tests"
-Cohesion: 0.12
-Nodes (5): IClassFixture, ContentFeatureScriptTests, ErrorHandlingTests, RouteMappingTests, SliderFeatureScriptTests
-
-### Community 68 - "Authorize Role Test Helper"
-Cohesion: 0.15
-Nodes (12): Application.UseCases.Utilities.ApplicationConst, ApplicationRoles, AccessKeys, AppPages, Category, Content, Schema, Slider (+4 more)
+Cohesion: 0.09
+Nodes (6): IClassFixture, AuthorizationConventionsTests, ContentFeatureScriptTests, ErrorHandlingTests, RouteMappingTests, SliderFeatureScriptTests
 
 ### Community 69 - "Content Image Dto"
-Cohesion: 0.12
-Nodes (5): DomainPersistenceDecouplingTests, GenericRepositoryInjectionTests, LayerBoundaryTests, InlineData, Type
+Cohesion: 0.27
+Nodes (3): DomainPersistenceDecouplingTests, InlineData, Theory
+
+### Community 70 - "Community 70"
+Cohesion: 0.33
+Nodes (3): IMapper, CreateUserAttachmentHandlerTests, GetUserAttachmentByIdHandlerTests
 
 ### Community 72 - "Api Development Details Dto"
 Cohesion: 0.29
@@ -540,36 +533,36 @@ Cohesion: 0.40
 Nodes (3): Domains.Entities.General, UserAccess, UserAccessConfiguration
 
 ### Community 82 - "Application Mapper Profile"
-Cohesion: 0.12
-Nodes (11): CreateUserAttachmentCommand, Infrastructure.Data, ApplicationMapperProfile, Infrastructure.Mapper, MapperProfile, Profile, Unit, User (+3 more)
+Cohesion: 0.13
+Nodes (8): Infrastructure.Data, ApplicationMapperProfile, Infrastructure.Mapper, MapperProfile, Profile, User, Application.UserManagementRepository, Infrastructure.UserManagementRepository
 
 ### Community 85 - "Community 85"
-Cohesion: 0.12
-Nodes (8): Domains.Entities.General, Tag, TagConfiguration, Application.GeneralRepository, ITagRepository, Infrastructure.GeneralRepository, TagRepository, TagServicesTests
+Cohesion: 0.06
+Nodes (14): Domains.Entities.General, Tag, TagConfiguration, Application.Contracts.General, TagDto, Application.GeneralRepository, ITagRepository, Infrastructure.GeneralRepository (+6 more)
 
 ### Community 86 - "Community 86"
-Cohesion: 0.10
-Nodes (8): Application.Contracts.General, CultureDto, Application.GeneralRepository, ICultureRepository, Application.UseCases.GeneralServices, CultureServices, Application.UseCases.GeneralServices, ICultureServices
-
-### Community 90 - "Community 90"
-Cohesion: 0.10
-Nodes (11): Application.UseCases.Utilities.ApplicationConst, ApplicationSettingId, ApplicationConst, BoxTypeId, Application.UseCases.Utilities.ApplicationConst, OperationCode, Application.UseCases.Utilities.ApplicationConst, TypeId (+3 more)
+Cohesion: 0.08
+Nodes (13): Culture, Domains.Entities.General, CultureConfiguration, Application.Contracts.General, CultureDto, CultureRepository, Infrastructure.GeneralRepository, Application.GeneralRepository (+5 more)
 
 ### Community 91 - "Delete Content"
 Cohesion: 0.11
-Nodes (6): ContentController, ContentController, ContentController, SliderController, HttpDelete, RequireAccess
+Nodes (7): ContentController, ContentController, ContentController, SliderController, HttpDelete, IFormFile, RequireAccess
 
 ### Community 93 - "Application Repository Tests"
 Cohesion: 0.40
 Nodes (5): ApplicationRepositoryTests, UserAccess (GNR_UserAccesses), UserAccessConfiguration, UserInApplication (GNR_UserInApplications), UserInApplicationConfiguration
+
+### Community 95 - "Tag Repository Tests"
+Cohesion: 0.83
+Nodes (3): CreateUserAttachmentCommand, Unit, CreateUserAttachmentHandler
 
 ### Community 99 - "Ef Schema Configuration Tests"
 Cohesion: 0.29
 Nodes (4): Application.UseCases.Utilities.ApplicationConst, ApplicationId, Client, ContentContractsBindingTests
 
 ### Community 106 - "Repository Tests"
-Cohesion: 0.21
-Nodes (3): Row, TheoryData, BackOfficeEndpointAuthorizationMatrixTests
+Cohesion: 0.13
+Nodes (5): GenericRepositoryInjectionTests, Row, TheoryData, Type, BackOfficeEndpointAuthorizationMatrixTests
 
 ### Community 109 - "Index"
 Cohesion: 0.50
@@ -583,17 +576,17 @@ Nodes (4): SectionElementRequestMapper, ContentBodyElementDto, SaveContentBodyDt
 Cohesion: 0.25
 Nodes (6): Exception, HttpContext, IExceptionHandler, IProblemDetailsService, ValueTask, ApiExceptionHandler
 
-### Community 123 - "Skip Tenant Context Check Attribute"
-Cohesion: 0.12
-Nodes (12): ActionDescriptor, ActionExecutingContext, ActionExecutionDelegate, Attribute, RequireAccessAttribute, RequireTenantContextFilter, SkipTenantContextCheckAttribute, HttpRequest (+4 more)
+### Community 113 - "Community 113"
+Cohesion: 0.21
+Nodes (4): HttpMethod, HttpRequestMessage, MemberData, ContentControllerRouteRegressionTests
 
-### Community 124 - "Farsi Content Metadata Edit Dto"
-Cohesion: 0.40
-Nodes (3): Culture, Domains.Entities.General, CultureConfiguration
+### Community 123 - "Skip Tenant Context Check Attribute"
+Cohesion: 0.10
+Nodes (14): ActionDescriptor, ActionExecutingContext, ActionExecutionDelegate, Attribute, RequireAccessAttribute, RequireTenantContextFilter, SkipTenantContextCheckAttribute, HttpRequest (+6 more)
 
 ### Community 125 - "Farsi Section Edit Dto"
-Cohesion: 0.14
-Nodes (7): Category, CategoryConfiguration, CategoryRepository, Application.CMSRepository, ICategoryRepository, CategoryServicesTests, Category
+Cohesion: 0.22
+Nodes (5): Category, CategoryConfiguration, CategoryRepository, ICategoryRepository, Category
 
 ### Community 127 - "Content Image Api Dto"
 Cohesion: 0.33
@@ -607,29 +600,33 @@ Nodes (3): ContentFormViewModel, ContentListItemViewModel, ContentListViewModel
 Cohesion: 0.50
 Nodes (3): Web.Areas.BackOffice.Features.Content.ViewModels, Web.Areas.BackOffice.Features.Slider.ViewModels, Web.Areas.BackOffice.Models
 
+### Community 284 - "Community 284"
+Cohesion: 0.07
+Nodes (12): Application.Contracts.CMS, ContentImageDto, Application.Contracts.CMS, ContentMetadataDto, Application.Contracts.CMS, SectionDto, Application.Contracts.CMS, SectionElementDto (+4 more)
+
 ## Ambiguous Edges - Review These
 - `Category (CMS_Categories)` → `Category (CMS_Categories)`  [AMBIGUOUS]
   docs/schema-readiness.md · relation: references
 
 ## Knowledge Gaps
-- **362 isolated node(s):** `Application.AccessManagerRepository`, `Application.AccessManagerRepository`, `Application.AccessManagerRepository`, `net9.0`, `EPPlus (6.2.6)` (+357 more)
+- **363 isolated node(s):** `Application.AccessManagerRepository`, `Application.AccessManagerRepository`, `Application.AccessManagerRepository`, `net9.0`, `EPPlus (6.2.6)` (+358 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **162 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **159 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Category (CMS_Categories)` and `Category (CMS_Categories)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `ApplicationDbContext` connect `Code Generator` to `Slider`, `Content Api Dto`, `Sector Entity`, `Content Api Read Tests`, `User Dto`, `Culture`, `System Type`, `Section Dto`, `Application`, `Schema Repository`, `Application Controller`, `Slider Services Tests`, `Entity Access`, `Schema Configuration`, `Schema Services Tests`, `User Attachment Configuration`, `Content Metadata Dto`, `Application Root Administration Authorization Tests`, `Application Mapper Profile`, `Community 85`, `Farsi Section Edit Dto`?**
+- **Why does `ApplicationDbContext` connect `Code Generator` to `Sector Entity Repository Tests`, `Slider`, `Content Api Dto`, `Tag`, `Sector Entity`, `Culture`, `Content`, `System Type`, `Section Dto`, `Application`, `Schema Repository`, `Application Controller`, `Slider Services Tests`, `Entity Access`, `Category Dto`, `Schema Configuration`, `User Attachment Configuration`, `Slug Generator`, `Application Root Administration Authorization Tests`, `Application Mapper Profile`, `Community 85`, `Community 86`, `Farsi Section Edit Dto`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
-- **Why does `Content` connect `Require Tenant Context Filter` to `Content Api Dto`, `Base Entity`, `Content Api Read Tests`, `Culture`, `Account Controller`, `Content Translation Document`, `Delete Content`, `Content Metadata Dto`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `Content` connect `Require Tenant Context Filter` to `Sector Entity Repository Tests`, `Code Generator`, `Content Api Dto`, `Base Entity`, `Culture`, `Content Translation Document`, `Delete Content`, `Content Configuration`?**
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
 - **What connects `Application.AccessManagerRepository`, `Application.AccessManagerRepository`, `Application.AccessManagerRepository` to the rest of the system?**
-  _366 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _367 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Sector Entity Repository Tests` be split into smaller, more focused modules?**
-  _Cohesion score 0.1 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.037662589788390606 - nodes in this community are weakly interconnected._
 - **Should `Application Use Case Boundary Tests` be split into smaller, more focused modules?**
-  _Cohesion score 0.03958120531154239 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.02755673445328618 - nodes in this community are weakly interconnected._
 - **Should `Slider` be split into smaller, more focused modules?**
-  _Cohesion score 0.04773082942097027 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.04590892262125139 - nodes in this community are weakly interconnected._
