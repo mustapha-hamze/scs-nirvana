@@ -1480,8 +1480,8 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/ApplicationController.cs": {
-    "mtime": 1790108686.6944988,
-    "ast_hash": "e69cafb8f6a249c4ce84d1a4c2de1abd",
+    "mtime": 1790159706.1883304,
+    "ast_hash": "8e0904adfdd4e00337dfad4d94aa8d60",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/BaseController.cs": {
@@ -1500,13 +1500,13 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/HomeController.cs": {
-    "mtime": 1790108356.2966838,
-    "ast_hash": "51bcc0b771bd84407e0d48d29aba89f2",
+    "mtime": 1790159356.8377202,
+    "ast_hash": "92b7e61cdde58d33590c37f64dd6376f",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/SchemaController.cs": {
-    "mtime": 1790109020.2770283,
-    "ast_hash": "acc3e5d65b15ee115acd942e3792aa02",
+    "mtime": 1790158808.7095997,
+    "ast_hash": "0d94a0945800c40e6696fdca3c7bbfcf",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/SliderController.cs": {
@@ -1799,21 +1799,6 @@
     "ast_hash": "90db5cb6ffa2e69b51ecef37673130f6",
     "semantic_hash": "90db5cb6ffa2e69b51ecef37673130f6"
   },
-  "src/Web/Areas/BackOffice/Views/General/Currencies.cshtml": {
-    "mtime": 1758545314.7462623,
-    "ast_hash": "5b7cd52561a88dc5947f7855326f3d6b",
-    "semantic_hash": "5b7cd52561a88dc5947f7855326f3d6b"
-  },
-  "src/Web/Areas/BackOffice/Views/General/CurrenciesForm.cshtml": {
-    "mtime": 1790068361.1363173,
-    "ast_hash": "776d1658371a0588f95011129e978845",
-    "semantic_hash": "776d1658371a0588f95011129e978845"
-  },
-  "src/Web/Areas/BackOffice/Views/General/CurrenciesList.cshtml": {
-    "mtime": 1790068361.1364598,
-    "ast_hash": "d42529f62e9b74e1a6a9b7650ecf6f4f",
-    "semantic_hash": "d42529f62e9b74e1a6a9b7650ecf6f4f"
-  },
   "src/Web/Areas/BackOffice/Views/General/Logs.cshtml": {
     "mtime": 1758545314.7463946,
     "ast_hash": "d6c8db32ff850db1a1e746e0d7b49431",
@@ -1845,29 +1830,14 @@
     "semantic_hash": "3103b4c4808bcc224c74de6f81cdea62"
   },
   "src/Web/Areas/BackOffice/Views/General/Tags.cshtml": {
-    "mtime": 1790068361.1370726,
-    "ast_hash": "cb53c014ef010f45c925078cccd0d38a",
-    "semantic_hash": "cb53c014ef010f45c925078cccd0d38a"
-  },
-  "src/Web/Areas/BackOffice/Views/General/ZoneForm.cshtml": {
-    "mtime": 1790068361.1372375,
-    "ast_hash": "4b0446c32e66302fa5ae4a89799a47fa",
-    "semantic_hash": "4b0446c32e66302fa5ae4a89799a47fa"
-  },
-  "src/Web/Areas/BackOffice/Views/General/ZoneList.cshtml": {
-    "mtime": 1790068361.1373904,
-    "ast_hash": "2a1c8d96ac1c1e0e1e74e61a416639d4",
-    "semantic_hash": "2a1c8d96ac1c1e0e1e74e61a416639d4"
-  },
-  "src/Web/Areas/BackOffice/Views/General/Zones.cshtml": {
-    "mtime": 1758545314.746812,
-    "ast_hash": "3b13f62c4dd8250583a82321b99c8eae",
-    "semantic_hash": "3b13f62c4dd8250583a82321b99c8eae"
+    "mtime": 1790159318.5012224,
+    "ast_hash": "91d4f09fc20a204ad82baa0ed10c83e4",
+    "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/General/__GeneralJSFunctions.cshtml": {
-    "mtime": 1786734076.0672095,
-    "ast_hash": "7b1d8f751cd9380dc6b98da904b61010",
-    "semantic_hash": "7b1d8f751cd9380dc6b98da904b61010"
+    "mtime": 1790159308.796099,
+    "ast_hash": "0d298d716d4f00b941ccf41bc69b26a5",
+    "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/General/__GeneralModal.cshtml": {
     "mtime": 1758545314.7469366,
@@ -1940,14 +1910,14 @@
     "semantic_hash": "9f81f3cd2c6de5edc8c080c8b8f18601"
   },
   "src/Web/Areas/BackOffice/Views/Shared/_JSAssets.cshtml": {
-    "mtime": 1758716721.456769,
-    "ast_hash": "e16e3db9bc963bdf31391723b8cec7db",
-    "semantic_hash": "e16e3db9bc963bdf31391723b8cec7db"
+    "mtime": 1790159335.43778,
+    "ast_hash": "a739304bb9fa5167d2183f45601a45e5",
+    "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/Shared/_Layout.cshtml": {
-    "mtime": 1786734076.068027,
-    "ast_hash": "1827a19b026ca21b745f57bdd19a34de",
-    "semantic_hash": "1827a19b026ca21b745f57bdd19a34de"
+    "mtime": 1790159324.5506604,
+    "ast_hash": "f8e24fe3f6c941ef197a4b931354bf45",
+    "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/Shared/_Navbar.cshtml": {
     "mtime": 1790112213.278831,
@@ -1975,9 +1945,9 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/Shared/_SideBarAdminMenu.cshtml": {
-    "mtime": 1786734076.0683792,
-    "ast_hash": "0bc90f952a868bc2358f6bf516509f63",
-    "semantic_hash": "0bc90f952a868bc2358f6bf516509f63"
+    "mtime": 1790159283.2309747,
+    "ast_hash": "21436ade406577caa579dd581159bea5",
+    "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/Shared/_SideBarCMS.cshtml": {
     "mtime": 1790156479.348472,
@@ -2050,8 +2020,8 @@
     "semantic_hash": ""
   },
   "src/Web/Extensions/ServiceCollectionExtensions.cs": {
-    "mtime": 1790112203.8602886,
-    "ast_hash": "4ecebf9fedda1a251c1b452445a3d19e",
+    "mtime": 1790158494.647089,
+    "ast_hash": "0e3366568a8959ab2f439648c88a27b7",
     "semantic_hash": ""
   },
   "src/Web/Filters/RequireTenantContextFilter.cs": {
@@ -2073,11 +2043,6 @@
     "mtime": 1758545314.7501261,
     "ast_hash": "11b000984350de2c5d56be0f5836eb63",
     "semantic_hash": "11b000984350de2c5d56be0f5836eb63"
-  },
-  "src/Web/Models/General/ZoneDto.cs": {
-    "mtime": 1790068361.14111,
-    "ast_hash": "74a8931da0d59995764a93cf849e2527",
-    "semantic_hash": "74a8931da0d59995764a93cf849e2527"
   },
   "src/Web/Models/UserManagement/CreateUserDto.cs": {
     "mtime": 1790074591.150087,
@@ -2105,9 +2070,9 @@
     "semantic_hash": "82dded30788dbcad3e268adc04a4e7f6"
   },
   "src/Web/Services/FileUpload/FileUploadService.cs": {
-    "mtime": 1788262911.378622,
-    "ast_hash": "f48731cf31b6ec14fdbd72f0410655ce",
-    "semantic_hash": "f48731cf31b6ec14fdbd72f0410655ce"
+    "mtime": 1790158605.1887126,
+    "ast_hash": "57c663bb36044fbe2643c98f51b86bb5",
+    "semantic_hash": ""
   },
   "src/Web/Services/FileUpload/IFileUploadService.cs": {
     "mtime": 1786718894.5927925,
@@ -2310,8 +2275,8 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/Content/ContentController.Uploads.cs": {
-    "mtime": 1790155677.4191122,
-    "ast_hash": "50d1bfe9e63961409b065b4ab23db97d",
+    "mtime": 1790158760.5745442,
+    "ast_hash": "1cf2edec792df8afa0aae4af023e813b",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/Content/ContentController.cs": {
@@ -2457,6 +2422,31 @@
   "src/Web.Tests/BackOfficeNavigationAuthorizationAlignmentTests.cs": {
     "mtime": 1790156479.35761,
     "ast_hash": "b9e5d07c9bccabbb6083f1bb889639b5",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/BackOfficeSharedNavigationTests.cs": {
+    "mtime": 1790159440.1624193,
+    "ast_hash": "cffb8a1e49ea61749637aa7ce9587d96",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/FileUploadServiceTests.cs": {
+    "mtime": 1790158636.1241248,
+    "ast_hash": "0aea236361306eebb8d1bc166c223f32",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/UploadEndpointFailureTests.cs": {
+    "mtime": 1790159149.0463178,
+    "ast_hash": "8c9ee00b82f2253315e0fc803cd05802",
+    "semantic_hash": ""
+  },
+  "src/Web.Tests/WebUploadAndFormOptionsSourceGuardTests.cs": {
+    "mtime": 1790159670.992164,
+    "ast_hash": "a1c6713a0232f01fbeea8951c747d0ee",
+    "semantic_hash": ""
+  },
+  "src/Web/WebRequestLimitsOptions.cs": {
+    "mtime": 1790158563.1778712,
+    "ast_hash": "8c06eca2ba8c78a3e175000f97e811e4",
     "semantic_hash": ""
   }
 }
