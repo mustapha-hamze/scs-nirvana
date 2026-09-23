@@ -8,6 +8,7 @@ using Application.UserManagementRepository;
 using AutoMapper;
 using Domains.Entities.User;
 using Infrastructure.Mapper;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -17,7 +18,7 @@ public class CreateUserAttachmentHandlerTests
 {
     private static IMapper CreateMapper()
     {
-        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); });
+        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); }, NullLoggerFactory.Instance);
         return config.CreateMapper();
     }
 
@@ -61,7 +62,7 @@ public class GetUserAttachmentByIdHandlerTests
 {
     private static IMapper CreateMapper()
     {
-        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); });
+        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); }, NullLoggerFactory.Instance);
         return config.CreateMapper();
     }
 

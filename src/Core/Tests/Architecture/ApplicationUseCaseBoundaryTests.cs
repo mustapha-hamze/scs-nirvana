@@ -11,6 +11,7 @@ using AutoMapper;
 using Domains.Entities.ContentManagement;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -59,6 +60,10 @@ public class ApplicationUseCaseBoundaryTests
         repository.Setup(r => r.List(10, It.IsAny<CancellationToken>())).ReturnsAsync(categories);
 
         var services = new ServiceCollection();
+        // AutoMapper's DI registration resolves ILoggerFactory internally when building the
+        // mapper (MapperConfiguration now requires one) - the real host always has logging
+        // registered, but this standalone ServiceCollection needs it added explicitly.
+        services.AddLogging();
         services.AddSingleton(repository.Object);
         services.AddSingleton(Mock.Of<IUnitOfWork>());
         services.AddAutoMapper(cfg => cfg.AddProfile(new ApplicationMapperProfile()));
@@ -85,7 +90,7 @@ public class ApplicationUseCaseBoundaryTests
         {
             cfg.AddProfile(new Infrastructure.Mapper.MapperProfile());
             cfg.AddProfile(new ApplicationMapperProfile());
-        });
+        }, NullLoggerFactory.Instance);
         var mapper = config.CreateMapper();
 
         var categoryDto = mapper.Map<Application.Contracts.CMS.CategoryDto>(

@@ -139,7 +139,7 @@ public static class ServiceCollectionExtensions
 
         services.AddMediatR(typeof(IUnitOfWork).Assembly);
 
-        services.AddAutoMapper(new[] { typeof(MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
+        services.AddAutoMapper(_ => { }, new[] { typeof(MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentApplicationContext, SessionCurrentApplicationContext>();

@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Core.Tests.Architecture;
@@ -12,7 +13,7 @@ public class MappingConfigurationTests
     [Fact]
     public void ApplicationProfile_ConfigurationIsValid()
     {
-        var config = new MapperConfiguration(cfg => cfg.AddProfile(new Application.Mapper.ApplicationMapperProfile()));
+        var config = new MapperConfiguration(cfg => cfg.AddProfile(new Application.Mapper.ApplicationMapperProfile()), NullLoggerFactory.Instance);
 
         config.AssertConfigurationIsValid();
     }
@@ -20,7 +21,7 @@ public class MappingConfigurationTests
     [Fact]
     public void InfrastructureProfile_ConfigurationIsValid()
     {
-        var config = new MapperConfiguration(cfg => cfg.AddProfile(new Infrastructure.Mapper.MapperProfile()));
+        var config = new MapperConfiguration(cfg => cfg.AddProfile(new Infrastructure.Mapper.MapperProfile()), NullLoggerFactory.Instance);
 
         config.AssertConfigurationIsValid();
     }

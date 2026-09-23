@@ -6,6 +6,7 @@ using Application.Contracts.CMS;
 using Application.UnitOfWork;
 using Infrastructure.Mapper;
 using Application.Mapper;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Application.UseCases.CMSServices;
 using Xunit;
@@ -16,7 +17,7 @@ public class ContentServicesTests
 {
     private static IMapper CreateMapper()
     {
-        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); });
+        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); }, NullLoggerFactory.Instance);
         return config.CreateMapper();
     }
 

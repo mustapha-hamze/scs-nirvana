@@ -7,6 +7,7 @@ using Infrastructure.Identity;
 using Infrastructure.Mapper;
 using Application.Mapper;
 using Infrastructure.UserManagementRepository;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Core.Tests.UserManagementRepository;
@@ -15,7 +16,7 @@ public class UserManagementRepositoryTests
 {
     private static IMapper CreateMapper()
     {
-        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); });
+        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); }, NullLoggerFactory.Instance);
         return config.CreateMapper();
     }
 

@@ -2,6 +2,7 @@ using Application.CQRS.Command.UserManagement;
 using Application.CQRS.Queries.UserManagement;
 using Application.Contracts.UserManagement;
 using Application.UnitOfWork;
+using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -35,7 +36,7 @@ public class UserAttachmentCompositionTests
         services.AddSingleton<IConfiguration>(configuration);
         services.AddPersistence(configuration);
         services.AddCmsServices();
-        services.AddAutoMapper(new[] { typeof(Infrastructure.Mapper.MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
+        services.AddAutoMapper(_ => { }, new[] { typeof(Infrastructure.Mapper.MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
         services.AddMediatR(typeof(IUnitOfWork).Assembly);
 
         return services;
@@ -67,4 +68,26 @@ public class UserAttachmentCompositionTests
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IRequestHandler<GetUserAttachmentByIdQuery, UserAttachmentDto>>());
     }
 
+    // Migration-specific: AutoMapper 13+ moved AddAutoMapper into the core package and made the
+    // Action<IMapperConfigurationExpression> parameter mandatory (previously supplied by the now
+    // abandoned AutoMapper.Extensions.Microsoft.DependencyInjection package). This proves the new
+    // call shape still honors the explicit ServiceLifetime.Singleton argument, not just that it
+    // compiles.
+    [Fact]
+    public void ServiceCollection_ResolvesIMapper_AsSingleton()
+    {
+        using var provider = BuildServices().BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateOnBuild = true,
+            ValidateScopes = true
+        });
+
+        using var scope1 = provider.CreateScope();
+        using var scope2 = provider.CreateScope();
+
+        var mapper1 = scope1.ServiceProvider.GetRequiredService<IMapper>();
+        var mapper2 = scope2.ServiceProvider.GetRequiredService<IMapper>();
+
+        Assert.Same(mapper1, mapper2);
+    }
 }
