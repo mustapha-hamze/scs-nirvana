@@ -19239,20 +19239,20 @@
       "norm_label": ".saveimagevariantsasync_failureafterfilecreatedbutbeforewrite_removespartialandpriorfiles_keepssentinel()"
     },
     {
-      "label": ".SaveImageVariantsAsync_OperationCanceledDuringWrite_PropagatesInsteadOfReturningAResult()",
+      "label": ".SaveImageVariantsAsync_OperationCanceledDuringWrite_CleansUpAllCreatedFiles_ThenPropagates()",
       "file_type": "code",
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
-      "source_location": "L247",
+      "source_location": "L250",
       "_origin": "ast",
-      "id": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_propagatesinsteadofreturningaresult",
+      "id": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_cleansupallcreatedfiles_thenpropagates",
       "community": 5,
-      "norm_label": ".saveimagevariantsasync_operationcanceledduringwrite_propagatesinsteadofreturningaresult()"
+      "norm_label": ".saveimagevariantsasync_operationcanceledduringwrite_cleansupallcreatedfiles_thenpropagates()"
     },
     {
       "label": ".SaveImageVariantsAsync_OutOfMemoryDuringWrite_PropagatesInsteadOfReturningAResult()",
       "file_type": "code",
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
-      "source_location": "L275",
+      "source_location": "L282",
       "_origin": "ast",
       "id": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_outofmemoryduringwrite_propagatesinsteadofreturningaresult",
       "community": 5,
@@ -25922,7 +25922,7 @@
       "label": ".SaveFileAsync()",
       "file_type": "code",
       "source_file": "src/Web/Services/FileUpload/FileUploadService.cs",
-      "source_location": "L143",
+      "source_location": "L154",
       "_origin": "ast",
       "id": "fileupload_fileuploadservice_fileuploadservice_savefileasync",
       "community": 5,
@@ -25942,7 +25942,7 @@
       "label": "Failure()",
       "file_type": "code",
       "source_file": "src/Web/Services/FileUpload/FileUploadService.cs",
-      "source_location": "L168",
+      "source_location": "L179",
       "_origin": "ast",
       "id": "fileupload_fileuploadservice_failure",
       "community": 5,
@@ -25962,7 +25962,7 @@
       "label": ".DecodeImageAsync()",
       "file_type": "code",
       "source_file": "src/Web/Services/FileUpload/FileUploadService.cs",
-      "source_location": "L171",
+      "source_location": "L182",
       "_origin": "ast",
       "id": "fileupload_fileuploadservice_fileuploadservice_decodeimageasync",
       "community": 5,
@@ -25972,7 +25972,7 @@
       "label": ".ResizeIfNeeded()",
       "file_type": "code",
       "source_file": "src/Web/Services/FileUpload/FileUploadService.cs",
-      "source_location": "L209",
+      "source_location": "L220",
       "_origin": "ast",
       "id": "fileupload_fileuploadservice_fileuploadservice_resizeifneeded",
       "community": 5,
@@ -25992,7 +25992,7 @@
       "label": ".TryEncode()",
       "file_type": "code",
       "source_file": "src/Web/Services/FileUpload/FileUploadService.cs",
-      "source_location": "L221",
+      "source_location": "L232",
       "_origin": "ast",
       "id": "fileupload_fileuploadservice_fileuploadservice_tryencode",
       "community": 5,
@@ -26012,7 +26012,7 @@
       "label": ".SanitizeFileName()",
       "file_type": "code",
       "source_file": "src/Web/Services/FileUpload/FileUploadService.cs",
-      "source_location": "L228",
+      "source_location": "L239",
       "_origin": "ast",
       "id": "fileupload_fileuploadservice_fileuploadservice_sanitizefilename",
       "community": 5,
@@ -26022,7 +26022,7 @@
       "label": ".ResolveSafePath()",
       "file_type": "code",
       "source_file": "src/Web/Services/FileUpload/FileUploadService.cs",
-      "source_location": "L236",
+      "source_location": "L247",
       "_origin": "ast",
       "id": "fileupload_fileuploadservice_fileuploadservice_resolvesafepath",
       "community": 5,
@@ -37273,10 +37273,10 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
-      "source_location": "L247",
+      "source_location": "L250",
       "weight": 1.0,
       "context": "return_type",
-      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_propagatesinsteadofreturningaresult",
+      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_cleansupallcreatedfiles_thenpropagates",
       "target": "task",
       "confidence_score": 1.0
     },
@@ -37287,9 +37287,9 @@
       "source_location": "L275",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_outofmemoryduringwrite_propagatesinsteadofreturningaresult",
-      "target": "task",
-      "confidence_score": 1.0
+      "target": "task"
     },
     {
       "relation": "references",
@@ -69082,10 +69082,10 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
-      "source_location": "L247",
+      "source_location": "L250",
       "weight": 1.0,
       "context": "attribute",
-      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_propagatesinsteadofreturningaresult",
+      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_cleansupallcreatedfiles_thenpropagates",
       "target": "fact",
       "confidence_score": 1.0
     },
@@ -69096,9 +69096,9 @@
       "source_location": "L275",
       "weight": 1.0,
       "context": "attribute",
+      "confidence_score": 1.0,
       "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_outofmemoryduringwrite_propagatesinsteadofreturningaresult",
-      "target": "fact",
-      "confidence_score": 1.0
+      "target": "fact"
     },
     {
       "relation": "references",
@@ -82741,10 +82741,10 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
-      "source_location": "L247",
+      "source_location": "L250",
       "weight": 1.0,
       "source": "web_tests_fileuploadservicetests_fileuploadservicetests",
-      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_propagatesinsteadofreturningaresult",
+      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_cleansupallcreatedfiles_thenpropagates",
       "confidence_score": 1.0
     },
     {
@@ -82753,9 +82753,9 @@
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
       "source_location": "L275",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_fileuploadservicetests_fileuploadservicetests",
-      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_outofmemoryduringwrite_propagatesinsteadofreturningaresult",
-      "confidence_score": 1.0
+      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_outofmemoryduringwrite_propagatesinsteadofreturningaresult"
     },
     {
       "relation": "method",
@@ -82903,9 +82903,9 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
-      "source_location": "L250",
+      "source_location": "L253",
       "weight": 1.0,
-      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_propagatesinsteadofreturningaresult",
+      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_cleansupallcreatedfiles_thenpropagates",
       "target": "web_tests_fileuploadservicetests_fileuploadservicetests_createservice",
       "confidence_score": 1.0
     },
@@ -82916,9 +82916,9 @@
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
       "source_location": "L278",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_outofmemoryduringwrite_propagatesinsteadofreturningaresult",
-      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_createservice",
-      "confidence_score": 1.0
+      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_createservice"
     },
     {
       "relation": "calls",
@@ -83068,9 +83068,9 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
-      "source_location": "L252",
+      "source_location": "L258",
       "weight": 1.0,
-      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_propagatesinsteadofreturningaresult",
+      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_cleansupallcreatedfiles_thenpropagates",
       "target": "web_tests_fileuploadservicetests_fileuploadservicetests_makeformfile",
       "confidence_score": 1.0
     },
@@ -83081,9 +83081,9 @@
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
       "source_location": "L280",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_outofmemoryduringwrite_propagatesinsteadofreturningaresult",
-      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_makeformfile",
-      "confidence_score": 1.0
+      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_makeformfile"
     },
     {
       "relation": "calls",
@@ -83332,9 +83332,9 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
-      "source_location": "L251",
+      "source_location": "L257",
       "weight": 1.0,
-      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_propagatesinsteadofreturningaresult",
+      "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_operationcanceledduringwrite_cleansupallcreatedfiles_thenpropagates",
       "target": "web_tests_fileuploadservicetests_fileuploadservicetests_encodeimage",
       "confidence_score": 1.0
     },
@@ -83345,9 +83345,9 @@
       "source_file": "src/Web.Tests/FileUploadServiceTests.cs",
       "source_location": "L279",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "web_tests_fileuploadservicetests_fileuploadservicetests_saveimagevariantsasync_outofmemoryduringwrite_propagatesinsteadofreturningaresult",
-      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_encodeimage",
-      "confidence_score": 1.0
+      "target": "web_tests_fileuploadservicetests_fileuploadservicetests_encodeimage"
     },
     {
       "relation": "calls",
@@ -95596,5 +95596,5 @@
       "source_file": "docs/schema-readiness.md"
     }
   ],
-  "built_at_commit": "fb09b41ddb6c2d39f18f3703c7e158a358f689e6"
+  "built_at_commit": "fb4335937963b77d5f729efc74144f038b62c171"
 }
