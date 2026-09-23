@@ -170,17 +170,6 @@
     <script src="/BackOffice/js/app.min.js"></script>
 
     <script>
-        function refreshCacheDB(entity, btnId) {
-            setLoadingForBtnFilter(btnId)
-            $.ajax({
-                url: `/BackOffice/Home/RefereshCacheDb?entity=${entity}`,
-                type: "GET",
-            }).done(function (data) {
-                messageBox('Success', `${entity} cache has been refreshed`, 'success');
-                removeLoadingForBtnFilter(btnId, `refreshCacheDB('${entity}', '${btnId}')`);
-            });
-        }
-
         function checkFormValidity(form) {
             var flag = false;
 
