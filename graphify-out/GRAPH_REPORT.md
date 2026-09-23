@@ -1,7 +1,7 @@
 # Graph Report - scs-nirvana  (2026-09-23)
 
 ## Corpus Check
-- 489 files · ~100,990 words
+- 489 files · ~101,101 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `fb09b41d`
+- Built from commit: `fb433593`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
