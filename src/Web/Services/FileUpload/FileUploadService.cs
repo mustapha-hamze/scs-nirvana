@@ -112,7 +112,15 @@ public sealed class FileUploadService : IFileUploadService
                     variants.Add(new ImageVariant(width, height, fileName));
                 }
             }
-            catch (Exception ex)
+            // Expected failure modes (filesystem, codec, argument/dimension, write) are turned
+            // into a clean failed-upload result with full cleanup. Cancellation and fatal runtime
+            // resource conditions are not "the upload failed" - forcing them through the same
+            // cleanup-and-report path would misreport a cancelled request or an out-of-memory
+            // condition as an ordinary validation failure. The `when` filter (not a catch-and-
+            // rethrow) means the exception never enters this block for those types - it keeps
+            // unwinding past this catch, running the surrounding using/await using disposals
+            // exactly as it would if this catch weren't here at all.
+            catch (Exception ex) when (ex is not OperationCanceledException and not OutOfMemoryException)
             {
                 return Failure($"Unable to produce image variant {width}x{height}: {ex.Message}", writtenPaths);
             }

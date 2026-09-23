@@ -240,4 +240,56 @@ public sealed class FileUploadServiceTests : IDisposable
         var remaining = Directory.GetFiles(_directory);
         Assert.Equal(new[] { sentinel }, remaining);
     }
+
+    // A cancelled request isn't "the upload failed validation" - converting it into an ordinary
+    // ImageVariantsUploadResult.Failure would misreport it as ordinary bad input instead of an
+    // aborted operation. The exception must come out of the awaited call itself.
+    [Fact]
+    public async Task SaveImageVariantsAsync_OperationCanceledDuringWrite_PropagatesInsteadOfReturningAResult()
+    {
+        var service = CreateService();
+        var bytes = EncodeImage(400, 400);
+        var file = MakeFormFile(bytes, "src.png");
+
+        string? capturedPath = null;
+        service.TestOnlyBeforeVariantWrite = path =>
+        {
+            capturedPath = path;
+            throw new OperationCanceledException("simulated cancellation");
+        };
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => service.SaveImageVariantsAsync(file, _directory, new[] { (100, 100) }));
+
+        // The hook fired (so the exception really came from inside the write path, not before
+        // it), and the surrounding using/await using blocks still ran their disposal despite the
+        // exception not being caught here - the FileStream is closed, so deleting the file it had
+        // open doesn't fail with a locking error.
+        Assert.NotNull(capturedPath);
+        File.Delete(capturedPath!);
+    }
+
+    // Same shape as the cancellation case: an out-of-memory condition is a fatal runtime resource
+    // failure, not a normal "this upload is invalid" outcome, and must not be swallowed into a
+    // misleading success/failure result.
+    [Fact]
+    public async Task SaveImageVariantsAsync_OutOfMemoryDuringWrite_PropagatesInsteadOfReturningAResult()
+    {
+        var service = CreateService();
+        var bytes = EncodeImage(400, 400);
+        var file = MakeFormFile(bytes, "src.png");
+
+        string? capturedPath = null;
+        service.TestOnlyBeforeVariantWrite = path =>
+        {
+            capturedPath = path;
+            throw new OutOfMemoryException("simulated out-of-memory condition");
+        };
+
+        await Assert.ThrowsAsync<OutOfMemoryException>(
+            () => service.SaveImageVariantsAsync(file, _directory, new[] { (100, 100) }));
+
+        Assert.NotNull(capturedPath);
+        File.Delete(capturedPath!);
+    }
 }
