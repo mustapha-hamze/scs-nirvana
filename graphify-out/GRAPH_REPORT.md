@@ -1,7 +1,7 @@
 # Graph Report - scs-nirvana  (2026-09-23)
 
 ## Corpus Check
-- 491 files · ~102,569 words
+- 491 files · ~102,585 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `43f4a66f`
+- Built from commit: `77cce34e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -468,8 +468,8 @@ Cohesion: 0.22
 Nodes (8): coverlet.collector (6.0.2), Microsoft.AspNetCore.Mvc.Testing (10.0.12), Microsoft.EntityFrameworkCore.InMemory (10.0.12), net10.0, Microsoft.NET.Test.Sdk (17.12.0), xunit (2.9.2), xunit.runner.visualstudio (2.8.2), Microsoft.NET.Sdk
 
 ### Community 54 - "Get User Attachment By Id Query"
-Cohesion: 0.24
-Nodes (7): GetUserAttachmentByIdQuery, GetUserAttachmentsQuery, IRequestHandler, GetUserAttachmentByIdHandler, GetUserAttachmentsHandler, Application.Contracts.UserManagement, UserAttachmentDto
+Cohesion: 0.25
+Nodes (6): GetUserAttachmentByIdQuery, GetUserAttachmentsQuery, GetUserAttachmentByIdHandler, GetUserAttachmentsHandler, Application.Contracts.UserManagement, UserAttachmentDto
 
 ### Community 55 - "Content Translation Document"
 Cohesion: 0.20
@@ -592,8 +592,8 @@ Cohesion: 0.14
 Nodes (3): ApplicationRootAdministrationAuthorizationTests, TenantContextGuardCoverageTests, IEnumerable
 
 ### Community 160 - "Development Dto"
-Cohesion: 0.83
-Nodes (3): CreateUserAttachmentCommand, Unit, CreateUserAttachmentHandler
+Cohesion: 0.60
+Nodes (4): CreateUserAttachmentCommand, IRequestHandler, Unit, CreateUserAttachmentHandler
 
 ### Community 227 - "View Imports"
 Cohesion: 0.50

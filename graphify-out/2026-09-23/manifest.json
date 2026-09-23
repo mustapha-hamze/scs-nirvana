@@ -25,9 +25,9 @@
     "semantic_hash": "31475701abe82c0d774a6b32eba7c9f7"
   },
   "src/Core/Application/Application.csproj": {
-    "mtime": 1790068361.0977042,
-    "ast_hash": "705935066fd37b32ec3427fafc7584bc",
-    "semantic_hash": "705935066fd37b32ec3427fafc7584bc"
+    "mtime": 1790165364.1385763,
+    "ast_hash": "f7681e6083158989ba785f5040356831",
+    "semantic_hash": ""
   },
   "src/Core/Application/CMSRepository/ICategoryRepository.cs": {
     "mtime": 1790068361.0978978,
@@ -515,9 +515,9 @@
     "semantic_hash": "ca7100f2cf01a96047a4cba141417754"
   },
   "src/Core/Domain/Domain.csproj": {
-    "mtime": 1790068361.1095674,
-    "ast_hash": "6bb1ce319e74d2e08afc171433499566",
-    "semantic_hash": "6bb1ce319e74d2e08afc171433499566"
+    "mtime": 1790165364.1396034,
+    "ast_hash": "f641c9a68dfdeb0e709dcb46bee80a42",
+    "semantic_hash": ""
   },
   "src/Core/Domain/Entities/AccessManagement/EntityAccess.cs": {
     "mtime": 1790068361.1097426,
@@ -1095,9 +1095,9 @@
     "semantic_hash": "58fb0dbf1eb855ee9503d9dfce545298"
   },
   "src/Core/Infrastructure/Infrastructure.csproj": {
-    "mtime": 1790068361.1213143,
-    "ast_hash": "69dd7bd40e419fd1019b4c440cb706bb",
-    "semantic_hash": "69dd7bd40e419fd1019b4c440cb706bb"
+    "mtime": 1790165492.4155066,
+    "ast_hash": "50842698247cdeaddfa2baff680fc80d",
+    "semantic_hash": ""
   },
   "src/Core/Infrastructure/Mapper/MapperProfile.cs": {
     "mtime": 1790068361.1214554,
@@ -1310,9 +1310,9 @@
     "semantic_hash": "368de2f93c2c8f2edbf4a2b2a73a0cd6"
   },
   "src/Core/Tests/Core.Tests.csproj": {
-    "mtime": 1790068361.1274793,
-    "ast_hash": "323e8941c95ec298b99cc6f0a9de14fe",
-    "semantic_hash": "323e8941c95ec298b99cc6f0a9de14fe"
+    "mtime": 1790165391.5783308,
+    "ast_hash": "6b482ecf1d0a5cbacfed2ff10948cea5",
+    "semantic_hash": ""
   },
   "src/Core/Tests/Data/EntityLifecyclePolicyTests.cs": {
     "mtime": 1790068361.1276512,
@@ -2105,8 +2105,8 @@
     "semantic_hash": "b9b6c1cf15bdf419e646ff6e8c1d655d"
   },
   "src/Web/Web.csproj": {
-    "mtime": 1790160732.415406,
-    "ast_hash": "033331f6f15314b3ea4fd3256c7c9b1e",
+    "mtime": 1790165373.0648818,
+    "ast_hash": "1a5593d76a6271f33ddef4ac59da93d2",
     "semantic_hash": ""
   },
   "src/Web/appsettings.Development.json": {
@@ -2165,8 +2165,8 @@
     "semantic_hash": ""
   },
   "src/Web.Tests/Web.Tests.csproj": {
-    "mtime": 1790075447.0726428,
-    "ast_hash": "e23ff50757aa66640bb88d3b30a3c3ff",
+    "mtime": 1790165400.8848116,
+    "ast_hash": "59fee3300af0f1100cd5909fa32684a2",
     "semantic_hash": ""
   },
   "src/Core/Tests/Architecture/UserAttachmentAuthorizationTests.cs": {

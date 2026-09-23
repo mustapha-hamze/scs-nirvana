@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `607e6ffc`
+- Built from commit: `43f4a66f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -383,6 +383,10 @@ Nodes (8): FarsiContentMapper, ContentEntity, FarsiContentEditDto, Web.Areas.Bac
 Cohesion: 0.13
 Nodes (7): DbSet, Application.Repository, IRepository, Infrastructure.Repository, Repository, Infrastructure.SCMRepository, T
 
+### Community 27 - "Content Translator"
+Cohesion: 0.22
+Nodes (3): CallCounter, CallCounter, ContentFeatureViewModelRenderingTests
+
 ### Community 28 - "Category Controller"
 Cohesion: 0.18
 Nodes (6): Application.Contracts.Tenancy, CurrentApplicationContextExtensions, Application.Contracts.Tenancy, ICurrentApplicationContext, FakeCurrentApplicationContext, FakeCurrentApplicationContext
@@ -433,7 +437,7 @@ Nodes (11): Application.UseCases.Utilities.ApplicationConst, ApplicationRoles, A
 
 ### Community 43 - "Web Project Dependencies"
 Cohesion: 0.14
-Nodes (13): DotNetEnv (3.2.0), Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore (9.0.20), Microsoft.AspNetCore.Identity.UI (9.0.20), Microsoft.EntityFrameworkCore (9.0.20), SixLabors.ImageSharp (3.1.12), SkiaSharp (3.119.1), Microsoft.NET.Sdk.Web, net9.0 (+5 more)
+Nodes (13): DotNetEnv (3.2.0), Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore (10.0.12), Microsoft.AspNetCore.Identity.UI (10.0.12), Microsoft.EntityFrameworkCore (10.0.12), SixLabors.ImageSharp (3.1.12), SkiaSharp (3.119.1), Microsoft.NET.Sdk.Web, net10.0 (+5 more)
 
 ### Community 44 - "Ordinary Member Action Does Not Require"
 Cohesion: 0.26
@@ -457,11 +461,11 @@ Nodes (4): UserAttachmentConfiguration, UserAttachment, IUserAttachmentRepositor
 
 ### Community 49 - "Infrastructure Project Dependencies"
 Cohesion: 0.15
-Nodes (12): Dapper (2.0.143), MediatR.Extensions.Microsoft.DependencyInjection (11.1.0), Microsoft.Data.SqlClient (6.1.1), Microsoft.Extensions.Caching.StackExchangeRedis (9.0.0), net9.0, AutoMapper.Extensions.Microsoft.DependencyInjection (12.0.1), Microsoft.AspNetCore.Identity.EntityFrameworkCore (9.0.0), Microsoft.EntityFrameworkCore.Design (9.0.0) (+4 more)
+Nodes (12): Dapper (2.0.143), MediatR.Extensions.Microsoft.DependencyInjection (11.1.0), Microsoft.Data.SqlClient (6.1.7), Microsoft.Extensions.Caching.StackExchangeRedis (10.0.12), net10.0, AutoMapper.Extensions.Microsoft.DependencyInjection (12.0.1), Microsoft.AspNetCore.Identity.EntityFrameworkCore (10.0.12), Microsoft.EntityFrameworkCore.Design (10.0.12) (+4 more)
 
 ### Community 50 - "Content Provider"
 Cohesion: 0.22
-Nodes (8): coverlet.collector (6.0.2), Microsoft.AspNetCore.Mvc.Testing (9.0.20), Microsoft.EntityFrameworkCore.InMemory (9.0.20), net9.0, Microsoft.NET.Test.Sdk (17.12.0), xunit (2.9.2), xunit.runner.visualstudio (2.8.2), Microsoft.NET.Sdk
+Nodes (8): coverlet.collector (6.0.2), Microsoft.AspNetCore.Mvc.Testing (10.0.12), Microsoft.EntityFrameworkCore.InMemory (10.0.12), net10.0, Microsoft.NET.Test.Sdk (17.12.0), xunit (2.9.2), xunit.runner.visualstudio (2.8.2), Microsoft.NET.Sdk
 
 ### Community 54 - "Get User Attachment By Id Query"
 Cohesion: 0.24
@@ -481,7 +485,7 @@ Nodes (7): SchemaDetailsConfiguration, Application.CMSRepository, ISchemaReposit
 
 ### Community 59 - "Application Project Dependencies"
 Cohesion: 0.22
-Nodes (8): EPPlus (6.2.6), HtmlAgilityPack (1.13.0), MediatR (11.1.0), net9.0, AutoMapper.Extensions.Microsoft.DependencyInjection (12.0.1), Newtonsoft.Json (13.0.4), ZXing.Net (0.16.9), Microsoft.NET.Sdk
+Nodes (8): EPPlus (6.2.6), HtmlAgilityPack (1.13.0), MediatR (11.1.0), net10.0, AutoMapper.Extensions.Microsoft.DependencyInjection (12.0.1), Newtonsoft.Json (13.0.4), ZXing.Net (0.16.9), Microsoft.NET.Sdk
 
 ### Community 60 - "Content Metadata Dto"
 Cohesion: 0.21
@@ -497,7 +501,7 @@ Nodes (8): BaseEntity, ConfigureAudit<T> helper, ContentDto (Application.Contrac
 
 ### Community 65 - "Test Project Dependencies"
 Cohesion: 0.25
-Nodes (8): Microsoft.EntityFrameworkCore.Sqlite (9.0.0), Moq (4.20.72), net9.0, Microsoft.NET.Test.Sdk (17.11.1), xunit (2.9.2), xunit.runner.visualstudio (2.8.2), Microsoft.NET.Sdk, Core.Tests
+Nodes (8): Microsoft.EntityFrameworkCore.Sqlite (10.0.12), Moq (4.20.72), net10.0, Microsoft.NET.Test.Sdk (17.11.1), xunit (2.9.2), xunit.runner.visualstudio (2.8.2), Microsoft.NET.Sdk, Core.Tests
 
 ### Community 66 - "Sector Repository Tests"
 Cohesion: 0.10
@@ -546,10 +550,6 @@ Nodes (13): Culture, Domains.Entities.General, CultureConfiguration, Application
 ### Community 87 - "Comment Configuration"
 Cohesion: 0.22
 Nodes (3): ApplicationSetting, Domains.Entities.General, ApplicationSettingConfiguration
-
-### Community 90 - "Community 90"
-Cohesion: 0.19
-Nodes (3): CallCounter, BackOfficeShellRenderingTests, CallCounter
 
 ### Community 91 - "Delete Content"
 Cohesion: 0.10
@@ -612,7 +612,7 @@ Nodes (6): ContentConfiguration, Content, Content, Domains.Entities.ContentManag
   docs/schema-readiness.md · relation: references
 
 ## Knowledge Gaps
-- **355 isolated node(s):** `Application.AccessManagerRepository`, `Application.AccessManagerRepository`, `Application.AccessManagerRepository`, `net9.0`, `EPPlus (6.2.6)` (+350 more)
+- **355 isolated node(s):** `Application.AccessManagerRepository`, `Application.AccessManagerRepository`, `Application.AccessManagerRepository`, `net10.0`, `EPPlus (6.2.6)` (+350 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **157 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
