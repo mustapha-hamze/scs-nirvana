@@ -43,7 +43,7 @@ public class ApplicationController : BaseController
 
         ViewData["UserApplications"] = await _applicationServices.GetUserApplications(User.Identity.Name);
 
-        return View(_applicationServices.List());
+        return View(await _applicationServices.List());
     }
 
     [HttpGet]
