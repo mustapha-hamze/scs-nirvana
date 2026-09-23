@@ -29,6 +29,12 @@ public sealed class FileUploadService : IFileUploadService
         _maxImagePixelCount = requestLimits.Value.MaxImagePixelCount;
     }
 
+    // Test-only seam (Web.Tests via InternalsVisibleTo): lets a test deterministically fail a
+    // variant write after its target file has been created but before the write completes, to
+    // prove the resulting partial file (and any already-written sibling variants) get cleaned up.
+    // Never set outside tests; production code never touches it.
+    internal Action<string>? TestOnlyBeforeVariantWrite { get; set; }
+
     public async Task<FileUploadResult> SaveImageAsync(IFormFile file, string directory, string fileNameWithoutExtension,
         ImageOutputFormat outputFormat = ImageOutputFormat.PreserveOriginal)
     {
@@ -89,16 +95,24 @@ public sealed class FileUploadService : IFileUploadService
                     var fullPath = ResolveSafePath(directory, fileName);
 
                     Directory.CreateDirectory(directory);
+
+                    // Tracked before the file is opened, not after a successful write - so a
+                    // failure during open/write/flush/dispose still gets this call's own
+                    // partially written file cleaned up by Failure() below, not just whatever
+                    // earlier variants had already finished writing.
+                    writtenPaths.Add(fullPath);
+
                     await using (var stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
                     {
+                        TestOnlyBeforeVariantWrite?.Invoke(fullPath);
                         data.SaveTo(stream);
+                        await stream.FlushAsync();
                     }
 
-                    writtenPaths.Add(fullPath);
                     variants.Add(new ImageVariant(width, height, fileName));
                 }
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+            catch (Exception ex)
             {
                 return Failure($"Unable to produce image variant {width}x{height}: {ex.Message}", writtenPaths);
             }

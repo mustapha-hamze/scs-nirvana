@@ -208,4 +208,36 @@ public sealed class FileUploadServiceTests : IDisposable
         Assert.False(result.Succeeded);
         Assert.True(File.Exists(preExisting));
     }
+
+    // Web Phase 5 task 2: invalid dimensions (above) fail before the current variant's target
+    // file is even created, so they can't prove cleanup of a partially written file. This uses
+    // the internal TestOnlyBeforeVariantWrite seam to fail deterministically after the second
+    // variant's target file has been created (FileMode.Create already ran) but before any bytes
+    // are written to it - the exact gap the tracked-before-open fix closes.
+    [Fact]
+    public async Task SaveImageVariantsAsync_FailureAfterFileCreatedButBeforeWrite_RemovesPartialAndPriorFiles_KeepsSentinel()
+    {
+        var service = CreateService();
+        var sentinel = Path.Combine(_directory, "sentinel.txt");
+        File.WriteAllText(sentinel, "keep me");
+
+        var bytes = EncodeImage(400, 400);
+        var file = MakeFormFile(bytes, "src.png");
+
+        var writeCallCount = 0;
+        service.TestOnlyBeforeVariantWrite = _ =>
+        {
+            writeCallCount++;
+            if (writeCallCount == 2)
+                throw new IOException("simulated failure after target-file creation, before write");
+        };
+
+        var result = await service.SaveImageVariantsAsync(file, _directory, new[] { (100, 100), (50, 50) });
+
+        Assert.False(result.Succeeded);
+        Assert.Empty(result.Variants);
+        Assert.Equal(2, writeCallCount); // proves the second variant's file was created and the hook actually ran
+        var remaining = Directory.GetFiles(_directory);
+        Assert.Equal(new[] { sentinel }, remaining);
+    }
 }

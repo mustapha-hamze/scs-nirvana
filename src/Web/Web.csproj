@@ -31,6 +31,11 @@
     <Content Remove="wwwroot\" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Lets Web.Tests set FileUploadService's internal, test-only failure-injection seam
+         (TestOnlyBeforeVariantWrite) without exposing it on the public IFileUploadService contract. -->
+    <InternalsVisibleTo Include="Web.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Core\Application\Application.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
