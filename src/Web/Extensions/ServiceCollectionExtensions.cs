@@ -110,6 +110,7 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<ContentTranslationOptions>>().Value);
         services.AddScoped<ContentTranslationJobProcessor>();
+        services.AddScoped<ContentTranslationRequests>();
         services.AddHostedService<Web.Services.Translation.ContentTranslationWorker>();
 
         services.AddTransient<IContentProvider, ContentProvider>();

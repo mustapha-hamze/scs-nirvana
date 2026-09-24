@@ -24,7 +24,8 @@ public partial class ContentController : BaseController
     private readonly IApplicationServices _applicationServices;
     private readonly ISystemTypeServices _systemTypeServices;
     private readonly ICurrentApplicationContext _currentApplicationContext;
-    private readonly IContentTranslator _contentTranslator;
+    private readonly ContentTranslationRequests _translationRequests;
+    private readonly ContentTranslationOptions _translationOptions;
     private readonly IFileUploadService _fileUploadService;
     private readonly AccessKeyAuthorizer _accessKeyAuthorizer;
     private readonly IBackOfficeShellContext _shellContext;
@@ -33,7 +34,8 @@ public partial class ContentController : BaseController
         ICategoryServices categoryServices,
         ITagServices tagServices, ICultureServices cultureServices, IHostEnvironment appEnvironment,
         IApplicationServices applicationServices, ISystemTypeServices systemTypeServices,
-        ICurrentApplicationContext currentApplicationContext, IContentTranslator contentTranslator,
+        ICurrentApplicationContext currentApplicationContext, ContentTranslationRequests translationRequests,
+        ContentTranslationOptions translationOptions,
         IContentProvider contentProvider, IFileUploadService fileUploadService,
         AccessKeyAuthorizer accessKeyAuthorizer, IBackOfficeShellContext shellContext)
     {
@@ -46,7 +48,8 @@ public partial class ContentController : BaseController
         _appEnvironment = appEnvironment;
         _systemTypeServices = systemTypeServices;
         _currentApplicationContext = currentApplicationContext;
-        _contentTranslator = contentTranslator;
+        _translationRequests = translationRequests;
+        _translationOptions = translationOptions;
         _contentProvider = contentProvider;
         _fileUploadService = fileUploadService;
         _accessKeyAuthorizer = accessKeyAuthorizer;

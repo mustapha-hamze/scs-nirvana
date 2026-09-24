@@ -189,6 +189,7 @@ public sealed class BackOfficeEndpointAuthorizationMatrixTests
         new(typeof(ContentController), nameof(ContentController.Index), P(typeof(int)), V("GET"), Auth.AccessKey, K(AccessKeys.Content.Module)),
         new(typeof(ContentController), nameof(ContentController.ContentList), P(typeof(int)), V("GET"), Auth.AccessKey, K(AccessKeys.Content.Module)),
         new(typeof(ContentController), nameof(ContentController.ChangeContentActiveMode), P(typeof(int), typeof(int), typeof(bool)), V("POST"), Auth.AccessKey, K(AccessKeys.Content.ChangeActivity)),
+        new(typeof(ContentController), nameof(ContentController.RequestTranslation), P(typeof(int), typeof(int)), V("POST"), Auth.AccessKey, K(AccessKeys.Content.ChangeActivity)),
         new(typeof(ContentController), nameof(ContentController.DeleteContent), P(typeof(int)), V("DELETE"), Auth.AccessKey, K(AccessKeys.Content.Delete)),
         new(typeof(ContentController), nameof(ContentController.FarsiContentForm), P(typeof(int), typeof(int)), V("GET"), Auth.AccessKey, K(AccessKeys.Content.EditFarsi)),
         new(typeof(ContentController), nameof(ContentController.SaveFarsiContentForm), P(typeof(FarsiContentEditDto)), V("POST"), Auth.AccessKey, K(AccessKeys.Content.EditFarsi)),

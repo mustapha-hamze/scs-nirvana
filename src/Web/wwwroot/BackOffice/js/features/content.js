@@ -41,8 +41,11 @@
     type: "POST"
     }).done(function (data) {
     location.reload();
-    }).fail(function () {
+    }).fail(function (xhr) {
     removeLoadingForBtn(btnId, `changeContentActiveMode(${typeId}, ${contentId}, ${mode}, '${btnId}')`, btnText);
+    if (xhr.status === 409 && xhr.responseJSON)
+    messageBox("Not activated", "Translation is not ready (" + xhr.responseJSON.translationState + ").", "warning");
+    else
     messageBox("Error!", "Something went wrong, please reload the page and try again.", "error");
     });
     }
