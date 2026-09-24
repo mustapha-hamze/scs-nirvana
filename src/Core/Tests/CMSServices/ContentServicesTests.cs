@@ -30,12 +30,17 @@ public class ContentServicesTests
         Mock<ITagRepository> tagRepository = null,
         Mock<ICultureRepository> cultureRepository = null,
         IMapper mapper = null,
-        Mock<IUnitOfWork> unitOfWork = null)
+        Mock<IUnitOfWork> unitOfWork = null,
+        Mock<IContentTranslationRepository> contentTranslationRepository = null)
     {
         var command = contentCommandRepository ?? new Mock<IContentCommandRepository>();
         // Same default the real repository gives UpdateContentMetadata: echoes back whatever
         // entity it was handed, so callers that merge onto the loaded entity see it round-trip.
         command.Setup(r => r.UpdateContentMetadata(It.IsAny<ContentMetadata>())).ReturnsAsync((ContentMetadata m) => m);
+
+        // No translations by default, so source mutations never need a source graph.
+        var translations = contentTranslationRepository ?? new Mock<IContentTranslationRepository>();
+        translations.Setup(r => r.GetTranslations(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<ContentTranslation>());
 
         return new ContentServices(
             (contentQueryRepository ?? new Mock<IContentQueryRepository>()).Object,
@@ -46,7 +51,8 @@ public class ContentServicesTests
             (tagRepository ?? new Mock<ITagRepository>()).Object,
             (cultureRepository ?? new Mock<ICultureRepository>()).Object,
             mapper ?? CreateMapper(),
-            (unitOfWork ?? DefaultUnitOfWork()).Object);
+            (unitOfWork ?? DefaultUnitOfWork()).Object,
+            translations.Object);
     }
 
     private static Mock<IUnitOfWork> DefaultUnitOfWork()
@@ -177,12 +183,13 @@ public class ContentServicesTests
             .Setup(r => r.Update(It.IsAny<Content>()))
             .ReturnsAsync((Content c) => c);
 
-        var unitOfWork = new Mock<IUnitOfWork>();
+        var unitOfWork = DefaultUnitOfWork();
         var sut = CreateSut(contentQueryRepository, contentCommandRepository, unitOfWork: unitOfWork);
 
         await sut.Update(new ContentDto { Id = 7, Title = "Updated Title" }, applicationId: 1);
 
-        unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        // One transaction: the in-transaction save plus the stale update commit together.
+        unitOfWork.Verify(u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task>>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -403,6 +410,8 @@ public class ContentServicesTests
         var contentQueryRepository = new Mock<IContentQueryRepository>();
         contentQueryRepository.Setup(r => r.GetElementForApplication(8, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SectionElement { Id = 8, SectionId = 4, TinyText = "old" });
+        contentQueryRepository.Setup(r => r.GetSectionForApplication(4, 1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ContentSection { Id = 4, ContentId = 7 });
 
         var sut = CreateSut(contentQueryRepository);
 

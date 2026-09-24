@@ -9,6 +9,7 @@ using Domains.Entities.ContentManagement;
 using Application.CMSRepository;
 using Application.GeneralRepository;
 using Application.UnitOfWork;
+using Application.UseCases.TranslatorServices;
 
 namespace Application.UseCases.CMSServices
 {
@@ -18,6 +19,7 @@ namespace Application.UseCases.CMSServices
         private readonly IContentQueryRepository _contentQueryRepository;
         private readonly IContentCommandRepository _contentCommandRepository;
         private readonly IContentRelationRepository _contentRelationRepository;
+        private readonly IContentTranslationRepository _contentTranslationRepository;
         private readonly IContentsInCategoryQueryAdapter _contentsInCategoryQueryAdapter;
         private readonly ICategoryRepository _categoryRepository;
         private readonly ITagRepository _tagRepository;
@@ -29,7 +31,7 @@ namespace Application.UseCases.CMSServices
         public ContentServices(IContentQueryRepository contentQueryRepository, IContentCommandRepository contentCommandRepository,
         IContentRelationRepository contentRelationRepository, IContentsInCategoryQueryAdapter contentsInCategoryQueryAdapter,
         ICategoryRepository categoryRepository, ITagRepository tagRepository, ICultureRepository cultureRepository,
-        IMapper mapper, IUnitOfWork unitOfWork)
+        IMapper mapper, IUnitOfWork unitOfWork, IContentTranslationRepository contentTranslationRepository)
         {
             _contentQueryRepository = contentQueryRepository;
             _contentCommandRepository = contentCommandRepository;
@@ -40,6 +42,34 @@ namespace Application.UseCases.CMSServices
             _cultureRepository = cultureRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _contentTranslationRepository = contentTranslationRepository;
+        }
+
+        // Runs a source mutation and the resulting translation staleness update as one
+        // transaction. The in-transaction save makes the staged source change (and any
+        // database-generated ids) visible to the fingerprint read; nothing commits until the
+        // stale updates are staged too, and ExecuteInTransactionAsync's final save persists them.
+        private Task SaveSourceChange(Func<Task<int>> mutation, CancellationToken cancellationToken)
+        {
+            return _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                var contentId = await mutation();
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await MarkTranslationsStale(contentId, cancellationToken);
+            }, cancellationToken);
+        }
+
+        // Only rows whose SourceFingerprint no longer matches the current source become Stale;
+        // matching (or already Stale) rows and every other field are left untouched.
+        private async Task MarkTranslationsStale(int contentId, CancellationToken cancellationToken)
+        {
+            var translations = await _contentTranslationRepository.GetTranslations(contentId, cancellationToken);
+            if (translations.Count == 0)
+                return;
+
+            var fingerprint = ContentSourceFingerprint.Compute(await _contentTranslationRepository.GetSourceGraph(contentId, cancellationToken));
+            foreach (var translation in translations.Where(t => t.SourceFingerprint != fingerprint && t.TranslationStatus != TranslationStatus.Stale))
+                translation.TranslationStatus = TranslationStatus.Stale;
         }
 
         // methods
@@ -126,8 +156,12 @@ namespace Application.UseCases.CMSServices
             var existing = await _contentQueryRepository.GetByIdForApplication(content.Id, applicationId, cancellationToken);
             content.ApplicationId = applicationId;
             _mapper.Map(content, existing);
-            var updated = await _contentCommandRepository.Update(existing);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            Content updated = null;
+            await SaveSourceChange(async () =>
+            {
+                updated = await _contentCommandRepository.Update(existing);
+                return existing.Id;
+            }, cancellationToken);
             return _mapper.Map<ContentDto>(updated);
         }
 
@@ -156,8 +190,12 @@ namespace Application.UseCases.CMSServices
             // Never trust ContentId from the DTO — verify it belongs to this application first.
             await _contentQueryRepository.GetByIdForApplication(section.ContentId, applicationId, cancellationToken);
 
-            var created = await _contentCommandRepository.CreateSection(_mapper.Map<ContentSection>(section));
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            ContentSection created = null;
+            await SaveSourceChange(async () =>
+            {
+                created = await _contentCommandRepository.CreateSection(_mapper.Map<ContentSection>(section));
+                return section.ContentId;
+            }, cancellationToken);
             return _mapper.Map<SectionDto>(created);
         }
 
@@ -165,10 +203,14 @@ namespace Application.UseCases.CMSServices
         {
             // Never trust SectionId from the DTO — verify the section and its content belong to
             // this application (and neither is soft-deleted) first.
-            await _contentQueryRepository.GetSectionForApplication(sectionElement.SectionId, applicationId, cancellationToken);
+            var section = await _contentQueryRepository.GetSectionForApplication(sectionElement.SectionId, applicationId, cancellationToken);
 
-            var created = await _contentCommandRepository.CreateSectionElement(_mapper.Map<SectionElement>(sectionElement));
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            SectionElement created = null;
+            await SaveSourceChange(async () =>
+            {
+                created = await _contentCommandRepository.CreateSectionElement(_mapper.Map<SectionElement>(sectionElement));
+                return section.ContentId;
+            }, cancellationToken);
             return _mapper.Map<SectionElementDto>(created);
         }
 
@@ -184,8 +226,13 @@ namespace Application.UseCases.CMSServices
             element.GalleryImages = sectionElement.GalleryImages;
             element.TinyText = sectionElement.TinyText;
 
-            await _contentCommandRepository.UpdateElement(element);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            // Already ownership-verified through the element above; only resolves its content id.
+            var section = await _contentQueryRepository.GetSectionForApplication(element.SectionId, applicationId, cancellationToken);
+            await SaveSourceChange(async () =>
+            {
+                await _contentCommandRepository.UpdateElement(element);
+                return section.ContentId;
+            }, cancellationToken);
         }
 
         public async Task<List<SectionDto>> GetSections(int contentId, int applicationId, CancellationToken cancellationToken = default)
@@ -278,8 +325,12 @@ namespace Application.UseCases.CMSServices
             await _contentQueryRepository.GetByIdForApplication(contentMetadata.ContentId, applicationId, cancellationToken);
 
             contentMetadata.IsActive = true;
-            var created = await _contentCommandRepository.CreateContentMetadata(_mapper.Map<ContentMetadata>(contentMetadata));
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            ContentMetadata created = null;
+            await SaveSourceChange(async () =>
+            {
+                created = await _contentCommandRepository.CreateContentMetadata(_mapper.Map<ContentMetadata>(contentMetadata));
+                return contentMetadata.ContentId;
+            }, cancellationToken);
             return _mapper.Map<ContentMetadataDto>(created);
         }
 
@@ -293,8 +344,12 @@ namespace Application.UseCases.CMSServices
             contentMetadata.ContentId = existing.ContentId;
             _mapper.Map(contentMetadata, existing);
 
-            var updated = await _contentCommandRepository.UpdateContentMetadata(existing);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            ContentMetadata updated = null;
+            await SaveSourceChange(async () =>
+            {
+                updated = await _contentCommandRepository.UpdateContentMetadata(existing);
+                return existing.ContentId;
+            }, cancellationToken);
             return _mapper.Map<ContentMetadataDto>(updated);
         }
 
@@ -322,9 +377,12 @@ namespace Application.UseCases.CMSServices
 
         public async Task DeleteSection(int sectionId, int applicationId, CancellationToken cancellationToken = default)
         {
-            await _contentQueryRepository.GetSectionForApplication(sectionId, applicationId, cancellationToken);
-            await _contentCommandRepository.DeleteSection(sectionId, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            var section = await _contentQueryRepository.GetSectionForApplication(sectionId, applicationId, cancellationToken);
+            await SaveSourceChange(async () =>
+            {
+                await _contentCommandRepository.DeleteSection(sectionId, cancellationToken);
+                return section.ContentId;
+            }, cancellationToken);
         }
 
         public async Task<List<ContentDto>> GetContentsInCategory(int categoryId, int applicationId, CancellationToken cancellationToken = default)
@@ -347,9 +405,12 @@ namespace Application.UseCases.CMSServices
 
         public async Task UpdateSectionPriority(int sectionId, int priority, int applicationId, CancellationToken cancellationToken = default)
         {
-            await _contentQueryRepository.GetSectionForApplication(sectionId, applicationId, cancellationToken);
-            await _contentCommandRepository.UpdateSectionPriority(sectionId, priority, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            var section = await _contentQueryRepository.GetSectionForApplication(sectionId, applicationId, cancellationToken);
+            await SaveSourceChange(async () =>
+            {
+                await _contentCommandRepository.UpdateSectionPriority(sectionId, priority, cancellationToken);
+                return section.ContentId;
+            }, cancellationToken);
         }
     }
 }
