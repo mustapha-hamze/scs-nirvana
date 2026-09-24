@@ -15,13 +15,13 @@ namespace Web.Models.UserManagement
         public string EmailAddress { get; set; }
 
         [MaxLength(64)]
-        [MinLength(8)]
+        [MinLength(12)]
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
         [MaxLength(64)]
-        [MinLength(8)]
+        [MinLength(12)]
         [Required]
         [DataType(DataType.Password)]
         [Compare("Password")]

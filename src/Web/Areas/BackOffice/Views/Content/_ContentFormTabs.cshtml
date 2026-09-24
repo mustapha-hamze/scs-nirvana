@@ -1,18 +1,11 @@
+@model ContentFormViewModel
 @{
     Layout = null;
-
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
 }
 
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-
-
-@if (Model != null)
+@if (!Model.IsNew)
 {
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_BODY_1007"))
+    @if (Model.CanPreviewBody)
     {
         <li class="nav-item">
     <a href="#body" data-bs-toggle="tab" aria-expanded="true" class="nav-link">
@@ -21,7 +14,7 @@
     </a>
 </li>
     }
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_IMAGES_1008"))
+    @if (Model.CanPreviewImages)
     {
         <li class="nav-item">
     <a href="#images" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
@@ -30,7 +23,7 @@
     </a>
 </li>
     }
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_ATTACHMENT_1013"))
+    @if (Model.CanPreviewAttachments)
     {
         <li class="nav-item">
     <a href="#attachment" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
@@ -39,7 +32,7 @@
     </a>
 </li>
     }
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_RELATIONS_1010"))
+    @if (Model.CanPreviewRelations)
     {
         <li class="nav-item">
     <a href="#relations" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
@@ -48,7 +41,7 @@
     </a>
 </li>
     }
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_META_1012"))
+    @if (Model.CanPreviewMetadata)
     {
         <li class="nav-item">
     <a href="#metadata" data-bs-toggle="tab" aria-expanded="false" class="nav-link">

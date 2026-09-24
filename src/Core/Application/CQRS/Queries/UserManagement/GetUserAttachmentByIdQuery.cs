@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.CQRS.Queries.UserManagement;
 
-public record GetUserAttachmentByIdQuery(int Id) : IRequest<UserAttachmentDto>;
+public record GetUserAttachmentByIdQuery(int Id, string UserId) : IRequest<UserAttachmentDto>;

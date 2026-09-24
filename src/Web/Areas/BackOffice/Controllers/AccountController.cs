@@ -48,7 +48,8 @@ public class AccountController : BaseController
     // User administration (listing every user, editing another user's profile, or flipping
     // IsAdminUser/IsApprove) is privileged, global administration - same rationale as role and
     // membership administration above.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     public IActionResult Users()
     {
         return View();
@@ -58,25 +59,24 @@ public class AccountController : BaseController
     // itself) - is privileged, global (not tenant-scoped) administration. Authentication plus a
     // selected-tenant membership must never be enough; the "User Management" sidebar section
     // already hides this from non-SuperAdmins client-side, this is what actually enforces it.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     public IActionResult Roles()
     {
         var roles = _roleManager.Roles.ToList();
         return View(roles);
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Roles(string RoleName)
     {
         await _roleManager.CreateAsync(new IdentityRole { Name = RoleName });
         return Redirect("/BackOffice/Account/Roles");
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToRole/{userId}/{roleName}")]
     public async Task<IActionResult> AddUserToRole(string userId, string roleName)
     {
@@ -88,9 +88,8 @@ public class AccountController : BaseController
             return Content("Failed");
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromRole/{userId}/{roleName}")]
     public async Task<IActionResult> RemoveUserFromRole(string userId, string roleName)
     {
@@ -106,9 +105,8 @@ public class AccountController : BaseController
     // administration above: applicationId here is an explicit, SuperAdmin-only target, never
     // proof of authorization by itself (an ordinary member could otherwise add/remove anyone
     // to/from any application, tenant membership notwithstanding).
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/AddUserToApplication/{userId}/{applicationId}")]
     public async Task<IActionResult> AddUserToApplication(string userId, int applicationId)
     {
@@ -119,9 +117,8 @@ public class AccountController : BaseController
     // applicationId comes from the caller's own validated selected tenant, not the request -
     // a SuperAdmin using this action can only remove membership rows for the application they
     // themselves currently have selected.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Account/RemoveUserFromApplication/{relationId}")]
     public async Task<IActionResult> RemoveUserFromApplication(int relationId)
     {
@@ -129,7 +126,8 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/Account/UserSettingForm/{userId}")]
     public async Task<IActionResult> UserSettingForm(string userId)
     {
@@ -149,7 +147,8 @@ public class AccountController : BaseController
     // admin here is deliberately working across every application a user belongs to, not just
     // the caller's own selected tenant, so this must stay a global, SuperAdmin-only flow rather
     // than being bound to the selected tenant.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/BackOffice/Account/Sectors/{userId}")]
     public async Task<IActionResult> Sectors(string userId)
     {
@@ -162,7 +161,8 @@ public class AccountController : BaseController
         return View();
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/{controller}/Entities/{userId}")]
     public async Task<IActionResult> Entities(string userId)
     {
@@ -177,7 +177,8 @@ public class AccountController : BaseController
     // appId is caller-supplied and unrelated to the caller's own selected tenant - without this
     // gate any authenticated member could enumerate another application's sectors by guessing
     // appId, regardless of their own membership.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/{controller}/GetApplicationSectors/{appId}")]
     public IActionResult GetApplicationSectors(int appId)
     {
@@ -185,7 +186,8 @@ public class AccountController : BaseController
         return PartialView("_SectorOptionsPartial", sectors);
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/{controller}/{action}/{userId}/{appId}")]
     public async Task<string> GetUserAccess(string userId, int appId)
     {
@@ -194,7 +196,8 @@ public class AccountController : BaseController
         return accesses;
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/{controller}/GetSectorEntities/{sectorId}")]
     public IActionResult GetSectorEntities(int sectorId)
     {
@@ -202,7 +205,7 @@ public class AccountController : BaseController
         return PartialView("_SectorEntityLinksPartial", entities);
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [Route("/{area}/{controller}/{action}")]
     [HttpPost]
     public async Task<IActionResult> SetAccessForUser(SaveAccessViewModel model)
@@ -223,7 +226,8 @@ public class AccountController : BaseController
         return Content("Done");
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/{area}/Account/UserForm/{userId?}")]
     public async Task<IActionResult> UserForm(string userId = "")
     {
@@ -255,9 +259,8 @@ public class AccountController : BaseController
     // check - without this gate, any authenticated member could self-approve, grant themselves
     // IsAdminUser, or edit another user's profile/approval state by posting a crafted DTO
     // (UserId selects create vs. update, and update trusts every field on the DTO).
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveUserForm(CreateUserDto user)
     {
         if (user.UserId != "")
@@ -324,9 +327,8 @@ public class AccountController : BaseController
 
     // Enumerates every user in the system (optionally filtered) - global administration, not
     // tenant-scoped self-service.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public IActionResult UserList(UserDto userFilter)
     {
         if (string.IsNullOrEmpty(userFilter.Email))
@@ -337,117 +339,19 @@ public class AccountController : BaseController
 
     [AllowAnonymous]
     [SkipTenantContextCheck]
-    [Route("/Login")]
-    public async Task<IActionResult> Login()
-    {
-        var loginModel = new UserLoginDto
-        {
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
-        };
-        return View(loginModel);
-    }
-
-    [AllowAnonymous]
-    [SkipTenantContextCheck]
-    [Route("/{area}/ExternalLogin/{provider}")]
-    public IActionResult ExternalLogin(string provider)
-    {
-        var redirectUrl = Url.Action("ExternalLoginCallBack", "Account");
-        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-        return new ChallengeResult(provider, properties);
-    }
-
-    [AllowAnonymous]
-    [SkipTenantContextCheck]
     [HttpGet]
-    public async Task<IActionResult> ExternalLoginCallBack(string remoteError = null)
+    [Route("/Login")]
+    public IActionResult Login()
     {
-        var loginModel = new UserLoginDto
-        {
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
-        };
-
-        if (remoteError != null)
-        {
-            ModelState.AddModelError(string.Empty, $"Error from google login: {remoteError}");
-            return View("Login", loginModel);
-        }
-
-        var info = await _signInManager.GetExternalLoginInfoAsync();
-        if (info == null)
-        {
-            ModelState.AddModelError(string.Empty, "Error loading external login information.");
-            return View("Login", loginModel);
-        }
-
-        var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider,
-            info.ProviderKey, true, true);
-
-        if (signInResult.Succeeded)
-        {
-            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user.IsApprove)
-            {
-                CookieOptions option = new();
-                option.Expires = DateTime.Now.AddDays(1);
-                Response.Cookies.Append("UserIsApprove", "true", option);
-                return Redirect("/BackOffice/Application/SelectApp");
-            }
-            else
-            {
-                CookieOptions option = new();
-                option.Expires = DateTime.Now.AddDays(1);
-                Response.Cookies.Append("UserIsApprove", "false", option);
-
-                return Redirect("/WaitingForApproval");
-            }
-        }
-        else
-        {
-            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-
-            if (email != null)
-            {
-                var user = await _userManager.FindByEmailAsync(email);
-
-                if (user == null)
-                {
-                    user = new ApplicationUser
-                    {
-                        UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
-                        Email = info.Principal.FindFirstValue(ClaimTypes.Email),
-                        IsAdminUser = true,
-                        IsApprove = false
-                    };
-                    await _userManager.CreateAsync(user);
-                }
-
-                await _userManager.AddLoginAsync(user, info);
-                await _signInManager.SignInAsync(user, true);
-
-                CookieOptions option = new();
-                option.Expires = DateTime.Now.AddDays(1);
-                Response.Cookies.Append("UserIsApprove", "false", option);
-
-                return Redirect("/WaitingForApproval");
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Google login isn't available, please contact support on info@entralon.com");
-                return View("Login", loginModel);
-            }
-        }
+        return View(new UserLoginDto());
     }
 
     [AllowAnonymous]
     [SkipTenantContextCheck]
     [Route("/Login")]
     [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(UserLoginDto userLogin, string _password = "")
+    public async Task<IActionResult> Login(UserLoginDto userLogin)
     {
-        userLogin.ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         if (!ModelState.IsValid)
             return View(userLogin);
 
@@ -481,6 +385,7 @@ public class AccountController : BaseController
 
     [SkipTenantContextCheck]
     [Route("/Logout")]
+    [HttpPost]
     public async Task<IActionResult> Logout()
     {
         // HttpContext.Session.Remove("AppKey");
@@ -493,7 +398,8 @@ public class AccountController : BaseController
 
     // id is an entity id with no applicationId scoping at all - same cross-tenant risk as
     // GetApplicationSectors above.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
+    [HttpGet]
     [Route("/BackOffice/Account/EntityAccesses/{id}")]
     public IActionResult EntityAccesses(int id)
     {
@@ -501,6 +407,11 @@ public class AccountController : BaseController
         return PartialView("_EntityAccessCheckboxesPartial", entityAccesses);
     }
 
+    // Only ever a shell for the UserAttachmentController workflow (UserAttachmentsList/
+    // UserAttachmentForm), which is entirely SuperAdmin-only - classified the same way rather
+    // than left reachable by any authenticated member.
+    [Authorize(Policy = WebAuthorizationPolicies.SuperAdmin)]
+    [HttpGet]
     [Route("/BackOffice/Account/Attachment")]
     public IActionResult Attachment(int id)
     {

@@ -1,19 +1,10 @@
-@using Application.UseCases.Utilities.ApplicationConst;
+@inject Web.Areas.BackOffice.Presentation.Shell.IBackOfficeShellContext ShellContext
 
 @{
-    int appId = currentApplicationContext.RequireApplicationId();
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, appId);
-    if (accesses == string.Empty)
-        accesses = "NULL";
-
-    var appPages = (await applicationServices.GetApplicationSetting(appId, 6000)).OrderBy(ap => ap.Value);
+    var shell = await ShellContext.GetSnapshotAsync();
 }
-@inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices;
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext;
 
-@if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_"))
+@if (shell.Access.CanAnyAccess(Web.Authorization.AccessKeys.Content.Module, Web.Authorization.AccessKeys.Category.Module, Web.Authorization.AccessKeys.Schema.Module))
 {
     <li class="side-nav-item" id="cmsMenuLi">
         <a data-bs-toggle="collapse" href="#sidebarContentManagement" aria-expanded="false"
@@ -24,7 +15,7 @@
         </a>
         <div class="collapse" id="sidebarContentManagement">
             <ul class="side-nav-second-level">
-                @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001"))
+                @if (shell.Access.CanAccess(Web.Authorization.AccessKeys.Content.Module))
                 {
                     <li class="side-nav-item" id="liCMSContent">
                         <a data-bs-toggle="collapse" href="#sidebarSecondLevel" aria-expanded="false"
@@ -34,10 +25,7 @@
                         </a>
                         <div class="collapse" id="sidebarSecondLevel">
                             <ul class="side-nav-third-level">
-                                @{
-                                    var contentTypes = await systemTypeServices.GetTypesInTypeGroup(appId, TypeId.Content);
-                                }
-                                @foreach (var item in contentTypes)
+                                @foreach (var item in shell.ContentTypes)
                                 {
                                     <li id="thirdLayerMenu_Content_@item.Id">
                                         <a href="/BackOffice/Content/Index/@item.Id">@item.Title</a>
@@ -47,7 +35,9 @@
                         </div>
                     </li>
                 }
-                @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1004"))
+                @* "Pages" routes to the same ContentController.Index action as "Content" above, gated by
+                   the same exact AccessKeys.Content.Module key - see AccessKeys.cs's comment on it. *@
+                @if (shell.Access.CanAccess(Web.Authorization.AccessKeys.Content.Module))
                 {
                     <li class="side-nav-item" id="liCMSAppPages">
                         <a data-bs-toggle="collapse" href="#sidebarSecondLevelAppPages" aria-expanded="false"
@@ -57,26 +47,25 @@
                         </a>
                         <div class="collapse" id="sidebarSecondLevelAppPages">
                             <ul class="side-nav-third-level">
-                                @foreach (var item in appPages)
+                                @foreach (var item in shell.AppPages)
                                 {
-                                    var pageType = "100" + item.Value;
-                                    <li id="thirdLayerMenu_AppPages_@pageType">
-                                        <a href="/BackOffice/Content/Index/@pageType">@item.Title</a>
+                                    <li id="thirdLayerMenu_AppPages_@item.PageType">
+                                        <a href="/BackOffice/Content/Index/@item.PageType">@item.Title</a>
                                     </li>
                                 }
                             </ul>
                         </div>
                     </li>
                 }
-                @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1002"))
+                @if (shell.Access.CanAccess(Web.Authorization.AccessKeys.Category.Module))
                 {
-                    <li>
+                    <li id="liCMSCategory">
                         <a href="/BackOffice/Category/Index">Category</a>
                     </li>
                 }
-                @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1003"))
+                @if (shell.Access.CanAccess(Web.Authorization.AccessKeys.Schema.Module))
                 {
-                    <li>
+                    <li id="liCMSSchema">
                         <a href="/BackOffice/Schema/Index">Schema</a>
                     </li>
                 }

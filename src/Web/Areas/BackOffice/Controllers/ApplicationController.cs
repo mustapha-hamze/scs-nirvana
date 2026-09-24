@@ -35,6 +35,7 @@ public class ApplicationController : BaseController
     }
 
     // methods
+    [HttpGet]
     public async Task<IActionResult> SelectApp()
     {
         if (!await CheckUserApproval())
@@ -42,9 +43,10 @@ public class ApplicationController : BaseController
 
         ViewData["UserApplications"] = await _applicationServices.GetUserApplications(User.Identity.Name);
 
-        return View(_applicationServices.List());
+        return View(await _applicationServices.List());
     }
 
+    [HttpGet]
     public IActionResult ApplicationForm()
     {
         return View(new ApplicationDto
@@ -55,9 +57,8 @@ public class ApplicationController : BaseController
 
     // Application is the tenant root, not a self-scoped resource - authentication alone is not
     // enough to create one. Only a SuperAdmin may.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveApplicationForm(ApplicationDto applicationForm)
     {
         applicationForm.IsActive = true;
@@ -69,12 +70,21 @@ public class ApplicationController : BaseController
     // EntityId is caller-controlled and would otherwise let any authenticated member overwrite
     // the logo and regenerate the application key for an arbitrary application. [Authorize] runs
     // before this method body, so the SuperAdmin check happens before EntityId is ever looked up.
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadApplicationLogo(IFormFile File, int EntityId)
     {
-        var application = await _applicationServices.GetById(EntityId);
+        ApplicationDto application;
+        try
+        {
+            application = await _applicationServices.GetById(EntityId);
+        }
+        catch (InvalidOperationException)
+        {
+            // GetById's SingleAsync throws for a missing/deleted EntityId - a deliberate,
+            // client-compatible failure instead of an unhandled 500.
+            return Content("Failed");
+        }
 
         application.ApplicationKey = _codeGenerator.GenerateAppKey(application.Id);
 
@@ -94,7 +104,6 @@ public class ApplicationController : BaseController
     // Selecting an application changes the caller's server-side session state, so this must be a
     // state-changing POST with a CSRF token - not a plain GET link a page could trigger silently.
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Route("/BackOffice/Application/SelectAppToEnter/{applicationId}")]
     public async Task<IActionResult> SelectAppToEnter(int applicationId)
     {
@@ -103,7 +112,11 @@ public class ApplicationController : BaseController
 
         try
         {
-            await _userManagementServices.SetCurrentApplicationId(User.Identity.Name, applicationId);
+            // A SuperAdmin may select any active, non-deleted application without a membership
+            // row of their own (see ITenantAccessGuard.HasAccessAsync); everyone else is still
+            // limited to their own active memberships.
+            await _userManagementServices.SetCurrentApplicationId(
+                User.Identity.Name, applicationId, User.IsInRole(ApplicationRoles.SuperAdmin));
         }
         catch (KeyNotFoundException)
         {
@@ -123,6 +136,7 @@ public class ApplicationController : BaseController
         return user.IsApprove;
     }
 
+    [HttpGet]
     [Route("/WaitingForApproval")]
     public IActionResult WaitingForApproval()
     {
@@ -130,6 +144,7 @@ public class ApplicationController : BaseController
     }
 
     [Route("/LogoutApp")]
+    [HttpPost]
     public async Task<IActionResult> Logout()
     {
         // HttpContext.Session.Remove("AppKey");

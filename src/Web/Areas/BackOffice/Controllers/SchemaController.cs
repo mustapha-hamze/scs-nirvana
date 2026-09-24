@@ -1,6 +1,9 @@
 namespace Web.Areas.BackOffice.Controllers;
 
+// The sidebar only exposes one access key for Schema (Views/Shared/_SideBarCMS.cshtml:
+// "CMS1000_1003"), with no finer-grained per-action key - every action here shares it.
 [Authorize]
+[RequireAccess(AccessKeys.Schema.Module)]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
 public class SchemaController : BaseController
@@ -30,11 +33,13 @@ public class SchemaController : BaseController
 
     // methods
     #region methods
+    [HttpGet]
     public IActionResult Index()
     {
         return View();
     }
 
+    [HttpGet]
     [Route("/{area}/Schema/SchemaForm/{id?}")]
     public async Task<IActionResult> SchemaForm(int id = 0)
     {
@@ -53,7 +58,6 @@ public class SchemaController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSchemaForm(SchemaDto schema)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -70,11 +74,21 @@ public class SchemaController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadSchemaLogo(IFormFile File, int EntityId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        var schema = await _schemaServices.GetById(EntityId, currentApplicationId);
+
+        SchemaDto schema;
+        try
+        {
+            schema = await _schemaServices.GetById(EntityId, currentApplicationId);
+        }
+        catch (InvalidOperationException)
+        {
+            // GetById's SingleAsync throws for a missing/deleted/other-tenant EntityId - a
+            // deliberate, client-compatible failure instead of an unhandled 500.
+            return Content("Failed");
+        }
 
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Schema/Logos/");
         var baseName = Path.GetFileNameWithoutExtension(schema.LogoFileName);
@@ -89,6 +103,7 @@ public class SchemaController : BaseController
         return Content("Done");
     }
 
+    [HttpGet]
     public async Task<IActionResult> SchemaList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -96,7 +111,6 @@ public class SchemaController : BaseController
     }
 
     [HttpDelete]
-    [ValidateAntiForgeryToken]
     [Route("/{area}/Schema/DeleteSchema/{id}")]
     public async Task<IActionResult> DeleteSchema(int id)
     {
@@ -106,6 +120,7 @@ public class SchemaController : BaseController
     }
 
 
+    [HttpGet]
     [Route("/{area}/Schema/SchemaDetailsForm/{schemaId}")]
     public async Task<IActionResult> SchemaDetailsForm(int schemaId)
     {
@@ -115,6 +130,7 @@ public class SchemaController : BaseController
         return View();
     }
 
+    [HttpGet]
     [Route("/{area}/Schema/SchemaDetailsList/{schemaId}")]
     public async Task<IActionResult> SchemaDetailsList(int schemaId)
     {
@@ -123,7 +139,6 @@ public class SchemaController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SchemaDetailsFormSave(SchemaDetailsDto schemaDetails)
     {
         //TODO: Implement Realistic Implementation

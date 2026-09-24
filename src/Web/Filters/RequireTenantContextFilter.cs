@@ -35,8 +35,9 @@ public sealed class RequireTenantContextFilter : IAsyncActionFilter
         }
 
         var selectedApplicationId = _currentApplicationContext.CurrentApplicationId;
+        var isSuperAdmin = context.HttpContext.User.IsInRole(ApplicationRoles.SuperAdmin);
         var hasAccess = selectedApplicationId is int applicationId
-            && await _tenantAccessGuard.HasAccessAsync(context.HttpContext.User.Identity.Name, applicationId);
+            && await _tenantAccessGuard.HasAccessAsync(context.HttpContext.User.Identity.Name, applicationId, isSuperAdmin);
 
         if (!hasAccess)
         {

@@ -62,17 +62,17 @@
     {
         <div class="mb-3 col-md-3">
             <label class="form-label" asp-for="Password">Password</label>
-            <input type="password" class="form-control" asp-for="Password" placeholder="Password" required minlength="8"
+            <input type="password" class="form-control" asp-for="Password" placeholder="Password" required minlength="12"
                 maxlength="64">
             <div class="invalid-feedback">
-                Min length is 8 and max length is 64
+                Min length is 12 and max length is 64
             </div>
         </div>
         <div class="mb-3 col-md-3">
             <label class="form-label" asp-for="ConfirmPassword">Confirm Password</label>
-            <input type="password" class="form-control" asp-for="ConfirmPassword" placeholder="Confirm Password" required>
+            <input type="password" class="form-control" asp-for="ConfirmPassword" placeholder="Confirm Password" required minlength="12">
             <div class="invalid-feedback">
-                Min length is 8 and max length is 64
+                Min length is 12 and max length is 64
             </div>
         </div>
     }

@@ -24,5 +24,16 @@ namespace Infrastructure.UserManagementRepository
                 .Where(a => a.UserId == userId && !a.IsDeleted)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<UserAttachment> GetByIdForUser(int attachmentId, string userId, CancellationToken cancellationToken = default)
+        {
+            var attachment = await _dbContext.UserAttachments.AsNoTracking()
+                .SingleOrDefaultAsync(a => a.Id == attachmentId && a.UserId == userId && !a.IsDeleted, cancellationToken);
+
+            if (attachment is null)
+                throw new KeyNotFoundException();
+
+            return attachment;
+        }
     }
 }

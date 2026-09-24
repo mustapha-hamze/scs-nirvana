@@ -1,5 +1,7 @@
 ﻿namespace Web.Areas.Api;
 [ApiController]
+[AllowAnonymous]
+[IgnoreAntiforgeryToken]
 public class CategoryController : ControllerBase
 {
     private readonly ISender _sender;

@@ -153,100 +153,6 @@
         });
     }
 
-    function newZoneForm() {
-        $("#generalModalLabel").html("Add zone tag");
-        clearModalBody("generalModalBody");
-        $.ajax({
-            url: '/BackOffice/General/ZoneForm',
-            type: "GET"
-        }).done(function (data) {
-            $("#generalModalBody").html(data);
-            $('#__Select2_Zones__').select2({
-                dropdownParent: $('#general-modal')
-            });
-        });
-    }
-
-    function saveZoneForm() {
-        if (checkFormValidity('frmZone')) {
-            var frmTag = $("#frmZone");
-
-            clearModalBody("generalModalBody");
-
-            $.ajax({
-                type: "POST",
-                url: "/BackOffice/General/SaveZoneForm",
-                data: frmTag.serialize()
-            }).done(function (data) {
-                findZones();
-                $('#general-modal').modal('hide');
-            });
-        }
-    }
-
-    function findZones() {
-        clearModalBody("findZonesResultBody");
-        $.ajax({
-            url: '/BackOffice/General/ZoneList',
-            type: "GET"
-        }).done(function (data) {
-            $("#findZonesResultBody").html(data);
-            $("#datatable-buttons").DataTable({
-                sAjaxSource: "/BackOffice/General/ZoneListJsonData",
-                bServerSide: true,
-                bProcessing: true,
-                fixedHeader: {
-                    headerOffset: 50
-                },
-                bSearchable: true,
-                pageLength: 25,
-                language: {
-                    paginate: {
-                        previous: "<i class='mdi mdi-chevron-left'>",
-                        next: "<i class='mdi mdi-chevron-right'>"
-                    },
-                    "emptyTable": "No record found.",
-                    "processing":
-                        '<div class="p-5 text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden"></span></div></div>'
-                }, "columns": [
-                    {
-                        "data": "id",
-                        "autoWidth": true,
-                        "searchable": true
-                    },
-                    {
-                        "data": "title",
-                        "autoWidth": true,
-                        "searchable": true
-                    },
-                    {
-                        "data": "parentTitle",
-                        "autoWidth": true,
-                        "searchable": true
-                    }, {
-                        "data": "createdDT",
-                        "autoWidth": true,
-                        "searchable": true
-                    },
-                    {
-                        "data": 'id',
-                        "autoWidth": true,
-                        "searchable": false,
-                        "sortable": false,
-                        render: (data, type, row) => {
-                            return `<a href="javascript: void(0);" class="action-icon" title="Delete" aria-label="Delete zone">
-                                        <i class="mdi mdi-delete"></i>
-                                    </a>`;
-                        }
-                    }
-                ],
-                drawCallback: function () {
-                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
-                }
-            });
-        });
-    }
-
     function newSystemTypeForm() {
         $("#generalModalLabel").html("Add system type");
         clearModalBody("generalModalBody");
@@ -255,9 +161,6 @@
             type: "GET"
         }).done(function (data) {
             $("#generalModalBody").html(data);
-    @* $('#__Select2_Zones__').select2({
-                dropdownParent: $('#general-modal')
-                }); *@
         });
     }
 
@@ -301,54 +204,4 @@
         });
     }
 
-    function newCurrencyForm() {
-        $("#generalModalLabel").html("Add new currency");
-        clearModalBody("generalModalBody");
-        $.ajax({
-            url: '/BackOffice/General/CurrenciesForm',
-            type: "GET"
-        }).done(function (data) {
-            $("#generalModalBody").html(data);
-        });
-    }
-
-    function saveCurrencyForm() {
-        if (checkFormValidity('frmCurrency')) {
-            var frmCurrency = $("#frmCurrency");
-
-            clearModalBody("generalModalBody");
-
-            $.ajax({
-                type: "POST",
-                url: "/BackOffice/General/SaveCurrenciesForm",
-                data: frmCurrency.serialize()
-            }).done(function (data) {
-                findCurrencies();
-                $('#general-modal').modal('hide');
-            });
-        }
-    }
-
-    function findCurrencies() {
-        clearModalBody("findCurrencysResultBody");
-        $.ajax({
-            url: '/BackOffice/General/CurrenciesList',
-            type: "Get"
-        }).done(function (data) {
-            $("#findCurrencysResultBody").html(data);
-            $("#datatable-buttons").DataTable({
-                lengthChange: !1,
-                buttons: ["copy", "print"],
-                language: {
-                    paginate: {
-                        previous: "<i class='mdi mdi-chevron-left'>",
-                        next: "<i class='mdi mdi-chevron-right'>"
-                    }
-                },
-                drawCallback: function () {
-                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
-                }
-            });
-        });
-    }
 </script>

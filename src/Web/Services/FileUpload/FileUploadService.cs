@@ -1,5 +1,6 @@
 #nullable enable
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Options;
 using SkiaSharp;
 
 namespace Web.Services.FileUpload;
@@ -18,6 +19,21 @@ public sealed class FileUploadService : IFileUploadService
             [SKEncodedImageFormat.Webp] = "webp",
             [SKEncodedImageFormat.Bmp] = "bmp"
         };
+
+    private readonly long _maxFileBytes;
+    private readonly long _maxImagePixelCount;
+
+    public FileUploadService(IOptions<WebRequestLimitsOptions> requestLimits)
+    {
+        _maxFileBytes = requestLimits.Value.MultipartBodyLengthLimitBytes;
+        _maxImagePixelCount = requestLimits.Value.MaxImagePixelCount;
+    }
+
+    // Test-only seam (Web.Tests via InternalsVisibleTo): lets a test deterministically fail a
+    // variant write after its target file has been created but before the write completes, to
+    // prove the resulting partial file (and any already-written sibling variants) get cleaned up.
+    // Never set outside tests; production code never touches it.
+    internal Action<string>? TestOnlyBeforeVariantWrite { get; set; }
 
     public async Task<FileUploadResult> SaveImageAsync(IFormFile file, string directory, string fileNameWithoutExtension,
         ImageOutputFormat outputFormat = ImageOutputFormat.PreserveOriginal)
@@ -57,27 +73,82 @@ public sealed class FileUploadService : IFileUploadService
 
         using var bitmap = decoded.Bitmap;
 
+        // Every file name here is a fresh Guid, so writtenPaths can never collide with a
+        // pre-existing file - cleanup below only ever removes what this call itself created.
         var variants = new List<ImageVariant>();
+        var writtenPaths = new List<string>();
+
         foreach (var (width, height) in sizes)
         {
-            using var resized = bitmap!.Resize(new SKImageInfo(width, height), SKSamplingOptions.Default);
-            if (resized is null || !TryEncode(resized, decoded.Format, out var data))
-                return ImageVariantsUploadResult.Failure($"Unable to encode image for size {width}x{height}.");
-
-            using (data)
+            try
             {
-                var fileName = $"{Guid.NewGuid()}.{decoded.Extension}";
-                var fullPath = ResolveSafePath(directory, fileName);
+                if (width <= 0 || height <= 0)
+                    return Failure($"Invalid target size {width}x{height}.", writtenPaths);
 
-                Directory.CreateDirectory(directory);
-                await using var stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write);
-                data.SaveTo(stream);
+                using var resized = bitmap!.Resize(new SKImageInfo(width, height), SKSamplingOptions.Default);
+                if (resized is null || !TryEncode(resized, decoded.Format, out var data))
+                    return Failure($"Unable to encode image for size {width}x{height}.", writtenPaths);
 
-                variants.Add(new ImageVariant(width, height, fileName));
+                using (data)
+                {
+                    var fileName = $"{Guid.NewGuid()}.{decoded.Extension}";
+                    var fullPath = ResolveSafePath(directory, fileName);
+
+                    Directory.CreateDirectory(directory);
+
+                    // Tracked before the file is opened, not after a successful write - so a
+                    // failure during open/write/flush/dispose still gets this call's own
+                    // partially written file cleaned up by Failure() below, not just whatever
+                    // earlier variants had already finished writing.
+                    writtenPaths.Add(fullPath);
+
+                    await using (var stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
+                    {
+                        TestOnlyBeforeVariantWrite?.Invoke(fullPath);
+                        data.SaveTo(stream);
+                        await stream.FlushAsync();
+                    }
+
+                    variants.Add(new ImageVariant(width, height, fileName));
+                }
+            }
+            // Cancellation is not "the upload failed" - it must propagate as itself, not become
+            // ImageVariantsUploadResult.Failure. This is the one place that still owes cleanup:
+            // the same best-effort delete of everything this call created (prior completed
+            // variants and the current, possibly-partial one), then an unchanged rethrow so the
+            // caller sees the original OperationCanceledException/TaskCanceledException.
+            catch (OperationCanceledException)
+            {
+                CleanUpFiles(writtenPaths);
+                throw;
+            }
+            // Every other expected failure mode (filesystem, codec, argument/dimension, write) is
+            // turned into a clean failed-upload result with the same cleanup. OutOfMemoryException
+            // is deliberately excluded: attempting filesystem cleanup while the process may be out
+            // of memory is itself unreliable and could throw again, so it propagates untouched,
+            // with no cleanup attempt, exactly as before.
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                return Failure($"Unable to produce image variant {width}x{height}: {ex.Message}", writtenPaths);
             }
         }
 
         return ImageVariantsUploadResult.Success(variants);
+
+        static void CleanUpFiles(List<string> paths)
+        {
+            foreach (var path in paths)
+            {
+                try { File.Delete(path); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            }
+        }
+
+        static ImageVariantsUploadResult Failure(string error, List<string> writtenPaths)
+        {
+            CleanUpFiles(writtenPaths);
+            return ImageVariantsUploadResult.Failure(error);
+        }
     }
 
     public async Task<FileUploadResult> SaveFileAsync(IFormFile file, string directory, string fileNameWithoutExtension,
@@ -85,6 +156,9 @@ public sealed class FileUploadService : IFileUploadService
     {
         if (file is null || file.Length == 0)
             return FileUploadResult.Failure("No file was selected or the file is empty.");
+
+        if (file.Length > _maxFileBytes)
+            return FileUploadResult.Failure($"The uploaded file exceeds the {_maxFileBytes}-byte limit.");
 
         var extension = Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant();
         if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
@@ -105,10 +179,15 @@ public sealed class FileUploadService : IFileUploadService
         public static ImageDecodeResult Failure(string error) => new(false, null, default, string.Empty, error);
     }
 
-    private static async Task<ImageDecodeResult> DecodeImageAsync(IFormFile file)
+    private async Task<ImageDecodeResult> DecodeImageAsync(IFormFile file)
     {
         if (file is null || file.Length == 0)
             return ImageDecodeResult.Failure("No file was selected or the file is empty.");
+
+        // Rejected by length alone, before any buffering - the same finite ceiling the web
+        // server enforces for the whole multipart body, applied per file here as defense in depth.
+        if (file.Length > _maxFileBytes)
+            return ImageDecodeResult.Failure($"The uploaded file exceeds the {_maxFileBytes}-byte limit.");
 
         using var buffer = new MemoryStream();
         await file.CopyToAsync(buffer);
@@ -121,6 +200,13 @@ public sealed class FileUploadService : IFileUploadService
         {
             if (codec is null || !SupportedImageFormats.TryGetValue(codec.EncodedFormat, out var extension))
                 return ImageDecodeResult.Failure("The uploaded file is not a supported image.");
+
+            // Checked from the codec header, before SKBitmap.Decode allocates the full pixel
+            // buffer - rejects a "pixel bomb" (a tiny file that decompresses into a huge bitmap)
+            // without ever allocating it.
+            var pixelCount = (long)codec.Info.Width * codec.Info.Height;
+            if (pixelCount <= 0 || pixelCount > _maxImagePixelCount)
+                return ImageDecodeResult.Failure("The uploaded image's dimensions are too large to process.");
 
             using var bitmapStream = new MemoryStream(bytes);
             var bitmap = SKBitmap.Decode(bitmapStream);
@@ -136,9 +222,11 @@ public sealed class FileUploadService : IFileUploadService
         if (original.Width <= maxWidth)
             return original.Copy();
 
-        var newWidth = original.Width / 2;
-        var newHeight = original.Height / 2;
-        return original.Resize(new SKImageInfo(newWidth, newHeight), SKSamplingOptions.Default);
+        // A single proportional scale to exactly maxWidth, not a one-time halving - halving left
+        // very large images (e.g. width > 2 * maxWidth) still over the limit after "resizing".
+        var scale = (double)maxWidth / original.Width;
+        var newHeight = Math.Max(1, (int)Math.Round(original.Height * scale));
+        return original.Resize(new SKImageInfo(maxWidth, newHeight), SKSamplingOptions.Default);
     }
 
     private static bool TryEncode(SKBitmap bitmap, SKEncodedImageFormat format, [NotNullWhen(true)] out SKData? data)

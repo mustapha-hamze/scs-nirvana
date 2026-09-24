@@ -1,40 +1,20 @@
-@using Application.UseCases.Utilities.ApplicationConst
-@model Application.Contracts.CMS.ContentDto
-
-@inject Application.UseCases.GeneralServices.ISystemTypeServices systemTypeServices
-@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-
-@{
-    int typeId = Convert.ToInt32(ViewData["TypeId"]);
-    var contentTypes = await systemTypeServices.GetTypesInTypeGroup(currentApplicationContext.RequireApplicationId(), TypeId.Content);
-    var appPages = await applicationServices.GetApplicationSetting(currentApplicationContext.RequireApplicationId(), 6000);
-
-    string typeTitle = contentTypes.FirstOrDefault(t => t.Id == typeId)?.Title;
-    if (typeTitle == null)
-    {
-        var page = appPages.FirstOrDefault(p => ("100" + p.Value) == typeId.ToString());
-        typeTitle = page?.Title ?? "Content";
-    }
-
-    ViewData["Title"] = typeTitle;
-}
+@model ContentIndexViewModel
 
 <ul class="scs-breadcrumb">
     <li><a href="/BackOffice/Home/Index">Dashboard</a></li>
     <li>Content Management</li>
-    <li>@typeTitle</li>
+    <li>@Model.TypeTitle</li>
 </ul>
 <div class="scs-page-header">
     <div>
-        <h1 class="scs-page-title">@typeTitle</h1>
-        <p class="scs-page-helper">Create, edit, and publish @typeTitle.ToLower() items.</p>
+        <h1 class="scs-page-title">@Model.TypeTitle</h1>
+        <p class="scs-page-helper">Create, edit, and publish @Model.TypeTitle.ToLower() items.</p>
     </div>
 </div>
 
 <div class="row mb-2 mt-2">
   <div class="col-md-12 p-0">
-    @await Html.PartialAsync("_CreateContentButton")
+    @await Html.PartialAsync("_CreateContentButton", Model.CanCreateContent)
   </div>
 </div>
 
@@ -50,8 +30,9 @@
     <!-- end col-->
   </div>
 </div>
-@await Html.PartialAsync("__ContentJSFunctions")
-<input type="hidden" id="hidContentsTypeId_List" value="@ViewData["TypeId"]" />
+<script src="/BackOffice/vendor/quill/quill.min.js"></script>
+<script src="/BackOffice/js/features/content.js"></script>
+<input type="hidden" id="hidContentsTypeId_List" value="@Model.TypeId" />
 @section Scripts {
   <script>
     findContents($("#hidContentsTypeId_List").val());

@@ -1,4 +1,6 @@
 
+using Web.Areas.BackOffice.Features.Slider.ViewModels;
+using Web.Areas.BackOffice.Presentation.Shell;
 
 namespace Web.Areas.BackOffice.Controllers;
 [Authorize]
@@ -11,40 +13,60 @@ public class SliderController : BaseController
     private readonly ICurrentApplicationContext _currentApplicationContext;
     private readonly IHostEnvironment _appEnvironment;
     private readonly IFileUploadService _fileUploadService;
+    private readonly IBackOfficeShellContext _shellContext;
 
     // constructor
     public SliderController(ISliderServices sliderServices,
         ICurrentApplicationContext currentApplicationContext, IHostEnvironment appEnvironment,
-        IFileUploadService fileUploadService)
+        IFileUploadService fileUploadService, IBackOfficeShellContext shellContext)
     {
         _sliderServices = sliderServices;
         _currentApplicationContext = currentApplicationContext;
         _appEnvironment = appEnvironment;
         _fileUploadService = fileUploadService;
+        _shellContext = shellContext;
     }
 
 
     // methods
+    [HttpGet]
+    [RequireAccess(AccessKeys.Slider.Module)]
     public IActionResult Index()
     {
         return View();
     }
 
+    [HttpGet]
+    [RequireAccess(AccessKeys.Slider.Module)]
     public async Task<IActionResult> List()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        var slider = await _sliderServices.GetSliders(currentApplicationId);
-        return View(slider);
+        var sliders = await _sliderServices.GetSliders(currentApplicationId);
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canAccessItems = access.CanAccess(AccessKeys.Slider.AccessItems);
+
+        var items = sliders.Select(s => new SliderListItemViewModel
+        {
+            Id = s.Id,
+            Title = s.Title,
+            CanAccessItems = canAccessItems,
+        }).ToList();
+
+        return View(new SliderListViewModel { Items = items });
     }
+    // Views/Slider/_CreateSliderButton.cshtml gates navigation here with the (CMS-prefixed,
+    // established as-is) AccessKeys.Slider.Add key - see AccessKeys.Slider.Add's own comment.
+    [HttpGet]
+    [RequireAccess(AccessKeys.Slider.Add)]
     public async Task<IActionResult> Create()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-        ViewData["ApplicationId"] = currentApplicationId;
-        return View();
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        return View(new SliderCreateViewModel(currentApplicationId, access.CanAccess(AccessKeys.Slider.Save)));
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [RequireAccess(AccessKeys.Slider.Save)]
     public async Task<IActionResult> Create(Slider slider)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -53,6 +75,8 @@ public class SliderController : BaseController
         return Ok();
     }
 
+    [HttpGet]
+    [RequireAccess(AccessKeys.Slider.AccessItems)]
     public IActionResult CreateItem(int sliderId)
     {
         ViewData["SliderId"] = sliderId;
@@ -60,7 +84,7 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [RequireAccess(AccessKeys.Slider.SaveItem)]
     public async Task<IActionResult> CreateItem(SliderItem sliderItem)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -71,8 +95,10 @@ public class SliderController : BaseController
         return Ok($"{_sliderItem.SliderId}|{imageName}");
     }
 
+    // Used by both the create-item and update-item forms (GetSliderItemForm.cshtml), so either
+    // permission is accepted.
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [RequireAccess(AccessKeys.Slider.SaveItem, AccessKeys.Slider.UpdateItem)]
     public async Task<IActionResult> UploadSliderItemImage(IFormFile file, int sliderId, string imageFileName)
     {
         var savePath = Path.Combine(_appEnvironment.ContentRootPath, "wwwroot/Storage/Slider/" + sliderId);
@@ -87,36 +113,81 @@ public class SliderController : BaseController
         return Ok(uploadResult.FileName);
     }
 
+    [HttpGet]
+    [RequireAccess(AccessKeys.Slider.AccessItems)]
     [Route("/{area}/{controller}/SliderItems")]
     public IActionResult SliderItems()
     {
         return View();
     }
 
+    [HttpGet]
+    [RequireAccess(AccessKeys.Slider.AccessItems)]
     [Route("/{area}/{controller}/GetSliderItemList/{sliderId}")]
     public async Task<IActionResult> GetSliderItemList(int sliderId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
         var sliderItems = await _sliderServices.GetSliderItems(sliderId, currentApplicationId);
-        return View(sliderItems);
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canToggleActivity = access.CanAccess(AccessKeys.Slider.Activity);
+        var canDelete = access.CanAccess(AccessKeys.Slider.DeleteItem);
+        var canUpdate = access.CanAccess(AccessKeys.Slider.UpdateItem);
+
+        var items = sliderItems.Select(i => new SliderItemRowViewModel
+        {
+            Id = i.Id,
+            SliderId = i.SliderId,
+            Title = i.Title,
+            ImageFileName = i.ImageFileName,
+            IsActive = i.IsActive,
+        }).ToList();
+
+        return View(new SliderItemListViewModel
+        {
+            Items = items,
+            ImageVersion = Guid.NewGuid(),
+            CanToggleActivity = canToggleActivity,
+            CanDelete = canDelete,
+            CanUpdate = canUpdate,
+        });
     }
 
+    [HttpGet]
+    [RequireAccess(AccessKeys.Slider.AccessItems)]
     [Route("/{area}/{controller}/GetSliderItemForm/{sliderId}/{sliderItemId}")]
     public async Task<IActionResult> GetSliderItemForm(int sliderId, int sliderItemId = 0)
     {
-        if (sliderItemId != 0)
+        var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        var sliderItem = sliderItemId != 0
+            ? await _sliderServices.GetSliderItem(sliderItemId, currentApplicationId)
+            : new SliderItem { SliderId = sliderId };
+
+        var access = await _shellContext.GetAccessSnapshotAsync();
+        var canCreateItem = access.CanAccess(AccessKeys.Slider.SaveItem);
+        var canUpdateItem = access.CanAccess(AccessKeys.Slider.UpdateItem);
+
+        var model = new SliderItemFormViewModel
         {
-            var currentApplicationId = _currentApplicationContext.RequireApplicationId();
-            return View(await _sliderServices.GetSliderItem(sliderItemId, currentApplicationId));
-        }
-        else
-        {
-            return View(new SliderItem { SliderId = sliderId });
-        }
+            Id = sliderItem.Id,
+            SliderId = sliderItem.SliderId,
+            Title = sliderItem.Title,
+            Description = sliderItem.Description,
+            Link = sliderItem.Link,
+            ImageFileName = sliderItem.ImageFileName,
+            Status = sliderItem.Status,
+            IsDeleted = sliderItem.IsDeleted,
+            IsActive = sliderItem.IsActive,
+            UpdatedDT = sliderItem.UpdatedDT,
+            CreatedDT = sliderItem.CreatedDT,
+            ImageVersion = Guid.NewGuid(),
+            CanCreateItem = canCreateItem,
+            CanUpdateItem = canUpdateItem,
+        };
+        return View(model);
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [RequireAccess(AccessKeys.Slider.UpdateItem)]
     public async Task<IActionResult> UpdateItem(SliderItem model)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -125,7 +196,7 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [RequireAccess(AccessKeys.Slider.Activity)]
     public async Task<IActionResult> ActiveItem(int sliderItemId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -134,7 +205,7 @@ public class SliderController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [RequireAccess(AccessKeys.Slider.Activity)]
     public async Task<IActionResult> DeactiveItem(int sliderItemId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -143,7 +214,7 @@ public class SliderController : BaseController
     }
 
     [HttpDelete]
-    [ValidateAntiForgeryToken]
+    [RequireAccess(AccessKeys.Slider.DeleteItem)]
     public async Task<IActionResult> DeleteItem(int sliderItemId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

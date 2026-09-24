@@ -1,15 +1,7 @@
+@model ContentMetadataPageModel
 @{
     Layout = null;
-
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
 }
-
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-
-@model Application.Contracts.CMS.ContentMetadataDto
 
 <div class="row">
     <div class="col-md-12 mt-2">
@@ -45,7 +37,7 @@
             </div>
         </form>
     </div>
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_SAVE_META_1013"))
+    @if (Model.CanSaveMetadata)
     {
         <div class="col-md-12 mt-2">
             <a href="javascript: void(0);" id="btnSaveContentMetadata" onclick="saveContentMetadata()"

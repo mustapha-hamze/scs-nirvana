@@ -44,13 +44,14 @@ namespace Application.UseCases.UserManagementServices
             return await _userManagementRepository.GetUserAccesses(email, appId, cancellationToken);
         }
 
-        public async Task SetCurrentApplicationId(string email, int appId, CancellationToken cancellationToken = default)
+        public async Task SetCurrentApplicationId(string email, int appId, bool isSuperAdmin = false, CancellationToken cancellationToken = default)
         {
             // 0 is the existing logout/clear-selection flow and is always allowed. Any other
-            // value must be a real, active, non-deleted application that the identified user has
-            // an active, non-deleted membership for - a missing, unauthorized, or deleted target
-            // is rejected identically, so none of those cases is distinguishable to the caller.
-            if (appId != 0 && !await _tenantAccessGuard.HasAccessAsync(email, appId, cancellationToken))
+            // value must be a real, active, non-deleted application - one the identified user has
+            // an active, non-deleted membership for, or (isSuperAdmin) any such application at
+            // all. A missing, unauthorized, or deleted target is rejected identically, so none of
+            // those cases is distinguishable to the caller.
+            if (appId != 0 && !await _tenantAccessGuard.HasAccessAsync(email, appId, isSuperAdmin, cancellationToken))
                 throw new KeyNotFoundException();
 
             // Stored in the caller's session-scoped context, not persisted on the user record -

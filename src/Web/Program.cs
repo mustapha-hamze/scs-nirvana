@@ -9,6 +9,19 @@ builder.Services.AddApplicationServices();
 builder.Services.AddCmsServices();
 builder.Services.AddWebInfrastructure();
 
+// Every unhandled exception is logged here (server-side only) with its trace id; /api/... requests
+// additionally get an RFC 7807 JSON body instead of falling through to the MVC HTML error page.
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+});
+builder.Services.AddExceptionHandler<Web.ApiExceptionHandler>();
+
+// Liveness only: no checks are registered, so this never touches the database and always
+// reports Healthy once the process is up.
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 // One-time super admin bootstrap, opt-in only. Disabled by default; enable by setting
@@ -53,6 +66,12 @@ if (app.Configuration.GetValue<bool>("SuperAdminSeed:Enabled"))
 }
 
 // Configure the HTTP request pipeline.
+var reverseProxyOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<Web.ReverseProxyOptions>>().Value;
+if (reverseProxyOptions.Enabled)
+{
+    app.UseForwardedHeaders(reverseProxyOptions.ToForwardedHeadersOptions());
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -74,19 +93,20 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-#pragma warning disable ASP0014
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllerRoute(
-        name: "BackOffice",
-        pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-    endpoints.MapControllerRoute(
-        name: "Api",
-        pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-    endpoints.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}");
-    endpoints.MapRazorPages();
-});
+app.MapControllerRoute(
+    name: "BackOffice",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}");
+app.MapControllers();
+app.MapRazorPages();
+
+// Anonymous, no sensitive diagnostics, no database dependency (see AddHealthChecks above); as a
+// mapped endpoint it never goes through the MVC pipeline, so RequireTenantContextFilter never runs.
+app.MapHealthChecks("/healthz").AllowAnonymous();
 
 app.Run();
+
+// Exposes the implicit top-level Program class to WebApplicationFactory<Program> in Web.Tests.
+public partial class Program { }

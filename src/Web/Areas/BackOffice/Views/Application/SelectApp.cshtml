@@ -1,10 +1,22 @@
+@model List<Application.Contracts.General.ApplicationDto>
+
 @{
     Layout = null;
     var userApplications =
     (List<Application.Contracts.General.UserInApplicationDto>)ViewData["UserApplications"];
-}
 
-@model List<Application.Contracts.General.ApplicationDto>
+    // A SuperAdmin may select any active, non-deleted application without needing a membership
+    // row of their own - see ApplicationController.SelectAppToEnter and
+    // ITenantAccessGuard.HasAccessAsync for the matching selection-time/request-time
+    // authorization. An ordinary user's choices stay exactly as before: driven entirely by their
+    // own active memberships (userApplications), never the full application list.
+    var applicationsToShow = User.IsInRole("SuperAdmin")
+        ? Model.Where(a => a.IsActive).ToList()
+        : userApplications
+            .Select(item => Model.SingleOrDefault(a => a.Id == item.ApplicationId))
+            .Where(app => app != null)
+            .ToList();
+}
 
 
 <!DOCTYPE html>
@@ -36,19 +48,14 @@
 
                         <div class="card-body p-2">
                             <div class="row">
-                                @* Selection is always driven by the caller's own memberships
-                                   (userApplications) - never the full application list - so this
-                                   page never implies access to an application the user isn't
-                                   actually a member of. Model is used only to look up display
-                                   details (title/description/logo) for the apps the user already
-                                   belongs to. *@
-                                @foreach (var item in userApplications)
+                                @* For a normal user, selection is always driven by their own
+                                   memberships (userApplications) - never the full application
+                                   list - so this page never implies access to an application
+                                   they aren't actually a member of. A SuperAdmin instead sees
+                                   every active, non-deleted application (applicationsToShow,
+                                   computed above). *@
+                                @foreach (var app in applicationsToShow)
                                 {
-                                    var app = Model.SingleOrDefault(a => a.Id == item.ApplicationId);
-                                    if (app == null)
-                                    {
-                                        continue;
-                                    }
                                     <div class="col-md-3 m-2">
                                         <div class="card d-block">
                                             <img class="card-img-top" src="/Storage/Application/Logos/@app.LogoFileName" />

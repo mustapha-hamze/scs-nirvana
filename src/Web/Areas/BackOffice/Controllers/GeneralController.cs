@@ -1,7 +1,10 @@
 namespace Web.Areas.BackOffice.Controllers;
 
-[Authorize]
-
+// Entirely gated behind the "General Settings" sidebar section, which the UI only ever shows to
+// SuperAdmin (Views/Shared/_SideBarAdminMenu.cshtml: `@if (User.IsInRole("SuperAdmin"))` around
+// the whole section, including Access Management/Tags/Cultures/Application Settings/System
+// Types/Logs) - no finer-grained per-action access key exists for any of it.
+[Authorize(Policy = WebAuthorizationPolicies.SuperAdmin)]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
 public class GeneralController : BaseController
@@ -30,18 +33,19 @@ public class GeneralController : BaseController
 
     // methods
     #region Tags
+    [HttpGet]
     public IActionResult Tags()
     {
         return View();
     }
 
+    [HttpGet]
     public IActionResult TagForm()
     {
         return View();
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveTagForm(TagDto tag)
     {
         //TODO: Implement Realistic Implementation
@@ -50,6 +54,7 @@ public class GeneralController : BaseController
         return Content(tag.TypeId.ToString());
     }
 
+    [HttpGet]
     public async Task<IActionResult> TagList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -58,17 +63,18 @@ public class GeneralController : BaseController
     #endregion
 
     #region  Cultures
+    [HttpGet]
     public IActionResult Cultures()
     {
         return View();
     }
+    [HttpGet]
     public IActionResult CultureForm()
     {
         return View();
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveCultureForm(CultureDto culture)
     {
         await _cultureServices.Create(culture);
@@ -76,6 +82,7 @@ public class GeneralController : BaseController
         return Content("Done");
     }
 
+    [HttpGet]
     public async Task<IActionResult> CultureList()
     {
         return View(await _cultureServices.List());
@@ -83,6 +90,7 @@ public class GeneralController : BaseController
     #endregion
 
     #region System Logs
+    [HttpGet]
     public IActionResult Logs()
     {
         return View();
@@ -90,18 +98,19 @@ public class GeneralController : BaseController
     #endregion
 
     #region Application Setting
+    [HttpGet]
     public IActionResult ApplicationSetting()
     {
         return View();
     }
 
+    [HttpGet]
     public IActionResult ApplicationSettingForm()
     {
         return View();
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApplicationSettingForm(ApplicationSettingDto applicationSetting)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -109,6 +118,7 @@ public class GeneralController : BaseController
         return Content("Done");
     }
 
+    [HttpGet]
     public async Task<IActionResult> ApplicationSettingList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -117,10 +127,12 @@ public class GeneralController : BaseController
     #endregion
 
     #region  System Types
+    [HttpGet]
     public IActionResult SystemTypes()
     {
         return View();
     }
+    [HttpGet]
     public IActionResult SystemTypeForm()
     {
         return View();
@@ -136,6 +148,7 @@ public class GeneralController : BaseController
         // return View();
         return Content("Done");
     }
+    [HttpGet]
     public async Task<IActionResult> SystemTypesList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

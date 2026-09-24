@@ -18,7 +18,10 @@ using Infrastructure.UserManagementRepository;
 using Infrastructure.UnitOfWork;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Web.Services.Tenancy;
+
+using ReverseProxyOptions = Web.ReverseProxyOptions;
 
 namespace Web.Extensions;
 
@@ -99,18 +102,25 @@ public static class ServiceCollectionExtensions
     /// <summary>Cross-cutting ASP.NET Core hosting concerns: identity, MVC, MediatR, mapping, sessions, uploads.</summary>
     public static IServiceCollection AddWebInfrastructure(this IServiceCollection services)
     {
-        services.Configure<FormOptions>(options =>
-        {
-            options.ValueCountLimit = int.MaxValue;
-            options.ValueLengthLimit = int.MaxValue;
-            options.MultipartBodyLengthLimit = 60000000; // Change this value to the desired maximum size in bytes
-        });
+        services.AddOptions<WebRequestLimitsOptions>()
+            .BindConfiguration(WebRequestLimitsOptions.SectionName)
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<WebRequestLimitsOptions>, WebRequestLimitsOptionsValidator>();
+
+        services.AddOptions<FormOptions>()
+            .Configure<IOptions<WebRequestLimitsOptions>>((formOptions, limits) =>
+            {
+                formOptions.ValueCountLimit = limits.Value.ValueCountLimit;
+                formOptions.ValueLengthLimit = limits.Value.ValueLengthLimitBytes;
+                formOptions.MultipartBodyLengthLimit = limits.Value.MultipartBodyLengthLimitBytes;
+            });
 
         services.AddDefaultIdentity<ApplicationUser>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = false;
                 options.Password.RequireDigit = false;
-                options.Password.RequiredLength = 6;
+                options.Password.RequiredLength = 12;
+                options.Password.RequiredUniqueChars = 4;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
@@ -118,13 +128,24 @@ public static class ServiceCollectionExtensions
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
+        // Named policy for administrative-only endpoints, instead of [Authorize(Roles = "SuperAdmin")]
+        // string literals scattered across controllers. No fallback policy is added here - every
+        // action keeps its own explicit [Authorize]/[AllowAnonymous] intent.
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(WebAuthorizationPolicies.SuperAdmin,
+                policy => policy.RequireRole(ApplicationRoles.SuperAdmin));
+        });
+
         services.AddMediatR(typeof(IUnitOfWork).Assembly);
 
-        services.AddAutoMapper(new[] { typeof(MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
+        services.AddAutoMapper(_ => { }, new[] { typeof(MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentApplicationContext, SessionCurrentApplicationContext>();
         services.AddScoped<RequireTenantContextFilter>();
+        services.AddScoped<Web.Authorization.AccessKeyAuthorizer>();
+        services.AddScoped<Web.Areas.BackOffice.Presentation.Shell.IBackOfficeShellContext, Web.Areas.BackOffice.Presentation.Shell.BackOfficeShellContext>();
 
         services.AddAntiforgery(options =>
         {
@@ -134,11 +155,21 @@ public static class ServiceCollectionExtensions
         services.AddDistributedMemoryCache();
         services.AddSession(options => options.IdleTimeout = TimeSpan.FromDays(1));
 
-        services.AddControllersWithViews();
+        // Every unsafe MVC action (POST/PUT/DELETE/PATCH) is validated by default so it's not
+        // left to developers to remember a per-action [ValidateAntiForgeryToken]. Anonymous
+        // public API controllers opt out explicitly via [IgnoreAntiforgeryToken].
+        services.AddControllersWithViews(options =>
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
         services.AddRazorPages();
 
         services.AddTransient<IFileUploadService, FileUploadService>();
         services.AddTransient<CodeGenerator>();
+
+        // Disabled by default; see ReverseProxyOptions and its use in Program.cs.
+        services.AddOptions<ReverseProxyOptions>()
+            .BindConfiguration(ReverseProxyOptions.SectionName)
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<ReverseProxyOptions>, Web.ReverseProxyOptionsValidator>();
 
         services.ConfigureApplicationCookie(options =>
         {

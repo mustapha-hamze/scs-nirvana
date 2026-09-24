@@ -6,6 +6,7 @@ using Infrastructure.CMSRepository;
 using Infrastructure.Mapper;
 using Application.Mapper;
 using Infrastructure.Repository;
+using Microsoft.Extensions.Logging.Abstractions;
 using Application.UseCases.CMSServices;
 using Xunit;
 
@@ -18,7 +19,7 @@ public class SchemaServicesTests
 {
     private static IMapper CreateMapper()
     {
-        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); });
+        var config = new MapperConfiguration(cfg => { cfg.AddProfile(new MapperProfile()); cfg.AddProfile(new ApplicationMapperProfile()); }, NullLoggerFactory.Instance);
         return config.CreateMapper();
     }
 

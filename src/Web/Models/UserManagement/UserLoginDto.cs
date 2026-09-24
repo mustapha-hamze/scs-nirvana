@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authentication;
 
 namespace Web.Models.UserManagement
 {
@@ -14,14 +11,11 @@ namespace Web.Models.UserManagement
 
         [Required]
         [DataType(DataType.Password)]
-        [MinLength(8)]
         [MaxLength(64)]
         public string Password { get; set; }
 
         public bool RememberMe { get; set; }
 
         public string ReturnUrl { get; set; }
-
-        public IList<AuthenticationScheme> ExternalLogins { get; set; }
     }
 }

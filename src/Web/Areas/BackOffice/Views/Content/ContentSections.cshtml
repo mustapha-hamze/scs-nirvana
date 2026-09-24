@@ -1,22 +1,11 @@
+@model ContentSectionsViewModel
 @{
-    var schemas = (List<Application.Contracts.CMS.SchemaDto>)ViewData["Schemas"];
-    var sections = (List<Application.Contracts.CMS.SectionDto>)ViewData["Sections"];
-    int priority = 0;
-    if (sections.Count > 0)
-    {
-        priority = sections[sections.Count - 1].Priority + 1;
-    }
     Layout = null;
-
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
+    var schemas = Model.Schemas;
+    var sections = Model.Sections;
 }
 
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-
-<input type="hidden" id="hidPriority__ContentSection" value="@priority" />
+<input type="hidden" id="hidPriority__ContentSection" value="@Model.Priority" />
 
 <style>
     .muted-text-editor div p {
@@ -251,7 +240,7 @@
 </div>
 
 <div>
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_SAVE_BODY_1007"))
+    @if (Model.CanSaveBody)
     {
         <a href="javascript:void(0);" id="btnSaveContentBody" onclick="saveBody()" class="btn btn-primary"><i
                 class="uil uil-file-share-alt"></i> Save Body</a>

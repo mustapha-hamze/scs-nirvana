@@ -145,6 +145,41 @@ public class UserManagementServicesTests
     }
 
     [Fact]
+    public async Task SetCurrentApplicationId_SuperAdminNoMembership_SelectsActiveApplication()
+    {
+        // No membership row is set up at all - the user isn't even looked up by email. A
+        // SuperAdmin must be able to select an active application without one.
+        var userManagementRepository = new Mock<IUserManagementRepository>();
+
+        var applicationRepository = new Mock<IApplicationRepository>();
+        applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        var currentApplicationContext = new FakeCurrentApplicationContext();
+        var sut = CreateSut(userManagementRepository, applicationRepository, currentApplicationContext: currentApplicationContext);
+
+        await sut.SetCurrentApplicationId("superadmin@example.com", 5, isSuperAdmin: true);
+
+        Assert.Equal(5, currentApplicationContext.CurrentApplicationId);
+    }
+
+    [Fact]
+    public async Task SetCurrentApplicationId_SuperAdminInactiveApplication_ThrowsAndDoesNotSelect()
+    {
+        var userManagementRepository = new Mock<IUserManagementRepository>();
+
+        var applicationRepository = new Mock<IApplicationRepository>();
+        applicationRepository.Setup(r => r.ExistsActiveApplication(5, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+
+        var currentApplicationContext = new FakeCurrentApplicationContext();
+        var sut = CreateSut(userManagementRepository, applicationRepository, currentApplicationContext: currentApplicationContext);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.SetCurrentApplicationId("superadmin@example.com", 5, isSuperAdmin: true));
+
+        Assert.Null(currentApplicationContext.CurrentApplicationId);
+    }
+
+    [Fact]
     public async Task SetCurrentApplicationId_TwoIndependentContexts_SelectionInOneDoesNotAffectTheOther()
     {
         // Simulates two browser sessions for the same account: selecting an application through

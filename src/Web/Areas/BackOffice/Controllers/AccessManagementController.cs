@@ -1,5 +1,9 @@
 namespace Web.Areas.BackOffice.Controllers;
-[Authorize]
+
+// Reached only through the SuperAdmin-only "General Settings" sidebar section
+// (Views/Shared/_SideBarAdminMenu.cshtml) - sectors/entities/accesses administration is
+// privileged, tenant-root-adjacent configuration, not self-scoped content editing.
+[Authorize(Policy = WebAuthorizationPolicies.SuperAdmin)]
 [Area("BackOffice")]
 [Route("/BackOffice/{controller}/{action}")]
 public class AccessManagementController : BaseController
@@ -32,16 +36,19 @@ public class AccessManagementController : BaseController
 
     // methods
     #region sectors
+    [HttpGet]
     public IActionResult Sectors()
     {
         return View();
     }
 
+    [HttpGet]
     public IActionResult SectorForm()
     {
         return View();
     }
 
+    [HttpGet]
     public async Task<IActionResult> SectorList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -49,7 +56,6 @@ public class AccessManagementController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSector(SectorDto sector)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -85,7 +91,6 @@ public class AccessManagementController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveEntity(SectorEntityDto entity)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -99,10 +104,12 @@ public class AccessManagementController : BaseController
     #endregion
 
     #region access
+    [HttpGet]
     public IActionResult Accesses()
     {
         return View();
     }
+    [HttpGet]
     public async Task<IActionResult> AccessForm(int id = 0)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -129,6 +136,7 @@ public class AccessManagementController : BaseController
         var sectorEntities = await _SectorEntityServices.GetSectorEntities(id, currentApplicationId);
         return PartialView("_SectorEntityOptionsPartial", sectorEntities);
     }
+    [HttpGet]
     public async Task<IActionResult> AccessList()
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
@@ -137,7 +145,6 @@ public class AccessManagementController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveAccess(EntityAccessDto accessModel)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();

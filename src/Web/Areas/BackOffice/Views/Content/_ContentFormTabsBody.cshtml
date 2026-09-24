@@ -1,37 +1,31 @@
+@model ContentFormViewModel
 @{
     Layout = null;
-
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
 }
 
-@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
-
-@if (Model != null)
+@if (!Model.IsNew)
 {
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_BODY_1007"))
+    @if (Model.CanPreviewBody)
     {
         <div class="tab-pane" id="body">
 </div>
     }
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_IMAGES_1008"))
+    @if (Model.CanPreviewImages)
     {
         <div class="tab-pane" id="images">
 </div>
     }
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_ATTACHMENT_1013"))
+    @if (Model.CanPreviewAttachments)
     {
         <div class="tab-pane" id="attachment">
 </div>
     }
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_RELATIONS_1010"))
+    @if (Model.CanPreviewRelations)
     {
         <div class="tab-pane mt-2" id="relations">
 </div>
     }
-    @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_PREVIEW_META_1012"))
+    @if (Model.CanPreviewMetadata)
     {
         <div class="tab-pane" id="metadata">
 </div>
