@@ -1,3 +1,4 @@
+using Application.UseCases.TranslatorServices;
 using Web.Areas.BackOffice.Features.Content;
 using Web.Areas.BackOffice.Features.Content.ViewModels;
 
@@ -56,10 +57,14 @@ public partial class ContentController
 
         var farsiJson = FarsiContentMapper.SerializeForStorage(baseContent);
 
-        // UpdateTranslate now queries without AsNoTracking, so it safely resolves to the
-        // already-tracked `englishContent` instance instead of conflicting with it.
-        await _contentServices.UpdateTranslate(model.Id, farsiJson, currentApplicationId);
-
-        return Content("Done");
+        // Validated against the current master, then FarsiContent and the activation culture's
+        // Ready ContentTranslation commit together; any failure leaves both unchanged.
+        var result = await _manualTranslation.Save(model.Id, _translationOptions.ActivationCultureId, currentApplicationId, baseContent, farsiJson);
+        return result switch
+        {
+            ManualTranslationSaveResult.Saved => Content("Done"),
+            ManualTranslationSaveResult.NotFound => NotFound(),
+            _ => Conflict(new { translationState = result.ToString() })
+        };
     }
 }

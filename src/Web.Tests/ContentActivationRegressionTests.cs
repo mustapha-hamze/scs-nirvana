@@ -69,7 +69,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         return await action(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
     }
 
-    private Task<int> SeedContent(int applicationId, bool isActive = false) => Db(async context =>
+    private Task<int> SeedContent(int applicationId, bool isActive = false, string farsi = LegacyFarsi) => Db(async context =>
     {
         if (!await context.Cultures.IgnoreQueryFilters().AnyAsync(c => c.Id == ActivationCultureId))
             context.Cultures.Add(new Culture { Id = ActivationCultureId, ApplicationId = applicationId, Title = "Farsi", Key = "fa-IR", IsActive = true });
@@ -77,7 +77,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         var content = new Content
         {
             ApplicationId = applicationId, TypeId = 1000, Title = "English", PublishDt = DateTime.UtcNow,
-            IsActive = isActive, FarsiContent = LegacyFarsi
+            IsActive = isActive, FarsiContent = farsi
         };
         context.Contents.Add(content);
         await context.SaveChangesAsync();
@@ -224,6 +224,76 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         Assert.False(await Db(c => c.ContentTranslationJobs.AnyAsync(j => j.ContentId == contentId)));
+    }
+
+    private static Task<HttpResponseMessage> SaveFarsi(HttpClient client, int contentId, string title) =>
+        client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(new System.Collections.Generic.Dictionary<string, string>
+        {
+            ["Id"] = contentId.ToString(),
+            ["Title"] = title,
+            // The form always posts the metadata node's hidden fields, even when master has none.
+            ["Metadata.Id"] = "0",
+            ["Metadata.ContentId"] = contentId.ToString()
+        }));
+
+    private Task<ContentTranslation> Translation(int contentId) =>
+        Db(c => c.ContentTranslations.IgnoreQueryFilters().SingleOrDefaultAsync(t => t.ContentId == contentId));
+
+    [Fact]
+    public async Task ManualFarsiSave_PersistsBothPayloads_AndContentActivatesImmediately()
+    {
+        var (client, applicationId) = await SignIn();
+        var contentId = await SeedContent(applicationId, farsi: null);
+
+        var save = await SaveFarsi(client, contentId, "عنوان دستی");
+
+        Assert.Equal(HttpStatusCode.OK, save.StatusCode);
+        Assert.Equal("Done", await save.Content.ReadAsStringAsync());
+        var (_, farsiContent) = await ContentState(contentId);
+        Assert.Contains("عنوان دستی", farsiContent);
+        var translation = await Translation(contentId);
+        Assert.Equal((TranslationStatus.Ready, "manual", null), (translation.TranslationStatus, translation.Provider, translation.Error));
+        Assert.NotNull(translation.TranslatedAt);
+        Assert.Equal("عنوان دستی", LegacyFarsiContentParser.Deserialize(translation.LocalizedTextJson).Title);
+
+        var activation = await Activate(client, contentId);
+        Assert.Equal(HttpStatusCode.OK, activation.StatusCode);
+        Assert.True((await ContentState(contentId)).IsActive);
+    }
+
+    [Fact]
+    public async Task ManualFarsiSave_StaleLegacyStructure_ConflictsAndPreservesBothPayloads()
+    {
+        var (client, applicationId) = await SignIn();
+        // Legacy snapshot of a section that no longer exists in the master graph.
+        var contentId = await SeedContent(applicationId, farsi: "{}");
+        var staleFarsi = $"{{\"Id\":{contentId},\"Title\":\"قدیمی\",\"Sections\":[{{\"Id\":999999,\"Elements\":[]}}]}}";
+        await Db(async c =>
+        {
+            (await c.Contents.SingleAsync(x => x.Id == contentId)).FarsiContent = staleFarsi;
+            return await c.SaveChangesAsync();
+        });
+
+        var save = await SaveFarsi(client, contentId, "عنوان جدید");
+
+        Assert.Equal(HttpStatusCode.Conflict, save.StatusCode);
+        Assert.Equal("InvalidStructure", await TranslationState(save));
+        Assert.Equal((false, staleFarsi), await ContentState(contentId));
+        Assert.Null(await Translation(contentId));
+    }
+
+    [Fact]
+    public async Task ManualFarsiSave_OtherApplicationsContent_IsNotFound_AndUnchanged()
+    {
+        var (client, _) = await SignIn();
+        var (_, otherApplicationId) = await SignIn();
+        var foreignContentId = await SeedContent(otherApplicationId, farsi: null);
+
+        var save = await SaveFarsi(client, foreignContentId, "نفوذ");
+
+        Assert.Equal(HttpStatusCode.NotFound, save.StatusCode);
+        Assert.Equal((false, (string)null), await ContentState(foreignContentId));
+        Assert.Null(await Translation(foreignContentId));
     }
 
     [Fact]

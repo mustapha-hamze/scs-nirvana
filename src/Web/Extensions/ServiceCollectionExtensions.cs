@@ -111,6 +111,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<ContentTranslationOptions>>().Value);
         services.AddScoped<ContentTranslationJobProcessor>();
         services.AddScoped<ContentTranslationRequests>();
+        services.AddScoped<ManualContentTranslation>();
         services.AddHostedService<Web.Services.Translation.ContentTranslationWorker>();
 
         services.AddTransient<IContentProvider, ContentProvider>();

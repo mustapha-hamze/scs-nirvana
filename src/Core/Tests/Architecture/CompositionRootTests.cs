@@ -78,6 +78,7 @@ public class CompositionRootTests
             scope.ServiceProvider.GetRequiredService<IContentTranslationJobRepository>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<ContentTranslationJobProcessor>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<ContentTranslationRequests>());
+        Assert.NotNull(scope.ServiceProvider.GetRequiredService<ManualContentTranslation>());
         Assert.False(scope.ServiceProvider.GetRequiredService<ContentTranslationOptions>().WorkerEnabled);
         Assert.Contains(provider.GetServices<Microsoft.Extensions.Hosting.IHostedService>(), s => s is Web.Services.Translation.ContentTranslationWorker);
     }

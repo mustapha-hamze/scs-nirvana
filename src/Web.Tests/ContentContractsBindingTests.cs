@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using Domains.Entities.ContentManagement;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -20,11 +21,16 @@ namespace Web.Tests;
 // compile error.
 public sealed class ContentContractsBindingTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly TestWebApplicationFactory _factory;
+    private const int ActivationCultureId = 7002;
 
+    private readonly WebApplicationFactory<Program> _factory;
+
+    // SaveFarsiContentForm also writes the activation culture's ContentTranslation, so this host
+    // has one configured (seeded in SeedContentWithFarsiShapeAsync).
     public ContentContractsBindingTests(TestWebApplicationFactory factory)
     {
-        _factory = factory;
+        _factory = factory.WithWebHostBuilder(builder =>
+            builder.UseSetting("ContentTranslation:ActivationCultureId", ActivationCultureId.ToString()));
     }
 
     private async Task<(HttpClient Client, int ApplicationId)> AuthenticatedTenantClientAsync(string emailPrefix)
@@ -43,6 +49,9 @@ public sealed class ContentContractsBindingTests : IClassFixture<TestWebApplicat
     {
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        if (!await context.Cultures.IgnoreQueryFilters().AnyAsync(c => c.Id == ActivationCultureId))
+            context.Cultures.Add(new Domains.Entities.General.Culture { Id = ActivationCultureId, ApplicationId = applicationId, Title = "Farsi", Key = "fa-IR" });
 
         var content = new Content
         {
@@ -115,6 +124,10 @@ public sealed class ContentContractsBindingTests : IClassFixture<TestWebApplicat
         Assert.Equal("Updated Farsi title", farsi.Value<string>("Title"));
         Assert.Equal("Updated meta title", farsi["Metadata"]!.Value<string>("Title"));
         Assert.Equal("updated tiny text", farsi["Sections"]![0]!["Elements"]![0]!.Value<string>("TinyText"));
+
+        var translation = await verifyContext.ContentTranslations.SingleAsync(t => t.ContentId == content.Id && t.CultureId == ActivationCultureId);
+        Assert.Equal(TranslationStatus.Ready, translation.TranslationStatus);
+        Assert.Contains("updated tiny text", translation.LocalizedTextJson);
     }
 
     // SaveSection binds SaveContentBodyDto (and its nested ContentBodyElementDto list) from a raw

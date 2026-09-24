@@ -33,10 +33,12 @@ public static class TranslationOutputValidator
     // Returns null when the translated document is valid, otherwise a human-readable (and
     // secret-safe: no field values, only field names/paths/types) description of the first
     // violation found. translatableFields defaults to DefaultTranslatableFields; every other
-    // field is protected.
-    public static string Validate(string originalJson, string translatedJson, IReadOnlyCollection<string> translatableFields = null)
+    // field is protected. allowNullText lets a translatable field be null on either side (manual
+    // editing: a blank input, or text the source doesn't have); structure/IDs stay strict.
+    public static string Validate(string originalJson, string translatedJson, IReadOnlyCollection<string> translatableFields = null,
+        bool allowNullText = false)
     {
-        translatableFields ??= DefaultTranslatableFields;
+        var rules = new Rules(translatableFields ?? DefaultTranslatableFields, allowNullText);
         JToken original;
         JToken translated;
         try
@@ -49,11 +51,16 @@ public static class TranslationOutputValidator
             return "Model response was not valid JSON.";
         }
 
-        return CompareTokens(original, translated, "$", translatableFields);
+        return CompareTokens(original, translated, "$", rules);
     }
 
-    private static string CompareTokens(JToken original, JToken translated, string path, IReadOnlyCollection<string> fields)
+    private sealed record Rules(IReadOnlyCollection<string> Fields, bool AllowNullText);
+
+    private static string CompareTokens(JToken original, JToken translated, string path, Rules fields)
     {
+        if (fields.AllowNullText && IsNullTextChange(original, translated, path, fields))
+            return null;
+
         if (original.Type != translated.Type)
             return $"Type changed at '{path}': expected {original.Type}, got {translated.Type}.";
 
@@ -65,7 +72,7 @@ public static class TranslationOutputValidator
         };
     }
 
-    private static string CompareObjects(JObject original, JObject translated, string path, IReadOnlyCollection<string> fields)
+    private static string CompareObjects(JObject original, JObject translated, string path, Rules fields)
     {
         var originalNames = original.Properties().Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
         var translatedNames = translated.Properties().Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
@@ -88,7 +95,7 @@ public static class TranslationOutputValidator
         return null;
     }
 
-    private static string CompareArrays(JArray original, JArray translated, string path, IReadOnlyCollection<string> fields)
+    private static string CompareArrays(JArray original, JArray translated, string path, Rules fields)
     {
         if (original.Count != translated.Count)
             return $"Array length changed at '{path}': expected {original.Count}, got {translated.Count}.";
@@ -103,11 +110,11 @@ public static class TranslationOutputValidator
         return null;
     }
 
-    private static string CompareLeaf(JToken original, JToken translated, string path, IReadOnlyCollection<string> fields)
+    private static string CompareLeaf(JToken original, JToken translated, string path, Rules fields)
     {
         var fieldName = path[(path.LastIndexOf('.') + 1)..];
 
-        if (!fields.Contains(fieldName))
+        if (!fields.Fields.Contains(fieldName))
         {
             // Protected by default: any field not explicitly allowed to change (IDs, dates,
             // booleans, numbers, and every other named field) must be byte-for-byte unchanged.
@@ -130,6 +137,14 @@ public static class TranslationOutputValidator
         }
 
         return null;
+    }
+
+    // A translatable field going null <-> string (string-to-string still gets the HTML check).
+    private static bool IsNullTextChange(JToken original, JToken translated, string path, Rules fields)
+    {
+        var isNullChange = (original.Type == JTokenType.Null && translated.Type == JTokenType.String)
+            || (original.Type == JTokenType.String && translated.Type == JTokenType.Null);
+        return isNullChange && fields.Fields.Contains(path[(path.LastIndexOf('.') + 1)..]);
     }
 
     // Parses both strings as HTML fragments (via HtmlAgilityPack, a lenient real parser - never

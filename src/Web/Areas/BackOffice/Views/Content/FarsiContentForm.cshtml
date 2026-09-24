@@ -230,6 +230,12 @@
                     messageBox("Error!", "Farsi content has not been saved", "error");
                     removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt"></i> Save');
                 }
+            }).fail(function (xhr) {
+                removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt"></i> Save');
+                if (xhr.status === 409 && xhr.responseJSON)
+                    messageBox("Not saved", "Farsi content was not saved (" + xhr.responseJSON.translationState + "). Reload the page and try again.", "warning");
+                else
+                    messageBox("Error!", "Farsi content has not been saved", "error");
             });
         }
     </script>
