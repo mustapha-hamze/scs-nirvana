@@ -31,6 +31,10 @@ public sealed class ContentFormViewModel : ContentDto
     // Save (create) vs. Update (edit) - already resolved to the correct dynamic key server-side.
     public bool CanSaveOrUpdateContent { get; init; }
     public bool CanChangeActivity { get; init; }
+
+    // ContentTranslation:ActivationCultureId, rendered for the request-translation control;
+    // 0 = not configured, so the control shows as unavailable.
+    public int ActivationCultureId { get; init; }
     public bool CanPreviewBody { get; init; }
     public bool CanPreviewImages { get; init; }
     public bool CanPreviewAttachments { get; init; }

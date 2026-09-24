@@ -50,14 +50,17 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
             throw new InvalidOperationException("The translation provider must never be called from a request.");
     }
 
-    private async Task<(HttpClient Client, int ApplicationId)> SignIn(bool superAdmin = true)
+    private async Task<(HttpClient Client, int ApplicationId)> SignIn(bool superAdmin = true, string keys = null)
     {
         var email = $"content-activation-{Guid.NewGuid():N}@test.local";
         var user = superAdmin
             ? await AccountFlowHelper.SeedSuperAdminUserAsync(_factory, email, Password)
             : await AccountFlowHelper.SeedAdminUserAsync(_factory, email, Password);
         var client = await AccountFlowHelper.LoginAsync(_factory, email, Password);
-        return (client, await AccountFlowHelper.SelectApplicationAsync(_factory, client, user));
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+        if (keys != null)
+            await AccountFlowHelper.GrantAccessAsync(_factory, user, applicationId, keys);
+        return (client, applicationId);
     }
 
     private async Task<T> Db<T>(Func<ApplicationDbContext, Task<T>> action)
@@ -167,11 +170,48 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         var foreignContentId = await SeedContent(otherApplicationId);
 
         var foreign = await client.PostAsync($"/BackOffice/Content/RequestTranslation/{foreignContentId}/{ActivationCultureId}", null);
-        var unknownCulture = await client.PostAsync($"/BackOffice/Content/RequestTranslation/{foreignContentId}/999999", null);
+        var foreignUnknownCulture = await client.PostAsync($"/BackOffice/Content/RequestTranslation/{foreignContentId}/999999", null);
 
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, unknownCulture.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, foreignUnknownCulture.StatusCode);
         Assert.False(await Db(c => c.ContentTranslationJobs.AnyAsync(j => j.ContentId == foreignContentId)));
+    }
+
+    [Fact]
+    public async Task RequestTranslation_UnknownCulture_IsUnavailableConflict()
+    {
+        var (client, applicationId) = await SignIn();
+        var contentId = await SeedContent(applicationId);
+
+        var response = await client.PostAsync($"/BackOffice/Content/RequestTranslation/{contentId}/999999", null);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("CultureUnavailable", await TranslationState(response));
+        Assert.False(await Db(c => c.ContentTranslationJobs.AnyAsync(j => j.ContentId == contentId)));
+    }
+
+    // The content form's control, as used by a non-SuperAdmin with exactly the keys it needs.
+    [Fact]
+    public async Task ContentForm_WithChangeActivity_RendersConfiguredCultureControl_AndItQueues()
+    {
+        var (client, applicationId) = await SignIn(superAdmin: false,
+            keys: string.Join(',', Web.Authorization.AccessKeys.Content.Edit, Web.Authorization.AccessKeys.Content.ChangeActivity));
+        var contentId = await SeedContent(applicationId);
+        await Db(async c =>
+        {
+            c.ApplicationSettings.Add(new ApplicationSetting { ApplicationId = applicationId, SettingId = 5000, Title = "Setting", Value = "https://example.test" });
+            return await c.SaveChangesAsync();
+        });
+
+        var form = await client.GetStringAsync($"/BackOffice/Content/ContentForm/{contentId}/1000");
+        Assert.Contains($"requestContentTranslation({contentId}, {ActivationCultureId}, 'btnRequestTranslation')", form);
+        Assert.Contains("id=\"contentTranslationState\"", form);
+
+        var response = await client.PostAsync($"/BackOffice/Content/RequestTranslation/{contentId}/{ActivationCultureId}", null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("Queued", await TranslationState(response));
+        Assert.Equal(1, await Db(c => c.ContentTranslationJobs.CountAsync(j => j.ContentId == contentId)));
     }
 
     [Fact]

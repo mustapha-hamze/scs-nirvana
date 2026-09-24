@@ -188,21 +188,33 @@ public class ContentTranslationRequestsTests : IDisposable
     [Theory]
     [InlineData("foreign-app")]
     [InlineData("deleted-content")]
-    [InlineData("missing-culture")]
-    [InlineData("deleted-culture")]
-    public async Task InvalidTarget_ReturnsNull_AndQueuesNothing(string scenario)
+    public async Task ContentNotOwned_ReturnsNull_AndQueuesNothing(string scenario)
     {
-        await Seed(cultureDeleted: scenario == "deleted-culture");
+        await Seed();
         if (scenario == "deleted-content")
         {
             await using var context = _factory.CreateContext();
             await context.Contents.Where(c => c.Id == _contentId).ExecuteUpdateAsync(s => s.SetProperty(c => c.IsDeleted, true));
         }
-        if (scenario == "missing-culture")
+        var applicationId = scenario == "foreign-app" ? 2 : ApplicationId;
+
+        Assert.Null(await Request(applicationId));
+        Assert.Null(await Run(sut => sut.GetState(_contentId, _cultureId, applicationId)));
+        Assert.Empty(await Jobs());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MissingOrDeletedCulture_IsUnavailable_AndQueuesNothing(bool deleted)
+    {
+        await Seed(cultureDeleted: deleted);
+        if (!deleted)
             _cultureId = 999;
 
-        Assert.Null(await Request(scenario == "foreign-app" ? 2 : null));
-        Assert.Null(await Run(sut => sut.GetState(_contentId, _cultureId, scenario == "foreign-app" ? 2 : ApplicationId)));
+        Assert.Equal(new ContentTranslationRequestResult(ContentTranslationState.CultureUnavailable, null), await Request());
+        Assert.Equal(ContentTranslationState.CultureUnavailable, await State());
+        Assert.Null(await Run(sut => sut.GetState(_contentId, _cultureId, 2))); // ownership is checked first
         Assert.Empty(await Jobs());
     }
 

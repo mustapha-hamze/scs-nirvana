@@ -50,6 +50,25 @@
     });
     }
 
+    // cultureId is rendered server-side from ContentTranslation:ActivationCultureId.
+    function requestContentTranslation(contentId, cultureId, btnId) {
+    var btnText = $("#" + btnId).html();
+    setLoadingForBtn(btnId);
+    $.ajax({
+    url: `/BackOffice/Content/RequestTranslation/${contentId}/${cultureId}`,
+    type: "POST"
+    }).done(function (data) {
+    removeLoadingForBtn(btnId, `requestContentTranslation(${contentId}, ${cultureId}, '${btnId}')`, btnText);
+    $("#contentTranslationState").text("Translation: " + data.translationState);
+    }).fail(function (xhr) {
+    removeLoadingForBtn(btnId, `requestContentTranslation(${contentId}, ${cultureId}, '${btnId}')`, btnText);
+    if (xhr.status === 409 && xhr.responseJSON)
+    $("#contentTranslationState").text("Translation unavailable (" + xhr.responseJSON.translationState + ")");
+    else
+    messageBox("Error!", "Something went wrong, please reload the page and try again.", "error");
+    });
+    }
+
     function addContentSection(schemaId) {
     setLoadingForBtn("btnAddSectionContent");
     var index = parseInt($("#hidPriority__ContentSection").val());

@@ -14,14 +14,17 @@ public enum ContentTranslationState
     Ready,
     Stale,
     Failed,
-    NeedsReview
+    NeedsReview,
+
+    // The culture doesn't exist or is deleted: nothing can be queued or activated for it.
+    CultureUnavailable
 }
 
 public record ContentTranslationRequestResult(ContentTranslationState State, int? JobId);
 
 // Request-scoped translation use cases. Every method returns null when the content isn't the
-// application's (or is deleted) or the culture doesn't exist. Never calls the provider and never
-// reads or writes legacy FarsiContent.
+// application's (or is deleted) and CultureUnavailable when the culture is missing or deleted.
+// Never calls the provider and never reads or writes legacy FarsiContent.
 public class ContentTranslationRequests
 {
     private readonly IContentTranslationJobRepository _repository;
@@ -47,6 +50,8 @@ public class ContentTranslationRequests
                 return null;
             var (fingerprint, translation, job) = current.Value;
 
+            if (fingerprint == null)
+                return new ContentTranslationRequestResult(ContentTranslationState.CultureUnavailable, null);
             if (ContentTranslationJobProcessor.IsReady(translation, fingerprint))
                 return new ContentTranslationRequestResult(ContentTranslationState.Ready, null);
             if (job is { State: ContentTranslationJobState.Queued or ContentTranslationJobState.Processing })
@@ -84,6 +89,8 @@ public class ContentTranslationRequests
             return null;
         var (fingerprint, translation, job) = current.Value;
 
+        if (fingerprint == null)
+            return ContentTranslationState.CultureUnavailable;
         if (ContentTranslationJobProcessor.IsReady(translation, fingerprint))
             return ContentTranslationState.Ready;
         if (job is { State: ContentTranslationJobState.Queued or ContentTranslationJobState.Processing or ContentTranslationJobState.Failed })
@@ -99,12 +106,14 @@ public class ContentTranslationRequests
             : ContentTranslationState.Missing;
     }
 
+    // null: content not the application's. A null Fingerprint: culture unavailable.
     private async Task<(string Fingerprint, ContentTranslation Translation, ContentTranslationJob Job)?> Load(
         int contentId, int cultureId, int applicationId, CancellationToken cancellationToken)
     {
-        if (!await _repository.ContentBelongsToApplication(contentId, applicationId, cancellationToken)
-            || await _repository.FindCulture(cultureId, cancellationToken) == null)
+        if (!await _repository.ContentBelongsToApplication(contentId, applicationId, cancellationToken))
             return null;
+        if (await _repository.FindCulture(cultureId, cancellationToken) == null)
+            return (null, null, null);
 
         var source = await _repository.FindSourceGraph(contentId, cancellationToken);
         if (source == null)

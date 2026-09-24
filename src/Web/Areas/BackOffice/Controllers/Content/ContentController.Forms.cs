@@ -84,6 +84,7 @@ public partial class ContentController
             WebsiteUrl = websiteUrl,
             CanSaveOrUpdateContent = canSaveOrUpdateContent,
             CanChangeActivity = canChangeActivity,
+            ActivationCultureId = _translationOptions.ActivationCultureId,
             CanPreviewBody = canPreviewBody,
             CanPreviewImages = canPreviewImages,
             CanPreviewAttachments = canPreviewAttachments,
@@ -156,6 +157,8 @@ public partial class ContentController
         var result = await _translationRequests.Request(contentId, cultureId, _currentApplicationContext.RequireApplicationId());
         if (result == null)
             return NotFound();
+        if (result.State == ContentTranslationState.CultureUnavailable)
+            return Conflict(new { translationState = result.State.ToString() });
 
         return Json(new { translationState = result.State.ToString(), jobId = result.JobId });
     }
