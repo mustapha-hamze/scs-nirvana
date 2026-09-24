@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IContentCommandRepository, ContentCommandRepository>();
         services.AddScoped<IContentRelationRepository, ContentRelationRepository>();
         services.AddScoped<IContentTranslationRepository, ContentTranslationRepository>();
+        services.AddScoped<IContentTranslationBackfillRepository, ContentTranslationBackfillRepository>();
         services.AddScoped<IContentsInCategoryQueryAdapter, ContentsInCategoryQueryAdapter>();
         services.AddScoped<ISliderRepository, SliderRepository>();
         services.AddScoped<ISystemTypeRepository, SystemTypeRepository>();
@@ -94,6 +95,10 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
         services.AddTransient<ITranslationPort, OpenAiTranslationPort>();
         services.AddTransient<IContentTranslator, ContentTranslator>();
+
+        // Operator-invoked legacy FarsiContent backfill: resolvable for a future protected runner
+        // only - no route, hosted service or schedule invokes it.
+        services.AddScoped<ContentTranslationBackfill>();
 
         services.AddTransient<IContentProvider, ContentProvider>();
 

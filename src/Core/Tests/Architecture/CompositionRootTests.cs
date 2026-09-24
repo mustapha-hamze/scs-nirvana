@@ -1,11 +1,15 @@
+using Application.CMSRepository;
 using Application.Mapper;
 using Application.UnitOfWork;
+using Application.UseCases.TranslatorServices;
 using Core.Tests.TestSupport;
 using Infrastructure.TranslatorServices;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Web.Extensions;
 using Xunit;
 using UnitOfWorkImpl = Infrastructure.UnitOfWork.UnitOfWork;
 
@@ -44,5 +48,30 @@ public class CompositionRootTests
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<ISender>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IOptions<OpenAiTranslationOptions>>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<ILogger<UnitOfWorkImpl>>());
+    }
+
+    // Uses the real Web registration methods; ValidateOnBuild fails if any registration in them
+    // (including the backfill's own dependencies) can't be constructed.
+    [Fact]
+    public void WebCompositionMethods_ResolveTranslationBackfill()
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string>
+        {
+            ["ConnectionStrings:DefaultConnection"] = "Server=unused",
+            ["OPENAI_API_KEY"] = "test-key"
+        }).Build();
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IConfiguration>(configuration);
+        services.AddAutoMapper(_ => { }, new[] { typeof(Infrastructure.Mapper.MapperProfile).Assembly, typeof(IUnitOfWork).Assembly }, ServiceLifetime.Singleton);
+        services.AddPersistence(configuration).AddCmsServices();
+
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
+        using var scope = provider.CreateScope();
+
+        Assert.IsType<Infrastructure.CMSRepository.ContentTranslationBackfillRepository>(
+            scope.ServiceProvider.GetRequiredService<IContentTranslationBackfillRepository>());
+        Assert.NotNull(scope.ServiceProvider.GetRequiredService<ContentTranslationBackfill>());
     }
 }
