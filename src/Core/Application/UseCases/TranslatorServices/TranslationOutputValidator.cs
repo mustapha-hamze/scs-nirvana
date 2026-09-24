@@ -18,7 +18,7 @@ namespace Application.UseCases.TranslatorServices;
 // wording; both lists should be kept in sync if the prompt's field lists ever change.
 public static class TranslationOutputValidator
 {
-    private static readonly string[] TranslatableFields =
+    public static readonly IReadOnlyCollection<string> DefaultTranslatableFields = new[]
     {
         "Title", "HeadLine", "Abstract", "Description", "TinyText", "EditorText"
     };
@@ -32,9 +32,11 @@ public static class TranslationOutputValidator
 
     // Returns null when the translated document is valid, otherwise a human-readable (and
     // secret-safe: no field values, only field names/paths/types) description of the first
-    // violation found.
-    public static string Validate(string originalJson, string translatedJson)
+    // violation found. translatableFields defaults to DefaultTranslatableFields; every other
+    // field is protected.
+    public static string Validate(string originalJson, string translatedJson, IReadOnlyCollection<string> translatableFields = null)
     {
+        translatableFields ??= DefaultTranslatableFields;
         JToken original;
         JToken translated;
         try
@@ -47,23 +49,23 @@ public static class TranslationOutputValidator
             return "Model response was not valid JSON.";
         }
 
-        return CompareTokens(original, translated, "$");
+        return CompareTokens(original, translated, "$", translatableFields);
     }
 
-    private static string CompareTokens(JToken original, JToken translated, string path)
+    private static string CompareTokens(JToken original, JToken translated, string path, IReadOnlyCollection<string> fields)
     {
         if (original.Type != translated.Type)
             return $"Type changed at '{path}': expected {original.Type}, got {translated.Type}.";
 
         return original.Type switch
         {
-            JTokenType.Object => CompareObjects((JObject)original, (JObject)translated, path),
-            JTokenType.Array => CompareArrays((JArray)original, (JArray)translated, path),
-            _ => CompareLeaf(original, translated, path)
+            JTokenType.Object => CompareObjects((JObject)original, (JObject)translated, path, fields),
+            JTokenType.Array => CompareArrays((JArray)original, (JArray)translated, path, fields),
+            _ => CompareLeaf(original, translated, path, fields)
         };
     }
 
-    private static string CompareObjects(JObject original, JObject translated, string path)
+    private static string CompareObjects(JObject original, JObject translated, string path, IReadOnlyCollection<string> fields)
     {
         var originalNames = original.Properties().Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
         var translatedNames = translated.Properties().Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
@@ -78,7 +80,7 @@ public static class TranslationOutputValidator
 
         foreach (var property in original.Properties())
         {
-            var error = CompareTokens(property.Value, translated[property.Name], $"{path}.{property.Name}");
+            var error = CompareTokens(property.Value, translated[property.Name], $"{path}.{property.Name}", fields);
             if (error != null)
                 return error;
         }
@@ -86,14 +88,14 @@ public static class TranslationOutputValidator
         return null;
     }
 
-    private static string CompareArrays(JArray original, JArray translated, string path)
+    private static string CompareArrays(JArray original, JArray translated, string path, IReadOnlyCollection<string> fields)
     {
         if (original.Count != translated.Count)
             return $"Array length changed at '{path}': expected {original.Count}, got {translated.Count}.";
 
         for (var i = 0; i < original.Count; i++)
         {
-            var error = CompareTokens(original[i], translated[i], $"{path}[{i}]");
+            var error = CompareTokens(original[i], translated[i], $"{path}[{i}]", fields);
             if (error != null)
                 return error;
         }
@@ -101,11 +103,11 @@ public static class TranslationOutputValidator
         return null;
     }
 
-    private static string CompareLeaf(JToken original, JToken translated, string path)
+    private static string CompareLeaf(JToken original, JToken translated, string path, IReadOnlyCollection<string> fields)
     {
         var fieldName = path[(path.LastIndexOf('.') + 1)..];
 
-        if (!Array.Exists(TranslatableFields, f => f == fieldName))
+        if (!fields.Contains(fieldName))
         {
             // Protected by default: any field not explicitly allowed to change (IDs, dates,
             // booleans, numbers, and every other named field) must be byte-for-byte unchanged.

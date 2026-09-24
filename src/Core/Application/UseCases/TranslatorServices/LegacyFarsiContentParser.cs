@@ -79,6 +79,8 @@ public static class LegacyFarsiContentParser
         }
     }
 
+    public static string Serialize(LocalizedContentText text) => JsonSerializer.Serialize(text, Options);
+
     public static LocalizedContentText Deserialize(string localizedTextJson) =>
         JsonSerializer.Deserialize<LocalizedContentText>(localizedTextJson, Options);
 

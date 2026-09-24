@@ -1,6 +1,8 @@
 using System;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Application.UseCases.TranslatorServices;
 using Microsoft.Extensions.Logging;
@@ -15,20 +17,31 @@ namespace Infrastructure.TranslatorServices;
 // and into the logs below.
 public class OpenAiTranslationPort : ITranslationPort
 {
+    public const string ProviderName = "openai";
+
     private readonly ChatClient _client;
+    private readonly string _model;
     private readonly ILogger<OpenAiTranslationPort> _logger;
 
     public OpenAiTranslationPort(IOptions<OpenAiTranslationOptions> options, ILogger<OpenAiTranslationPort> logger)
     {
         var settings = options.Value;
+        _model = settings.Model;
+        // RetryPolicy: the SDK by default silently resends on 408/429/5xx and timeouts. Chat
+        // completions have no idempotency key, so a resend after an ambiguous failure can bill
+        // (and translate) twice; callers decide about retries from TranslationResult.Retryable.
         _client = new ChatClient(settings.Model, new ApiKeyCredential(settings.ApiKey),
-            new OpenAIClientOptions { NetworkTimeout = TimeSpan.FromMinutes(settings.NetworkTimeoutMinutes) });
+            new OpenAIClientOptions
+            {
+                NetworkTimeout = TimeSpan.FromMinutes(settings.NetworkTimeoutMinutes),
+                RetryPolicy = new ClientRetryPolicy(maxRetries: 0)
+            });
         _logger = logger;
     }
 
     public async Task<TranslationResult> TranslateAsync(TranslationRequest request, CancellationToken cancellationToken = default)
     {
-        var messages = new List<ChatMessage> { new SystemChatMessage(BuildPrompt(request.ContentJson)) };
+        var messages = new List<ChatMessage> { new SystemChatMessage(BuildPrompt(request)) };
 
         ChatCompletion response;
         try
@@ -38,6 +51,12 @@ public class OpenAiTranslationPort : ITranslationPort
         catch (OperationCanceledException)
         {
             throw;
+        }
+        catch (ClientResultException ex) when (ex.Status == 429)
+        {
+            // Rate limited: rejected before processing, so safe for the caller to resend later.
+            _logger.LogWarning("Translation request was rate limited");
+            return TranslationResult.Failed("Translation request was rate limited.", retryable: true);
         }
         catch (Exception ex)
         {
@@ -60,19 +79,27 @@ public class OpenAiTranslationPort : ITranslationPort
         // but "did the model actually follow the prompt's own contract?" (no added/missing/
         // renamed fields, protected fields byte-for-byte unchanged, translatable fields still
         // string/null with HTML structure intact).
-        var validationError = TranslationOutputValidator.Validate(request.ContentJson, translatedText);
+        var validationError = TranslationOutputValidator.Validate(request.ContentJson, translatedText, request.TranslatableFields);
         if (validationError != null)
             return TranslationResult.Failed(validationError);
 
-        return TranslationResult.Ok(translatedText);
+        return TranslationResult.Ok(translatedText, ProviderName, response.Model ?? _model);
     }
 
-    private static string BuildPrompt(string contentJson) => $@"
-                    You are a professional Persian (Farsi) translator specializing in content for a luxury international magazine focused on fashion,
-                    design, art, culture and lifestyle. You have expert knowledge of all terminology and specialized expressions in fashion, design,
-                    architecture, art, and lifestyle, and you translate texts with precision, cultural nuance, and a high level of fluency for a Persian-speaking audience.
+    private static string BuildPrompt(TranslationRequest request)
+    {
+        var language = request.TargetLanguage ?? "Persian (Farsi)";
+        var fields = string.Join("\n", (request.TranslatableFields ?? TranslationOutputValidator.DefaultTranslatableFields)
+            .Select(f => $"                    - {f}"));
+        return BuildPrompt(request.ContentJson, language, fields);
+    }
 
-                    Translate all English user-facing text values in the provided JSON object into Persian (Farsi), while preserving the JSON structure exactly.
+    private static string BuildPrompt(string contentJson, string language, string translatableFields) => $@"
+                    You are a professional {language} translator specializing in content for a luxury international magazine focused on fashion,
+                    design, art, culture and lifestyle. You have expert knowledge of all terminology and specialized expressions in fashion, design,
+                    architecture, art, and lifestyle, and you translate texts with precision, cultural nuance, and a high level of fluency for a {language}-speaking audience.
+
+                    Translate all English user-facing text values in the provided JSON object into {language}, while preserving the JSON structure exactly.
 
                     STRICT RULES:
                     1. Return ONLY valid JSON.
@@ -83,12 +110,7 @@ public class OpenAiTranslationPort : ITranslationPort
                     6. Do NOT modify numbers, IDs, dates, null values, booleans, or non-text values.
 
                     TRANSLATE ONLY THESE FIELDS:
-                    - Title
-                    - HeadLine
-                    - Abstract
-                    - Description
-                    - TinyText
-                    - EditorText
+{translatableFields}
 
                     DO NOT TRANSLATE THESE FIELDS:
                     - ElementTitle
@@ -124,7 +146,7 @@ public class OpenAiTranslationPort : ITranslationPort
                     13. Preserve empty tags exactly, including <p><br></p>.
 
                     STYLE RULES:
-                    14. Use fluent and natural Persian.
+                    14. Use fluent and natural {language}.
                     15. Avoid awkward literal translation where possible, but keep the meaning accurate.
 
                     FINAL CHECK:
