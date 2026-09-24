@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Application.CMSRepository;
 using Domains.Entities.ContentManagement;
@@ -37,6 +38,28 @@ public class ManualContentTranslation
         _translations = translations;
         _contentCommands = contentCommands;
         _timeProvider = timeProvider;
+    }
+
+    // Read-only: the canonical translation text the editor should start from, or null when the
+    // content isn't the application's or there's no usable (non-deleted, parseable) payload. Any
+    // status qualifies - it only seeds the form; saving re-validates and sets Ready.
+    public async Task<LocalizedContentText> GetStoredText(int contentId, int cultureId, int applicationId, CancellationToken cancellationToken = default)
+    {
+        if (cultureId == 0 || !await _translations.ContentBelongsToApplication(contentId, applicationId, cancellationToken))
+            return null;
+
+        var translation = await _translations.FindTranslation(contentId, cultureId, cancellationToken);
+        if (translation is not { IsDeleted: false, LocalizedTextJson: { } json })
+            return null;
+
+        try
+        {
+            return LegacyFarsiContentParser.Deserialize(json);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     // translatedGraph: the edited translation as a Content graph; farsiContentJson: its legacy

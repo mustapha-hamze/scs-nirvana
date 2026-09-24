@@ -208,6 +208,55 @@ public class ManualContentTranslationTests : IDisposable
         await AssertNothingWritten(TranslationStatus.Stale);
     }
 
+    private async Task<LocalizedContentText> StoredText(int? cultureId = null, int applicationId = ApplicationId)
+    {
+        await using var context = _factory.CreateContext();
+        var sut = new ManualContentTranslation(new ContentTranslationJobRepository(context), new ContentCommandRepository(context), new FakeTimeProvider(Now));
+        return await sut.GetStoredText(_contentId, cultureId ?? _cultureId, applicationId);
+    }
+
+    [Fact]
+    public async Task GetStoredText_ReturnsCanonicalText_ReadOnly_WhateverItsStatus()
+    {
+        await Seed();
+        await using (var context = _factory.CreateContext())
+        {
+            context.ContentTranslations.Add(new ContentTranslation
+            {
+                ContentId = _contentId, CultureId = _cultureId, TranslationStatus = TranslationStatus.Stale, SourceFingerprint = "old",
+                LocalizedTextJson = "{\"title\":\"canonical\"}", Provider = "test", IsActive = true
+            });
+            await context.SaveChangesAsync();
+        }
+
+        Assert.Equal("canonical", (await StoredText()).Title);
+        Assert.Null(await StoredText(applicationId: 2)); // tenant isolation
+        Assert.Null(await StoredText(cultureId: 0));
+        var row = await Row();
+        Assert.Equal((TranslationStatus.Stale, "old"), (row.TranslationStatus, row.SourceFingerprint));
+        Assert.Equal(LegacyFarsi, await Legacy());
+    }
+
+    [Theory]
+    [InlineData("{not json", false)]
+    [InlineData(null, false)]
+    [InlineData("{\"title\":\"x\"}", true)]
+    public async Task GetStoredText_UnusableRow_ReturnsNull(string payload, bool deleted)
+    {
+        await Seed();
+        await using (var context = _factory.CreateContext())
+        {
+            context.ContentTranslations.Add(new ContentTranslation
+            {
+                ContentId = _contentId, CultureId = _cultureId, TranslationStatus = TranslationStatus.NeedsReview, SourceFingerprint = "old",
+                LocalizedTextJson = payload, IsActive = true, IsDeleted = deleted
+            });
+            await context.SaveChangesAsync();
+        }
+
+        Assert.Null(await StoredText());
+    }
+
     [Fact]
     public void HasNoTranslationPortDependency()
     {

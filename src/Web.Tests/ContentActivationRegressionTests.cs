@@ -261,24 +261,29 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.True((await ContentState(contentId)).IsActive);
     }
 
+    // Rebasing never loosens the save: the rebased graph is still validated against the master.
     [Fact]
-    public async Task ManualFarsiSave_StaleLegacyStructure_ConflictsAndPreservesBothPayloads()
+    public async Task ManualFarsiSave_ChangedHtmlStructure_ConflictsAndPreservesBothPayloads()
     {
         var (client, applicationId) = await SignIn();
-        // Legacy snapshot of a section that no longer exists in the master graph.
-        var contentId = await SeedContent(applicationId, farsi: "{}");
-        var staleFarsi = $"{{\"Id\":{contentId},\"Title\":\"قدیمی\",\"Sections\":[{{\"Id\":999999,\"Elements\":[]}}]}}";
+        var contentId = await SeedContent(applicationId);
         await Db(async c =>
         {
-            (await c.Contents.SingleAsync(x => x.Id == contentId)).FarsiContent = staleFarsi;
+            (await c.Contents.SingleAsync(x => x.Id == contentId)).Description = "<p>EN <strong>desc</strong></p>";
             return await c.SaveChangesAsync();
         });
 
-        var save = await SaveFarsi(client, contentId, "عنوان جدید");
+        var save = await client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(new System.Collections.Generic.Dictionary<string, string>
+        {
+            ["Id"] = contentId.ToString(),
+            ["Title"] = "FA",
+            ["Description"] = "<p>FA <em>desc</em></p>",
+            ["Metadata.Id"] = "0"
+        }));
 
         Assert.Equal(HttpStatusCode.Conflict, save.StatusCode);
         Assert.Equal("InvalidStructure", await TranslationState(save));
-        Assert.Equal((false, staleFarsi), await ContentState(contentId));
+        Assert.Equal((false, LegacyFarsi), await ContentState(contentId));
         Assert.Null(await Translation(contentId));
     }
 
@@ -294,6 +299,147 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.Equal(HttpStatusCode.NotFound, save.StatusCode);
         Assert.Equal((false, (string)null), await ContentState(foreignContentId));
         Assert.Null(await Translation(foreignContentId));
+    }
+
+    // Master whose layout changed after `legacy` was snapshotted: element "kept" survives,
+    // element "added" and its section are new; the snapshot also has since-removed nodes.
+    private Task<(int ContentId, int MetadataId, int KeptSectionId, int KeptElementId, string Legacy)> SeedStaleFarsi(int applicationId, bool malformed = false) => Db(async context =>
+    {
+        if (!await context.Cultures.IgnoreQueryFilters().AnyAsync(c => c.Id == ActivationCultureId))
+            context.Cultures.Add(new Culture { Id = ActivationCultureId, ApplicationId = applicationId, Title = "Farsi", Key = "fa-IR", IsActive = true });
+        var kept = new SectionElement { ElementType = 1000, TinyText = "EN-kept" };
+        var content = new Content
+        {
+            ApplicationId = applicationId, TypeId = 1000, Title = "EN-title", PublishDt = DateTime.UtcNow,
+            Metadata = new ContentMetadata { Title = "EN-meta" },
+            Sections = new System.Collections.Generic.List<ContentSection>
+            {
+                new() { Priority = 1, Elements = new System.Collections.Generic.List<SectionElement> { new() { ElementType = 1000, TinyText = "EN-added" } } },
+                new() { Priority = 2, Elements = new System.Collections.Generic.List<SectionElement> { kept } }
+            }
+        };
+        context.Contents.Add(content);
+        await context.SaveChangesAsync();
+
+        var legacy = malformed ? "{\"Id\": " : $$"""
+            {"Id":{{content.Id}},"Title":"FA-title","Metadata":{"Id":{{content.Metadata.Id}},"Title":"FA-meta"},
+             "Sections":[{"Id":{{kept.SectionId}},"Priority":7,"Elements":[{"Id":{{kept.Id}},"TinyText":"FA-kept"},{"Id":999998,"TinyText":"FA-removed-element"}]},
+                         {"Id":999997,"Elements":[{"Id":999996,"TinyText":"FA-removed-section"}]}]}
+            """;
+        content.FarsiContent = legacy;
+        await context.SaveChangesAsync();
+        return (content.Id, content.Metadata.Id, kept.SectionId, kept.Id, legacy);
+    });
+
+    private Task<(string FarsiContent, DateTime UpdatedDT, int Translations, int Jobs)> Snapshot(int contentId) => Db(async c =>
+    {
+        var content = await c.Contents.AsNoTracking().SingleAsync(x => x.Id == contentId);
+        return (content.FarsiContent, content.UpdatedDT,
+            await c.ContentTranslations.IgnoreQueryFilters().CountAsync(t => t.ContentId == contentId),
+            await c.ContentTranslationJobs.CountAsync(j => j.ContentId == contentId));
+    });
+
+    [Fact]
+    public async Task StaleLegacyFarsi_FormIsRebasedWithoutWriting_ThenSaveProducesCurrentReadyTranslation()
+    {
+        var (client, applicationId) = await SignIn();
+        var (contentId, metadataId, keptSectionId, keptElementId, _) = await SeedStaleFarsi(applicationId);
+        var before = await Snapshot(contentId);
+
+        var form = await client.GetAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+        var body = await form.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, form.StatusCode);
+        Assert.Contains("FA-title", body);
+        Assert.Contains("FA-meta", body);
+        Assert.Contains("FA-kept", body);
+        Assert.Contains("EN-added", body);
+        Assert.DoesNotContain("FA-removed", body);
+        Assert.DoesNotContain("999997", body);
+        Assert.DoesNotContain("Farsi content was not found", body);
+        Assert.Equal(before, await Snapshot(contentId));
+
+        var save = await client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(new System.Collections.Generic.Dictionary<string, string>
+        {
+            ["Id"] = contentId.ToString(),
+            ["Title"] = "FA-title-2",
+            ["Metadata.Id"] = metadataId.ToString(),
+            ["Metadata.Title"] = "FA-meta",
+            ["Sections[0].Id"] = keptSectionId.ToString(),
+            ["Sections[0].SectionElements[0].Id"] = keptElementId.ToString(),
+            ["Sections[0].SectionElements[0].TinyText"] = "FA-kept-2",
+        }));
+
+        Assert.Equal(HttpStatusCode.OK, save.StatusCode);
+        Assert.Equal("Done", await save.Content.ReadAsStringAsync());
+        var translation = await Translation(contentId);
+        var master = await Db(c => c.Contents.AsNoTracking().Include(x => x.Metadata).Include(x => x.Sections).ThenInclude(x => x.Elements).SingleAsync(x => x.Id == contentId));
+        Assert.Equal((TranslationStatus.Ready, ContentSourceFingerprint.Compute(master), "manual"),
+            (translation.TranslationStatus, translation.SourceFingerprint, translation.Provider));
+        var text = LegacyFarsiContentParser.Deserialize(translation.LocalizedTextJson);
+        Assert.Equal("FA-title-2", text.Title);
+        Assert.Equal(new[] { "EN-added", "FA-kept-2" }, text.Sections.SelectMany(s => s.Elements).Select(e => e.TinyText));
+        var (_, farsiContent) = await ContentState(contentId);
+        Assert.DoesNotContain("FA-removed", farsiContent);
+        Assert.DoesNotContain("\"FarsiContent\":\"{", farsiContent); // no nested snapshot
+
+        Assert.Equal(HttpStatusCode.OK, (await Activate(client, contentId)).StatusCode);
+    }
+
+    [Fact]
+    public async Task FarsiForm_PrefersCanonicalTranslation_AndLeavesItUnchanged()
+    {
+        var (client, applicationId) = await SignIn();
+        var (contentId, metadataId, keptSectionId, keptElementId, _) = await SeedStaleFarsi(applicationId);
+        await Db(async c =>
+        {
+            c.ContentTranslations.Add(new ContentTranslation
+            {
+                ContentId = contentId, CultureId = ActivationCultureId, TranslationStatus = TranslationStatus.Stale, SourceFingerprint = "old", IsActive = true,
+                LocalizedTextJson = LegacyFarsiContentParser.Serialize(new LocalizedContentText("CANON-title", null, null, null,
+                    new LocalizedMetadataText(metadataId, "CANON-meta", null, null, null),
+                    new() { new LocalizedSectionText(keptSectionId, new() { new LocalizedElementText(keptElementId, "CANON-kept", null) }) }))
+            });
+            return await c.SaveChangesAsync();
+        });
+        var before = await Snapshot(contentId);
+
+        var body = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+
+        Assert.Contains("CANON-kept", body);
+        Assert.Contains("CANON-meta", body);
+        Assert.DoesNotContain("FA-kept", body);
+        Assert.Contains("EN-added", body);
+        Assert.Equal(before, await Snapshot(contentId));
+        Assert.Equal(TranslationStatus.Stale, (await Translation(contentId)).TranslationStatus);
+        Assert.Equal(HttpStatusCode.Conflict, (await Activate(client, contentId)).StatusCode);
+    }
+
+    [Fact]
+    public async Task FarsiForm_MalformedLegacy_FallsBackToEnglish_WithoutWriting()
+    {
+        var (client, applicationId) = await SignIn();
+        var (contentId, _, _, _, legacy) = await SeedStaleFarsi(applicationId, malformed: true);
+        var before = await Snapshot(contentId);
+
+        var body = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+
+        Assert.Contains("Farsi content was not found", body);
+        Assert.Contains("EN-kept", body);
+        Assert.Equal(before, await Snapshot(contentId));
+        Assert.Equal(legacy, before.FarsiContent);
+    }
+
+    [Fact]
+    public async Task FarsiForm_OtherApplicationsContent_IsNotFound()
+    {
+        var (client, _) = await SignIn();
+        var (_, otherApplicationId) = await SignIn();
+        var (contentId, _, _, _, _) = await SeedStaleFarsi(otherApplicationId);
+
+        var response = await client.GetAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]

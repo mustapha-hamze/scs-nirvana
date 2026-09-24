@@ -9,6 +9,13 @@ namespace Web.Areas.BackOffice.Controllers;
 // HTTP concerns, tenant scoping, and delegating to IContentProvider/IContentServices.
 public partial class ContentController
 {
+    private async Task<(Domains.Entities.ContentManagement.Content Source, bool UsedEnglishFallback)> GetFarsiEditSource(
+        Domains.Entities.ContentManagement.Content englishContent, int applicationId)
+    {
+        var canonicalText = await _manualTranslation.GetStoredText(englishContent.Id, _translationOptions.ActivationCultureId, applicationId);
+        return FarsiContentMapper.GetEditSource(englishContent, canonicalText);
+    }
+
     [HttpGet]
     [RequireAccess(AccessKeys.Content.EditFarsi)]
     [Route("/{area}/{controller}/FarsiContentForm/{id}/{typeId}")]
@@ -19,7 +26,7 @@ public partial class ContentController
         if (englishContent == null)
             return NotFound();
 
-        var (source, usedEnglishFallback) = FarsiContentMapper.GetEditSource(englishContent);
+        var (source, usedEnglishFallback) = await GetFarsiEditSource(englishContent, currentApplicationId);
         var dto = FarsiContentMapper.ToEditDto(source);
 
         var model = new FarsiContentFormPageModel
@@ -51,7 +58,8 @@ public partial class ContentController
         if (englishContent == null)
             return NotFound();
 
-        var (baseContent, _) = FarsiContentMapper.GetEditSource(englishContent);
+        // Same rebased graph the form was rendered from, so its IDs line up with the current master.
+        var (baseContent, _) = await GetFarsiEditSource(englishContent, currentApplicationId);
 
         FarsiContentMapper.ApplyEdit(baseContent, model);
 
