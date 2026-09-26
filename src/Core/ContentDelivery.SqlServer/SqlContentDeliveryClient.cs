@@ -342,7 +342,10 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
         if (IsLegacyCulture(culture)
             && candidates.Legacy.TryGetValue(h.Id, out var snapshot)
             && !string.IsNullOrWhiteSpace(snapshot)
-            && LocalizedTextParser.ExtractLegacy(snapshot, graph.Source).Text is { } legacy)
+            // Strict ID/parent/type validation gates it; the served text is the field-by-field
+            // overlay (omitted -> source text, explicit null -> blank, string -> replaced).
+            && LocalizedTextParser.ExtractLegacy(snapshot, graph.Source).ReasonCode == null
+            && LocalizedTextParser.ReadLegacy(snapshot, graph.Source) is { } legacy)
             return new(legacy, new() { Culture = culture.Key, Source = LocalizationSource.LegacyFarsi },
                 $"lf-{culture.Key}-{h.Id}-{h.UpdatedDT.Ticks:x}");
 

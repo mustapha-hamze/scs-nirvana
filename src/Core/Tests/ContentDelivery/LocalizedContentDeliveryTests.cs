@@ -82,9 +82,14 @@ public sealed class LocalizedContentDeliveryTests : IDisposable
         _factory.Dispose();
     }
 
+    // Partial snapshot: some text supplied, some explicitly null, the rest omitted (HeadLine,
+    // Description, metadata Keywords/Description, 1101's TinyText, 1102's TinyText).
     private const string Legacy11 = """
-        {"Id":11,"Title":"Legacy 11","Metadata":{"Id":110,"ContentId":11,"Title":"Legacy meta"},
-         "Sections":[{"Id":111,"ContentId":11,"Elements":[{"Id":1101,"SectionId":111,"TinyText":"legacy tiny"}]}]}
+        {"Id":11,"Title":"Legacy 11","Abstract":null,
+         "Metadata":{"Id":110,"ContentId":11,"Title":"Legacy meta","Author":null},
+         "Sections":[{"Id":111,"ContentId":11,"Elements":[
+           {"Id":1101,"SectionId":111,"EditorText":"legacy editor"},
+           {"Id":1102,"SectionId":111,"EditorText":null}]}]}
         """;
 
     // Master graph: an active section (a tiny-text, an editor-text, an inactive and a deleted
@@ -265,24 +270,71 @@ public sealed class LocalizedContentDeliveryTests : IDisposable
     }
 
     [Fact]
-    public async Task LegacyFallback_ServesAValidSnapshot_OnlyForTheConfiguredCulture()
+    public async Task LegacyFallback_OverlaysAPartialSnapshot_FieldByField()
     {
-        var legacy = await Document(11, "fa-IR", legacyCulture: "FA-IR");
+        var client = Client(legacyCulture: "FA-IR");
+        var legacy = (await client.GetDocumentAsync(11, "fa-IR")).Value;
+        var inSet = (await client.GetDocumentSetAsync(new[] { 10, 11 }, "fa-IR")).Value.Single(d => d.Summary.Id == 11);
+        var listed = (await client.GetListingAsync(new ContentListingQuery { Culture = "fa-IR", PageSize = 100 })).Value.Items.Single(i => i.Id == 11);
 
-        Assert.Equal(new LocalizationInfo { Culture = "fa-IR", Source = LocalizationSource.LegacyFarsi }, legacy.Summary.Localization);
-        Assert.Equal("Legacy 11", legacy.Summary.Title);
-        Assert.Null(legacy.Summary.HeadLine); // absent from the snapshot, as Core's reader serves it
-        Assert.Equal("Legacy meta", legacy.Metadata.Title);
-        Assert.Equal("legacy tiny", legacy.Sections[0].Elements[0].TinyText);
-        Assert.Equal("<p>body 11</p>", legacy.Sections[0].Elements[1].EditorText); // untranslated node keeps master text
-        Assert.Equal(("E1", "f.pdf"), (legacy.Sections[0].Elements[0].Title, legacy.Sections[0].Elements[0].FileName));
+        foreach (var document in new[] { legacy, inSet })
+        {
+            Assert.Equal(new LocalizationInfo { Culture = "fa-IR", Source = LocalizationSource.LegacyFarsi }, document.Summary.Localization);
+            // Supplied -> Farsi, explicit null -> blank, omitted -> English.
+            Assert.Equal(("Legacy 11", "Head 11", (string)null), (document.Summary.Title, document.Summary.HeadLine, document.Summary.Abstract));
+            Assert.Equal("<p>Description 11</p>", document.Description);
+            Assert.Equal(("Legacy meta", (string)null, "k", "md"), (document.Metadata.Title, document.Metadata.Author, document.Metadata.Keywords, document.Metadata.Description));
+            var (tiny, editor) = (document.Sections[0].Elements[0], document.Sections[0].Elements[1]);
+            Assert.Equal(("tiny 11", "legacy editor"), (tiny.TinyText, tiny.EditorText));
+            Assert.Equal(((string)null, (string)null), (editor.TinyText, editor.EditorText));
+            Assert.Equal(("E1", "f.pdf", "g", 3), (tiny.Title, tiny.FileName, tiny.GalleryImages, tiny.Size));
+        }
 
+        Assert.Equal(new LocalizationInfo { Culture = "fa-IR", Source = LocalizationSource.LegacyFarsi }, listed.Localization);
+        Assert.Equal(("Legacy 11", "Head 11", (string)null), (listed.Title, listed.HeadLine, listed.Abstract));
+    }
+
+    [Fact]
+    public async Task LegacyFallback_IsGatedByConfiguration_AndCulture()
+    {
         // Off by default, and never for another culture.
         AssertSource(await Document(11, "fa-IR"), 11, "fa-IR");
         AssertSource(await Document(11, "ar-SA", legacyCulture: "fa-IR"), 11, "ar-SA");
-        // A current canonical translation still wins; an invalid snapshot is not served.
+        // A current canonical translation still wins.
         Assert.Equal(LocalizationSource.Translation, (await Document(10, "fa-IR", legacyCulture: "fa-IR")).Summary.Localization.Source);
-        AssertSource(await Document(17, "fa-IR", legacyCulture: "fa-IR"), 17, "fa-IR");
+    }
+
+    [Theory]
+    [InlineData("{\"Id\":999,\"Title\":\"wrong content\"}")]                                              // another content
+    [InlineData("{\"Id\":\"17\",\"Title\":\"x\"}")]                                                        // invalid id
+    [InlineData("{\"Id\":17,\"Title\":\"x\"")]                                                             // malformed JSON
+    [InlineData("{\"Id\":17,\"Title\":5}")]                                                                // wrong type
+    [InlineData("{\"Id\":17,\"HeadLine\":\"x\",\"headline\":\"y\"}")]                                        // duplicate property
+    [InlineData("{\"Id\":17,\"Metadata\":{\"Id\":999,\"Title\":\"x\"}}")]                                    // unknown metadata
+    [InlineData("{\"Id\":17,\"Metadata\":{\"Id\":170,\"Author\":[\"x\"]}}")]                                  // wrong metadata type
+    [InlineData("{\"Id\":17,\"Sections\":[{\"Id\":999}]}")]                                                 // unknown section
+    [InlineData("{\"Id\":17,\"Sections\":[{\"Id\":171},{\"Id\":171}]}")]                                     // duplicate section
+    [InlineData("{\"Id\":17,\"Sections\":[{\"Id\":171,\"ContentId\":16}]}")]                                 // wrong parent content
+    [InlineData("{\"Id\":17,\"Sections\":[{\"Id\":171,\"Elements\":[{\"Id\":1799}]}]}")]                    // unknown element
+    [InlineData("{\"Id\":17,\"Sections\":[{\"Id\":171,\"Elements\":[{\"Id\":1705}]}]}")]                    // deleted element
+    [InlineData("{\"Id\":17,\"Sections\":[{\"Id\":171,\"Elements\":[{\"Id\":1701},{\"Id\":1701}]}]}")]     // duplicate element
+    [InlineData("{\"Id\":17,\"Sections\":[{\"Id\":171,\"Elements\":[{\"Id\":1701,\"SectionId\":172}]}]}")] // wrong parent section
+    [InlineData("{\"Id\":17,\"Sections\":[{\"Id\":171,\"Elements\":[{\"Id\":1701,\"TinyText\":true}]}]}")] // wrong element type
+    public async Task InvalidLegacySnapshot_FallsBackToSource_ForEveryShape(string snapshot)
+    {
+        using (var core = _factory.CreateContext())
+        {
+            core.Contents.Single(c => c.Id == 17).FarsiContent = snapshot;
+            core.SaveChanges();
+        }
+        var client = Client(legacyCulture: "fa-IR");
+
+        AssertSource((await client.GetDocumentAsync(17, "fa-IR")).Value, 17, "fa-IR");
+        AssertSource((await client.GetDocumentSetAsync(new[] { 17 }, "fa-IR")).Value.Single(), 17, "fa-IR");
+        var listed = (await client.GetListingAsync(new ContentListingQuery { Culture = "fa-IR", PageSize = 100 })).Value.Items.Single(i => i.Id == 17);
+        Assert.Equal(("Title 17", "Head 17", "Abstract 17"), (listed.Title, listed.HeadLine, listed.Abstract));
+        Assert.Equal(new LocalizationInfo { Culture = "fa-IR", Source = LocalizationSource.Source }, listed.Localization);
+        Assert.Empty((await client.GetSitemapEntriesAsync()).Single(e => e.ContentId == 17).Cultures);
     }
 
     [Fact]
