@@ -1,3 +1,5 @@
+using Application.UseCases.TranslatorServices;
+
 namespace Web.Areas.Api;
 [ApiController]
 [AllowAnonymous]
@@ -5,9 +7,13 @@ namespace Web.Areas.Api;
 public class ContentController : ControllerBase
 {
     private readonly IContentServices _contentServices;
-    public ContentController(IContentServices contentServices)
+    private readonly LocalizedContentReader _localizedContentReader;
+    private readonly ILogger<ContentController> _logger;
+    public ContentController(IContentServices contentServices, LocalizedContentReader localizedContentReader, ILogger<ContentController> logger)
     {
         _contentServices = contentServices;
+        _localizedContentReader = localizedContentReader;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -63,5 +69,30 @@ public class ContentController : ControllerBase
         return Ok(
             await _contentServices
                 .GetContentInCategoryAsBox(categoryId, applicationId, cancellationToken));
+    }
+
+    // Culture-aware read (docs/Translation-Modernization-Plan.md, Phase 5). Returns the current
+    // content with its text resolved for ?culture= (a Ready translation of the current source,
+    // else legacy Farsi for the configured legacy culture, else English) plus Culture/Resolution
+    // metadata. 400 for a malformed culture; 404 when the content isn't the application's or the
+    // ContentTranslation:LocalizedRead* rollout gates are closed for it. Existing routes are untouched.
+    [HttpGet]
+    [Route("api/[controller]/GetLocalizedContent/{applicationId}/{id}")]
+    public async Task<ActionResult> GetLocalizedContent(int applicationId, int id, [FromQuery] string culture, CancellationToken cancellationToken)
+    {
+        var result = await _localizedContentReader.Read(id, applicationId, culture, cancellationToken);
+        switch (result.Status)
+        {
+            case LocalizedContentReadStatus.Found:
+                // Privacy-safe: never content text or the raw request value.
+                _logger.LogInformation("Localized content read for application {ApplicationId}, culture {Culture}: {Resolution}",
+                    applicationId, result.Content.Culture, result.Content.Resolution);
+                return Ok(result.Content);
+            case LocalizedContentReadStatus.InvalidCulture:
+                ModelState.AddModelError(nameof(culture), "culture must be a language tag such as fa-IR.");
+                return ValidationProblem();
+            default:
+                return NotFound();
+        }
     }
 }

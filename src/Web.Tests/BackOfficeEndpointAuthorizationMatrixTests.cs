@@ -220,6 +220,7 @@ public sealed class BackOfficeEndpointAuthorizationMatrixTests
         new(typeof(Web.Areas.Api.ContentController), nameof(Web.Areas.Api.ContentController.GetContentByCategoryId), P(typeof(int), typeof(int), typeof(int), typeof(int), typeof(CancellationToken)), V("GET"), Auth.Anonymous),
         new(typeof(Web.Areas.Api.ContentController), nameof(Web.Areas.Api.ContentController.GetContentByCategoryIdByDate), P(typeof(int), typeof(int), typeof(DateTime), typeof(DateTime), typeof(int), typeof(CancellationToken)), V("GET"), Auth.Anonymous),
         new(typeof(Web.Areas.Api.ContentController), nameof(Web.Areas.Api.ContentController.GetContentInCategoryAsBox), P(typeof(int), typeof(int), typeof(CancellationToken)), V("GET"), Auth.Anonymous),
+        new(typeof(Web.Areas.Api.ContentController), nameof(Web.Areas.Api.ContentController.GetLocalizedContent), P(typeof(int), typeof(int), typeof(string), typeof(CancellationToken)), V("GET"), Auth.Anonymous),
         new(typeof(Web.Areas.Api.SliderController), nameof(Web.Areas.Api.SliderController.GetSlider), P(typeof(int), typeof(int)), V("GET"), Auth.Anonymous),
     };
 
@@ -367,13 +368,14 @@ public sealed class BackOfficeEndpointAuthorizationMatrixTests
             "GET /api/Content/GetContentByCategoryId/{applicationId}/{categoryId}/{pageIndex?}/{pageSize?}",
             "GET /api/Content/GetContentByCategoryIdByDate/{applicationId}/{categoryId}/{startDate}/{endDate}/{pageIndex?}",
             "GET /api/Content/GetContentInCategoryAsBox/{applicationId}/{categoryId}",
+            "GET /api/Content/GetLocalizedContent/{applicationId}/{id}",
             "GET /api/Slider/{applicationId}/GetSlider/{sliderId}",
         };
 
         // healthz isn't a matrix row (mapped directly in Program.cs, never goes through this
         // controller-attribute model); Login's GET+POST are one route line above but two matrix
-        // rows. So: 12 route lines - 1 (healthz) + 1 (Login's extra row) = 12 matrix rows.
-        Assert.Equal(12, anonymousRoutes.Length - 1 + 1);
-        Assert.Equal(12, Matrix.Count(r => r.Auth == Auth.Anonymous));
+        // rows. So: 13 route lines - 1 (healthz) + 1 (Login's extra row) = 13 matrix rows.
+        Assert.Equal(13, anonymousRoutes.Length - 1 + 1);
+        Assert.Equal(13, Matrix.Count(r => r.Auth == Auth.Anonymous));
     }
 }

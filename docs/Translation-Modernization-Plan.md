@@ -111,6 +111,34 @@ Keep existing API behavior initially.
 
 Use feature flags per environment, then per application/tenant for controlled rollout.
 
+Implemented contract: `GET /api/Content/GetLocalizedContent/{applicationId}/{id}?culture=fa-IR`
+(anonymous, like the other public content routes; `LocalizedContentReader`).
+
+- `culture` is required and must be a language tag (`fa`, `fa-IR`, `zh-Hant-TW`); it is matched
+  case-insensitively against the application's active cultures. Malformed: `400` validation problem.
+- `200` body: the current master content (sections, elements, images, files, galleries,
+  `ElementTitle`, categories/tags/cultures) with text resolved, plus `culture` (the stored key, or
+  `null` when the application has no such active culture) and `resolution`:
+  `translation` (a non-deleted `Ready` translation whose fingerprint matches the current source and
+  whose payload has exactly the master's IDs), else `legacy-farsi` (only when the culture is
+  `LegacyFarsiCultureId`: `FarsiContent` parsed strictly and rebased onto the current master IDs;
+  nodes it lacks keep English), else `source` (English). No `FarsiContent`, provider, model or error
+  data is ever returned.
+- `404`: content missing/deleted/another application's, or a rollout gate is closed.
+- Existing routes and their `FarsiContent` behavior are unchanged.
+
+Rollout configuration (`ContentTranslation` section, all off by default):
+
+```json
+"ContentTranslation": {
+  "LocalizedReadEnabled": true,
+  "LocalizedReadApplicationIds": [ 1 ],
+  "LegacyFarsiCultureId": 7
+}
+```
+
+Each served read logs application id, resolved culture key and resolution only.
+
 ### Phase 6: Manual Translation
 
 Manual Farsi editing should update the new translation record, not clone and rewrite the complete content graph.
