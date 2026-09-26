@@ -11,6 +11,8 @@
 --     global cultures only (ApplicationId = 0), tenant-owned cultures invisible;
 --   * a principal mapped to the second application sees none of the first application's rows;
 --   * a role member without a mapping row sees nothing (fail-closed);
+--   * a principal recreated under the website user's mapped name with a new SID sees nothing,
+--     whether it reads through direct table grants or as a website-role member;
 --   * writes, the mapping table, predicate functions, unrelated tables, unmapped columns,
 --     policy changes and impersonation are denied;
 --   * setting SESSION_CONTEXT / CONTEXT_INFO to another application changes nothing.
@@ -94,6 +96,7 @@ DECLARE @Probes TABLE (Seq int IDENTITY, CheckName nvarchar(200), ProbeSql nvarc
 
 DECLARE @Label sysname, @Kind char(5), @Name sysname, @Seq int, @CheckName nvarchar(200), @ProbeSql nvarchar(max),
         @ExpectDenied bit, @Err int, @N int, @Ci varbinary(128), @ClonedApplication bit = 0,
+        @Sql nvarchar(max), @OrigSid varbinary(85), @CountSql nvarchar(max),
         @Src int, @Tmp int, @ContentB int, @SectionSrc int, @SectionB int, @CatA int, @CatB int, @TagA int, @TagB int;
 
 CREATE TABLE #Override (ColumnName sysname PRIMARY KEY, ValueSql nvarchar(400) NOT NULL);
@@ -434,6 +437,43 @@ BEGIN TRY
     END;
     CLOSE principals;
     DEALLOCATE principals;
+
+    -------------------------------------------------------------------------------------------
+    -- Impostor (rolled back): drop the real website user and recreate a user with the SAME name
+    -- and a NEW SID. Its mapping row is untouched. It must see zero protected rows, first with
+    -- direct table-level SELECT grants and no role (proves the name+SID binding restricts it, not
+    -- the role), then also as a website-role member.
+    -------------------------------------------------------------------------------------------
+    SET @CountSql = N'SELECT @n = (SELECT COUNT(Id) FROM dbo.CMS_Contents) + (SELECT COUNT(Id) FROM dbo.CMS_ContentMetadata)
+        + (SELECT COUNT(Id) FROM dbo.CMS_ContentSections) + (SELECT COUNT(Id) FROM dbo.CMS_SectionElements)
+        + (SELECT COUNT(Id) FROM dbo.CMS_ContentImages) + (SELECT COUNT(Id) FROM dbo.CMS_Categories)
+        + (SELECT COUNT(Id) FROM dbo.GNR_Tags) + (SELECT COUNT(Id) FROM dbo.CMS_ContentInCategories)
+        + (SELECT COUNT(Id) FROM dbo.CMS_ContentInTags) + (SELECT COUNT(Id) FROM dbo.GNR_Cultures)
+        + (SELECT COUNT(Id) FROM dbo.CMS_ContentTranslations);';
+    SET @OrigSid = (SELECT sid FROM sys.database_principals WHERE name = @WebsiteUser);
+
+    SET @Sql = N'DROP USER ' + QUOTENAME(@WebsiteUser) + N'; CREATE USER ' + QUOTENAME(@WebsiteUser) + N' WITHOUT LOGIN;';
+    EXEC sys.sp_executesql @Sql;
+    INSERT INTO @Checks VALUES (N'impostor same name, new SID', N'recreated user SID differs from the mapping SID',
+        IIF((SELECT sid FROM sys.database_principals WHERE name = @WebsiteUser) <> @OrigSid, N'different', N'same'),
+        IIF((SELECT sid FROM sys.database_principals WHERE name = @WebsiteUser) <> @OrigSid, N'PASS', N'FAIL'));
+
+    SET @Sql = N'';
+    SELECT @Sql += N'GRANT SELECT ON dbo.' + QUOTENAME(TableName) + N' TO ' + QUOTENAME(@WebsiteUser) + N';' FROM @Totals;
+    EXEC sys.sp_executesql @Sql;
+    EXECUTE AS USER = @WebsiteUser;
+    EXEC sys.sp_executesql @CountSql, N'@n int OUTPUT', @n = @N OUTPUT;
+    REVERT;
+    INSERT INTO @Checks VALUES (N'impostor same name, new SID', N'protected rows visible with direct grants, no role',
+        CONCAT(@N, N' rows'), IIF(@N = 0 AND (SELECT SUM(TotalRows) FROM @Totals) > 0, N'PASS', N'FAIL'));
+
+    SET @Sql = N'ALTER ROLE ContentDeliveryWebsiteReader ADD MEMBER ' + QUOTENAME(@WebsiteUser) + N';';
+    EXEC sys.sp_executesql @Sql;
+    EXECUTE AS USER = @WebsiteUser;
+    EXEC sys.sp_executesql @CountSql, N'@n int OUTPUT', @n = @N OUTPUT;
+    REVERT;
+    INSERT INTO @Checks VALUES (N'impostor same name, new SID', N'protected rows visible as website-role member',
+        CONCAT(@N, N' rows'), IIF(@N = 0 AND (SELECT SUM(TotalRows) FROM @Totals) > 0, N'PASS', N'FAIL'));
 END TRY
 BEGIN CATCH
     IF ORIGINAL_LOGIN() <> SUSER_SNAME() REVERT;
@@ -449,6 +489,10 @@ INSERT INTO @Checks VALUES (N'cleanup', N'rolled back: probe users and seeded ap
            N'; seeded application=', IIF(@ClonedApplication = 1, (SELECT COUNT(*) FROM dbo.GNR_Applications WHERE Id = @B), 0)),
     IIF(NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name LIKE N'cd[_]rls[_]probe[_]%')
         AND (@ClonedApplication = 0 OR NOT EXISTS (SELECT 1 FROM dbo.GNR_Applications WHERE Id = @B)), N'PASS', N'FAIL'));
+
+INSERT INTO @Checks VALUES (N'cleanup', N'rolled back: website user restored with its original SID',
+    IIF((SELECT sid FROM sys.database_principals WHERE name = @WebsiteUser) = @OrigSid, N'original SID', N'missing or changed'),
+    IIF((SELECT sid FROM sys.database_principals WHERE name = @WebsiteUser) = @OrigSid, N'PASS', N'FAIL'));
 
 -- Evidence (counts and verdicts only). Attach all three result sets to the change ticket.
 SELECT Label, TableName, AllowedRows, VisibleRows, LeakedRows, MissingRows, ForeignRows, Verdict

@@ -19,16 +19,18 @@ configuration, BackOffice, translation workflows, public APIs, Diba or any other
 | Script | Runs as | Changes | Purpose |
 |---|---|---|---|
 | `01-preflight.sql` | DBA | nothing | Version, compatibility level, tables/columns, ownership, existing RLS, principals and permissions, target application, tenant spread. Counts only. |
-| `02-create-website-login.sql` | DBA (securityadmin) | server login | Optional: SQL-auth login for the website, password from the secret store. |
+| `02-check-website-login.sql` | DBA | nothing | Read-only check and acknowledgement of the already-provisioned dedicated login (section 3). |
 | `03-deploy.sql` | DBA | additive objects | Security schema, mapping table, predicates, policy, website role and user. Idempotent, one transaction. |
 | `04-verify-restored-backup.sql` | DBA, restored copy only | nothing (always rolls back) | Proves isolation as the website login with plain SQL, using a second tenant. |
 | `05-verify-website-connection.sql` | the website login | nothing | Same checks over the website's own connection (no impersonation). |
-| `06-rollback.sql` | DBA | removes hardening objects | Removes only what 02/03 created, dependency-safe. |
+| `06-rollback.sql` | DBA | removes hardening objects | Removes only what `03` created, dependency-safe. Never touches logins. |
 | `check_scripts.py` | anyone | nothing | Static consistency checks; proves nothing about RLS behaviour. |
 
 All scripts are SQLCMD scripts (`sqlcmd -b`, or SSMS in SQLCMD mode). Every variable is passed with
-`-v` (secrets through environment variables); no script sets defaults, so a missing value stops
-the run.
+`-v`; no script sets defaults, so a missing value stops the run. **No script takes, stores,
+prints or interpolates a password or other secret.** SQLCMD variables are substituted as raw text:
+they are DBA-controlled inputs copied from the reviewed change ticket, never a security boundary,
+and must never come from an untrusted source.
 
 ## 2. Security design
 
@@ -45,14 +47,18 @@ the run.
 
   Visibility (`IsActive`, `IsDeleted`, translation status) stays in the SDK; RLS enforces only
   the tenant boundary.
-- **Identity, not caller input.** `fn_CallerScope` resolves the caller from `USER_NAME()` (the
-  authenticated database user) against `ContentDeliverySecurity.WebsitePrincipalApplication`. No
+- **Identity, not caller input.** `fn_CallerScope` resolves the caller from its database user
+  name (`USER_NAME()`) **and** SID (`SUSER_SID()`, the SID of the current security context, equal
+  to the database user's SID) against `ContentDeliverySecurity.WebsitePrincipalApplication`,
+  which stores both. An application is granted only when name and SID match the same row. No
   predicate reads `SESSION_CONTEXT`, `CONTEXT_INFO`, `APP_NAME()`, `HOST_NAME()`, connection
   string values or query parameters. The website cannot impersonate (no `IMPERSONATE`), change
   roles, alter the policy or read/write the mapping.
-- **Fail closed for websites, unchanged for everyone else.** A caller is *restricted* when it has a
-  mapping row or is a member of `ContentDeliveryWebsiteReader`; a role member without a mapping
-  sees nothing. Every other principal (BackOffice, jobs, DBAs, `dbo`) is unrestricted, so existing
+- **Fail closed for websites, unchanged for everyone else.** A caller is *restricted* when its
+  name or its SID appears in the mapping, or it is a member of `ContentDeliveryWebsiteReader`. A
+  restricted caller without a name-and-SID match - a role member with no mapping, a missing
+  mapping, or a principal dropped and recreated under a mapped name (new SID) - sees zero rows.
+  `03` refuses to deploy while any mapping row's SID no longer matches its principal (drift). Every other principal (BackOffice, jobs, DBAs, `dbo`) is unrestricted, so existing
   behaviour is unchanged. The mapping, not role membership, is authoritative, so the
   `IS_ROLEMEMBER` domain-controller caveat can only hide rows, never expose them.
 - **Ownership chain.** The security schema, the CMS tables and the functions are all owned by
@@ -88,12 +94,19 @@ the run.
 | Input | Used by | Notes |
 |---|---|---|
 | `CmsDatabase` | all | Restored-copy database name for rehearsal, production name for deployment. |
-| `WebsiteLoginName` | 01–04 | New, dedicated, individual login (SQL auth, gMSA/Windows user, or Entra user). Never a group, never shared with BackOffice. |
+| `WebsiteLoginName` | 01–04 | New, dedicated, individual login (SQL auth, gMSA/Windows user, or Entra user). Never a group, never shared with BackOffice. **Provisioned by the DBA before `02`**, outside this repository's scripts (below). |
 | `WebsiteUserName` | 01, 03 | New database user name for that login. |
 | `WebsiteApplicationId` / `ExpectedApplicationId` | 01, 03, 04, 05 | The website's `GNR_Applications.Id`; must equal the website's `ContentDelivery:ApplicationId`. Kept in the change ticket, not in this repo. |
-| `WebsiteLoginPassword` | 02 | Environment variable only, generated secret ≥ 24 characters without single quotes, stored in the secret store. |
+| `CredentialsProvisionedOutOfBand` | 02 | `CONFIRMED` once the login exists through the approved process. |
 | `SecondApplicationId`, `SeedTestRows` | 04 | See section 5. |
 | Restored backup | 04 | Recent full backup of production restored to a non-production server. |
+
+**Login provisioning is manual and out of band.** The DBA creates (and later rotates) a SQL-auth
+login and its secret only through the approved DBA/secret-management process, directly in that
+tooling - not with these scripts, not on a command line, not in this repository. Windows/gMSA and
+Entra logins are provisioned through their own platform. `02-check-website-login.sql` then checks
+the login read-only (individual, enabled, no server role or extra server permission, password
+policy for SQL auth, not already mapped) and records the acknowledgement.
 
 ## 4. Preflight (read-only) — expected results
 
@@ -105,8 +118,8 @@ all result sets.
 | 1 platform | `ProductMajorVersion` ≥ 13, database online and read-write. Compatibility level recorded (RLS needs no specific level). |
 | 2 tables / columns | Every table `OK` (in `dbo`, owned by `dbo`); no missing mapped column; predicate columns `int`. |
 | 3 existing policies / indexed views | No `BLOCKER` rows. |
-| 4 hardening objects | All `OK: absent` on first deploy (or `INFO` when re-running). |
-| 5 website login | `OK` (or `INFO` before 02 runs); no server role; not mapped to another user. |
+| 4 hardening objects / mapping SID drift | All `OK: absent` on first deploy (or `INFO` when re-running); every existing mapping `OK` (no drift). |
+| 5 website login | `OK` (or `INFO` until provisioned); no server role; not mapped to another user. |
 | 6 permissions | Review every `REVIEW` row: `public`/`guest` grants reach every website identity. |
 | 7 target application / spread / cultures | Application exists; `ActiveGlobalCultures` > 0. A `NOTE: single tenant` means isolation can only be proven with seeded rows. |
 | 8 dependent modules | Informational: views/procs over these tables inherit the filter only for website identities. |
@@ -134,7 +147,8 @@ Steps:
 1. `03-deploy.sql` on the restored copy with the canary website's inputs.
 2. `04-verify-restored-backup.sql` (sysadmin, `ConfirmRestoredCopy=RESTORED_COPY`). It uses
    `EXECUTE AS LOGIN` for the real website login and two rolled-back probe users: one mapped to
-   the second application, one role member with no mapping.
+   the second application, one role member with no mapping. Finally it drops the website user and
+   recreates the same name with a new SID (rolled back) to prove the stale mapping grants nothing.
 3. `05-verify-website-connection.sql` connected **as the website login**, twice (second run
    with a spoofed workstation name `-H`).
 4. Rehearse `06-rollback.sql`, then `03-deploy.sql` again, on the copy. (`04`'s `cleanup` check
@@ -150,7 +164,8 @@ Expected results of `04`:
 | spoof: SESSION_CONTEXT / CONTEXT_INFO | foreign rows visible = 0, content count equals baseline. |
 | write / DDL / mapping / predicate function / policy / role / impersonate / unrelated table / unmapped column probes | `error 229/230/262/15151/15247/15517…`, `PASS`. `REVIEW` means an unexpected error number: inspect before accepting. |
 | sdk shape probes (`COUNT(*)`, `EXISTS`, filtered `TOP`) | `succeeded`, `PASS`. A failure here blocks the rollout (column-level grants and SDK query shapes disagree). |
-| mapping SID matches; cleanup | `PASS`. |
+| impostor same name, new SID | SID `different`; `0 rows` with direct table grants and no role, and `0 rows` as a role member (`PASS`). |
+| mapping SID matches; cleanup (probe users gone, website user back with its original SID) | `PASS`. |
 | `OverallVerdict` | `PASS`. `INCONCLUSIVE` is not acceptable for sign-off. |
 
 Expected results of `05`: every row `PASS`, identical on both runs.
@@ -165,11 +180,12 @@ are produced by any script.
 1. **DBA review.** Review `03`/`06` line by line with section 2. Run `check_scripts.py`. Record the
    approved application ids and login names in the change ticket.
 2. **Backup restore rehearsal.** Restore a recent production backup to a non-production server.
-   Run `01`, `02` (if SQL auth), `03`, `04`, `05`, `06`, then `03` again. All section 5
+   Provision a rehearsal login out of band, then run `01`, `02`, `03`, `04`, `05`, `06`, then
+   `03` again. All section 5
    expectations must hold. Measure a representative BackOffice workload before and after `03`
    (the predicate adds a mapping lookup for every caller).
-3. **Least-privilege website identity.** In production, create the login (`02`, or the DBA's
-   gMSA/Entra process), store the secret, and run `01` again.
+3. **Least-privilege website identity.** In production, the DBA provisions the dedicated login
+   through the approved DBA/secret-management process (section 3), then runs `02` and `01`.
 4. **Deploy.** Run `03-deploy.sql` in production in a change window. It is additive and does
    not affect any existing principal; the deployment summary must show 11 predicates.
 5. **Direct-SQL verification in production.** Run `05` as the website login with the canary's
@@ -192,20 +208,22 @@ are produced by any script.
 
 ## 7. Adding websites and schema changes
 
-Another website: new login and user, then `03-deploy.sql` with its inputs (existing objects are
-reused), then `05` with its application id. `03` refuses to re-point an existing user to a
-different application; do that through rollback of that user or a reviewed manual change.
+Another website: new login (provisioned out of band) and user, then `02`, `03-deploy.sql` with
+its inputs (existing objects are reused), then `05` with its application id. `03` refuses to
+re-point an existing user to a different application and refuses any mapping SID drift; resolve
+either through a reviewed manual change to the mapping row (never by editing the scripts).
 
 After any CMS schema release: re-run `01` (blockers) and `03` (extends the explicit `DENY` list to
 new objects).
 
 ## 8. Credential rotation
 
-SQL-auth: generate a new secret, `ALTER LOGIN [<login>] WITH PASSWORD = N'<new>' OLD_PASSWORD =
-N'<old>'` run by the DBA from the secret store, update the website's secret, restart or reload
-the website, confirm the health check, then revoke the old secret. For zero downtime, create a
-second login/user with `02`/`03` (same application id), switch the website to it, then remove
-the first user with a reviewed `DROP USER` and `DROP LOGIN`. gMSA/Entra identities rotate through
+Credentials are rotated only through the approved DBA/secret-management process, never with
+these scripts. SQL auth: the DBA rotates the login's secret in that process, updates the website's
+secret, reloads the website, confirms the health check and `05`, then retires the old secret. The
+login's SID does not change, so the mapping stays valid. For zero downtime, provision a second
+login out of band, run `02`/`03` for it (same application id), switch the website, then remove the
+first user and its mapping row through a reviewed change. gMSA/Entra identities rotate through
 their own platform. Rotate immediately if a website host is compromised; rotation needs no policy
 change.
 
@@ -216,15 +234,17 @@ change.
    order: hardening-tagged users, the website role (with all its grants/denies), the policy, the
    predicate functions, the mapping table and the schema. It refuses to drop anything it did not
    create and never touches CMS tables or rows.
-3. If `02` created the login and no other database uses it: `DROP LOGIN [<login>]` by the DBA,
-   then retire its secret.
+3. Retire the dedicated login and its secret through the approved DBA process if no other
+   database uses it. The scripts never create or drop logins.
 4. Run `01` to confirm section 4 shows the hardening objects absent.
 
 ## 10. Local validation
 
 `python3 docs/content-delivery-db-hardening/check_scripts.py` checks, without SQL Server: the
 policy covers exactly the adapter's tables; column grants equal `ContentDeliveryDbContext`'s
-mapped columns; predicates are schema-bound and read no caller-controlled state; no forbidden
+mapped columns; predicates are schema-bound and read no caller-controlled state; the caller
+scope binds name and SID, deploy rejects SID drift, and `04` runs the same-name/new-SID probe; no
+script or command references a password or secret variable; no forbidden
 grants; preflight is read-only; `04` never commits; rollback drops every created object in a
 dependency-safe order and touches no CMS data; no embedded credentials or connection strings.
 Passing it says nothing about runtime isolation - only section 5 does.

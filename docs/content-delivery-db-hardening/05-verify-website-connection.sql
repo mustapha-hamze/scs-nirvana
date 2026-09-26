@@ -6,11 +6,11 @@
 -- Runs as the website login; read-only for that identity. Any probe that unexpectedly succeeds
 -- is rolled back. Returns counts, error numbers and verdicts only.
 --
--- Usage (password from the secret store via SQLCMDPASSWORD, never on the command line):
---   export SQLCMDPASSWORD="$(<secret-store read command>)"
+-- Usage: connect as the website login through the approved DBA credential process. For SQL auth,
+-- give -U without -P so sqlcmd prompts interactively; the secret never appears in this script,
+-- a command line, a variable or the output. Windows/gMSA/Entra logins use their own sign-in.
 --   sqlcmd -S <server> -U "<website login>" -d "<db>" -b -i 05-verify-website-connection.sql \
 --     -v ExpectedApplicationId=<id>
---   unset SQLCMDPASSWORD
 -- Run it a second time with a different workstation name (-H spoofed-host) and confirm identical
 -- results: nothing about the connection other than the authenticated identity may matter.
 

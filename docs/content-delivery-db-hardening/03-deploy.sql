@@ -12,10 +12,15 @@
 --     -v CmsDatabase="<db>" WebsiteLoginName="<login>" WebsiteUserName="<user>" WebsiteApplicationId=<id>
 --
 -- Security model (README section 2):
---   * A caller is RESTRICTED when its database user (USER_NAME()) has a mapping row, or when it is
---     a member of ContentDeliveryWebsiteReader. A restricted caller sees only rows of its mapped
---     application and their descendants, plus global cultures (ApplicationId = 0). A role member
---     with no mapping row sees nothing.
+--   * A caller is RESTRICTED when its database user name or its SID appears in the mapping, or
+--     when it is a member of ContentDeliveryWebsiteReader. A restricted caller whose name AND SID
+--     match one mapping row sees only rows of that application and their descendants, plus global
+--     cultures (ApplicationId = 0). Any other restricted caller (role member without mapping,
+--     same name with a different SID) sees nothing.
+--   * This script only validates and maps an existing, separately provisioned login. It never
+--     creates logins or handles credentials.
+--   * SQLCMD variables are DBA-controlled inputs substituted as text; they are not a security
+--     boundary. Pass only reviewed values from the change ticket.
 --   * Every other principal (BackOffice, DBA, dbo) is unrestricted, so existing behaviour is
 --     unchanged. Those identities must never be added to the role or the mapping.
 --   * Scope comes only from the server/database identity. No predicate reads SESSION_CONTEXT,
@@ -45,7 +50,7 @@ IF @ApplicationId <= 0 OR NOT EXISTS (SELECT 1 FROM dbo.GNR_Applications WHERE I
     THROW 50302, N'WebsiteApplicationId must be an existing, positive GNR_Applications.Id.', 1;
 
 IF SUSER_ID(@Login) IS NULL
-    THROW 50303, N'WebsiteLoginName does not exist. Create it first (02-create-website-login.sql).', 1;
+    THROW 50303, N'WebsiteLoginName does not exist. Provision it through the approved DBA process, then run 02-check-website-login.sql.', 1;
 
 IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = @Login AND type IN ('S', 'U', 'E'))
     THROW 50304, N'The website login must be an individual SQL, Windows or Entra login, not a group.', 1;
@@ -67,6 +72,9 @@ IF SCHEMA_ID(N'ContentDeliverySecurity') IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM sys.extended_properties WHERE class = 3 AND name = N'ContentDeliveryHardening'
                    AND major_id = SCHEMA_ID(N'ContentDeliverySecurity'))
     THROW 50308, N'Schema ContentDeliverySecurity exists but was not created by this hardening.', 1;
+
+IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = @User AND sid <> SUSER_SID(@Login))
+    THROW 50315, N'WebsiteUserName exists but is not mapped to WebsiteLoginName (SID differs).', 1;
 
 IF DATABASE_PRINCIPAL_ID(@User) IS NOT NULL
    AND NOT EXISTS (SELECT 1 FROM sys.extended_properties WHERE class = 4 AND name = N'ContentDeliveryHardening'
@@ -92,8 +100,8 @@ BEGIN
          @level0type = N'SCHEMA', @level0name = N'ContentDeliverySecurity';
 END;
 
--- One row per website database user. PrincipalSid records the user's SID at mapping time so
--- verification can detect a dropped-and-recreated principal reusing the name.
+-- One row per website database user: name and SID, both enforced by fn_CallerScope. A principal
+-- dropped and recreated under the same name gets a new SID and therefore no application.
 IF OBJECT_ID(N'ContentDeliverySecurity.WebsitePrincipalApplication', N'U') IS NULL
     EXEC (N'CREATE TABLE ContentDeliverySecurity.WebsitePrincipalApplication (
         PrincipalName sysname        NOT NULL CONSTRAINT PK_WebsitePrincipalApplication PRIMARY KEY,
@@ -105,19 +113,32 @@ IF OBJECT_ID(N'ContentDeliverySecurity.WebsitePrincipalApplication', N'U') IS NU
 ------------------------------------------------------------------------------------------------
 -- Predicate functions: inline, schema-bound, two-part names, no type conversions.
 -- CallerScope is the single place that decides who is restricted and to which application.
+--
+-- A mapping row binds a database-user NAME and SID. The caller is restricted when either its
+-- user name or its current SID (SUSER_SID(): the SID of the current security context, which
+-- equals the database user's SID for a login-mapped or loginless user) appears in the mapping,
+-- or when it is a website-role member. It gets an application only when name AND SID both match
+-- one row. So a missing mapping, a role member without a mapping, and a dropped-and-recreated
+-- principal reusing a mapped name (new SID) are all restricted with no application: zero rows.
 ------------------------------------------------------------------------------------------------
+IF OBJECT_ID(N'ContentDeliverySecurity.fn_CallerScope') IS NOT NULL
+   AND OBJECT_DEFINITION(OBJECT_ID(N'ContentDeliverySecurity.fn_CallerScope')) NOT LIKE N'%m.PrincipalSid = SUSER_SID()%'
+    THROW 50314, N'An outdated fn_CallerScope without SID binding is deployed. Run 06-rollback.sql, then redeploy.', 1;
+
 IF OBJECT_ID(N'ContentDeliverySecurity.fn_CallerScope') IS NULL
     EXEC (N'CREATE FUNCTION ContentDeliverySecurity.fn_CallerScope()
 RETURNS TABLE
 WITH SCHEMABINDING
 AS
 RETURN
-    SELECT CAST(CASE WHEN m.PrincipalName IS NOT NULL
+    SELECT CAST(CASE WHEN EXISTS (SELECT 1 FROM ContentDeliverySecurity.WebsitePrincipalApplication AS n
+                                  WHERE n.PrincipalName = USER_NAME())
+                       OR EXISTS (SELECT 1 FROM ContentDeliverySecurity.WebsitePrincipalApplication AS n
+                                  WHERE n.PrincipalSid = SUSER_SID())
                        OR ISNULL(IS_ROLEMEMBER(N''ContentDeliveryWebsiteReader''), 0) = 1
                      THEN 1 ELSE 0 END AS bit) AS IsRestricted,
-           m.ApplicationId
-    FROM (SELECT 1 AS Caller) AS caller
-    LEFT JOIN ContentDeliverySecurity.WebsitePrincipalApplication AS m ON m.PrincipalName = USER_NAME();');
+           (SELECT m.ApplicationId FROM ContentDeliverySecurity.WebsitePrincipalApplication AS m
+            WHERE m.PrincipalName = USER_NAME() AND m.PrincipalSid = SUSER_SID()) AS ApplicationId;');
 
 -- CMS_Contents, CMS_Categories, GNR_Tags: rows owned by the caller's application.
 IF OBJECT_ID(N'ContentDeliverySecurity.fn_TenantRowAccess') IS NULL
@@ -287,6 +308,15 @@ IF EXISTS (SELECT 1 FROM sys.database_role_members rm
 IF EXISTS (SELECT 1 FROM sys.database_permissions WHERE grantee_principal_id = DATABASE_PRINCIPAL_ID(@User)
            AND permission_name <> N'CONNECT' AND state IN ('G', 'W'))
     THROW 50312, N'The website user holds direct grants. Website permissions come from the role only.', 1;
+
+-- SID drift: every existing mapping row must still name a database user with the same SID.
+-- A dropped, recreated or re-pointed principal is never silently re-accepted; the DBA removes
+-- the stale row through a reviewed change (README section 7) and redeploys.
+IF OBJECT_ID(N'ContentDeliverySecurity.WebsitePrincipalApplication', N'U') IS NOT NULL
+   AND EXISTS (SELECT 1 FROM ContentDeliverySecurity.WebsitePrincipalApplication m
+               WHERE NOT EXISTS (SELECT 1 FROM sys.database_principals p
+                                 WHERE p.name = m.PrincipalName AND p.sid = m.PrincipalSid))
+    THROW 50316, N'Mapping SID drift: a mapped principal is missing or has a different SID. Review before deploying.', 1;
 
 -- Map the user to its application. Re-pointing an existing mapping is refused: move a website
 -- to another application only through a reviewed change (README section 9).

@@ -134,14 +134,23 @@ FROM (
                 THEN 1 ELSE 0 END AS bit)
 ) x;
 
+-- Existing mappings must still bind name AND SID (03-deploy.sql refuses drift). -----------------
+IF OBJECT_ID(N'ContentDeliverySecurity.WebsitePrincipalApplication', N'U') IS NOT NULL
+    SELECT N'4 mapping SID drift' AS [Check], m.PrincipalName,
+           CASE WHEN p.principal_id IS NULL THEN N'BLOCKER: mapped principal missing'
+                WHEN p.sid <> m.PrincipalSid THEN N'BLOCKER: SID drift (principal recreated or re-pointed)'
+                ELSE N'OK' END AS Verdict
+    FROM ContentDeliverySecurity.WebsitePrincipalApplication m
+    LEFT JOIN sys.database_principals p ON p.name = m.PrincipalName;
+
 -- 5) Website login: must exist before deploy, be an individual SQL/Windows/Entra login, and hold
---    no server role (02-create-website-login.sql creates a SQL-auth one if needed).
+--    no server role. It is provisioned outside these scripts (README section 3).
 SELECT N'5 website login' AS [Check], sp.name AS LoginName, sp.type_desc, sp.is_disabled,
        sp.default_database_name, sl.is_policy_checked, sl.is_expiration_checked,
        (SELECT COUNT(*) FROM sys.server_role_members rm WHERE rm.member_principal_id = sp.principal_id) AS ServerRoleCount,
        (SELECT COUNT(*) FROM sys.server_permissions pe WHERE pe.grantee_principal_id = sp.principal_id
             AND pe.permission_name NOT IN (N'CONNECT SQL') ) AS ExtraServerPermissionCount,
-       CASE WHEN sp.principal_id IS NULL THEN N'INFO: create it with 02-create-website-login.sql'
+       CASE WHEN sp.principal_id IS NULL THEN N'INFO: provision it through the approved DBA process'
             WHEN sp.type NOT IN ('S', 'U', 'E') THEN N'BLOCKER: group logins cannot be mapped 1:1'
             WHEN IS_SRVROLEMEMBER(N'sysadmin', sp.name) = 1 THEN N'BLOCKER: sysadmin'
             WHEN EXISTS (SELECT 1 FROM sys.server_role_members rm WHERE rm.member_principal_id = sp.principal_id)

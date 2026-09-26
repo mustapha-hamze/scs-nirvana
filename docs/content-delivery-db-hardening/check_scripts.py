@@ -70,10 +70,33 @@ functions = re.findall(r"CREATE FUNCTION (ContentDeliverySecurity\.\w+)\((.*?)'\
 check(len(functions) == 7, f"expected 7 predicate functions, found {len(functions)}")
 for name, body in functions:
     check("WITH SCHEMABINDING" in body, f"{name}: not schema-bound")
-    for banned in ("SESSION_CONTEXT", "CONTEXT_INFO", "APP_NAME", "HOST_NAME", "ORIGINAL_LOGIN", "SUSER_"):
+    for banned in ("SESSION_CONTEXT", "CONTEXT_INFO", "APP_NAME", "HOST_NAME", "ORIGINAL_LOGIN"):
         check(banned not in body.upper(), f"{name}: uses caller-controlled or login-level value {banned}")
+    check(set(re.findall(r"SUSER_\w+\([^)]*\)", body, re.I)) <= {"SUSER_SID()"},
+          f"{name}: only argument-less SUSER_SID() (current security context) is allowed")
     check(not re.search(r"(?<![\w.])(CMS_|GNR_)", body), f"{name}: table reference without schema prefix")
+    if not name.endswith("fn_CallerScope"):
+        check("fn_CallerScope()" in body and "WebsitePrincipalApplication" not in body and "USER_NAME" not in body,
+              f"{name}: must resolve the caller only through fn_CallerScope")
 check("SCHEMABINDING = ON" in deploy, "policy must be created WITH SCHEMABINDING = ON")
+
+# Caller scope binds the mapping to the principal's name AND SID and fails closed otherwise.
+scope = dict(functions).get("ContentDeliverySecurity.fn_CallerScope", "")
+restricted, _, application = scope.partition("AS IsRestricted")
+check("n.PrincipalName = USER_NAME()" in restricted and "n.PrincipalSid = SUSER_SID()" in restricted
+      and "IS_ROLEMEMBER" in restricted,
+      "fn_CallerScope: name match, SID match and role membership must each make the caller restricted")
+check(re.search(r"SELECT m\.ApplicationId FROM ContentDeliverySecurity\.WebsitePrincipalApplication AS m\s+"
+                r"WHERE m\.PrincipalName = USER_NAME\(\) AND m\.PrincipalSid = SUSER_SID\(\)\) AS ApplicationId",
+                application),
+      "fn_CallerScope: the application must require both name and SID to match one mapping row")
+check("LEFT JOIN" not in scope, "fn_CallerScope: application lookup must not be a name-only join")
+check(re.search(r"p\.name = m\.PrincipalName AND p\.sid = m\.PrincipalSid\)\)\s+THROW", deploy),
+      "deploy must reject mapping SID drift")
+check("m.PrincipalSid = SUSER_SID()%'" in deploy, "deploy must refuse an outdated caller scope without SID binding")
+check("N' WITHOUT LOGIN;'" in verify and "N'DROP USER ' + QUOTENAME(@WebsiteUser)" in verify
+      and verify.count("EXECUTE AS USER = @WebsiteUser;") == 2 and "restored with its original SID" in verify,
+      "04 must run the rolled-back same-name/new-SID impostor probe (direct grants and role member)")
 
 # Least privilege: no broad roles, schema-wide or database-wide SELECT, or direct mapping access.
 for banned in ("db_owner", "db_datareader", "GRANT SELECT ON SCHEMA", "GRANT CONTROL", "IMPERSONATE",
@@ -115,15 +138,18 @@ check(all(i >= 0 for i in order) and order == sorted(order),
 check(not re.search(r"\b(DELETE|TRUNCATE|UPDATE)\b|DROP TABLE dbo\.|ALTER TABLE", rb, re.I),
       "rollback must not touch CMS data or tables")
 
-# No embedded credentials or connection strings anywhere in this folder.
+# No credentials: nothing takes, interpolates or documents a password/secret, and no script
+# creates, alters or drops logins (provisioning is manual, out of band).
 for path in list(SCRIPTS) + [HERE / "README.md"]:
     text = path.read_text(encoding="utf-8")
-    check(not re.search(r"(Password|Pwd)\s*=\s*(?!N?[\"']?[$<(])\S", text, re.I) or path.name == "02-create-website-login.sql",
-          f"{path.name}: looks like an embedded password")
+    check(not re.search(r"\$\(\w*(Password|Pwd|Secret|Token|Credential(?!sProvisioned))\w*\)", text, re.I),
+          f"{path.name}: interpolates a secret SQLCMD/shell variable")
+    check(not re.search(r"\bPASSWORD\s*=|SQLCMDPASSWORD|\bsqlcmd\b[^\n]*\s-P\b", text, re.I),
+          f"{path.name}: passes or documents a password")
     check(not re.search(r"(Server|Data Source)\s*=\s*[^<\s]", text, re.I), f"{path.name}: looks like a connection string")
-login = read("02-create-website-login.sql")
-check(re.findall(r"PASSWORD = N''(.*?)''", login) == ["$(WebsiteLoginPassword)"],
-      "02: the only password must be the WebsiteLoginPassword variable")
+for path in SCRIPTS:
+    check(not re.search(r"\b(CREATE|ALTER|DROP)\s+LOGIN\b", code_only(path.read_text(encoding="utf-8")), re.I),
+          f"{path.name}: must not create, alter or drop logins")
 
 if failures:
     print("FAIL")
