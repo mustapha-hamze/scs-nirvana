@@ -10,6 +10,13 @@ namespace Core.Tests.ContentDelivery;
 
 public class ContentDeliveryContractTests
 {
+    internal static ContentSummary Summary(int id) => new()
+    {
+        Id = id,
+        Localization = new LocalizationInfo { Source = LocalizationSource.Source },
+        Version = new DeliveryVersion { Tag = "v1" }
+    };
+
     [Fact]
     public void ListingQuery_DefaultsToFirstBoundedPage()
     {
@@ -45,18 +52,32 @@ public class ContentDeliveryContractTests
     [Fact]
     public void Result_CarriesValueOnlyWhenFound()
     {
-        var summary = new ContentSummary { Id = 7 };
+        var summary = Summary(7);
 
-        Assert.Same(summary, ContentDeliveryResult<ContentSummary>.Found(summary).Value);
-        Assert.Null(ContentDeliveryResult<ContentSummary>.NotFound().Value);
-        Assert.Equal(ContentDeliveryStatus.InvalidCulture, ContentDeliveryResult<ContentSummary>.InvalidCulture().Status);
+        var found = ContentDeliveryResult<ContentSummary>.Found(summary);
+        Assert.True(found.IsFound);
+        Assert.Same(summary, found.Value);
+        Assert.True(found.TryGetValue(out var value));
+        Assert.Same(summary, value);
+
+        var notFound = ContentDeliveryResult<ContentSummary>.NotFound();
+        Assert.False(notFound.IsFound);
+        Assert.Null(notFound.Value);
+        Assert.False(notFound.TryGetValue(out var missing));
+        Assert.Null(missing);
+
+        var invalidCulture = ContentDeliveryResult<ContentSummary>.InvalidCulture();
+        Assert.Equal(ContentDeliveryStatus.InvalidCulture, invalidCulture.Status);
+        Assert.False(invalidCulture.IsFound);
+        Assert.Null(invalidCulture.Value);
+
         Assert.Throws<ArgumentNullException>(() => ContentDeliveryResult<ContentSummary>.Found(null));
     }
 
     [Fact]
     public void Document_CollectionsDefaultToEmpty()
     {
-        var document = new ContentDocument();
+        var document = new ContentDocument { Summary = Summary(1) };
 
         Assert.Empty(document.Sections);
         Assert.Empty(document.Images);

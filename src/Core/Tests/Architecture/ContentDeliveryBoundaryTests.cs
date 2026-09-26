@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 using Cms.ContentDelivery;
 using Xunit;
 
@@ -139,6 +141,64 @@ public class ContentDeliveryBoundaryTests
         Assert.Equal(new[] { typeof(IContentDeliveryClient) }, Sdk.GetExportedTypes().Where(t => t.IsInterface));
     }
 
+    // net9 websites must be able to consume the SDK (net10 ones still can).
+    [Fact]
+    public void Sdk_TargetsNet9()
+    {
+        Assert.Equal(".NETCoreApp,Version=v9.0", Sdk.GetCustomAttribute<TargetFrameworkAttribute>()?.FrameworkName);
+    }
+
+    [Fact]
+    public void Sdk_ReferencesNoAssemblyNewerThanNet9()
+    {
+        var violations = Sdk.GetReferencedAssemblies()
+            .Where(a => a.Name != "netstandard" && a.Version.Major > 9)
+            .Select(a => $"{a.Name} {a.Version}")
+            .ToList();
+
+        Assert.True(violations.Count == 0, $"A net9 consumer cannot satisfy: {string.Join(", ", violations)}.");
+    }
+
+    // Nullable analysis is on for the whole public surface: every reference-typed property is
+    // either annotated optional, or non-null and then required or given a non-null default.
+    [Fact]
+    public void PublicDtos_DeclareNullability_AndRequireNonNullValues()
+    {
+        var context = new NullabilityInfoContext();
+        var violations = new List<string>();
+
+        foreach (var property in PublicProperties.Where(p => !p.PropertyType.IsValueType && !p.DeclaringType.IsGenericTypeDefinition))
+        {
+            var state = context.Create(property).ReadState;
+            if (state == NullabilityState.Unknown)
+                violations.Add($"{property.DeclaringType.Name}.{property.Name} is nullable-oblivious");
+            else if (state == NullabilityState.NotNull && property.SetMethod != null
+                     && !property.IsDefined(typeof(RequiredMemberAttribute))
+                     && !IsReadOnlyCollection(property.PropertyType))
+                violations.Add($"{property.DeclaringType.Name}.{property.Name} is non-null but neither required nor defaulted");
+        }
+
+        Assert.True(violations.Count == 0, string.Join("; ", violations));
+    }
+
+    [Fact]
+    public void Result_ValueIsOptional_AndAvailableOnlyWhenFound()
+    {
+        var type = typeof(ContentDeliveryResult<ContentSummary>);
+        var context = new NullabilityInfoContext();
+
+        Assert.Equal(NullabilityState.Nullable, context.Create(type.GetProperty(nameof(ContentDeliveryResult<ContentSummary>.Value))).ReadState);
+
+        var isFound = type.GetProperty(nameof(ContentDeliveryResult<ContentSummary>.IsFound)).GetCustomAttribute<MemberNotNullWhenAttribute>();
+        Assert.NotNull(isFound);
+        Assert.True(isFound.ReturnValue);
+        Assert.Equal(new[] { nameof(ContentDeliveryResult<ContentSummary>.Value) }, isFound.Members);
+
+        var outValue = type.GetMethod(nameof(ContentDeliveryResult<ContentSummary>.TryGetValue)).GetParameters().Single();
+        Assert.True(outValue.GetCustomAttribute<NotNullWhenAttribute>()?.ReturnValue);
+        Assert.Equal(NullabilityState.Nullable, context.Create(outValue).WriteState);
+    }
+
     [Theory]
     [InlineData(typeof(Domains.Entities.BaseEntity))]
     [InlineData(typeof(Application.Repository.IRepository<>))]
@@ -147,6 +207,9 @@ public class ContentDeliveryBoundaryTests
     {
         Assert.DoesNotContain(typeFromAssembly.Assembly.GetReferencedAssemblies(), a => a.Name == Sdk.GetName().Name);
     }
+
+    private static bool IsReadOnlyCollection(Type type) =>
+        type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IReadOnlyList<>);
 
     private static IEnumerable<Type> Flatten(Type type)
     {

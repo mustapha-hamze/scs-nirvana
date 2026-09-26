@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Cms.ContentDelivery;
 
 // Read-only delivery of the website's CMS content. Every operation is scoped to the single
@@ -8,11 +10,11 @@ namespace Cms.ContentDelivery;
 public interface IContentDeliveryClient
 {
     // One complete document (sections, elements, media, taxonomy) - no follow-up reads needed.
-    Task<ContentDeliveryResult<ContentDocument>> GetDocumentAsync(int contentId, string culture = null, CancellationToken cancellationToken = default);
+    Task<ContentDeliveryResult<ContentDocument>> GetDocumentAsync(int contentId, string? culture = null, CancellationToken cancellationToken = default);
 
     // Several documents for one page composition, in the requested order. Ids that are not found
     // are omitted rather than failing the set. At most ContentDeliveryLimits.MaxDocumentSetSize ids.
-    Task<ContentDeliveryResult<IReadOnlyList<ContentDocument>>> GetDocumentSetAsync(IReadOnlyList<int> contentIds, string culture = null, CancellationToken cancellationToken = default);
+    Task<ContentDeliveryResult<IReadOnlyList<ContentDocument>>> GetDocumentSetAsync(IReadOnlyList<int> contentIds, string? culture = null, CancellationToken cancellationToken = default);
 
     // A page of summaries filtered by type, category and/or tag.
     Task<ContentDeliveryResult<ContentPage<ContentSummary>>> GetListingAsync(ContentListingQuery query, CancellationToken cancellationToken = default);
@@ -39,20 +41,33 @@ public enum ContentDeliveryStatus
     InvalidCulture
 }
 
-// Value is set only when Status is Found.
-public sealed record ContentDeliveryResult<T>
+// Value is set only when Status is Found. Check IsFound (or TryGetValue) before reading Value;
+// the compiler then treats Value as non-null.
+public sealed record ContentDeliveryResult<T> where T : notnull
 {
-    private ContentDeliveryResult(ContentDeliveryStatus status, T value)
+    private ContentDeliveryResult(ContentDeliveryStatus status, T? value)
     {
         Status = status;
         Value = value;
     }
 
     public ContentDeliveryStatus Status { get; }
-    public T Value { get; }
+    public T? Value { get; }
 
-    public static ContentDeliveryResult<T> Found(T value) =>
-        value is null ? throw new ArgumentNullException(nameof(value)) : new(ContentDeliveryStatus.Found, value);
+    [MemberNotNullWhen(true, nameof(Value))]
+    public bool IsFound => Status == ContentDeliveryStatus.Found;
+
+    public bool TryGetValue([NotNullWhen(true)] out T? value)
+    {
+        value = Value;
+        return IsFound;
+    }
+
+    public static ContentDeliveryResult<T> Found(T value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return new(ContentDeliveryStatus.Found, value);
+    }
 
     public static ContentDeliveryResult<T> NotFound() => new(ContentDeliveryStatus.NotFound, default);
 
@@ -68,7 +83,7 @@ public sealed record ContentListingQuery
     public int? TypeId { get; init; }
     public int? CategoryId { get; init; }
     public int? TagId { get; init; }
-    public string Culture { get; init; }
+    public string? Culture { get; init; }
 
     public int PageNumber
     {

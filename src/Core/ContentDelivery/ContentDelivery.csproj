@@ -5,16 +5,19 @@
        EF Core, SQL client or JSON library: consumers must not see Domain entities, persistence
        types or raw translation data through it. ContentDeliveryBoundaryTests enforces this. -->
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <!-- net9.0 so both net9 and net10 websites can consume it; nothing here needs net10. -->
+    <TargetFramework>net9.0</TargetFramework>
     <AssemblyName>Cms.ContentDelivery</AssemblyName>
     <RootNamespace>Cms.ContentDelivery</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>disable</Nullable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Startup binding/validation of the website's tenant configuration. -->
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
+    <!-- Startup binding/validation of the website's tenant configuration. Kept on the 9.0 line so
+         a net9 consumer is not forced onto newer Microsoft.Extensions.* assemblies than its
+         shared framework ships. -->
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.20" />
   </ItemGroup>
 
   <ItemGroup>

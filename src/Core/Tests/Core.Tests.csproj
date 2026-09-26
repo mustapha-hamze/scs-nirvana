@@ -6,6 +6,9 @@
     <Nullable>disable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- Only affects #nullable enable regions (the rest of this project is nullable-disabled):
+         lets ContentDelivery consumer-usage tests prove the SDK's nullable guidance compiles clean. -->
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

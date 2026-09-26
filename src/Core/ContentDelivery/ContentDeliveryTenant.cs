@@ -15,7 +15,7 @@ public sealed class ContentDeliveryOptions
 // Application id 0 (a missing section) or a negative id must never stand in for a tenant.
 internal sealed class ContentDeliveryOptionsValidator : IValidateOptions<ContentDeliveryOptions>
 {
-    public ValidateOptionsResult Validate(string name, ContentDeliveryOptions options) =>
+    public ValidateOptionsResult Validate(string? name, ContentDeliveryOptions options) =>
         options.ApplicationId >= 1
             ? ValidateOptionsResult.Success
             : ValidateOptionsResult.Fail($"{ContentDeliveryOptions.SectionName}:ApplicationId must be a positive application id.");
