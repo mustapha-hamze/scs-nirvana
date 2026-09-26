@@ -111,3 +111,578 @@
     display: block;
     margin-bottom: 0.5rem;
 }
+
+/* --------------------------------------------------------------------------
+   Nirvana CMS design system
+   The Hyper template supplies the component foundation; these rules give the
+   BackOffice a focused content-operations identity without replacing it.
+   -------------------------------------------------------------------------- */
+
+:root {
+    --scs-ink: #172238;
+    --scs-ink-soft: #263553;
+    --scs-canvas: #f4f7fb;
+    --scs-surface: #ffffff;
+    --scs-border: #e4eaf2;
+    --scs-muted: #66758d;
+    --scs-primary: #356ae6;
+    --scs-primary-strong: #2454c5;
+    --scs-teal: #0f9f92;
+    --scs-coral: #ee6c5d;
+    --scs-amber: #d88b13;
+    --scs-radius: 8px;
+    --scs-shadow: 0 2px 8px rgba(24, 37, 61, .05), 0 12px 28px rgba(24, 37, 61, .04);
+}
+
+.scs-backoffice {
+    background: var(--scs-canvas);
+    color: var(--scs-ink);
+}
+
+.scs-backoffice .content-page {
+    background: var(--scs-canvas);
+}
+
+.scs-backoffice .content {
+    padding: 30px 0 18px;
+}
+
+.scs-backoffice .container-fluid {
+    max-width: 1760px;
+}
+
+.scs-skip-link {
+    position: fixed;
+    z-index: 1100;
+    top: .75rem;
+    left: .75rem;
+    padding: .6rem .85rem;
+    border-radius: 6px;
+    background: var(--scs-ink);
+    color: #fff;
+    transform: translateY(-150%);
+    transition: transform .16s ease;
+}
+
+.scs-skip-link:focus {
+    transform: translateY(0);
+    color: #fff;
+}
+
+.scs-backoffice .leftside-menu {
+    background: var(--scs-ink);
+    box-shadow: none;
+}
+
+.scs-backoffice .side-nav {
+    padding: 14px 12px 32px;
+}
+
+.scs-backoffice .side-nav-title {
+    color: #91a0bd;
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    margin: 22px 0 7px;
+    text-transform: uppercase;
+}
+
+.scs-sidebar-workspace {
+    padding: 8px 10px 14px !important;
+    margin: 4px 0 10px !important;
+    border-bottom: 1px solid rgba(211, 223, 245, .13);
+}
+
+.scs-sidebar-workspace-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #91a0bd;
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+}
+
+.scs-sidebar-workspace h5 {
+    overflow: hidden;
+    margin: 0;
+    color: #fff;
+    font-size: .9rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scs-backoffice .side-nav .side-nav-link,
+.scs-backoffice .side-nav .side-nav-second-level li a,
+.scs-backoffice .side-nav .side-nav-third-level li a {
+    border-radius: 6px;
+    color: #c4cee0;
+    transition: background-color .16s ease, color .16s ease;
+}
+
+.scs-backoffice .side-nav .side-nav-link:hover,
+.scs-backoffice .side-nav .side-nav-second-level li a:hover,
+.scs-backoffice .side-nav .side-nav-third-level li a:hover {
+    background: rgba(255, 255, 255, .075);
+    color: #fff;
+}
+
+.scs-backoffice .side-nav .side-nav-link.active,
+.scs-backoffice .side-nav .menuitem-active > a {
+    background: rgba(78, 125, 238, .22);
+    color: #fff;
+    font-weight: 600;
+}
+
+.scs-backoffice .navbar-custom {
+    min-height: 68px;
+    border-bottom: 1px solid var(--scs-border);
+    background: rgba(255, 255, 255, .94);
+    box-shadow: none;
+}
+
+.scs-backoffice .topbar {
+    min-height: 68px;
+}
+
+.scs-workspace-switcher {
+    max-width: 300px;
+    color: #42526d;
+    font-size: .875rem;
+    font-weight: 600;
+}
+
+.scs-workspace-dot {
+    width: 9px;
+    height: 9px;
+    margin-right: .55rem;
+    border-radius: 50%;
+    background: var(--scs-teal);
+    box-shadow: 0 0 0 4px rgba(15, 159, 146, .12);
+}
+
+.scs-page-header {
+    position: relative;
+    align-items: end;
+    margin: 0 0 1.5rem;
+    padding: 0 0 1.1rem;
+    border-bottom: 1px solid var(--scs-border);
+}
+
+.scs-page-header .scs-page-title {
+    color: var(--scs-ink);
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.scs-page-header .scs-page-helper {
+    max-width: 720px;
+    color: var(--scs-muted);
+    line-height: 1.55;
+}
+
+.scs-breadcrumb {
+    gap: .45rem;
+    margin: 0 0 .55rem;
+    color: #8491a6;
+    font-size: .76rem;
+    font-weight: 600;
+}
+
+.scs-breadcrumb a {
+    color: var(--scs-muted);
+}
+
+.scs-backoffice .card {
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    box-shadow: var(--scs-shadow);
+}
+
+.scs-backoffice .card-body {
+    padding: 1.35rem;
+}
+
+.scs-backoffice .card-title {
+    color: var(--scs-ink);
+    font-size: .95rem;
+    font-weight: 700;
+}
+
+.scs-backoffice .btn {
+    min-height: 38px;
+    border-radius: 6px;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.scs-backoffice .btn-primary {
+    border-color: var(--scs-primary);
+    background: var(--scs-primary);
+    box-shadow: 0 2px 5px rgba(53, 106, 230, .2);
+}
+
+.scs-backoffice .btn-primary:hover,
+.scs-backoffice .btn-primary:focus {
+    border-color: var(--scs-primary-strong);
+    background: var(--scs-primary-strong);
+}
+
+.scs-backoffice .btn-outline-primary {
+    border-color: #b9c9ef;
+    color: var(--scs-primary);
+}
+
+.scs-backoffice .btn-outline-primary:hover {
+    background: #edf2ff;
+    color: var(--scs-primary-strong);
+}
+
+.scs-backoffice .form-label {
+    margin-bottom: .42rem;
+    color: #3d4d66;
+    font-size: .79rem;
+    font-weight: 700;
+}
+
+.scs-backoffice .form-control,
+.scs-backoffice .form-select,
+.scs-backoffice .select2-container .select2-selection {
+    min-height: 39px;
+    border-color: #d9e1ec;
+    border-radius: 6px;
+    color: var(--scs-ink);
+}
+
+.scs-backoffice textarea.form-control {
+    min-height: 100px;
+}
+
+.scs-backoffice .form-control:focus,
+.scs-backoffice .form-select:focus {
+    border-color: #91afea;
+    box-shadow: 0 0 0 .2rem rgba(53, 106, 230, .12);
+}
+
+.scs-backoffice .form-text,
+.scs-backoffice small.text-muted {
+    color: var(--scs-muted) !important;
+    font-size: .75rem;
+}
+
+.scs-filter-bar {
+    padding: .2rem;
+}
+
+.scs-backoffice .table {
+    margin-bottom: 0;
+}
+
+.scs-backoffice .table > :not(caption) > * > * {
+    padding: .82rem 1rem;
+    border-bottom-color: #edf1f6;
+    vertical-align: middle;
+}
+
+.scs-backoffice .table thead th {
+    border-bottom-width: 1px;
+    background: #f8faff;
+    color: #63718a;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+}
+
+.scs-backoffice .table tbody tr {
+    transition: background-color .14s ease;
+}
+
+.scs-backoffice .table tbody tr:hover {
+    background: #f8faff;
+}
+
+.scs-backoffice .action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    color: #77869d;
+}
+
+.scs-backoffice .action-icon:hover {
+    background: #fff0ee;
+    color: var(--scs-coral);
+}
+
+.scs-editor-card {
+    overflow: hidden;
+}
+
+.scs-editor-tabs {
+    padding: 0 .9rem;
+    border-bottom: 1px solid var(--scs-border);
+    background: #fafcff;
+}
+
+.scs-editor-tabs .nav-link {
+    padding: 1rem .85rem .85rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    color: var(--scs-muted);
+    font-size: .84rem;
+    font-weight: 600;
+}
+
+.scs-editor-tabs .nav-link.active {
+    border-bottom-color: var(--scs-primary);
+    background: transparent;
+    color: var(--scs-primary);
+}
+
+.scs-rich-editor {
+    height: 320px;
+    overflow: auto;
+    border: 1px solid #d9e1ec;
+    border-radius: 6px;
+}
+
+.scs-rich-editor .ql-container.ql-snow,
+.scs-rich-editor .ql-toolbar.ql-snow {
+    border-color: #d9e1ec;
+}
+
+.scs-dash-card {
+    position: relative;
+    overflow: hidden;
+    transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.scs-dash-card:hover {
+    box-shadow: 0 8px 24px rgba(24, 37, 61, .1);
+    transform: translateY(-2px);
+}
+
+.scs-dash-card .scs-dash-icon {
+    width: 2.9rem;
+    height: 2.9rem;
+    border-radius: 8px;
+}
+
+.scs-empty-state {
+    padding: 3.5rem 1rem;
+    color: var(--scs-muted);
+}
+
+.scs-empty-state i {
+    color: #8ba5e9;
+    font-size: 2.3rem;
+}
+
+.scs-backoffice .modal-content {
+    overflow: hidden;
+    border: 0;
+    border-radius: 9px;
+    box-shadow: 0 18px 50px rgba(16, 32, 57, .2);
+}
+
+.scs-backoffice .modal-header {
+    padding: 1rem 1.35rem;
+    border-bottom-color: var(--scs-border);
+    background: #fafcff;
+}
+
+.scs-backoffice .modal-footer {
+    border-top-color: var(--scs-border);
+}
+
+.scs-backoffice .footer {
+    color: #8491a6;
+    font-size: .78rem;
+}
+
+.fa---elements,
+#__descriptionEditorFA__ .ql-editor {
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+body.authentication-bg {
+    background: #eef3fb;
+}
+
+.authentication-bg .auth-fluid-form-box {
+    background: #fff;
+}
+
+.authentication-bg .auth-fluid-right {
+    position: relative;
+    overflow: hidden;
+    background: var(--scs-ink);
+}
+
+.authentication-bg .auth-fluid-right::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: linear-gradient(145deg, rgba(29, 51, 94, .9), rgba(15, 159, 146, .46));
+}
+
+.authentication-bg .auth-user-testimonial {
+    z-index: 1;
+    max-width: 460px;
+}
+
+.authentication-bg .auth-brand h5 {
+    color: var(--scs-ink) !important;
+}
+
+.scs-auth-shell {
+    background: transparent;
+}
+
+.scs-auth-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.45rem;
+    height: 2.45rem;
+    border-radius: 8px;
+    background: var(--scs-primary);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 800;
+    box-shadow: 0 5px 12px rgba(53, 106, 230, .24);
+}
+
+.scs-auth-message {
+    top: 50% !important;
+    transform: translateY(-50%);
+    text-align: left;
+}
+
+.scs-app-picker-card {
+    overflow: hidden;
+}
+
+.scs-app-picker-header {
+    padding: 2rem 1.5rem 1.6rem;
+    border: 0;
+    background: var(--scs-ink);
+    color: #fff;
+}
+
+.scs-app-picker-header .scs-auth-mark {
+    display: inline-flex;
+    background: #fff;
+    color: var(--scs-primary);
+    box-shadow: none;
+}
+
+.scs-app-picker-header h1 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.45rem;
+    font-weight: 700;
+}
+
+.scs-app-picker-header p {
+    margin: .4rem 0 0;
+    color: #bdc9df;
+}
+
+.scs-application-card {
+    overflow: hidden;
+    transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.scs-application-card:hover {
+    border-color: #b8caef;
+    box-shadow: 0 8px 22px rgba(31, 53, 89, .11);
+    transform: translateY(-2px);
+}
+
+.scs-application-logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 118px;
+    padding: 1rem;
+    border-bottom: 1px solid var(--scs-border);
+    background: #f8faff;
+}
+
+.scs-application-logo-wrap img {
+    width: auto;
+    max-width: 100%;
+    height: 72px;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.scs-application-description {
+    display: -webkit-box;
+    min-height: 3rem;
+    overflow: hidden;
+    color: var(--scs-muted);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.scs-add-workspace {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .65rem;
+    min-height: 230px;
+    border-style: dashed;
+}
+
+.scs-add-workspace i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: #edf2ff;
+    font-size: 1.3rem;
+}
+
+@media (max-width: 767.98px) {
+    .scs-backoffice .content {
+        padding-top: 22px;
+    }
+
+    .scs-backoffice .card-body {
+        padding: 1rem;
+    }
+
+    .scs-page-header {
+        align-items: flex-start;
+    }
+
+    .scs-page-header .btn {
+        width: 100%;
+    }
+
+    .scs-editor-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+}

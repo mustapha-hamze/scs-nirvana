@@ -66,7 +66,9 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 
-<body>
+<body class="scs-backoffice">
+
+    <a class="scs-skip-link" href="#main-content">Skip to content</a>
 
     <div class="wrapper">
 
@@ -82,9 +84,9 @@
 
         <div class="content-page">
             <div class="content">
-                <div class="container-fluid">
+            <main class="container-fluid" id="main-content" tabindex="-1">
                     @RenderBody()
-                </div>
+            </main>
             </div>
 
             <footer class="footer">
@@ -188,7 +190,7 @@
             var html = "";
             html += "<div class=\"p-5 text-center\">";
             html += "<div class=\"spinner-border text-primary\" role=\"status\">";
-            html += "<span class=\"visually-hidden\"></span>";
+            html += "<span class=\"visually-hidden\">Loading</span>";
             html += "</div>";
             html += "</div>";
             $(modalBodyId).html(html);
@@ -218,22 +220,20 @@
         }
 
         function setLoadingForBtnFilter(btnId) {
-            $("#" + btnId).html("Please wait ...");
-            $("#" + btnId).removeAttr("onclick");
+            $("#" + btnId).prop("disabled", true).attr("aria-busy", "true").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Filtering");
         }
 
         function removeLoadingForBtnFilter(btnId, funcName) {
-            $("#" + btnId).html("<i class=\"uil uil-filter\"></i> Filter");
+            $("#" + btnId).prop("disabled", false).removeAttr("aria-busy").html("<i class=\"uil uil-filter\"></i> Filter");
             $("#" + btnId).attr("onclick", funcName);
         }
 
         function setLoadingForBtn(btnId) {
-            $("#" + btnId).html("Please wait ...");
-            $("#" + btnId).removeAttr("onclick");
+            $("#" + btnId).prop("disabled", true).attr("aria-busy", "true").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Saving");
         }
 
         function removeLoadingForBtn(btnId, funcName, text) {
-            $("#" + btnId).html(text);
+            $("#" + btnId).prop("disabled", false).removeAttr("aria-busy").html(text);
             $("#" + btnId).attr("onclick", funcName);
         }
 

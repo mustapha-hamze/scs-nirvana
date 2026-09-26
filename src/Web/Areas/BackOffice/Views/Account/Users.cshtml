@@ -27,20 +27,22 @@
     <div class="col-md-12 p-0">
         <div class="card">
             <div class="card-body">
-                <form method="POST" id="frmUserFilters" class="row">
-                    <div class="col-md-2">
+                <form method="POST" id="frmUserFilters" class="row align-items-end g-3 scs-filter-bar">
+                    <div class="col-md-3">
+                        <label class="form-label" asp-for="IsAdminUser">User type</label>
                         <select class="form-control" asp-for="IsAdminUser">
                             <option value="true">Admin Users</option>
                             <option value="false">Users</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
+                        <label class="form-label" asp-for="Email">Email address</label>
                         <input type="text" class="form-control" asp-for="Email" placeholder="Email">
                     </div>
                     <div class="col-md-3">
-                        <a href="javascript: void(0);" class="btn btn-primary" onclick="findUsers()" id="btnUserFilter">
+                        <button type="button" class="btn btn-primary" onclick="findUsers()" id="btnUserFilter">
                             <i class="uil uil-filter"></i> Filter
-                        </a>
+                        </button>
                     </div>
                 </form>
             </div>
