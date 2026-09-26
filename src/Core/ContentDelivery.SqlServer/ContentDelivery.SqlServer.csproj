@@ -20,6 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The fingerprint/localized-text authority shared with Application as source, so the
+         adapter validates translations exactly as the translation workflow writes them without
+         referencing any Core layer. -->
+    <Compile Include="..\ContentLocalization\*.cs" LinkBase="ContentLocalization" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ContentDelivery\ContentDelivery.csproj" />
   </ItemGroup>
 

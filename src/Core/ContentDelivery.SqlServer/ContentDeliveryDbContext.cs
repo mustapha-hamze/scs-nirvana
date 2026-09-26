@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Cms.ContentDelivery.SqlServer;
 
 // Read-only view of the existing CMS tables: only the columns delivery needs, mapped to the table
-// and column names Core's ApplicationDbContext configures (ContentDeliverySqlAdapterTests checks
-// they still match). Deliberately unmapped: FarsiContent, CMS_ContentTranslations, translation
-// jobs and cultures - Phase 2 serves master/source text only. No query filters: every visibility
-// rule (tenant, IsActive, IsDeleted) is explicit in SqlContentDeliveryClient.
+// and column names Core's ApplicationDbContext configures (SqlContentDeliveryClientTests checks
+// they still match). Translations map only what resolution needs - never provider, model, error
+// or job data. No query filters: every visibility rule (tenant, IsActive, IsDeleted) is explicit
+// in SqlContentDeliveryClient.
 internal sealed class ContentDeliveryDbContext : DbContext
 {
     public ContentDeliveryDbContext(DbContextOptions<ContentDeliveryDbContext> options) : base(options)
@@ -24,6 +24,8 @@ internal sealed class ContentDeliveryDbContext : DbContext
     public DbSet<TagRow> Tags => Set<TagRow>();
     public DbSet<ContentCategoryRow> ContentCategories => Set<ContentCategoryRow>();
     public DbSet<ContentTagRow> ContentTags => Set<ContentTagRow>();
+    public DbSet<CultureRow> Cultures => Set<CultureRow>();
+    public DbSet<TranslationRow> Translations => Set<TranslationRow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +38,8 @@ internal sealed class ContentDeliveryDbContext : DbContext
         modelBuilder.Entity<TagRow>().ToTable("GNR_Tags");
         modelBuilder.Entity<ContentCategoryRow>().ToTable("CMS_ContentInCategories");
         modelBuilder.Entity<ContentTagRow>().ToTable("CMS_ContentInTags");
+        modelBuilder.Entity<CultureRow>().ToTable("GNR_Cultures");
+        modelBuilder.Entity<TranslationRow>().ToTable("CMS_ContentTranslations");
     }
 
     // Delivery never writes; fail loudly rather than rely on nobody calling these.
@@ -56,6 +60,9 @@ internal sealed class ContentRow
     public string? Abstract { get; set; }
     public string? Description { get; set; }
     public DateTime PublishDt { get; set; }
+
+    // Legacy Farsi snapshot; read only for the configured legacy fallback culture.
+    public string? FarsiContent { get; set; }
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime UpdatedDT { get; set; }
@@ -138,4 +145,25 @@ internal sealed class ContentTagRow
     public int Id { get; set; }
     public int ContentId { get; set; }
     public int TagId { get; set; }
+}
+
+internal sealed class CultureRow
+{
+    public int Id { get; set; }
+    public int ApplicationId { get; set; }
+    public string? Key { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsDeleted { get; set; }
+}
+
+internal sealed class TranslationRow
+{
+    public int Id { get; set; }
+    public int ContentId { get; set; }
+    public int CultureId { get; set; }
+    public byte TranslationStatus { get; set; }
+    public string? SourceFingerprint { get; set; }
+    public string? LocalizedTextJson { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime UpdatedDT { get; set; }
 }

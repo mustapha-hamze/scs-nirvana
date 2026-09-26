@@ -148,4 +148,53 @@ public class ContentDeliveryTenantConfigurationTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new ContentDeliveryTenant(applicationId));
     }
+
+    private static IConfiguration Config(params (string Key, string Value)[] values)
+    {
+        var settings = new Dictionary<string, string> { ["ContentDelivery:ApplicationId"] = "1111" };
+        foreach (var (key, value) in values)
+            settings["ContentDelivery:" + key] = value;
+        return new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
+    }
+
+    [Fact]
+    public void LegacyFallback_IsDisabledByDefault_EvenWithACultureConfigured()
+    {
+        using var unset = Build(Config("1111"));
+        using var disabled = Build(Config(("LegacyFallbackCulture", "fa-IR")));
+
+        Assert.Null(unset.GetRequiredService<ContentDeliveryTenant>().LegacyFallbackCulture);
+        Assert.Null(disabled.GetRequiredService<ContentDeliveryTenant>().LegacyFallbackCulture);
+    }
+
+    [Fact]
+    public void LegacyFallback_WhenEnabled_BindsItsCulture()
+    {
+        using var provider = Build(Config(("LegacyFallbackEnabled", "true"), ("LegacyFallbackCulture", "fa-IR")));
+
+        provider.GetRequiredService<IStartupValidator>().Validate();
+        Assert.Equal("fa-IR", provider.GetRequiredService<ContentDeliveryTenant>().LegacyFallbackCulture);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("fa_IR")]
+    [InlineData("not a culture")]
+    public void LegacyFallback_WhenEnabled_RequiresAWellFormedCulture_AtStartup(string culture)
+    {
+        using var provider = Build(culture == null
+            ? Config(("LegacyFallbackEnabled", "true"))
+            : Config(("LegacyFallbackEnabled", "true"), ("LegacyFallbackCulture", culture)));
+
+        var error = Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<IStartupValidator>().Validate());
+        Assert.Contains("ContentDelivery:LegacyFallbackCulture", error.Message);
+        Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<ContentDeliveryTenant>());
+    }
+
+    [Fact]
+    public void Tenant_RejectsAMalformedLegacyCulture()
+    {
+        Assert.Throws<ArgumentException>(() => new ContentDeliveryTenant(1, "fa IR"));
+    }
 }

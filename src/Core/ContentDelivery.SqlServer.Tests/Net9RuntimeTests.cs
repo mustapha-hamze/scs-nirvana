@@ -1,3 +1,4 @@
+using Cms.ContentLocalization;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -35,10 +36,21 @@ public sealed class Net9RuntimeTests : IDisposable
             INSERT INTO GNR_Tags (Id, ApplicationId, Title, IsActive, IsDeleted) VALUES (80, 1, 'Tag', 1, 0);
             INSERT INTO CMS_ContentInCategories (Id, ContentId, CategoryId) VALUES (1, 1, 70), (2, 3, 70);
             INSERT INTO CMS_ContentInTags (Id, ContentId, TagId) VALUES (1, 1, 80);
+            INSERT INTO GNR_Cultures (Id, ApplicationId, Key, IsActive, IsDeleted) VALUES
+              (1, 0, 'fa-IR', 1, 0), (2, 1, 'it-IT', 1, 0);
             """;
         command.ExecuteNonQuery();
 
         _client = new SqlContentDeliveryClient(_db, new ContentDeliveryTenant(1));
+    }
+
+    private void Execute(string sql, params (string Name, object Value)[] parameters)
+    {
+        using var command = _connection.CreateCommand();
+        command.CommandText = sql;
+        foreach (var (name, value) in parameters)
+            command.Parameters.AddWithValue(name, value);
+        command.ExecuteNonQuery();
     }
 
     public void Dispose()
@@ -89,5 +101,49 @@ public sealed class Net9RuntimeTests : IDisposable
         Assert.Equal(1, page.TotalCount);
         Assert.Equal(new[] { 2, 1 }, all.Items.Select(i => i.Id));
         Assert.Equal(2, all.TotalCount);
+    }
+
+    // Same vector as Core.Tests' ContentDeliveryWorkflowCompatibilityTests, there computed by
+    // Application's ContentSourceFingerprint on net10: the shared hash agrees across runtimes.
+    [Fact]
+    public void Fingerprint_MatchesTheWorkflowVector()
+    {
+        var content = new SourceContent(7, 1000, "Title", null, "", "<p>شرح & \"x\"</p>",
+            new SourceMetadata(3, "Meta", null, "k", "d"),
+            [
+                new SourceSection(20, 2, true, [new SourceElement(202, 1002, 1, true, null, "<p>b</p>"), new SourceElement(201, 1000, 0, false, "a", null)]),
+                new SourceSection(10, 1, false, [])
+            ]);
+
+        Assert.Equal("aae13f578397ee8b1941078363bf8047a571908fa4f4d9fff5eab03b06e4b9a0", SourceFingerprint.Compute(content));
+    }
+
+    [Fact]
+    public async Task LocalizedReads()
+    {
+        var source = new SourceContent(1, 1, "One", null, null, null, new SourceMetadata(60, "Meta", null, null, null),
+            [new SourceSection(10, 1, true, [new SourceElement(100, 1, 0, true, null, null)])]);
+        Execute("""
+            INSERT INTO CMS_ContentTranslations (Id, ContentId, CultureId, TranslationStatus, SourceFingerprint, LocalizedTextJson, IsDeleted, UpdatedDT)
+            VALUES (1, 1, 1, 3, $fingerprint, $json, 0, '2026-01-05');
+            UPDATE CMS_Contents SET FarsiContent = '{"Id":2,"Title":"دو"}' WHERE Id = 2;
+            """,
+            ("$fingerprint", SourceFingerprint.Compute(source)),
+            ("$json", """{"title":"یک","headLine":null,"abstract":null,"description":null,"metadata":{"id":60,"title":"متا","author":null,"keywords":null,"description":null},"sections":[{"id":10,"elements":[{"id":100,"tinyText":"ریز","editorText":null}]}]}"""));
+
+        var document = (await _client.GetDocumentAsync(1, "FA-ir")).Value!;
+        Assert.Equal(new LocalizationInfo { Culture = "fa-IR", Source = LocalizationSource.Translation }, document.Summary.Localization);
+        Assert.Equal(("یک", "متا", "ریز"), (document.Summary.Title, document.Metadata!.Title, document.Sections.Single().Elements.Single().TinyText));
+        Assert.Equal("E", document.Sections.Single().Elements.Single().Title);
+
+        var listed = (await _client.GetListingAsync(new ContentListingQuery { Culture = "fa-IR" })).Value!.Items;
+        Assert.Equal(new (string?, LocalizationSource)[] { ("Two", LocalizationSource.Source), ("یک", LocalizationSource.Translation) }, listed.Select(i => (i.Title, i.Localization.Source)));
+        Assert.Equal(new[] { "fa-IR" }, (await _client.GetSitemapEntriesAsync()).Single(e => e.ContentId == 1).Cultures);
+        Assert.Equal(ContentDeliveryStatus.InvalidCulture, (await _client.GetDocumentAsync(1, "it-IT")).Status);
+
+        var legacy = new SqlContentDeliveryClient(_db, new ContentDeliveryTenant(1, "fa-IR"));
+        var legacySummary = (await legacy.GetDocumentAsync(2, "fa-IR")).Value!.Summary;
+        Assert.Equal(("دو", LocalizationSource.LegacyFarsi), (legacySummary.Title, legacySummary.Localization.Source));
+        Assert.Equal(LocalizationSource.Source, (await _client.GetDocumentAsync(2, "fa-IR")).Value!.Summary.Localization.Source);
     }
 }

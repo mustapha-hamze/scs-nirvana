@@ -20,8 +20,9 @@ public enum LocalizationSource
 
 public sealed record LocalizationInfo
 {
-    // The application's culture key the text was resolved for, or null when source text was
-    // served because the application has no such active culture.
+    // The canonical key of the requested culture (as stored, whatever case was requested), or
+    // null for a source read (no culture requested). Source is also reported for a valid culture
+    // that has no usable translation.
     public string? Culture { get; init; }
     public LocalizationSource Source { get; init; }
 }
@@ -117,6 +118,7 @@ public sealed record SitemapEntry
     public int TypeId { get; init; }
     public DateTime LastModified { get; init; }
 
-    // Culture keys the content can be served in, for alternate-language links.
+    // Culture keys the content has a current translation (or eligible legacy snapshot) in, for
+    // alternate-language links; ordinal key order. Source-text-only cultures are not listed.
     public IReadOnlyList<string> Cultures { get; init; } = [];
 }

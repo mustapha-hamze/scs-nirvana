@@ -5,7 +5,8 @@ namespace Cms.ContentDelivery;
 // Read-only delivery of the website's CMS content. Every operation is scoped to the single
 // application bound at startup (AddContentDelivery); no operation accepts an application id, and
 // ids passed here are lookup inputs only - content owned by another application is NotFound.
-// culture is a language tag such as "fa-IR"; null or empty reads the source (master) text.
+// culture is an active culture key such as "fa-IR" (any case); null or empty reads the source
+// (master) text.
 // Nothing here writes, queues translation work or calls a translation provider.
 public interface IContentDeliveryClient
 {
@@ -37,7 +38,7 @@ public enum ContentDeliveryStatus
     Found,
     NotFound,
 
-    // culture is not a well-formed language tag.
+    // culture is malformed, or not an active culture.
     InvalidCulture
 }
 

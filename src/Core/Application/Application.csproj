@@ -11,6 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Framework-only fingerprint/localized-text authority, shared (not referenced) with the
+         Content Delivery SQL adapter so Core never depends on the SDK and vice versa. -->
+    <Compile Include="..\ContentLocalization\*.cs" LinkBase="ContentLocalization" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Needed by the use cases merged in from the old Services project. -->
     <PackageReference Include="EPPlus" Version="6.2.6" />
     <!-- AddAutoMapper has shipped in the core package since v13; the dedicated DI package

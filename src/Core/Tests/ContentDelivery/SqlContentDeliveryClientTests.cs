@@ -135,6 +135,9 @@ public sealed class SqlContentDeliveryClientTests : IDisposable
         InTag(12, 70);
         InTag(20, 70, 73);
 
+        // Content 10's fa-IR translation is stale ("fp") and its FarsiContent has no Id, so every
+        // read below serves source text; LocalizedContentDeliveryTests covers resolution.
+        db.Add(new Culture { Id = 1, ApplicationId = 0, Key = "fa-IR", Title = "Farsi", IsActive = true, UpdatedDT = Jan1, CreatedDT = Jan1 });
         db.Add(new ContentTranslation
         {
             Id = 400, ContentId = 10, CultureId = 1, TranslationStatus = TranslationStatus.Ready,
@@ -412,14 +415,13 @@ public sealed class SqlContentDeliveryClientTests : IDisposable
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("fa-IR")]
-    [InlineData("EN")]
-    [InlineData("zh-Hant-TW")]
-    public async Task AnyValidCulture_ServesMasterSourceText(string culture)
+    [InlineData(null, null)]
+    [InlineData("", null)]
+    [InlineData("fa-IR", "fa-IR")]
+    [InlineData("FA-ir", "fa-IR")]
+    public async Task WithoutAUsableTranslation_EveryShapeServesMasterSourceText(string culture, string reportedCulture)
     {
-        // Content 10 has a legacy FarsiContent snapshot and a Ready translation; neither is read.
+        // Content 10 has a stale Ready translation and an invalid legacy snapshot: neither is served.
         var document = (await Client().GetDocumentAsync(10, culture)).Value;
         var listed = (await Client().GetListingAsync(new ContentListingQuery { Culture = culture, TypeId = 1 })).Value.Items.Single(i => i.Id == 10);
         var inSet = (await Client().GetDocumentSetAsync(new[] { 10 }, culture)).Value.Single();
@@ -428,17 +430,28 @@ public sealed class SqlContentDeliveryClientTests : IDisposable
         {
             Assert.Equal("Title 10", summary.Title);
             Assert.Equal(LocalizationSource.Source, summary.Localization.Source);
-            Assert.Null(summary.Localization.Culture);
+            Assert.Equal(reportedCulture, summary.Localization.Culture);
         }
     }
 
+    [Theory]
+    [InlineData("EN")]
+    [InlineData("zh-Hant-TW")]
+    public async Task WellFormedButUnknownCulture_IsInvalid(string culture)
+    {
+        Assert.Equal(ContentDeliveryStatus.InvalidCulture, (await Client().GetDocumentAsync(10, culture)).Status);
+        Assert.Equal(ContentDeliveryStatus.InvalidCulture, (await Client().GetDocumentSetAsync(new[] { 10 }, culture)).Status);
+        Assert.Equal(ContentDeliveryStatus.InvalidCulture, (await Client().GetListingAsync(new ContentListingQuery { Culture = culture })).Status);
+    }
+
     [Fact]
-    public void AdapterModel_MapsNoTranslationData()
+    public void AdapterModel_MapsNoTranslationInternals()
     {
         var model = CreateDeliveryContext().Model;
 
-        Assert.DoesNotContain(model.GetEntityTypes(), e => e.GetTableName() is "CMS_ContentTranslations" or "CMS_ContentTranslationJobs" or "GNR_Cultures" or "CMS_ContentInCultures");
-        Assert.DoesNotContain(model.GetEntityTypes().SelectMany(e => e.GetProperties()), p => p.Name.Contains("Farsi") || p.Name.Contains("Translation"));
+        Assert.DoesNotContain(model.GetEntityTypes(), e => e.GetTableName() is "CMS_ContentTranslationJobs" or "CMS_ContentTranslationBackfillCheckpoints" or "CMS_ContentInCultures");
+        Assert.DoesNotContain(model.GetEntityTypes().SelectMany(e => e.GetProperties()),
+            p => p.Name is "Provider" or "Model" or "Error" or "TranslatedAt" or "Prompt");
     }
 
     // The adapter maps the Core tables independently; this fails if Core renames a table or
@@ -453,7 +466,7 @@ public sealed class SqlContentDeliveryClientTests : IDisposable
             .ToDictionary(g => g.Key, g => g.SelectMany(e => e.GetProperties()).Select(p => p.GetColumnName()).ToHashSet());
 
         var adapterTables = CreateDeliveryContext().Model.GetEntityTypes().ToList();
-        Assert.Equal(9, adapterTables.Count);
+        Assert.Equal(11, adapterTables.Count);
         foreach (var entity in adapterTables)
         {
             var table = entity.GetTableName();
