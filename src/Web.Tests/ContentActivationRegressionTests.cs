@@ -596,6 +596,63 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.Equal(legacy, (await Snapshot(contentId)).FarsiContent);
     }
 
+    // The request's DataAnnotations limits are enforced at the boundary, top-level and nested, before
+    // anything is persisted. Section-element fields are posted at the form's own indexes.
+    [Theory]
+    [InlineData("Title", 257)]
+    [InlineData("HeadLine", 2049)]
+    [InlineData("Abstract", 2049)]
+    [InlineData("Metadata.Title", 257)]
+    [InlineData("Metadata.Author", 129)]
+    [InlineData("Metadata.Keywords", 1025)]
+    [InlineData("Metadata.Description", 2049)]
+    [InlineData("Sections[1].SectionElements[0].TinyText", 257)]
+    public async Task FarsiSave_OversizedBoundedField_IsRejected_AndWritesNothing(string field, int length)
+    {
+        var (client, applicationId) = await SignIn();
+        var (contentId, _, _, _, legacy) = await SeedStaleFarsi(applicationId);
+        var body = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+        var fields = FormFields(body, new() { [field] = new string('ف', length) });
+        Assert.Contains("Sections[1].SectionElements[0].TinyText", fields.Keys); // the nested field really is part of the form
+        var before = await Snapshot(contentId);
+
+        var save = await client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(fields));
+
+        Assert.Equal(HttpStatusCode.BadRequest, save.StatusCode);
+        var json = await save.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("InvalidInput", json.GetProperty("translationState").GetString());
+        Assert.Equal(new[] { field }, json.GetProperty("fields").EnumerateArray().Select(f => f.GetString()));
+        Assert.Equal(before, await Snapshot(contentId));
+        Assert.Equal(legacy, before.FarsiContent);
+        Assert.Null(await Translation(contentId));
+    }
+
+    // At-limit bounded fields and long unbounded rich text (Description, EditorText) still save.
+    [Fact]
+    public async Task FarsiSave_AtLimitAndUnboundedText_Saves()
+    {
+        var (client, applicationId) = await SignIn();
+        var (contentId, _, _, keptElementId, _) = await SeedStaleFarsi(applicationId);
+        var body = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+        var fields = FormFields(body, new()
+        {
+            ["Title"] = new string('ف', 256),
+            ["Metadata.Author"] = new string('ف', 128),
+            ["Sections[1].SectionElements[0].TinyText"] = new string('ف', 256),
+            ["Description"] = new string('ف', 20000),
+        });
+
+        var save = await client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(fields));
+
+        Assert.Equal(HttpStatusCode.OK, save.StatusCode);
+        Assert.Equal("Done", await save.Content.ReadAsStringAsync());
+        var translation = await Translation(contentId);
+        Assert.NotNull(translation);
+        var text = LegacyFarsiContentParser.Deserialize(translation.LocalizedTextJson);
+        Assert.Equal((256, 128, 20000), (text.Title!.Length, text.Metadata!.Author!.Length, text.Description!.Length));
+        Assert.Equal(256, text.Sections.SelectMany(s => s.Elements).Single(e => e.Id == keptElementId).TinyText!.Length);
+    }
+
     // Source and translation are rendered side by side: master text read-only, Farsi editable,
     // media/titles preserved from master and never posted.
     [Fact]

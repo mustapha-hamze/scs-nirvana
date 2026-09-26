@@ -27,6 +27,14 @@ public partial class ContentController
     {
         if (model == null || model.Id == 0)
             return Content("Failed");
+        // DataAnnotations limits (incl. nested metadata/section-element DTOs) before any persistence;
+        // field names only, never the submitted text.
+        if (!ModelState.IsValid)
+            return BadRequest(new
+            {
+                translationState = "InvalidInput",
+                fields = ModelState.Where(e => e.Value.Errors.Count > 0).Select(e => e.Key).OrderBy(k => k, StringComparer.Ordinal)
+            });
 
         var result = await _manualTranslation.Save(model.Id, _translationOptions.ActivationCultureId, _currentApplicationContext.RequireApplicationId(),
             model.SourceFingerprint, FarsiContentMapper.ToLocalizedText(model));

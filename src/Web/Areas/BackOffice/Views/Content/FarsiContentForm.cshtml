@@ -273,8 +273,8 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                 }
             }).fail(function (xhr) {
                 removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt"></i> Save');
-                if (xhr.status === 409 && xhr.responseJSON)
-                    messageBox("Not saved", farsiSaveFailure(xhr.responseJSON.translationState), "warning");
+                if ((xhr.status === 409 || xhr.status === 400) && xhr.responseJSON && xhr.responseJSON.translationState)
+                    messageBox("Not saved", farsiSaveFailure(xhr.responseJSON.translationState, xhr.responseJSON.fields), "warning");
                 else if (xhr.status === 404)
                     messageBox("Not saved", "This content no longer exists.", "error");
                 else
@@ -283,8 +283,10 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
         }
 
         // Nothing is written on any of these; the translator's text stays in the form.
-        function farsiSaveFailure(state) {
+        function farsiSaveFailure(state, fields) {
             switch (state) {
+                case "InvalidInput":
+                    return "Some fields are too long or invalid: " + (fields || []).join(", ") + ". Nothing was saved; correct them and save again.";
                 case "SourceChanged":
                     return "The English source changed since this page was loaded. Copy your text, reload, and review it against the current source.";
                 case "InvalidStructure":
