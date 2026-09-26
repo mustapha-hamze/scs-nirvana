@@ -124,6 +124,38 @@ public static class LegacyFarsiContentParser
                     RequiredText(element, "TinyText"), RequiredText(element, "EditorText"))).ToList())).ToList());
     }
 
+    // Tolerant read of a legacy snapshot for seeding the manual editor: text (string or null) keyed
+    // by the snapshot's own IDs, whatever the current master looks like - the editor aligns it and
+    // drops removed nodes. Null unless it's a JSON object snapshot of contentId.
+    public static LocalizedContentText ReadLegacy(string legacyJson, int contentId)
+    {
+        if (string.IsNullOrWhiteSpace(legacyJson))
+            return null;
+        try
+        {
+            using var document = JsonDocument.Parse(legacyJson);
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object || RequiredId(root) != contentId)
+                return null;
+
+            return new LocalizedContentText(Text(root, "Title"), Text(root, "HeadLine"), Text(root, "Abstract"), Text(root, "Description"),
+                NonNull(root, "Metadata") is { } metadata
+                    ? new LocalizedMetadataText(RequiredId(metadata), Text(metadata, "Title"), Text(metadata, "Author"), Text(metadata, "Keywords"), Text(metadata, "Description"))
+                    : null,
+                NonNull(root, "Sections") is { } sections
+                    ? Objects(sections).Select(section => new LocalizedSectionText(RequiredId(section),
+                        NonNull(section, "Elements") is { } elements
+                            ? Objects(elements).Select(e => new LocalizedElementText(RequiredId(e), Text(e, "TinyText"), Text(e, "EditorText"))).ToList()
+                            : new List<LocalizedElementText>())).ToList()
+                    : new List<LocalizedSectionText>());
+        }
+        // InvalidOperationException: a non-object where an object was expected.
+        catch (Exception e) when (e is JsonException or Rejected or InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
     private static JsonElement Required(JsonElement json, string name) => Find(json, name) ?? throw new Rejected(MissingProperty);
 
     // Distinguishes an explicit null (kept) from a missing property (rejected).

@@ -350,6 +350,137 @@ public class ManualContentTranslationTests : IDisposable
         Assert.Null(await StoredText());
     }
 
+    private async Task<ManualTranslationEditor> Editor(int applicationId = ApplicationId)
+    {
+        await using var context = _factory.CreateContext();
+        return await Sut(context).GetEditor(_contentId, _cultureId, applicationId);
+    }
+
+    private async Task<(int MetadataId, int SectionId, int TinyId, int EditorId)> Ids()
+    {
+        await using var context = _factory.CreateContext();
+        var master = await new ContentTranslationJobRepository(context).FindSourceGraph(_contentId);
+        var section = master.Sections.Single(s => s.Priority == 2);
+        return (master.Metadata.Id, section.Id, section.Elements.Single(e => e.ElementType == 1000).Id, section.Elements.Single(e => e.ElementType == 1002).Id);
+    }
+
+    private async Task SetLegacy(string legacy)
+    {
+        await using var context = _factory.CreateContext();
+        (await context.Contents.SingleAsync(c => c.Id == _contentId)).FarsiContent = legacy;
+        await context.SaveChangesAsync();
+    }
+
+    private static IEnumerable<LocalizedElementText> Elements(LocalizedContentText text) => text.Sections.SelectMany(s => s.Elements);
+
+    [Fact]
+    public async Task GetEditor_WithoutStoredText_SeedsFromSource_InMasterOrder()
+    {
+        await Seed(); // LegacyFarsi has no Id: unusable
+
+        var editor = await Editor();
+
+        Assert.Equal((ManualTranslationSeed.Source, (TranslationStatus?)null, await Fingerprint()), (editor.Seed, editor.TranslationStatus, editor.SourceFingerprint));
+        Assert.Equal(("English", "Head", "Meta"), (editor.Text.Title, editor.Text.HeadLine, editor.Text.Metadata.Title));
+        Assert.Empty(editor.Text.Sections[0].Elements); // priority 1 first
+        Assert.Equal(new[] { "tiny", null }, Elements(editor.Text).Select(e => e.TinyText));
+        Assert.Equal(LegacyFarsi, editor.Source.FarsiContent);
+        await AssertNothingWritten(null);
+    }
+
+    // A snapshot from an older layout: its removed nodes are dropped, new master nodes keep the
+    // source text, and matching text lands only on the same (section, element).
+    [Fact]
+    public async Task GetEditor_StaleLegacySnapshot_IsAlignedToCurrentMaster()
+    {
+        await Seed();
+        var (metadataId, sectionId, tinyId, editorId) = await Ids();
+        var legacy = $$"""
+            {"Id":{{_contentId}},"Title":"FA","HeadLine":null,"FarsiContent":"nested","Metadata":{"Id":{{metadataId}},"Title":"FA meta"},
+             "Sections":[{"Id":{{sectionId}},"Priority":9,"Elements":[{"Id":{{tinyId}},"TinyText":"FA tiny","FileNameText":"stale.pdf"},{"Id":999,"TinyText":"FA removed"}]},
+                         {"Id":998,"Elements":[{"Id":{{editorId}},"EditorText":"<p>FA moved</p>"}]}]}
+            """;
+        await SetLegacy(legacy);
+
+        var editor = await Editor();
+
+        Assert.Equal(ManualTranslationSeed.Legacy, editor.Seed);
+        Assert.Equal(("FA", null, "FA meta", null), (editor.Text.Title, editor.Text.HeadLine, editor.Text.Metadata.Title, editor.Text.Metadata.Author));
+        Assert.Equal(new[] { tinyId, editorId }, Elements(editor.Text).Select(e => e.Id));
+        Assert.Equal("FA tiny", Elements(editor.Text).Single(e => e.Id == tinyId).TinyText);
+        Assert.Equal("<p>body</p>", Elements(editor.Text).Single(e => e.Id == editorId).EditorText);
+        Assert.Equal(legacy, await Legacy());
+        Assert.Null(await Row());
+    }
+
+    [Theory]
+    [InlineData("{not json")]
+    [InlineData("[]")]
+    [InlineData("null")]
+    [InlineData("""{"Id":999,"Title":"other content"}""")]
+    [InlineData("""{"Title":"no id"}""")]
+    [InlineData("""{"Id":ID,"Title":1}""")]
+    [InlineData("""{"Id":ID,"Metadata":[]}""")]
+    [InlineData("   ")]
+    public async Task GetEditor_UnusableLegacy_SeedsFromSource(string legacy)
+    {
+        await Seed();
+        await SetLegacy(legacy.Replace("ID", _contentId.ToString()));
+
+        var editor = await Editor();
+
+        Assert.Equal((ManualTranslationSeed.Source, "English"), (editor.Seed, editor.Text.Title));
+    }
+
+    [Theory]
+    [InlineData(TranslationStatus.NeedsReview, true, TranslationStatus.NeedsReview)]
+    [InlineData(TranslationStatus.Ready, true, TranslationStatus.Ready)]
+    [InlineData(TranslationStatus.Ready, false, TranslationStatus.Stale)]
+    public async Task GetEditor_PrefersCanonicalOverLegacy_AndReportsItsStatus(TranslationStatus stored, bool currentSource, TranslationStatus expected)
+    {
+        await Seed();
+        var (metadataId, sectionId, tinyId, _) = await Ids();
+        await SetLegacy($$"""{"Id":{{_contentId}},"Title":"FA legacy"}""");
+        var fingerprint = currentSource ? await Fingerprint() : "old";
+        await using (var context = _factory.CreateContext())
+        {
+            context.ContentTranslations.Add(new ContentTranslation
+            {
+                ContentId = _contentId, CultureId = _cultureId, TranslationStatus = stored, SourceFingerprint = fingerprint, IsActive = true,
+                LocalizedTextJson = LegacyFarsiContentParser.Serialize(new LocalizedContentText("canonical", null, null, null,
+                    new LocalizedMetadataText(metadataId, "canon meta", null, null, null),
+                    new List<LocalizedSectionText> { new(sectionId, new List<LocalizedElementText> { new(tinyId, "canon tiny", null) }) }))
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var editor = await Editor();
+
+        Assert.Equal((ManualTranslationSeed.Canonical, (TranslationStatus?)expected), (editor.Seed, editor.TranslationStatus));
+        Assert.Equal(("canonical", "canon meta", "canon tiny"), (editor.Text.Title, editor.Text.Metadata.Title, Elements(editor.Text).Single(e => e.Id == tinyId).TinyText));
+        Assert.Equal((stored, fingerprint), ((await Row()).TranslationStatus, (await Row()).SourceFingerprint));
+    }
+
+    [Fact]
+    public async Task GetEditor_DeletedCanonical_IsIgnored()
+    {
+        await Seed();
+        await SetLegacy($$"""{"Id":{{_contentId}},"Title":"FA legacy"}""");
+        await AddPayload(Complete, deleted: true);
+
+        var editor = await Editor();
+
+        Assert.Equal((ManualTranslationSeed.Legacy, (TranslationStatus?)null, "FA legacy"), (editor.Seed, editor.TranslationStatus, editor.Text.Title));
+    }
+
+    [Fact]
+    public async Task GetEditor_OtherApplicationsContent_IsNull()
+    {
+        await Seed();
+
+        Assert.Null(await Editor(applicationId: 2));
+    }
+
     [Fact]
     public void HasNoTranslationPortDependency()
     {
