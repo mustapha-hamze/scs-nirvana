@@ -20,7 +20,7 @@ namespace Core.Tests.ContentDelivery;
 // SQLite and seeded through Core entities), so the adapter's table/column mapping is proven
 // against Core's configuration rather than its own. SQLite stands in for SQL Server: predicates,
 // ordering, paging and projections are provider-neutral LINQ; SQL Server-only behaviour (OPENJSON
-// for id lists, OUTER APPLY for the primary image, datetime precision) is not exercised here.
+// for id lists, datetime precision) is not exercised here.
 public sealed class SqlContentDeliveryClientTests : IDisposable
 {
     private const int Tenant = 1;
@@ -93,6 +93,17 @@ public sealed class SqlContentDeliveryClientTests : IDisposable
             new() { Id = id, ContentId = content, ImageFileName = $"i{id}.jpg", Size = size, IsActive = active, IsDeleted = deleted, UpdatedDT = Jan1, CreatedDT = Jan1 };
         db.AddRange(Image(201, 10, 640), Image(200, 10, 430), Image(199, 10, 860, active: false), Image(198, 10, 860, deleted: true),
             Image(210, 20, 640));
+
+        // Visible images without a usable file name: lower Ids than 10's valid ones (mixed), and
+        // the only images of content 12 (invalid-only).
+        ContentImage Unnamed(int id, int content, string fileName)
+        {
+            var image = Image(id, content, 640);
+            image.ImageFileName = fileName;
+            return image;
+        }
+        db.AddRange(Unnamed(190, 10, null), Unnamed(191, 10, ""), Unnamed(192, 10, "   "), Unnamed(193, 10, "\t\r\n"),
+            Unnamed(220, 12, null), Unnamed(221, 12, ""), Unnamed(222, 12, " "), Unnamed(223, 12, "\t"));
 
         db.AddRange(
             new ContentMetadata { Id = 300, ContentId = 10, Title = "Meta", Author = "Author", Keywords = "k", Description = "d", IsActive = false, UpdatedDT = Jan1, CreatedDT = Jan1 },
@@ -218,6 +229,33 @@ public sealed class SqlContentDeliveryClientTests : IDisposable
         Assert.Empty(document.Images);
         Assert.Empty(document.Tags);
         Assert.Equal(new[] { 50 }, document.Categories.Select(c => c.Id));
+    }
+
+    [Fact]
+    public async Task Media_WithOnlyInvalidFileNames_YieldsNoImages()
+    {
+        var document = (await Client().GetDocumentAsync(12)).Value;
+        var listed = (await Client().GetListingAsync(new ContentListingQuery { TypeId = 2 })).Value.Items.Single();
+
+        Assert.Empty(document.Images);
+        Assert.Null(document.Summary.PrimaryImage);
+        Assert.Equal(12, listed.Id);
+        Assert.Null(listed.PrimaryImage);
+    }
+
+    [Fact]
+    public async Task Media_MixedValidAndInvalid_KeepsOnlyValid_LowestValidIdIsPrimary()
+    {
+        var document = (await Client().GetDocumentAsync(10)).Value;
+        var listed = (await Client().GetListingAsync(new ContentListingQuery { TagId = 70 })).Value.Items.Single(i => i.Id == 10);
+        var inSet = (await Client().GetDocumentSetAsync(new[] { 12, 10 })).Value;
+
+        Assert.Equal(new[] { 200, 201 }, document.Images.Select(i => i.Id));
+        Assert.All(document.Images, i => Assert.False(string.IsNullOrWhiteSpace(i.FileName)));
+        Assert.Equal(200, document.Summary.PrimaryImage.Id);
+        Assert.Equal("i200.jpg", listed.PrimaryImage.FileName);
+        Assert.Empty(inSet[0].Images);
+        Assert.Equal(new[] { 200, 201 }, inSet[1].Images.Select(i => i.Id));
     }
 
     [Fact]

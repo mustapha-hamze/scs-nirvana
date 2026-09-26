@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Core.Tests" />
+    <InternalsVisibleTo Include="Cms.ContentDelivery.SqlServer.Tests" />
     <!-- The SQL adapter resolves the startup-bound ContentDeliveryTenant. -->
     <InternalsVisibleTo Include="Cms.ContentDelivery.SqlServer" />
   </ItemGroup>

@@ -32,8 +32,6 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
     private IQueryable<ContentRow> VisibleContents =>
         _db.Contents.Where(c => c.ApplicationId == _applicationId && c.IsActive && !c.IsDeleted);
 
-    private IQueryable<ImageRow> VisibleImages => _db.Images.Where(i => i.IsActive && !i.IsDeleted);
-
     private IQueryable<CategoryRow> VisibleCategories =>
         _db.Categories.Where(t => t.ApplicationId == _applicationId && t.IsActive && !t.IsDeleted);
 
@@ -92,20 +90,13 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
 
         if (skip < total)
         {
-            var rows = await contents
+            var heads = await contents
                 .OrderByDescending(c => c.UpdatedDT).ThenByDescending(c => c.Id)
                 .Skip((int)skip).Take(query.PageSize)
-                .Select(c => new
-                {
-                    Head = new Head(c.Id, c.TypeId, c.Title, c.HeadLine, c.Abstract, null, c.PublishDt, c.UpdatedDT),
-                    // ponytail: lowest-Id visible image of any size fills PrimaryImage until the
-                    // contract defines a size-variant rule (discovery gap G1).
-                    Image = VisibleImages.Where(i => i.ContentId == c.Id).OrderBy(i => i.Id)
-                        .Select(i => new MediaReference { Id = i.Id, FileName = i.ImageFileName ?? "", Size = i.Size })
-                        .FirstOrDefault()
-                })
+                .Select(c => new Head(c.Id, c.TypeId, c.Title, c.HeadLine, c.Abstract, null, c.PublishDt, c.UpdatedDT))
                 .ToListAsync(cancellationToken);
-            items.AddRange(rows.Select(r => ToSummary(r.Head, r.Image)));
+            var images = await LoadImagesAsync(heads.Select(h => h.Id).ToList(), cancellationToken);
+            items.AddRange(heads.Select(h => ToSummary(h, images[h.Id].FirstOrDefault())));
         }
 
         return ContentDeliveryResult<ContentPage<ContentSummary>>.Found(new ContentPage<ContentSummary>
@@ -181,9 +172,7 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
             })
             .ToListAsync(ct);
 
-        var images = await VisibleImages.Where(i => ids.Contains(i.ContentId)).OrderBy(i => i.Id)
-            .Select(i => new { i.ContentId, Value = new MediaReference { Id = i.Id, FileName = i.ImageFileName ?? "", Size = i.Size } })
-            .ToListAsync(ct);
+        var imagesByContent = await LoadImagesAsync(ids, ct);
 
         var categories = await (
                 from r in _db.ContentCategories
@@ -209,7 +198,6 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
             Elements = elementsBySection[s.Id].ToList()
         });
         var metadataByContent = metadata.ToLookup(m => m.ContentId, m => m.Value);
-        var imagesByContent = images.ToLookup(i => i.ContentId, i => i.Value);
         var categoriesByContent = categories.ToLookup(c => c.ContentId, c => c.Value);
         var tagsByContent = tags.ToLookup(t => t.ContentId, t => t.Value);
 
@@ -227,6 +215,24 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
                 Tags = tagsByContent[h.Id].ToList()
             };
         });
+    }
+
+    // Visible images with a usable file name, by content, lowest Id first. Callers pass only
+    // tenant-visible content ids. The first entry is the summary's PrimaryImage.
+    // ponytail: lowest-Id valid image of any size fills PrimaryImage until the contract defines a
+    // size-variant rule (discovery gap G1).
+    private async Task<ILookup<int, MediaReference>> LoadImagesAsync(IReadOnlyCollection<int> contentIds, CancellationToken ct)
+    {
+        var rows = await _db.Images
+            .Where(i => i.IsActive && !i.IsDeleted && contentIds.Contains(i.ContentId) && i.ImageFileName != null && i.ImageFileName != "")
+            .OrderBy(i => i.Id)
+            .Select(i => new { i.Id, i.ContentId, i.ImageFileName, i.Size })
+            .ToListAsync(ct);
+
+        // Whitespace is checked here, not in SQL: SQL Server's string comparison ignores only
+        // trailing spaces, so tabs/newlines-only names would slip through a server-side check.
+        return rows.Where(i => !string.IsNullOrWhiteSpace(i.ImageFileName))
+            .ToLookup(i => i.ContentId, i => new MediaReference { Id = i.Id, FileName = i.ImageFileName!, Size = i.Size });
     }
 
     private static ContentSummary ToSummary(Head h, MediaReference? primaryImage) => new()

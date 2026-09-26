@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Core.Tests" />
+    <InternalsVisibleTo Include="Cms.ContentDelivery.SqlServer.Tests" />
   </ItemGroup>
 
 </Project>
