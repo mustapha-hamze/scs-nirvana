@@ -1,4 +1,3 @@
-using Application.ContentManagement;
 using Application.UseCases.TranslatorServices;
 using Microsoft.AspNetCore.Http;
 using Web.Areas.BackOffice.Presentation.Shell;
@@ -15,7 +14,6 @@ namespace Web.Areas.BackOffice.Controllers;
 public partial class ContentController : BaseController
 {
     private readonly IContentServices _contentServices;
-    private readonly IContentProvider _contentProvider;
     private readonly ISchemaServices _schemaServices;
     private readonly ICategoryServices _categoryServices;
     private readonly ITagServices _tagServices;
@@ -24,7 +22,9 @@ public partial class ContentController : BaseController
     private readonly IApplicationServices _applicationServices;
     private readonly ISystemTypeServices _systemTypeServices;
     private readonly ICurrentApplicationContext _currentApplicationContext;
-    private readonly IContentTranslator _contentTranslator;
+    private readonly ContentTranslationRequests _translationRequests;
+    private readonly ContentTranslationOptions _translationOptions;
+    private readonly ManualContentTranslation _manualTranslation;
     private readonly IFileUploadService _fileUploadService;
     private readonly AccessKeyAuthorizer _accessKeyAuthorizer;
     private readonly IBackOfficeShellContext _shellContext;
@@ -33,8 +33,9 @@ public partial class ContentController : BaseController
         ICategoryServices categoryServices,
         ITagServices tagServices, ICultureServices cultureServices, IHostEnvironment appEnvironment,
         IApplicationServices applicationServices, ISystemTypeServices systemTypeServices,
-        ICurrentApplicationContext currentApplicationContext, IContentTranslator contentTranslator,
-        IContentProvider contentProvider, IFileUploadService fileUploadService,
+        ICurrentApplicationContext currentApplicationContext, ContentTranslationRequests translationRequests,
+        ContentTranslationOptions translationOptions, ManualContentTranslation manualTranslation,
+        IFileUploadService fileUploadService,
         AccessKeyAuthorizer accessKeyAuthorizer, IBackOfficeShellContext shellContext)
     {
         _applicationServices = applicationServices;
@@ -46,8 +47,9 @@ public partial class ContentController : BaseController
         _appEnvironment = appEnvironment;
         _systemTypeServices = systemTypeServices;
         _currentApplicationContext = currentApplicationContext;
-        _contentTranslator = contentTranslator;
-        _contentProvider = contentProvider;
+        _translationRequests = translationRequests;
+        _translationOptions = translationOptions;
+        _manualTranslation = manualTranslation;
         _fileUploadService = fileUploadService;
         _accessKeyAuthorizer = accessKeyAuthorizer;
         _shellContext = shellContext;

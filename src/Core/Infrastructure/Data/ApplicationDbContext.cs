@@ -110,6 +110,9 @@ namespace Infrastructure.Data
         public DbSet<ContentInCategory> ContentInCategories { get; set; }
         public DbSet<ContentInTag> ContentInTags { get; set; }
         public DbSet<ContentInCulture> ContentInCultures { get; set; }
+        public DbSet<ContentTranslation> ContentTranslations { get; set; }
+        public DbSet<ContentTranslationBackfillCheckpoint> ContentTranslationBackfillCheckpoints { get; set; }
+        public DbSet<ContentTranslationJob> ContentTranslationJobs { get; set; }
         public DbSet<ContentAttachment> ContentAttachments { get; set; }
         public DbSet<ContentAttachmentItem> ContentAttachmentItems { get; set; }
 

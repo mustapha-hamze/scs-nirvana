@@ -1,9 +1,11 @@
+using Application.UseCases.TranslatorServices;
 using Web.Areas.BackOffice.Features.Content.ViewModels;
 
 namespace Web.Areas.BackOffice.Controllers;
 
 // Content forms/lifecycle: the entry list, the create/edit form, saving it, and active-mode
-// changes (which trigger Farsi auto-translate on first activation).
+// changes (activation requires a Ready translation; translation itself is queued separately and
+// runs in the background).
 public partial class ContentController
 {
     [HttpGet]
@@ -82,6 +84,7 @@ public partial class ContentController
             WebsiteUrl = websiteUrl,
             CanSaveOrUpdateContent = canSaveOrUpdateContent,
             CanChangeActivity = canChangeActivity,
+            ActivationCultureId = _translationOptions.ActivationCultureId,
             CanPreviewBody = canPreviewBody,
             CanPreviewImages = canPreviewImages,
             CanPreviewAttachments = canPreviewAttachments,
@@ -144,6 +147,22 @@ public partial class ContentController
         return View(new ContentListViewModel { Items = items });
     }
 
+    // Queues (or returns the existing) background translation of the content's current source
+    // into cultureId. Never calls the provider inline.
+    [HttpPost]
+    [RequireAccess(AccessKeys.Content.ChangeActivity)]
+    [Route("/{area}/Content/RequestTranslation/{contentId}/{cultureId}")]
+    public async Task<IActionResult> RequestTranslation(int contentId, int cultureId)
+    {
+        var result = await _translationRequests.Request(contentId, cultureId, _currentApplicationContext.RequireApplicationId());
+        if (result == null)
+            return NotFound();
+        if (result.State == ContentTranslationState.CultureUnavailable)
+            return Conflict(new { translationState = result.State.ToString() });
+
+        return Json(new { translationState = result.State.ToString(), jobId = result.JobId });
+    }
+
     [HttpPost]
     [RequireAccess(AccessKeys.Content.ChangeActivity)]
     [Route("/{area}/Content/ChangeContentActiveMode/{typeId}/{contentId}/{mode}")]
@@ -153,29 +172,20 @@ public partial class ContentController
 
         if (mode)
         {
-            var content = await _contentProvider.GetContentForTranslate(contentId, currentApplicationId);
-            if (content == null)
-                return NotFound();
+            // Activation only checks for a Ready translation of the current source; it never
+            // translates, waits, or treats legacy FarsiContent as ready. Otherwise 409 with the
+            // state, and the content stays inactive.
+            if (_translationOptions.ActivationCultureId == 0)
+                return Conflict(new { translationState = "CultureNotConfigured" });
 
-            if (string.IsNullOrEmpty(content.FarsiContent))
-            {
-                var result = await _contentTranslator.Translate(content);
-                await _contentServices.ActivateTranslatedContent(contentId, result, currentApplicationId);
-            }
-            else
-            {
-                // Farsi content already exists (manually saved or previously translated) - just
-                // flip IsActive, never re-translate or touch the stored Farsi payload. Must be
-                // ActivateExistingContent, not ChangeContentActiveMode: the latter re-fetches
-                // AsNoTracking then Update()-attaches a detached instance, which conflicts with
-                // the tracked instance GetContentForTranslate already loaded above.
-                await _contentServices.ActivateExistingContent(contentId, currentApplicationId);
-            }
+            var state = await _translationRequests.GetState(contentId, _translationOptions.ActivationCultureId, currentApplicationId);
+            if (state == null)
+                return NotFound();
+            if (state != ContentTranslationState.Ready)
+                return Conflict(new { translationState = state.ToString() });
         }
-        else
-        {
-            await _contentServices.ChangeContentActiveMode(contentId, mode, currentApplicationId);
-        }
+
+        await _contentServices.ChangeContentActiveMode(contentId, mode, currentApplicationId);
 
         var frontContentTypes = await _applicationServices.GetApplicationSetting(currentApplicationId, 1002);
         if (frontContentTypes.Any(x => x.Value.Contains(typeId.ToString())))

@@ -5,7 +5,6 @@ namespace Web.Areas.BackOffice.Features.Content.Contracts
     public class FarsiContentMetadataEditDto
     {
         public int Id { get; set; }
-        public int ContentId { get; set; }
 
         [StringLength(256)]
         public string Title { get; set; }

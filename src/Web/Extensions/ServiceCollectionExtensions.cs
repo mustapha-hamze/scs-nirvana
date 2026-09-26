@@ -49,6 +49,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IContentQueryRepository, ContentQueryRepository>();
         services.AddScoped<IContentCommandRepository, ContentCommandRepository>();
         services.AddScoped<IContentRelationRepository, ContentRelationRepository>();
+        services.AddScoped<IContentTranslationRepository, ContentTranslationRepository>();
+        services.AddScoped<IContentTranslationBackfillRepository, ContentTranslationBackfillRepository>();
+        services.AddScoped<IContentTranslationJobRepository, ContentTranslationJobRepository>();
+        services.AddScoped<ILocalizedContentReadRepository, LocalizedContentReadRepository>();
         services.AddScoped<IContentsInCategoryQueryAdapter, ContentsInCategoryQueryAdapter>();
         services.AddScoped<ISliderRepository, SliderRepository>();
         services.AddScoped<ISystemTypeRepository, SystemTypeRepository>();
@@ -93,6 +97,24 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
         services.AddTransient<ITranslationPort, OpenAiTranslationPort>();
         services.AddTransient<IContentTranslator, ContentTranslator>();
+
+        // Operator-invoked legacy FarsiContent backfill: resolvable for a future protected runner
+        // only - no route, hosted service or schedule invokes it.
+        services.AddScoped<ContentTranslationBackfill>();
+
+        // Durable background translation; the worker is registered always but idles unless
+        // ContentTranslation:WorkerEnabled is set.
+        services.AddOptions<ContentTranslationOptions>()
+            .BindConfiguration(ContentTranslationOptions.SectionName)
+            .Validate(o => o.PollIntervalSeconds >= 1 && o.LeaseMinutes >= 2 && o.MaxAttempts is >= 1 and <= 10 && o.ActivationCultureId >= 0 && o.LegacyFarsiCultureId >= 0,
+                "ContentTranslation options are out of range.")
+            .ValidateOnStart();
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<ContentTranslationOptions>>().Value);
+        services.AddScoped<ContentTranslationJobProcessor>();
+        services.AddScoped<ContentTranslationRequests>();
+        services.AddScoped<ManualContentTranslation>();
+        services.AddScoped<LocalizedContentReader>();
+        services.AddHostedService<Web.Services.Translation.ContentTranslationWorker>();
 
         services.AddTransient<IContentProvider, ContentProvider>();
 

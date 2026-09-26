@@ -31,6 +31,21 @@
                 Inactive (click to activate)
             </a>
         }
+        @if (Model.ActivationCultureId > 0)
+        {
+            <a href="javascript: void(0);" id="btnRequestTranslation"
+                onclick="requestContentTranslation(@Model.Id, @Model.ActivationCultureId, 'btnRequestTranslation')"
+                class="btn btn-outline-primary mt-2 ml-3" title="Queue a background translation of the current content">
+                Request translation
+            </a>
+        }
+        else
+        {
+            <span id="btnRequestTranslation" class="btn btn-outline-secondary disabled mt-2 ml-3">
+                Translation unavailable (no activation culture configured)
+            </span>
+        }
+        <span id="contentTranslationState" class="ml-2 align-middle"></span>
     }
 }
 else

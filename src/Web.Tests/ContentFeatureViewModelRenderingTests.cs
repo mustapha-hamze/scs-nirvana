@@ -109,6 +109,10 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
         Assert.Contains("id=\"btnSaveContentForm\"", body);
         Assert.Contains($"changeContentActiveMode(1000, {contentId}", body);
         Assert.Contains($"href=\"https://example.test/{contentId}\"", body);
+
+        // No ContentTranslation:ActivationCultureId configured in this host: a safe, inert state.
+        Assert.Contains("Translation unavailable (no activation culture configured)", body);
+        Assert.DoesNotContain("requestContentTranslation(", body);
     }
 
     [Fact]
@@ -125,6 +129,7 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
         foreach (var tab in new[] { "#body", "#images", "#relations", "#metadata", "#attachment" })
             Assert.DoesNotContain($"href=\"{tab}\"", body);
         Assert.DoesNotContain("id=\"btnSaveContentForm\"", body);
+        Assert.DoesNotContain("btnRequestTranslation", body); // requires ChangeActivity
     }
 
     // ---- ContentList action controls ----
