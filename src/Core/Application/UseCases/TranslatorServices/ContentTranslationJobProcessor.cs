@@ -25,6 +25,15 @@ public class ContentTranslationOptions
 
     // Culture whose Ready translation content activation requires; 0 = not configured.
     public int ActivationCultureId { get; set; }
+
+    // Culture-aware public read rollout: off for the whole environment unless set, and then only
+    // served for the applications listed here.
+    public bool LocalizedReadEnabled { get; set; }
+
+    public int[] LocalizedReadApplicationIds { get; set; } = [];
+
+    // Culture whose reads may fall back to the legacy Content.FarsiContent snapshot; 0 = none.
+    public int LegacyFarsiCultureId { get; set; }
 }
 
 // Safe, fixed codes stored in ContentTranslationJob.ErrorCode.
