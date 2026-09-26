@@ -6,8 +6,8 @@ using Xunit;
 namespace Web.Tests;
 
 // Rendered-page coverage for the BackOffice Dashboard (Views/Home/Index.cshtml): module cards and
-// quick actions follow the same exact access keys as the sidebar, icons come from the shipped
-// unicons font, and Recent activity stays an honest empty state.
+// quick actions follow the view's own CMS/SCM/SuperAdmin display flags, icons come from the
+// shipped unicons font, and Recent activity stays an honest empty state.
 public sealed class DashboardRenderingTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly TestWebApplicationFactory _factory;
@@ -18,9 +18,9 @@ public sealed class DashboardRenderingTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
-    public async Task CategoryOnlyMember_SeesOnlyCategoryModuleAsPrimaryAction()
+    public async Task CmsMember_SeesCmsModulesWithContentAsPrimaryAction()
     {
-        var email = $"dash-category-{Guid.NewGuid():N}@test.local";
+        var email = $"dash-cms-{Guid.NewGuid():N}@test.local";
         var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
         var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
         var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
@@ -28,13 +28,30 @@ public sealed class DashboardRenderingTests : IClassFixture<TestWebApplicationFa
 
         var body = await GetDashboardAsync(client);
 
+        Assert.Contains(">Content</h3>", body);
         Assert.Contains(">Categories</h3>", body);
-        Assert.DoesNotContain(">Schemas</h3>", body);
+        Assert.Contains(">Schemas</h3>", body);
         Assert.DoesNotContain(">Sliders</h3>", body);
         Assert.DoesNotContain(">Users &amp; roles</h3>", body);
         Assert.Contains("href=\"/BackOffice/Category/Index\" class=\"btn btn-primary", body);
         Assert.DoesNotContain("No modules assigned yet", body);
         Assert.Contains("Activity history isn't tracked yet", body);
+    }
+
+    [Fact]
+    public async Task ScmMember_SeesOnlySlidersModule()
+    {
+        var email = $"dash-scm-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        var applicationId = await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+        await AccountFlowHelper.GrantAccessAsync(_factory, user, applicationId, Web.Authorization.AccessKeys.Slider.Module);
+
+        var body = await GetDashboardAsync(client);
+
+        Assert.Contains(">Sliders</h3>", body);
+        Assert.DoesNotContain(">Content</h3>", body);
+        Assert.Contains("href=\"/BackOffice/Slider/Index\" class=\"btn btn-primary", body);
     }
 
     [Fact]

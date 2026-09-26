@@ -1,41 +1,31 @@
-@using Web.Authorization
-@inject Web.Areas.BackOffice.Presentation.Shell.IBackOfficeShellContext ShellContext
+@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices
+@inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
+@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
 
 @{
     ViewData["Title"] = "Dashboard";
-    // Same request-cached snapshot and exact access keys the sidebar uses, so a card or action
-    // only appears when its destination would also let the user in.
-    var shell = await ShellContext.GetSnapshotAsync();
-    var access = shell.Access;
-    var firstName = shell.UserDisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "there";
-    var canContent = access.CanAccess(AccessKeys.Content.Module);
-    var canSwitchWorkspace = shell.IsSuperAdmin || shell.HasMultipleApplications;
+    var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
+    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
+    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
+    if (accesses == string.Empty)
+        accesses = "NULL";
+    bool isSuperAdmin = User.IsInRole("SuperAdmin");
+    bool canCMS = isSuperAdmin || accesses.Contains("CMS1000_");
+    bool canSCM = isSuperAdmin || accesses.Contains("SCM3000_");
 
     // Ordered by priority: the first module is the dashboard's primary forward action.
     var modules = new List<(string Name, string Purpose, string Icon, string Tone, string Href, string Action)>();
-    if (canContent && shell.ContentTypes.Count > 0)
+    if (canCMS)
     {
-        var type = shell.ContentTypes[0];
-        modules.Add(("Content", "Write, edit and publish entries for each content type.", "uil-document-layout-right", "primary", $"/BackOffice/Content/Index/{type.Id}", $"Open {type.Title}"));
-    }
-    if (canContent && shell.AppPages.Count > 0)
-    {
-        var page = shell.AppPages[0];
-        modules.Add(("Pages", "Edit the standing pages configured for this workspace.", "uil-file-alt", "primary", $"/BackOffice/Content/Index/{page.PageType}", $"Open {page.Title}"));
-    }
-    if (access.CanAccess(AccessKeys.Category.Module))
-    {
+        modules.Add(("Content", "Write, edit and publish entries for each content type.", "uil-document-layout-right", "primary", "/BackOffice/Category/Index", "Manage content"));
         modules.Add(("Categories", "Group content into categories and nested hierarchies.", "uil-folder", "success", "/BackOffice/Category/Index", "Manage categories"));
-    }
-    if (access.CanAccess(AccessKeys.Schema.Module))
-    {
         modules.Add(("Schemas", "Define the reusable field structures content sections are built from.", "uil-sitemap", "warning", "/BackOffice/Schema/Index", "Manage schemas"));
     }
-    if (access.CanAccess(AccessKeys.Slider.Module))
+    if (canSCM)
     {
         modules.Add(("Sliders", "Curate the image sliders shown on the site.", "uil-images", "accent", "/BackOffice/Slider/Index", "Manage sliders"));
     }
-    if (shell.IsSuperAdmin)
+    if (isSuperAdmin)
     {
         modules.Add(("Users & roles", "Invite people, assign roles and review who can sign in.", "uil-users-alt", "info", "/BackOffice/Account/Users", "Manage users"));
         modules.Add(("Settings", "Configure content types, cultures, tags and workspace options.", "uil-cog", "neutral", "/BackOffice/General/ApplicationSetting", "Open settings"));
@@ -43,27 +33,18 @@
 
     var primary = modules.FirstOrDefault();
 
-    // Quiet secondary shortcuts: other content types first, then workspace administration.
+    // Quiet secondary shortcuts for workspace administration.
     var shortcuts = new List<(string Label, string Icon, string Href)>();
-    if (canContent)
-    {
-        foreach (var type in shell.ContentTypes.Skip(1).Take(3))
-            shortcuts.Add(($"Open {type.Title}", "uil-file-edit-alt", $"/BackOffice/Content/Index/{type.Id}"));
-    }
-    if (shell.IsSuperAdmin)
+    if (isSuperAdmin)
     {
         shortcuts.Add(("Configure content types", "uil-layer-group", "/BackOffice/General/SystemTypes"));
         shortcuts.Add(("Manage access sectors", "uil-shield-check", "/BackOffice/AccessManagement/Sectors"));
     }
-    if (canSwitchWorkspace)
-    {
-        shortcuts.Add(("Switch workspace", "uil-exchange", "/BackOffice/Application/SelectApp"));
-    }
 }
 
-@section PageHeading { Welcome back, @firstName }
+@section PageHeading { Welcome back, @user.FirstName }
 
-@section PageHelper { You're working in <strong>@shell.ApplicationTitle</strong>. Choose a module to start, or use a quick action. }
+@section PageHelper { You're working in <strong>@app.Title</strong>. Choose a module to start, or use a quick action. }
 
 @if (primary.Name is null)
 {
@@ -71,11 +52,7 @@
         <div class="card-body scs-empty-state">
             <i class="uil uil-lock-alt" aria-hidden="true"></i>
             <h2 class="card-title mb-1">No modules assigned yet</h2>
-            <p class="mb-3">Your account has no module access in @shell.ApplicationTitle. Ask a workspace administrator to grant the access you need.</p>
-            @if (canSwitchWorkspace)
-            {
-                <a href="/BackOffice/Application/SelectApp" class="btn btn-light">Switch workspace</a>
-            }
+            <p class="mb-0">Your account has no module access in @app.Title. Ask a workspace administrator to grant the access you need.</p>
         </div>
     </div>
 }

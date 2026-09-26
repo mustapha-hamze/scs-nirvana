@@ -208,7 +208,8 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
         return counterFactory;
     }
 
-    // Category/Index has no view-level calls of its own to these services, so
+    // Category/Index has no view-level calls of its own to these services (unlike Home/Index,
+    // which - outside this task's Views/Shared scope - still makes its own separate calls), so
     // every GetUserAccesses call below is attributable to RequireAccessAttribute's own check plus
     // the shared shell (_Navbar/_SideBar/_SideBarCMS/_SideBarSCM) - proving they share one fetch
     // (AccessKeyAuthorizer's per-request cache - Web Phase 4 fix), not that the count merely stays
