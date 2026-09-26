@@ -8,46 +8,31 @@
     @if (Model.CanPreviewBody)
     {
         <li class="nav-item">
-    <a href="#body" data-bs-toggle="tab" aria-expanded="true" class="nav-link">
-        <i class="mdi mdi-account-circle d-md-none d-block"></i>
-        <span class="d-none d-md-block">Body</span>
-    </a>
-</li>
+            <a href="#body" data-bs-toggle="tab" aria-expanded="true" class="nav-link">Body</a>
+        </li>
     }
     @if (Model.CanPreviewImages)
     {
         <li class="nav-item">
-    <a href="#images" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
-        <i class="mdi mdi-settings-outline d-md-none d-block"></i>
-        <span class="d-none d-md-block">Images</span>
-    </a>
-</li>
+            <a href="#images" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Images</a>
+        </li>
     }
     @if (Model.CanPreviewAttachments)
     {
         <li class="nav-item">
-    <a href="#attachment" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
-        <i class="mdi mdi-settings-outline d-md-none d-block"></i>
-        <span class="d-none d-md-block">Attachments</span>
-    </a>
-</li>
+            <a href="#attachment" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Attachments</a>
+        </li>
     }
     @if (Model.CanPreviewRelations)
     {
         <li class="nav-item">
-    <a href="#relations" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
-        <i class="mdi mdi-settings-outline d-md-none d-block"></i>
-        <span class="d-none d-md-block">Relations</span>
-    </a>
-</li>
+            <a href="#relations" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Relations</a>
+        </li>
     }
     @if (Model.CanPreviewMetadata)
     {
         <li class="nav-item">
-    <a href="#metadata" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
-        <i class="mdi mdi-settings-outline d-md-none d-block"></i>
-        <span class="d-none d-md-block">Metadata</span>
-    </a>
-</li>
+            <a href="#metadata" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Metadata</a>
+        </li>
     }
 }

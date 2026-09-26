@@ -4,11 +4,11 @@
     string sectionElementId = Guid.NewGuid().ToString();
 }
 
-<div class="row mb-2 border pt-2 pb-1" sectionId="0" priority='@Model.Priority' id="sectionDiv-@sectionElementId">
-    <div class="text-end">
+<div class="row scs-body-section" sectionId="0" priority='@Model.Priority' id="sectionDiv-@sectionElementId">
+    <div class="scs-body-section-toolbar">
         <button type="button" onclick="removeBodySection('sectionDiv-@sectionElementId')"
-            class="btn btn-xs btn-outline-danger btn-rounded remove-section-button">
-            <i class="mdi mdi-delete"></i>
+            class="scs-btn-icon is-danger" title="Remove section" aria-label="Remove section">
+            <i class="mdi mdi-delete-outline" aria-hidden="true"></i>
         </button>
     </div>
     @foreach (var item in Model.SchemaDetails)
@@ -37,8 +37,8 @@
                     <input type="file" schemaDetailTitle="@item.Title" id="image-upload-@elementRandomId" accept=".jpg, .png, jpeg"
                         onchange="uploadBodyImage('@elementRandomId', 0)" class="form-control">
                     <div id="imageUploaderLoading-@elementRandomId" class="p-3 text-center" style="display: none;">
-                        <div class="spinner-border text-info" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Uploading</span>
                         </div>
                     </div>
                 </div>
@@ -49,8 +49,8 @@
                     <input type="file" schemaDetailTitle="@item.Title" id="file-upload-@elementRandomId"
                         onchange="uploadBodyFile('@elementRandomId')" class="form-control">
                     <div id="fileUploaderLoading-@elementRandomId" class="p-3 text-center" style="display: none;">
-                        <div class="spinner-border text-info" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Uploading</span>
                         </div>
                     </div>
                 </div>
@@ -60,14 +60,10 @@
                     <label for="" class="mb-1">@item.Title</label>
                     <div class="row" schemaDetailTitle="@item.Title" schemaId="@item.SchemaId" id="__imageGallery__@elementRandomId"
                         elementType="1003">
-                        <div class="col-md-2 hand-pointer" onclick="openFileUploaderForGallery()">
-                            <div class="card text-white bg-danger overflow-hidden mb-1 mt-2">
-                                <div class="card-body">
-                                    <div class="toll-free-box text-center">
-                                        <h4> <i class="mdi mdi-image-plus"></i>Add</h4>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col-md-2">
+                            <button type="button" class="scs-media-add" onclick="openFileUploaderForGallery()">
+                                <i class="mdi mdi-image-plus" aria-hidden="true"></i> Add images
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -6,17 +6,11 @@
     @await Html.PartialAsync("_CreateContentButton", Model.CanCreateContent)
 }
 
-<div class="row">
-  <div class="col-xl-12 p-0">
-    <div class="card">
-      <div class="card-body p-1">
-        <div class="table-responsive-sm" id="findContentsResultBody"></div>
-        <!-- end table-responsive-->
-      </div>
-      <!-- end card -->
+<div class="card scs-content-list">
+    <div class="card-body">
+        @* ContentList renders here; DataTables supplies search, sorting, paging and export. *@
+        <div class="scs-table-wrap" id="findContentsResultBody"></div>
     </div>
-    <!-- end col-->
-  </div>
 </div>
 <script src="/BackOffice/vendor/quill/quill.min.js"></script>
 <script src="/BackOffice/js/features/content.js"></script>

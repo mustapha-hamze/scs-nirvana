@@ -9,8 +9,8 @@
     {
         <button type="submit" id="btnSaveContentForm"
             onclick="$('#textAreaDescription').val($('#__descriptionEditor__ .ql-editor').html());$('#textAreaDescriptionFA').val($('#__descriptionEditorFA__ .ql-editor').html())"
-            class="btn btn-primary mt-2">
-            <i class="uil uil-file-check-alt"></i> Save Content
+            class="btn btn-primary">
+            <i class="uil uil-file-check-alt" aria-hidden="true"></i> Save content
         </button>
     }
     @if (Model.CanChangeActivity)
@@ -19,33 +19,33 @@
         {
             <a href="javascript: void(0);" id="btnDeactiveContent"
                 onclick="changeContentActiveMode(@Model.TypeId, @Model.Id, false, 'btnDeactiveContent')"
-                class="btn btn-success mt-2 ml-3" title="Active — click to deactivate">
-                Active (click to deactivate)
+                class="btn btn-outline-secondary" role="button" title="Take this content off the public site">
+                <i class="mdi mdi-eye-off-outline" aria-hidden="true"></i> Deactivate
             </a>
         }
         else
         {
             <a href="javascript: void(0);" id="btnActiveContent"
                 onclick="changeContentActiveMode(@Model.TypeId, @Model.Id, true,'btnActiveContent')"
-                class="btn btn-danger mt-2 ml-3" title="Inactive — click to activate">
-                Inactive (click to activate)
+                class="btn btn-outline-success" role="button" title="Make this content visible on the public site">
+                <i class="mdi mdi-eye-outline" aria-hidden="true"></i> Activate
             </a>
         }
         @if (Model.ActivationCultureId > 0)
         {
             <a href="javascript: void(0);" id="btnRequestTranslation"
                 onclick="requestContentTranslation(@Model.Id, @Model.ActivationCultureId, 'btnRequestTranslation')"
-                class="btn btn-outline-primary mt-2 ml-3" title="Queue a background translation of the current content">
-                Request translation
+                class="btn btn-outline-primary" role="button" title="Queue a background translation of the current content">
+                <i class="mdi mdi-translate" aria-hidden="true"></i> Request translation
             </a>
         }
         else
         {
-            <span id="btnRequestTranslation" class="btn btn-outline-secondary disabled mt-2 ml-3">
+            <span id="btnRequestTranslation" class="btn btn-outline-secondary disabled" aria-disabled="true">
                 Translation unavailable (no activation culture configured)
             </span>
         }
-        <span id="contentTranslationState" class="ml-2 align-middle"></span>
+        <span id="contentTranslationState" class="scs-meta" role="status"></span>
     }
 }
 else
@@ -54,8 +54,8 @@ else
     {
         <button type="submit" id="btnSaveContentForm"
             onclick="$('#textAreaDescription').val($('#__descriptionEditor__ .ql-editor').html());$('#textAreaDescriptionFA').val($('#__descriptionEditorFA__ .ql-editor').html())"
-            class="btn btn-primary mt-2 ml-3">
-            <i class="uil uil-file-check-alt"></i> Save Content
+            class="btn btn-primary">
+            <i class="uil uil-file-check-alt" aria-hidden="true"></i> Create content
         </button>
     }
 }

@@ -92,10 +92,23 @@ Buttons in the shell are at least 38px tall (32px for `.btn-sm`). Loading means 
 ## Cards, tabs, modals, alerts, loading
 
 - Cards: 8px radius, `--scs-border`, `--scs-shadow`, 1.35rem padding (1rem under 768px). `.scs-dash-card` lifts on hover; its icon tile takes a module accent via `.scs-dash-tone-{primary|accent|success|warning|info|neutral}`.
-- Tabs: `.nav-tabs` / `.nav-pills` follow the primary colour. Editor tabs use `.scs-editor-tabs` (underline style, scrolls horizontally on mobile).
+- Tabs: `.nav-tabs` / `.nav-pills` follow the primary colour. Editor tabs use `.scs-editor-tabs`: underline style, numbered steps from a CSS counter (so permission-gated tabs renumber themselves), and they scroll inside their own bar at every width. Give the list `role="tablist"` and plain-text labels. Bootstrap 5.3 adds tab roles and arrow-key navigation.
 - Modals: 8px radius, overlay shadow, muted header, `.modal-title` at section-title size. Always set `aria-labelledby`.
 - Alerts: Bootstrap `.alert-{state}` with the state tokens and a 4px leading border. Start the text with a word such as "Error:" or "Saved:".
 - Loading: put `aria-busy="true"` and `.scs-loading` on a region to dim and lock it. Spinners carry `.visually-hidden` text.
+
+## Authoring screens
+
+Use these for editors built from tabs, such as the content editor and the Farsi translation form.
+
+- **Structure**: `.card.scs-editor-card` holds `.scs-editor-tabs`, then an optional `.scs-editor-note` (for example, which steps unlock after the first save), then `.tab-content.scs-editor-panes`. Put a footer save bar in `.scs-editor-footer`.
+- **General tab**: main fields in `.col-xl-8` and a `.scs-publish-panel` aside in `.col-xl-4`. The panel shows status (`.scs-publish-status` with a `.scs-status`), then type and schedule fields, then `.scs-publish-actions`. The primary save button spans the full row, and the other actions wrap below it. Name each action by its effect ("Activate", "Deactivate", "Preview"), not by the current state.
+- **Field columns**: inside tab panes use Bootstrap `.row.g-3` with explicit columns (`col-md-6` for paired fields, `col-12` for long text). `.scs-field-grid` packs too many columns on wide screens.
+- **Rich text**: put `.scs-rich-editor` on the Quill target. It is fixed at 320px and scrolls inside, and Quill's toolbar joins it as one bordered control. Keep `dir="rtl"`/`.fa---elements` on Farsi fields and editors.
+- **Pane actions**: each AJAX-loaded pane ends with `.scs-author-actions`: one primary save, plus secondary outline actions. The shared `setLoadingForBtn` supplies the loading state.
+- **Media**: `.scs-media-upload` (labelled size select + file input), `.scs-media-specs` (a `<dl>` of required ratio and sizes), then a grid of `.scs-media-card` figures whose `.scs-media-thumb` is a fixed 4:3 `object-fit: contain` box with a truncated file-name caption. Untrusted image sizes can't change the layout. Show `.scs-empty-state.scs-media-empty` when there are no files. Section files use `.scs-file-tile`, and "add images" tiles are `<button class="scs-media-add">`.
+- **Repeatable sections**: `.scs-body-section` blocks with a `.scs-body-section-toolbar` of labelled `.scs-btn-icon` controls (move up/down, remove as `.is-danger`). Removal always goes through the SweetAlert confirm. Schema pickers are `<button class="scs-schema-tile">` in a `.scs-schema-picker` grid, so they work from the keyboard.
+- **Tables with DataTables**: render the table inside `.scs-table-wrap` and let DataTables supply search, sort, paging and export. Don't add separate filter controls. Set `language.emptyTable` / `zeroRecords` to plain sentences, make the actions column `orderable: false`, and give formatted dates a sortable `data-order`.
 
 ## Accessibility and motion
 

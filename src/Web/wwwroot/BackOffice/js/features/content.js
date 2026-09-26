@@ -12,7 +12,10 @@ function findContents(typeId) {
       pageLength: 25,
       buttons: ["copy", "print"],
       order: [[0, "desc"]],
+      columnDefs: [{ orderable: false, targets: -1 }],
       language: {
+        emptyTable: "No content has been created for this type yet.",
+        zeroRecords: "No content matches your search. Try a shorter or different term.",
         paginate: {
           previous: "<i class='mdi mdi-chevron-left'>",
           next: "<i class='mdi mdi-chevron-right'>",
@@ -497,15 +500,15 @@ function uploadBodyFile(elementId, schemaId) {
         schemaId +
         "' fileName='" +
         _data[1] +
-        '\' class="card text-white bg-primary overflow-hidden">';
-      fileUploader += '<div class="card-body">';
-      fileUploader += '<div class="toll-free-box text-center">';
+        '\' class="scs-file-tile">';
       fileUploader +=
-        '<h4><i class="mdi mdi-file-cabinet"></i>' + file.name + "</h4>";
-      fileUploader += "</div>";
-      fileUploader += "</div>";
+        '<i class="mdi mdi-file-document-outline" aria-hidden="true"></i>';
+      fileUploader += '<span class="text-truncate"></span>';
       fileUploader += "</div>";
       $("#" + elementId).html(fileUploader);
+      $("#" + elementId + " .scs-file-tile span")
+        .text(file.name)
+        .attr("title", file.name);
     } else {
       $("#file-upload-" + elementId).show();
       $("#fileUploaderLoading-" + elementId).hide();
@@ -552,7 +555,7 @@ function uploadBodyImageGallery(elementId) {
           imagesHTML +=
             '<button type="button" onclick="removeImageGallery(\'' +
             imageIdPlaceHolderId[0] +
-            '\')" class="btn btn-sm btn-outline-danger w-100">Remove</button>';
+            '\')" class="btn btn-sm btn-outline-danger w-100 mt-1">Remove image</button>';
           imagesHTML += "</div>";
         }
       });
