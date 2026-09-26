@@ -81,7 +81,7 @@ public class ManualContentTranslation
             : translation.SourceFingerprint == fingerprint ? translation.TranslationStatus : TranslationStatus.Stale;
 
         var (seed, text) = LegacyFarsiContentParser.ReadStored(translation?.LocalizedTextJson) is { } canonical ? (ManualTranslationSeed.Canonical, canonical)
-            : LegacyFarsiContentParser.ReadLegacy(master.FarsiContent, contentId) is { } legacy ? (ManualTranslationSeed.Legacy, legacy)
+            : LegacyFarsiContentParser.ReadLegacy(master.FarsiContent, master) is { } legacy ? (ManualTranslationSeed.Legacy, legacy)
             : (ManualTranslationSeed.Source, null);
         return new ManualTranslationEditor(master, fingerprint, status, seed, Align(master, text));
     }

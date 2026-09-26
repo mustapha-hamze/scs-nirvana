@@ -124,10 +124,13 @@ public static class LegacyFarsiContentParser
                     RequiredText(element, "TinyText"), RequiredText(element, "EditorText"))).ToList())).ToList());
     }
 
-    // Tolerant read of a legacy snapshot for seeding the manual editor: text (string or null) keyed
-    // by the snapshot's own IDs, whatever the current master looks like - the editor aligns it and
-    // drops removed nodes. Null unless it's a JSON object snapshot of contentId.
-    public static LocalizedContentText ReadLegacy(string legacyJson, int contentId)
+    // Tolerant read of a legacy snapshot for seeding the manual editor: text keyed by the
+    // snapshot's own IDs, whatever the current master looks like - the editor aligns it and drops
+    // removed nodes. An explicit null is the translator's intentional blank; an omitted text
+    // property (a partial snapshot) takes master's current text for the same node, so saving it
+    // unchanged never turns an accidental gap into a blank. Null unless it's a JSON object
+    // snapshot of master.
+    public static LocalizedContentText ReadLegacy(string legacyJson, Content master)
     {
         if (string.IsNullOrWhiteSpace(legacyJson))
             return null;
@@ -135,18 +138,30 @@ public static class LegacyFarsiContentParser
         {
             using var document = JsonDocument.Parse(legacyJson);
             var root = document.RootElement;
-            if (root.ValueKind != JsonValueKind.Object || RequiredId(root) != contentId)
+            if (root.ValueKind != JsonValueKind.Object || RequiredId(root) != master.Id)
                 return null;
 
-            return new LocalizedContentText(Text(root, "Title"), Text(root, "HeadLine"), Text(root, "Abstract"), Text(root, "Description"),
-                NonNull(root, "Metadata") is { } metadata
-                    ? new LocalizedMetadataText(RequiredId(metadata), Text(metadata, "Title"), Text(metadata, "Author"), Text(metadata, "Keywords"), Text(metadata, "Description"))
-                    : null,
+            var masterElements = new Dictionary<(int, int), SectionElement>();
+            foreach (var section in master.Sections ?? Enumerable.Empty<ContentSection>())
+                foreach (var element in section.Elements ?? Enumerable.Empty<SectionElement>())
+                    masterElements[(section.Id, element.Id)] = element;
+
+            return new LocalizedContentText(SeedText(root, "Title", master.Title), SeedText(root, "HeadLine", master.HeadLine),
+                SeedText(root, "Abstract", master.Abstract), SeedText(root, "Description", master.Description),
+                NonNull(root, "Metadata") is { } metadata ? ReadLegacyMetadata(metadata, master.Metadata) : null,
                 NonNull(root, "Sections") is { } sections
-                    ? Objects(sections).Select(section => new LocalizedSectionText(RequiredId(section),
-                        NonNull(section, "Elements") is { } elements
-                            ? Objects(elements).Select(e => new LocalizedElementText(RequiredId(e), Text(e, "TinyText"), Text(e, "EditorText"))).ToList()
-                            : new List<LocalizedElementText>())).ToList()
+                    ? Objects(sections).Select(section =>
+                    {
+                        var sectionId = RequiredId(section);
+                        return new LocalizedSectionText(sectionId, NonNull(section, "Elements") is { } elements
+                            ? Objects(elements).Select(e =>
+                            {
+                                var id = RequiredId(e);
+                                var source = masterElements.GetValueOrDefault((sectionId, id));
+                                return new LocalizedElementText(id, SeedText(e, "TinyText", source?.TinyText), SeedText(e, "EditorText", source?.EditorText));
+                            }).ToList()
+                            : new List<LocalizedElementText>());
+                    }).ToList()
                     : new List<LocalizedSectionText>());
         }
         // InvalidOperationException: a non-object where an object was expected.
@@ -155,6 +170,23 @@ public static class LegacyFarsiContentParser
             return null;
         }
     }
+
+    private static LocalizedMetadataText ReadLegacyMetadata(JsonElement json, ContentMetadata master)
+    {
+        var id = RequiredId(json);
+        var source = master?.Id == id ? master : null;
+        return new LocalizedMetadataText(id, SeedText(json, "Title", source?.Title), SeedText(json, "Author", source?.Author),
+            SeedText(json, "Keywords", source?.Keywords), SeedText(json, "Description", source?.Description));
+    }
+
+    // Omitted -> source; explicit null -> null; otherwise must be a string.
+    private static string SeedText(JsonElement json, string name, string source) => Find(json, name) switch
+    {
+        null => source,
+        { ValueKind: JsonValueKind.Null } => null,
+        { ValueKind: JsonValueKind.String } value => value.GetString(),
+        _ => throw new Rejected(InvalidText)
+    };
 
     private static JsonElement Required(JsonElement json, string name) => Find(json, name) ?? throw new Rejected(MissingProperty);
 

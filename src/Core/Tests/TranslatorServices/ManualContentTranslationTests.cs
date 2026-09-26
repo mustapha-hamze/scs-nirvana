@@ -398,6 +398,37 @@ public class ManualContentTranslationTests : IDisposable
         Assert.Null(await Row());
     }
 
+    // A partial historical snapshot: omitted text inherits the current source, explicit null stays
+    // an intentional blank - so saving the seeded form unchanged stores exactly that.
+    [Fact]
+    public async Task GetEditor_PartialLegacy_OmittedFieldsInheritSource_ExplicitNullStaysBlank_AndSurvivesUnchangedSave()
+    {
+        await Seed();
+        var (metadataId, sectionId, tinyId, editorId) = await Ids();
+        var legacy = $$"""
+            {"Id":{{_contentId}},"Title":"FA","Description":null,
+             "Metadata":{"Id":{{metadataId}},"Keywords":"FA kw","Author":null},
+             "Sections":[{"Id":{{sectionId}},"Elements":[{"Id":{{tinyId}}},{"Id":{{editorId}},"TinyText":null,"EditorText":null}]}]}
+            """;
+        await SetLegacy(legacy);
+
+        var editor = await Editor();
+
+        Assert.Equal(ManualTranslationSeed.Legacy, editor.Seed);
+        Assert.Equal(("FA", "Head", null, null), (editor.Text.Title, editor.Text.HeadLine, editor.Text.Abstract, editor.Text.Description));
+        Assert.Equal(("Meta", null, "FA kw", null), (editor.Text.Metadata.Title, editor.Text.Metadata.Author, editor.Text.Metadata.Keywords, editor.Text.Metadata.Description));
+        Assert.Equal(("tiny", (string)null), (Elements(editor.Text).Single(e => e.Id == tinyId).TinyText, Elements(editor.Text).Single(e => e.Id == tinyId).EditorText));
+        Assert.Equal(((string)null, (string)null), (Elements(editor.Text).Single(e => e.Id == editorId).TinyText, Elements(editor.Text).Single(e => e.Id == editorId).EditorText));
+
+        Assert.Equal(ManualTranslationSaveResult.Saved, await Save(editor.Text, expectedFingerprint: editor.SourceFingerprint));
+
+        var stored = LegacyFarsiContentParser.Deserialize((await Row()).LocalizedTextJson);
+        Assert.Equal(("FA", "Head", null, "Meta", null, "FA kw"),
+            (stored.Title, stored.HeadLine, stored.Description, stored.Metadata.Title, stored.Metadata.Author, stored.Metadata.Keywords));
+        Assert.Equal(new[] { ("tiny", (string)null), (null, null) }, stored.Sections.SelectMany(x => x.Elements).Select(e => (e.TinyText, e.EditorText)));
+        Assert.Equal((TranslationStatus.Ready, legacy), ((await Row()).TranslationStatus, await Legacy()));
+    }
+
     [Theory]
     [InlineData("{not json")]
     [InlineData("[]")]

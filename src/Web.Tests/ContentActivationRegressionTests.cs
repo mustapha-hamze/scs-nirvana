@@ -257,6 +257,8 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
             if (name.Success && name.Groups[1].Value != "__RequestVerificationToken")
                 fields[name.Groups[1].Value] = WebUtility.HtmlDecode(value.Groups[1].Value);
         }
+        foreach (System.Text.RegularExpressions.Match textarea in System.Text.RegularExpressions.Regex.Matches(form, "<textarea[^>]*name=\"([^\"]+)\"[^>]*>(.*?)</textarea>", System.Text.RegularExpressions.RegexOptions.Singleline))
+            fields[textarea.Groups[1].Value] = WebUtility.HtmlDecode(textarea.Groups[2].Value).TrimStart('\r', '\n');
         foreach (var (key, value) in overrides)
             fields[key] = value;
         return fields;
@@ -548,6 +550,50 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         var response = await client.GetAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    // A partial historical snapshot saved unchanged: only omitted fields take the current English;
+    // explicit nulls stay blank, and the legacy bytes are untouched.
+    [Fact]
+    public async Task PartialLegacyFarsi_UnchangedSave_OmittedFieldsInheritSource_ExplicitNullsStayBlank()
+    {
+        var (client, applicationId) = await SignIn();
+        var (contentId, legacy) = await Db(async context =>
+        {
+            if (!await context.Cultures.IgnoreQueryFilters().AnyAsync(c => c.Id == ActivationCultureId))
+                context.Cultures.Add(new Culture { Id = ActivationCultureId, ApplicationId = applicationId, Title = "Farsi", Key = "fa-IR", IsActive = true });
+            var tiny = new SectionElement { ElementType = 1000, TinyText = "EN-tiny" };
+            var editor = new SectionElement { ElementType = 1005, EditorText = "EN-editor" };
+            var content = new Content
+            {
+                ApplicationId = applicationId, TypeId = 1000, Title = "EN-title", HeadLine = "EN-head", Abstract = "EN-abstract", PublishDt = DateTime.UtcNow,
+                Metadata = new ContentMetadata { Title = "EN-meta", Author = "EN-author" },
+                Sections = new System.Collections.Generic.List<ContentSection> { new() { Priority = 1, Elements = new System.Collections.Generic.List<SectionElement> { tiny, editor } } }
+            };
+            context.Contents.Add(content);
+            await context.SaveChangesAsync();
+            content.FarsiContent = $$"""
+                {"Id":{{content.Id}},"Title":"FA-title","Abstract":null,"Metadata":{"Id":{{content.Metadata.Id}},"Author":null},
+                 "Sections":[{"Id":{{tiny.SectionId}},"Elements":[{"Id":{{tiny.Id}}},{"Id":{{editor.Id}},"EditorText":null}]}]}
+                """;
+            await context.SaveChangesAsync();
+            return (content.Id, content.FarsiContent);
+        });
+        var before = await Snapshot(contentId);
+
+        var body = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+        Assert.Equal(before, await Snapshot(contentId));
+        var save = await client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(FormFields(body, new())));
+
+        Assert.Equal(HttpStatusCode.OK, save.StatusCode);
+        var translation = await Translation(contentId);
+        Assert.NotNull(translation);
+        Assert.Equal((TranslationStatus.Ready, "manual"), (translation.TranslationStatus, translation.Provider));
+        var text = LegacyFarsiContentParser.Deserialize(translation.LocalizedTextJson);
+        Assert.Equal(("FA-title", "EN-head", null, "EN-meta", null), (text.Title, text.HeadLine, text.Abstract, text.Metadata!.Title, text.Metadata.Author));
+        var elements = text.Sections.Single().Elements;
+        Assert.Equal(("EN-tiny", (string?)null), (elements[0].TinyText, elements[1].EditorText));
+        Assert.Equal(legacy, (await Snapshot(contentId)).FarsiContent);
     }
 
     // Source and translation are rendered side by side: master text read-only, Farsi editable,
