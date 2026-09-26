@@ -24,6 +24,7 @@
          (e.g. tenant-guard coverage) by reflecting over the real Web assembly instead of
          duplicating its controller list by hand. -->
     <ProjectReference Include="..\..\Web\Web.csproj" />
+    <ProjectReference Include="..\ContentDelivery\ContentDelivery.csproj" />
   </ItemGroup>
 
 </Project>
