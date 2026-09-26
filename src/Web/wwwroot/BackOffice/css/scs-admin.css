@@ -1,154 +1,187 @@
-/* Nirvana CMS BackOffice custom styles — kept separate from the vendor theme CSS. */
+/* ==========================================================================
+   Nirvana CMS BackOffice design system
+   Loaded after the Hyper theme CSS (see Shared/_Layout.cshtml, Shared/_CSSAssets.cshtml).
+   Reference: docs/backoffice-design-system.md
 
-.text-input-error {
-    border-color: #fa5c7c;
-    padding-right: calc(1.5em + .9rem);
-    background-image: url(data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23fa5c7c'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23fa5c7c' stroke='none'/%3e%3c/svg%3e);
-    background-repeat: no-repeat;
-    background-position: right calc(.375em + .225rem) center;
-    background-size: calc(.75em + .45rem) calc(.75em + .45rem);
-}
+   1. Tokens         4. Buttons      7. Cards, tabs, modals, alerts
+   2. Theme mapping  5. Forms        8. App shell
+   3. Base & focus   6. Tables       9. Auth & workspace picker
+                                     10. Legacy helpers, responsive, motion
 
-.ml-3 {
-    margin-left: 1rem;
-}
+   Token and Bootstrap colour/state theming applies to every BackOffice page
+   (this file is BackOffice-only). Density and layout rules stay scoped to the
+   app shell (.scs-backoffice) so auth pages keep their own composition.
+   ========================================================================== */
 
-.ml-2 {
-    margin-left: 0.75rem;
-}
-
-.hand-pointer {
-    cursor: pointer !important;
-}
-
-.remove-section-button {
-    margin-bottom: 3px;
-    padding: 5px;
-    line-height: 5px;
-    font-size: 10px;
-    padding-top: 5px;
-    padding-left: 5px;
-}
-
-.muted-text-editor {
-    background-color: #fffde9;
-    border-radius: 10px;
-    border: solid 1px #c7c7c7;
-    padding: 10px;
-}
-
-/* Page header used across CRUD list/form views for title + breadcrumb + helper text. */
-.scs-page-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.scs-page-header .scs-page-title {
-    margin: 0;
-    font-size: 1.35rem;
-    font-weight: 700;
-}
-
-.scs-page-header .scs-page-helper {
-    margin: 0.25rem 0 0;
-    color: #98a6ad;
-    font-size: 0.875rem;
-}
-
-.scs-breadcrumb {
-    margin: 0 0 0.35rem;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    font-size: 0.8rem;
-    color: #98a6ad;
-}
-
-.scs-breadcrumb li+li::before {
-    content: "/";
-    margin-right: 0.35rem;
-    color: #ced4da;
-}
-
-.scs-breadcrumb a {
-    color: #98a6ad;
-    text-decoration: none;
-}
-
-.scs-breadcrumb a:hover {
-    text-decoration: underline;
-}
-
-/* Dashboard */
-.scs-dash-card {
-    height: 100%;
-}
-
-.scs-dash-card .scs-dash-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 0.5rem;
-    font-size: 1.35rem;
-}
-
-.scs-empty-state {
-    text-align: center;
-    padding: 2.5rem 1rem;
-    color: #98a6ad;
-}
-
-.scs-empty-state i {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-/* --------------------------------------------------------------------------
-   Nirvana CMS design system
-   The Hyper template supplies the component foundation; these rules give the
-   BackOffice a focused content-operations identity without replacing it.
-   -------------------------------------------------------------------------- */
-
+/* 1. Tokens --------------------------------------------------------------- */
 :root {
-    --scs-ink: #172238;
-    --scs-ink-soft: #263553;
+    /* Surfaces */
     --scs-canvas: #f4f7fb;
     --scs-surface: #ffffff;
+    --scs-surface-muted: #f8faff;
+    --scs-surface-sunken: #eef3fb;
+    --scs-chrome: #172238;
+
+    /* Ink (all text tokens are >= 4.5:1 on surface and canvas) */
+    --scs-ink: #172238;
+    --scs-ink-soft: #263553;
+    --scs-ink-body: #3d4d66;
+    --scs-muted: #5d6b82;
+    --scs-ink-inverse: #ffffff;
+
+    /* Borders: default/subtle are decorative; strong is the 3:1 control boundary */
     --scs-border: #e4eaf2;
-    --scs-muted: #66758d;
+    --scs-border-subtle: #edf1f6;
+    --scs-border-strong: #7e8ba1;
+
+    /* Primary action */
     --scs-primary: #356ae6;
+    --scs-primary-rgb: 53, 106, 230;
     --scs-primary-strong: #2454c5;
-    --scs-teal: #0f9f92;
-    --scs-coral: #ee6c5d;
-    --scs-amber: #d88b13;
+    --scs-primary-subtle: #edf2ff;
+    --scs-primary-border: #b9c9ef;
+
+    /* Secondary accent (workspace/brand highlight, never a status) */
+    --scs-accent: #0f9f92;
+    --scs-accent-text: #0f7f75;
+    --scs-accent-subtle: #e6f6f4;
+
+    /* States: -text on -subtle is AA; -solid carries white text or a dot/border */
+    --scs-success-solid: #13875f;
+    --scs-success-text: #0e6b4b;
+    --scs-success-subtle: #e5f5ee;
+    --scs-success-border: #a6dcc6;
+    --scs-warning-solid: #d88b13;
+    --scs-warning-text: #7a5000;
+    --scs-warning-subtle: #fdf3e1;
+    --scs-warning-border: #f0cf94;
+    --scs-danger-solid: #c9303e;
+    --scs-danger-rgb: 201, 48, 62;
+    --scs-danger-strong: #a92632;
+    --scs-danger-text: #a92632;
+    --scs-danger-subtle: #fdecee;
+    --scs-danger-border: #f2b8be;
+    --scs-info-solid: #2f7fc4;
+    --scs-info-text: #1f5f9e;
+    --scs-info-subtle: #e8f2fb;
+    --scs-info-border: #b3d2ee;
+
+    /* Typography: the template's Nunito at a restrained scale */
+    --scs-font: var(--ct-font-sans-serif, "Nunito", sans-serif);
+    --scs-text-page-title: 1.55rem;
+    --scs-text-section-title: 1.05rem;
+    --scs-text-card-title: .95rem;
+    --scs-text-body: .9rem;
+    --scs-text-meta: .8125rem;
+    --scs-text-label: .8rem;
+    --scs-text-overline: .7rem;
+    --scs-leading-tight: 1.25;
+    --scs-leading-body: 1.55;
+
+    /* Spacing (4px base) */
+    --scs-space-1: .25rem;
+    --scs-space-2: .5rem;
+    --scs-space-3: .75rem;
+    --scs-space-4: 1rem;
+    --scs-space-5: 1.5rem;
+    --scs-space-6: 2rem;
+    --scs-space-7: 3rem;
+
+    /* Radius */
+    --scs-radius-xs: 4px;
+    --scs-radius-sm: 6px;
     --scs-radius: 8px;
+    --scs-radius-pill: 50rem;
+
+    /* Elevation */
+    --scs-shadow-sm: 0 1px 3px rgba(24, 37, 61, .08);
     --scs-shadow: 0 2px 8px rgba(24, 37, 61, .05), 0 12px 28px rgba(24, 37, 61, .04);
+    --scs-shadow-raised: 0 8px 22px rgba(31, 53, 89, .11);
+    --scs-shadow-overlay: 0 18px 50px rgba(16, 32, 57, .2);
+
+    /* Focus and motion */
+    --scs-focus-color: var(--scs-primary-strong);
+    --scs-focus-ring: 0 0 0 .2rem rgba(var(--scs-primary-rgb), .25);
+    --scs-duration: .16s;
 }
 
+/* 2. Theme mapping: point Hyper/Bootstrap variables at the tokens --------- */
+:root,
+[data-bs-theme=light] {
+    --ct-primary: var(--scs-primary);
+    --ct-primary-rgb: var(--scs-primary-rgb);
+    --ct-primary-text-emphasis: var(--scs-primary-strong);
+    --ct-primary-bg-subtle: var(--scs-primary-subtle);
+    --ct-primary-border-subtle: var(--scs-primary-border);
+    --ct-link-color: var(--scs-primary-strong);
+    --ct-link-color-rgb: 36, 84, 197;
+    --ct-link-hover-color: #1b4099;
+    --ct-link-hover-color-rgb: 27, 64, 153;
+    --ct-focus-ring-color: rgba(var(--scs-primary-rgb), .25);
+
+    --ct-danger: var(--scs-danger-solid);
+    --ct-danger-rgb: var(--scs-danger-rgb);
+    --ct-form-invalid-color: var(--scs-danger-text);
+    --ct-form-invalid-border-color: var(--scs-danger-solid);
+
+    --ct-success-text-emphasis: var(--scs-success-text);
+    --ct-success-bg-subtle: var(--scs-success-subtle);
+    --ct-success-border-subtle: var(--scs-success-border);
+    --ct-warning-text-emphasis: var(--scs-warning-text);
+    --ct-warning-bg-subtle: var(--scs-warning-subtle);
+    --ct-warning-border-subtle: var(--scs-warning-border);
+    --ct-danger-text-emphasis: var(--scs-danger-text);
+    --ct-danger-bg-subtle: var(--scs-danger-subtle);
+    --ct-danger-border-subtle: var(--scs-danger-border);
+    --ct-info-text-emphasis: var(--scs-info-text);
+    --ct-info-bg-subtle: var(--scs-info-subtle);
+    --ct-info-border-subtle: var(--scs-info-border);
+}
+
+/* 3. Base, typography & focus -------------------------------------------- */
 .scs-backoffice {
     background: var(--scs-canvas);
     color: var(--scs-ink);
 }
 
-.scs-backoffice .content-page {
-    background: var(--scs-canvas);
+.scs-page-title {
+    margin: 0;
+    color: var(--scs-ink);
+    font-size: var(--scs-text-page-title);
+    font-weight: 700;
+    line-height: 1.2;
 }
 
-.scs-backoffice .content {
-    padding: 30px 0 18px;
+.scs-section-title {
+    margin: 0 0 var(--scs-space-3);
+    color: var(--scs-ink);
+    font-size: var(--scs-text-section-title);
+    font-weight: 700;
+    line-height: var(--scs-leading-tight);
 }
 
-.scs-backoffice .container-fluid {
-    max-width: 1760px;
+.scs-meta {
+    color: var(--scs-muted);
+    font-size: var(--scs-text-meta);
+}
+
+.scs-overline {
+    color: var(--scs-muted);
+    font-size: var(--scs-text-overline);
+    font-weight: 700;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+}
+
+/* One visible focus indicator everywhere. !important is required: the theme
+   ships `a, button { outline: 0 !important; }`, which hides keyboard focus. */
+:where(a, button, summary, [tabindex], [role="button"], [role="tab"]):focus-visible,
+.btn:focus-visible,
+.form-check-input:focus-visible,
+.nav-link:focus-visible,
+.dropdown-item:focus-visible {
+    outline: 2px solid var(--scs-focus-color) !important;
+    outline-offset: 2px;
 }
 
 .scs-skip-link {
@@ -157,144 +190,383 @@
     top: .75rem;
     left: .75rem;
     padding: .6rem .85rem;
-    border-radius: 6px;
+    border-radius: var(--scs-radius-sm);
     background: var(--scs-ink);
-    color: #fff;
+    color: var(--scs-ink-inverse);
     transform: translateY(-150%);
-    transition: transform .16s ease;
+    transition: transform var(--scs-duration) ease;
 }
 
 .scs-skip-link:focus {
     transform: translateY(0);
-    color: #fff;
+    color: var(--scs-ink-inverse);
 }
 
-.scs-backoffice .leftside-menu {
-    background: var(--scs-ink);
+/* 4. Buttons --------------------------------------------------------------
+   primary  .btn-primary              one per view/section
+   secondary .btn-outline-primary / .btn-outline-secondary
+   quiet    .scs-btn-quiet (with .btn)
+   destructive .btn-danger (confirm step) / .btn-outline-danger
+   icon-only .scs-btn-icon / .action-icon + aria-label + title/tooltip   */
+.btn {
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.btn-primary {
+    --ct-btn-bg: var(--scs-primary);
+    --ct-btn-border-color: var(--scs-primary);
+    --ct-btn-hover-bg: var(--scs-primary-strong);
+    --ct-btn-hover-border-color: var(--scs-primary-strong);
+    --ct-btn-active-bg: var(--scs-primary-strong);
+    --ct-btn-active-border-color: var(--scs-primary-strong);
+    --ct-btn-disabled-bg: var(--scs-primary);
+    --ct-btn-disabled-border-color: var(--scs-primary);
+    --ct-btn-focus-shadow-rgb: var(--scs-primary-rgb);
+}
+
+.btn-outline-primary {
+    --ct-btn-color: var(--scs-primary-strong);
+    --ct-btn-border-color: var(--scs-primary-border);
+    --ct-btn-hover-color: var(--scs-primary-strong);
+    --ct-btn-hover-bg: var(--scs-primary-subtle);
+    --ct-btn-hover-border-color: var(--scs-primary);
+    --ct-btn-active-color: var(--scs-primary-strong);
+    --ct-btn-active-bg: var(--scs-primary-subtle);
+    --ct-btn-active-border-color: var(--scs-primary);
+    --ct-btn-disabled-color: var(--scs-primary);
+    --ct-btn-disabled-border-color: var(--scs-primary-border);
+    --ct-btn-focus-shadow-rgb: var(--scs-primary-rgb);
+}
+
+.btn-outline-secondary {
+    --ct-btn-color: var(--scs-ink-body);
+    --ct-btn-border-color: var(--scs-border-strong);
+    --ct-btn-hover-color: var(--scs-ink);
+    --ct-btn-hover-bg: var(--scs-surface-muted);
+    --ct-btn-hover-border-color: var(--scs-ink-body);
+    --ct-btn-active-color: var(--scs-ink);
+    --ct-btn-active-bg: var(--scs-surface-sunken);
+    --ct-btn-active-border-color: var(--scs-ink-body);
+}
+
+.scs-btn-quiet {
+    --ct-btn-color: var(--scs-ink-body);
+    --ct-btn-bg: transparent;
+    --ct-btn-border-color: transparent;
+    --ct-btn-hover-color: var(--scs-ink);
+    --ct-btn-hover-bg: var(--scs-surface-sunken);
+    --ct-btn-hover-border-color: transparent;
+    --ct-btn-active-color: var(--scs-ink);
+    --ct-btn-active-bg: var(--scs-border);
+    --ct-btn-active-border-color: transparent;
     box-shadow: none;
 }
 
-.scs-backoffice .side-nav {
-    padding: 14px 12px 32px;
+.btn-danger {
+    --ct-btn-bg: var(--scs-danger-solid);
+    --ct-btn-border-color: var(--scs-danger-solid);
+    --ct-btn-hover-bg: var(--scs-danger-strong);
+    --ct-btn-hover-border-color: var(--scs-danger-strong);
+    --ct-btn-active-bg: var(--scs-danger-strong);
+    --ct-btn-active-border-color: var(--scs-danger-strong);
+    --ct-btn-disabled-bg: var(--scs-danger-solid);
+    --ct-btn-disabled-border-color: var(--scs-danger-solid);
+    --ct-btn-focus-shadow-rgb: var(--scs-danger-rgb);
 }
 
-.scs-backoffice .side-nav-title {
-    color: #91a0bd;
-    font-size: .66rem;
+.btn-outline-danger {
+    --ct-btn-color: var(--scs-danger-text);
+    --ct-btn-border-color: var(--scs-danger-border);
+    --ct-btn-hover-color: var(--scs-ink-inverse);
+    --ct-btn-hover-bg: var(--scs-danger-solid);
+    --ct-btn-hover-border-color: var(--scs-danger-solid);
+    --ct-btn-active-color: var(--scs-ink-inverse);
+    --ct-btn-active-bg: var(--scs-danger-strong);
+    --ct-btn-active-border-color: var(--scs-danger-strong);
+}
+
+.scs-backoffice .btn {
+    min-height: 38px;
+    border-radius: var(--scs-radius-sm);
+}
+
+.scs-backoffice .btn-sm {
+    min-height: 32px;
+}
+
+/* Icon-only: always pair with aria-label and a title/data-bs-toggle="tooltip". */
+.scs-btn-icon,
+.scs-backoffice .action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--scs-radius-sm);
+    background: transparent;
+    color: var(--scs-muted);
+    font-size: 1.05rem;
+    transition: background-color var(--scs-duration) ease, color var(--scs-duration) ease;
+}
+
+.scs-btn-icon:hover,
+.scs-backoffice .action-icon:hover {
+    background: var(--scs-surface-sunken);
+    color: var(--scs-ink);
+}
+
+.scs-btn-icon.is-danger:hover,
+.scs-backoffice .action-icon.is-danger:hover {
+    background: var(--scs-danger-subtle);
+    color: var(--scs-danger-text);
+}
+
+/* 5. Forms ---------------------------------------------------------------- */
+.form-label {
+    margin-bottom: .42rem;
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-label);
     font-weight: 700;
-    letter-spacing: .08em;
-    margin: 22px 0 7px;
-    text-transform: uppercase;
 }
 
-.scs-sidebar-workspace {
-    padding: 8px 10px 14px !important;
-    margin: 4px 0 10px !important;
-    border-bottom: 1px solid rgba(211, 223, 245, .13);
+/* Required marker: add .scs-required to the label; keep the `required` attribute on the input. */
+.scs-required::after {
+    margin-left: .2rem;
+    color: var(--scs-danger-text);
+    content: "*";
 }
 
-.scs-sidebar-workspace-label {
-    display: block;
-    margin-bottom: 4px;
-    color: #91a0bd;
-    font-size: .64rem;
-    font-weight: 700;
-    letter-spacing: .07em;
-    text-transform: uppercase;
+.form-control,
+.form-select,
+.select2-container .select2-selection {
+    border-color: var(--scs-border-strong);
+    border-radius: var(--scs-radius-sm);
+    color: var(--scs-ink);
 }
 
-.scs-sidebar-workspace h5 {
-    overflow: hidden;
-    margin: 0;
-    color: #fff;
-    font-size: .9rem;
+.form-control::placeholder {
+    color: var(--scs-muted);
+    opacity: 1;
+}
+
+.form-control:focus,
+.form-select:focus,
+.select2-container--focus .select2-selection,
+.select2-container--open .select2-selection {
+    border-color: var(--scs-primary) !important;
+    box-shadow: var(--scs-focus-ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+    border-color: var(--scs-border);
+    background-color: var(--scs-surface-sunken);
+    color: var(--scs-muted);
+    cursor: not-allowed;
+}
+
+/* Read-only stays legible and selectable but reads as not-editable
+   (flatpickr marks its pickers readonly, so they are excluded). */
+.form-control[readonly]:not(.flatpickr-input) {
+    border-color: var(--scs-border);
+    background-color: var(--scs-surface-muted);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid,
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+    border-color: var(--scs-danger-solid);
+}
+
+/* Error text keeps an icon so the state is not signalled by colour alone. */
+.invalid-feedback {
+    font-size: var(--scs-text-meta);
     font-weight: 600;
-    text-overflow: ellipsis;
+}
+
+.invalid-feedback::before {
+    content: "\26A0\FE0E\00A0";
+}
+
+.form-text,
+.scs-backoffice small.text-muted {
+    color: var(--scs-muted) !important;
+    font-size: .75rem;
+}
+
+.input-group-text {
+    border-color: var(--scs-border-strong);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+}
+
+.form-check-input {
+    border-color: var(--scs-border-strong);
+}
+
+.form-check-input:checked {
+    border-color: var(--scs-primary);
+    background-color: var(--scs-primary);
+}
+
+.form-check-input:focus {
+    border-color: var(--scs-primary);
+    box-shadow: var(--scs-focus-ring);
+}
+
+.form-check-label {
+    color: var(--scs-ink-body);
+}
+
+.scs-backoffice .form-control,
+.scs-backoffice .form-select,
+.scs-backoffice .select2-container .select2-selection {
+    min-height: 39px;
+}
+
+.scs-backoffice textarea.form-control {
+    min-height: 100px;
+}
+
+/* Responsive field grid: one column on phones, auto-fit columns from 16rem up. */
+.scs-field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--scs-space-4) var(--scs-space-5);
+}
+
+.scs-field-grid > .scs-field-span {
+    grid-column: 1 / -1;
+}
+
+.scs-filter-bar {
+    padding: .2rem;
+}
+
+/* 6. Tables --------------------------------------------------------------- */
+.scs-backoffice .table {
+    --ct-table-color: var(--scs-ink-body);
+    --ct-table-hover-bg: var(--scs-surface-muted);
+    margin-bottom: 0;
+}
+
+.scs-backoffice .table > :not(caption) > * > * {
+    padding: .82rem 1rem;
+    border-bottom-color: var(--scs-border-subtle);
+    vertical-align: middle;
+}
+
+.scs-backoffice .table thead th {
+    border-bottom-width: 1px;
+    background: var(--scs-surface-muted);
+    color: var(--scs-muted);
+    font-size: var(--scs-text-overline);
+    font-weight: 700;
+    letter-spacing: .055em;
+    text-transform: uppercase;
     white-space: nowrap;
 }
 
-.scs-backoffice .side-nav .side-nav-link,
-.scs-backoffice .side-nav .side-nav-second-level li a,
-.scs-backoffice .side-nav .side-nav-third-level li a {
-    border-radius: 6px;
-    color: #c4cee0;
-    transition: background-color .16s ease, color .16s ease;
+.scs-backoffice .table tbody tr {
+    transition: background-color var(--scs-duration) ease;
 }
 
-.scs-backoffice .side-nav .side-nav-link:hover,
-.scs-backoffice .side-nav .side-nav-second-level li a:hover,
-.scs-backoffice .side-nav .side-nav-third-level li a:hover {
-    background: rgba(255, 255, 255, .075);
-    color: #fff;
+.scs-backoffice .table tbody tr:hover {
+    background: var(--scs-surface-muted);
 }
 
-.scs-backoffice .side-nav .side-nav-link.active,
-.scs-backoffice .side-nav .menuitem-active > a {
-    background: rgba(78, 125, 238, .22);
-    color: #fff;
-    font-weight: 600;
+/* Selected rows: mark with aria-selected="true" or .is-selected; the inset bar is a non-colour cue. */
+.scs-backoffice .table tbody tr.is-selected,
+.scs-backoffice .table tbody tr[aria-selected="true"] {
+    background: var(--scs-primary-subtle);
 }
 
-.scs-backoffice .navbar-custom {
-    min-height: 68px;
-    border-bottom: 1px solid var(--scs-border);
-    background: rgba(255, 255, 255, .94);
-    box-shadow: none;
+.scs-backoffice .table tbody tr.is-selected > :first-child,
+.scs-backoffice .table tbody tr[aria-selected="true"] > :first-child {
+    box-shadow: inset 3px 0 0 var(--scs-primary);
 }
 
-.scs-backoffice .topbar {
-    min-height: 68px;
+/* Wrap wide tables so they scroll inside the card, never the page. */
+.scs-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-.scs-workspace-switcher {
-    max-width: 300px;
-    color: #42526d;
-    font-size: .875rem;
-    font-weight: 600;
+.scs-table-actions {
+    width: 1%;
+    text-align: right;
+    white-space: nowrap;
 }
 
-.scs-workspace-dot {
-    width: 9px;
-    height: 9px;
-    margin-right: .55rem;
-    border-radius: 50%;
-    background: var(--scs-teal);
-    box-shadow: 0 0 0 4px rgba(15, 159, 146, .12);
-}
-
-.scs-page-header {
-    position: relative;
-    align-items: end;
-    margin: 0 0 1.5rem;
-    padding: 0 0 1.1rem;
-    border-bottom: 1px solid var(--scs-border);
-}
-
-.scs-page-header .scs-page-title {
-    color: var(--scs-ink);
-    font-size: 1.55rem;
+/* Status badge: dot + text label, so status never relies on colour alone. */
+.scs-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .2rem .55rem;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-pill);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+    font-size: .75rem;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.3;
+    white-space: nowrap;
 }
 
-.scs-page-header .scs-page-helper {
-    max-width: 720px;
+.scs-status::before {
+    width: .45rem;
+    height: .45rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentColor;
+    content: "";
+}
+
+.scs-status--success { border-color: var(--scs-success-border); background: var(--scs-success-subtle); color: var(--scs-success-text); }
+.scs-status--warning { border-color: var(--scs-warning-border); background: var(--scs-warning-subtle); color: var(--scs-warning-text); }
+.scs-status--danger  { border-color: var(--scs-danger-border);  background: var(--scs-danger-subtle);  color: var(--scs-danger-text); }
+.scs-status--info    { border-color: var(--scs-info-border);    background: var(--scs-info-subtle);    color: var(--scs-info-text); }
+
+.scs-backoffice .dropdown-menu {
+    padding: var(--scs-space-1);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    box-shadow: var(--scs-shadow-raised);
+}
+
+.scs-backoffice .dropdown-item {
+    border-radius: var(--scs-radius-xs);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+}
+
+.scs-backoffice .dropdown-item.text-danger:hover,
+.scs-backoffice .dropdown-item.text-danger:focus {
+    background: var(--scs-danger-subtle);
+}
+
+.scs-empty-state {
+    padding: 3.5rem 1rem;
     color: var(--scs-muted);
-    line-height: 1.55;
+    text-align: center;
 }
 
-.scs-breadcrumb {
-    gap: .45rem;
-    margin: 0 0 .55rem;
-    color: #8491a6;
-    font-size: .76rem;
-    font-weight: 600;
+.scs-empty-state i {
+    display: block;
+    margin-bottom: .5rem;
+    color: #7b96dd;
+    font-size: 2.3rem;
 }
 
-.scs-breadcrumb a {
-    color: var(--scs-muted);
-}
-
+/* 7. Cards, tabs, modals, alerts, loading --------------------------------- */
 .scs-backoffice .card {
     border: 1px solid var(--scs-border);
     border-radius: var(--scs-radius);
@@ -307,116 +579,46 @@
 
 .scs-backoffice .card-title {
     color: var(--scs-ink);
-    font-size: .95rem;
+    font-size: var(--scs-text-card-title);
     font-weight: 700;
 }
 
-.scs-backoffice .btn {
-    min-height: 38px;
-    border-radius: 6px;
-    font-weight: 600;
-    letter-spacing: 0;
+.scs-dash-card {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    transition: transform var(--scs-duration) ease, box-shadow var(--scs-duration) ease;
 }
 
-.scs-backoffice .btn-primary {
-    border-color: var(--scs-primary);
-    background: var(--scs-primary);
-    box-shadow: 0 2px 5px rgba(53, 106, 230, .2);
+.scs-dash-card:hover {
+    box-shadow: var(--scs-shadow-raised);
+    transform: translateY(-2px);
 }
 
-.scs-backoffice .btn-primary:hover,
-.scs-backoffice .btn-primary:focus {
-    border-color: var(--scs-primary-strong);
-    background: var(--scs-primary-strong);
-}
-
-.scs-backoffice .btn-outline-primary {
-    border-color: #b9c9ef;
-    color: var(--scs-primary);
-}
-
-.scs-backoffice .btn-outline-primary:hover {
-    background: #edf2ff;
-    color: var(--scs-primary-strong);
-}
-
-.scs-backoffice .form-label {
-    margin-bottom: .42rem;
-    color: #3d4d66;
-    font-size: .79rem;
-    font-weight: 700;
-}
-
-.scs-backoffice .form-control,
-.scs-backoffice .form-select,
-.scs-backoffice .select2-container .select2-selection {
-    min-height: 39px;
-    border-color: #d9e1ec;
-    border-radius: 6px;
-    color: var(--scs-ink);
-}
-
-.scs-backoffice textarea.form-control {
-    min-height: 100px;
-}
-
-.scs-backoffice .form-control:focus,
-.scs-backoffice .form-select:focus {
-    border-color: #91afea;
-    box-shadow: 0 0 0 .2rem rgba(53, 106, 230, .12);
-}
-
-.scs-backoffice .form-text,
-.scs-backoffice small.text-muted {
-    color: var(--scs-muted) !important;
-    font-size: .75rem;
-}
-
-.scs-filter-bar {
-    padding: .2rem;
-}
-
-.scs-backoffice .table {
-    margin-bottom: 0;
-}
-
-.scs-backoffice .table > :not(caption) > * > * {
-    padding: .82rem 1rem;
-    border-bottom-color: #edf1f6;
-    vertical-align: middle;
-}
-
-.scs-backoffice .table thead th {
-    border-bottom-width: 1px;
-    background: #f8faff;
-    color: #63718a;
-    font-size: .7rem;
-    font-weight: 700;
-    letter-spacing: .055em;
-    text-transform: uppercase;
-}
-
-.scs-backoffice .table tbody tr {
-    transition: background-color .14s ease;
-}
-
-.scs-backoffice .table tbody tr:hover {
-    background: #f8faff;
-}
-
-.scs-backoffice .action-icon {
+.scs-dash-card .scs-dash-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    color: #77869d;
+    width: 2.9rem;
+    height: 2.9rem;
+    border-radius: var(--scs-radius);
+    font-size: 1.35rem;
 }
 
-.scs-backoffice .action-icon:hover {
-    background: #fff0ee;
-    color: var(--scs-coral);
+.scs-backoffice .nav-tabs {
+    --ct-nav-tabs-border-color: var(--scs-border);
+    --ct-nav-tabs-link-active-color: var(--scs-primary-strong);
+    --ct-nav-tabs-link-active-border-color: var(--scs-border) var(--scs-border) var(--scs-surface);
+}
+
+.scs-backoffice .nav-tabs .nav-link,
+.scs-backoffice .nav-pills .nav-link {
+    color: var(--scs-muted);
+    font-weight: 600;
+}
+
+.scs-backoffice .nav-pills {
+    --ct-nav-pills-link-active-bg: var(--scs-primary);
 }
 
 .scs-editor-card {
@@ -442,53 +644,26 @@
 .scs-editor-tabs .nav-link.active {
     border-bottom-color: var(--scs-primary);
     background: transparent;
-    color: var(--scs-primary);
+    color: var(--scs-primary-strong);
 }
 
 .scs-rich-editor {
     height: 320px;
     overflow: auto;
-    border: 1px solid #d9e1ec;
-    border-radius: 6px;
+    border: 1px solid var(--scs-border-strong);
+    border-radius: var(--scs-radius-sm);
 }
 
 .scs-rich-editor .ql-container.ql-snow,
 .scs-rich-editor .ql-toolbar.ql-snow {
-    border-color: #d9e1ec;
-}
-
-.scs-dash-card {
-    position: relative;
-    overflow: hidden;
-    transition: transform .16s ease, box-shadow .16s ease;
-}
-
-.scs-dash-card:hover {
-    box-shadow: 0 8px 24px rgba(24, 37, 61, .1);
-    transform: translateY(-2px);
-}
-
-.scs-dash-card .scs-dash-icon {
-    width: 2.9rem;
-    height: 2.9rem;
-    border-radius: 8px;
-}
-
-.scs-empty-state {
-    padding: 3.5rem 1rem;
-    color: var(--scs-muted);
-}
-
-.scs-empty-state i {
-    color: #8ba5e9;
-    font-size: 2.3rem;
+    border-color: var(--scs-border);
 }
 
 .scs-backoffice .modal-content {
     overflow: hidden;
     border: 0;
-    border-radius: 9px;
-    box-shadow: 0 18px 50px rgba(16, 32, 57, .2);
+    border-radius: var(--scs-radius);
+    box-shadow: var(--scs-shadow-overlay);
 }
 
 .scs-backoffice .modal-header {
@@ -497,33 +672,210 @@
     background: #fafcff;
 }
 
+.scs-backoffice .modal-title {
+    color: var(--scs-ink);
+    font-size: var(--scs-text-section-title);
+    font-weight: 700;
+}
+
 .scs-backoffice .modal-footer {
     border-top-color: var(--scs-border);
 }
 
+/* Alerts use the state tokens via the theme mapping; the left bar adds a non-colour cue. */
+.alert {
+    border-left-width: 4px;
+    border-radius: var(--scs-radius-sm);
+}
+
+/* Loading: set aria-busy="true" on the region; spinners carry visually-hidden text. */
+[aria-busy="true"].scs-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+[aria-busy="true"].scs-loading > * {
+    opacity: .45;
+}
+
+/* 8. App shell ------------------------------------------------------------ */
+.scs-backoffice .content-page {
+    background: var(--scs-canvas);
+}
+
+.scs-backoffice .content {
+    padding: 30px 0 18px;
+}
+
+.scs-backoffice .container-fluid {
+    max-width: 1760px;
+}
+
+.scs-backoffice .leftside-menu {
+    background: var(--scs-chrome);
+    box-shadow: none;
+}
+
+.scs-backoffice .side-nav {
+    padding: 14px 12px 32px;
+}
+
+.scs-backoffice .side-nav-title {
+    margin: 22px 0 7px;
+    color: #91a0bd;
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.scs-sidebar-workspace {
+    padding: 8px 10px 14px !important;
+    margin: 4px 0 10px !important;
+    border-bottom: 1px solid rgba(211, 223, 245, .13);
+}
+
+.scs-sidebar-workspace-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #91a0bd;
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+}
+
+.scs-sidebar-workspace h5 {
+    overflow: hidden;
+    margin: 0;
+    color: var(--scs-ink-inverse);
+    font-size: .9rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scs-backoffice .side-nav .side-nav-link,
+.scs-backoffice .side-nav .side-nav-second-level li a,
+.scs-backoffice .side-nav .side-nav-third-level li a {
+    border-radius: var(--scs-radius-sm);
+    color: #c4cee0;
+    transition: background-color var(--scs-duration) ease, color var(--scs-duration) ease;
+}
+
+.scs-backoffice .side-nav .side-nav-link:hover,
+.scs-backoffice .side-nav .side-nav-second-level li a:hover,
+.scs-backoffice .side-nav .side-nav-third-level li a:hover {
+    background: rgba(255, 255, 255, .075);
+    color: var(--scs-ink-inverse);
+}
+
+.scs-backoffice .side-nav .side-nav-link.active,
+.scs-backoffice .side-nav .menuitem-active > a {
+    background: rgba(78, 125, 238, .22);
+    color: var(--scs-ink-inverse);
+    font-weight: 600;
+}
+
+/* Focus on the dark sidebar needs a light ring. */
+.scs-backoffice .leftside-menu :focus-visible {
+    outline-color: #c9d7ff !important;
+}
+
+.scs-backoffice .navbar-custom {
+    min-height: 68px;
+    border-bottom: 1px solid var(--scs-border);
+    background: rgba(255, 255, 255, .94);
+    box-shadow: none;
+}
+
+.scs-backoffice .topbar {
+    min-height: 68px;
+}
+
+.scs-workspace-switcher {
+    max-width: 300px;
+    color: #42526d;
+    font-size: .875rem;
+    font-weight: 600;
+}
+
+.scs-workspace-dot {
+    width: 9px;
+    height: 9px;
+    margin-right: .55rem;
+    border-radius: 50%;
+    background: var(--scs-accent);
+    box-shadow: 0 0 0 4px rgba(15, 159, 146, .12);
+}
+
+/* Page header: breadcrumb + title + helper on the left, actions on the right. */
+.scs-page-header {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: .75rem;
+    margin: 0 0 1.5rem;
+    padding: 0 0 1.1rem;
+    border-bottom: 1px solid var(--scs-border);
+}
+
+.scs-page-header .scs-page-helper {
+    max-width: 720px;
+    margin: .25rem 0 0;
+    color: var(--scs-muted);
+    font-size: .875rem;
+    line-height: var(--scs-leading-body);
+}
+
+.scs-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    margin: 0 0 .55rem;
+    padding: 0;
+    color: var(--scs-muted);
+    font-size: .76rem;
+    font-weight: 600;
+    list-style: none;
+}
+
+.scs-breadcrumb li + li::before {
+    margin-right: .35rem;
+    color: var(--scs-border-strong);
+    content: "/";
+}
+
+.scs-breadcrumb a {
+    color: var(--scs-muted);
+    text-decoration: none;
+}
+
+.scs-breadcrumb a:hover {
+    color: var(--scs-ink);
+    text-decoration: underline;
+}
+
 .scs-backoffice .footer {
-    color: #8491a6;
+    color: var(--scs-muted);
     font-size: .78rem;
 }
 
-.fa---elements,
-#__descriptionEditorFA__ .ql-editor {
-    direction: rtl !important;
-    text-align: right !important;
-}
-
+/* 9. Auth & workspace picker --------------------------------------------- */
 body.authentication-bg {
-    background: #eef3fb;
+    background: var(--scs-surface-sunken);
 }
 
 .authentication-bg .auth-fluid-form-box {
-    background: #fff;
+    background: var(--scs-surface);
 }
 
 .authentication-bg .auth-fluid-right {
     position: relative;
     overflow: hidden;
-    background: var(--scs-ink);
+    background: var(--scs-chrome);
 }
 
 .authentication-bg .auth-fluid-right::before {
@@ -552,12 +904,12 @@ body.authentication-bg {
     justify-content: center;
     width: 2.45rem;
     height: 2.45rem;
-    border-radius: 8px;
+    border-radius: var(--scs-radius);
     background: var(--scs-primary);
-    color: #fff;
+    color: var(--scs-ink-inverse);
     font-size: 1.1rem;
     font-weight: 800;
-    box-shadow: 0 5px 12px rgba(53, 106, 230, .24);
+    box-shadow: 0 5px 12px rgba(var(--scs-primary-rgb), .24);
 }
 
 .scs-auth-message {
@@ -606,13 +958,13 @@ body.authentication-bg {
 .scs-application-card {
     border: 1px solid var(--scs-border);
     box-shadow: var(--scs-shadow);
-    transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    transition: border-color var(--scs-duration) ease, box-shadow var(--scs-duration) ease, transform var(--scs-duration) ease;
 }
 
 .scs-application-card:hover,
 .scs-application-card:focus-within {
     border-color: #b8caef;
-    box-shadow: 0 8px 22px rgba(31, 53, 89, .11);
+    box-shadow: var(--scs-shadow-raised);
     transform: translateY(-2px);
 }
 
@@ -679,7 +1031,7 @@ body.authentication-bg {
     background: var(--scs-surface);
     color: var(--scs-primary-strong);
     box-shadow: var(--scs-shadow);
-    transition: border-color .16s ease, background-color .16s ease;
+    transition: border-color var(--scs-duration) ease, background-color var(--scs-duration) ease;
 }
 
 .scs-add-workspace:hover {
@@ -715,20 +1067,49 @@ body.authentication-bg {
     font-size: 2.5rem;
 }
 
-/* !important: the vendor theme sets `a, button { outline: 0 !important; }`, which hides keyboard focus. */
-.scs-app-picker .btn:focus-visible,
-.scs-add-workspace:focus-visible {
-    outline: 2px solid var(--scs-primary-strong) !important;
-    outline-offset: 2px;
+/* 10. Legacy helpers (still referenced by feature views) ------------------ */
+.text-input-error {
+    border-color: var(--scs-danger-solid);
+    padding-right: calc(1.5em + .9rem);
+    background-image: url(data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23c9303e'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23c9303e' stroke='none'/%3e%3c/svg%3e);
+    background-repeat: no-repeat;
+    background-position: right calc(.375em + .225rem) center;
+    background-size: calc(.75em + .45rem) calc(.75em + .45rem);
 }
 
-/* Single column: the add card has no neighbour to match, so let it stay compact. */
-@media (max-width: 767.98px) {
-    .scs-add-workspace {
-        min-height: 9rem;
-    }
+.ml-3 {
+    margin-left: 1rem;
 }
 
+.ml-2 {
+    margin-left: .75rem;
+}
+
+.hand-pointer {
+    cursor: pointer !important;
+}
+
+.remove-section-button {
+    margin-bottom: 3px;
+    padding: 5px;
+    font-size: 10px;
+    line-height: 5px;
+}
+
+.muted-text-editor {
+    padding: 10px;
+    border: 1px solid #c7c7c7;
+    border-radius: 10px;
+    background-color: #fffde9;
+}
+
+.fa---elements,
+#__descriptionEditorFA__ .ql-editor {
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+/* Responsive ------------------------------------------------------------- */
 @media (max-width: 767.98px) {
     .scs-backoffice .content {
         padding-top: 22px;
@@ -747,16 +1128,28 @@ body.authentication-bg {
     }
 
     .scs-editor-tabs {
-        overflow-x: auto;
         flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    /* Single column: the add card has no neighbour to match, so let it stay compact. */
+    .scs-add-workspace {
+        min-height: 9rem;
     }
 }
 
+/* Motion ----------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
         scroll-behavior: auto !important;
         transition-duration: .01ms !important;
+    }
+
+    .scs-dash-card:hover,
+    .scs-application-card:hover,
+    .scs-application-card:focus-within {
+        transform: none;
     }
 }

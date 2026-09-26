@@ -60,8 +60,8 @@
     <link href="/BackOffice/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css" rel="stylesheet"
         type="text/css" />
 
-    <!-- SCS custom overrides, loaded after the vendor theme CSS -->
-    <link href="/BackOffice/css/scs-admin.css" rel="stylesheet" type="text/css" />
+    <!-- Nirvana CMS design system (docs/backoffice-design-system.md); loaded after the theme CSS, versioned so browsers never keep a stale copy -->
+    <link href="/BackOffice/css/scs-admin.css" rel="stylesheet" type="text/css" asp-append-version="true" />
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
