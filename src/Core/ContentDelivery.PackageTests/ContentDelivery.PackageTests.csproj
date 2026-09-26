@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- A net9 ASP.NET Core consumer of the *packed* Content Delivery SDK: restored from the local
+       feed run.sh packs into obj/feed (nuget.config), never from project references or copied
+       DLLs. Deliberately not in SonicCoreSystem.sln. Its assembly name is not in the SDK's
+       InternalsVisibleTo list, so it sees only the public package contract. -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>Cms.ContentDelivery.PackageTests</AssemblyName>
+    <RootNamespace>Cms.ContentDelivery.PackageTests</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Must equal <Version> in ../ContentDelivery/Package.props; restore fails otherwise. -->
+    <ContentDeliveryVersion>1.0.0-preview.1</ContentDeliveryVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- What a website brings: the ASP.NET Core shared framework and the two delivery packages. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Cms.ContentDelivery" Version="$(ContentDeliveryVersion)" />
+    <PackageReference Include="Cms.ContentDelivery.SqlServer" Version="$(ContentDeliveryVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Test host only. SQLite stands in for SQL Server (same EF Core 9.0.x line as the adapter). -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.20" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Seeding plays the CMS translation workflow (the writer), so it fingerprints and serializes
+         translations with the workflow's shared source file. Reads never use it. -->
+    <Compile Include="..\ContentLocalization\*.cs" LinkBase="ContentLocalization" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>ContentDeliveryVersion</_Parameter1>
+      <_Parameter2>$(ContentDeliveryVersion)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>PackageFeed</_Parameter1>
+      <_Parameter2>$(MSBuildProjectDirectory)/obj/feed</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>ProjectAssetsFile</_Parameter1>
+      <_Parameter2>$(ProjectAssetsFile)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

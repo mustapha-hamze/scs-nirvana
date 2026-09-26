@@ -9,25 +9,14 @@
 @section Styles {
     <link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
     <link href="/BackOffice/vendor/quill/quill.snow.css" rel="stylesheet" type="text/css" />
-    <style>
-        .fa---elements {
-            text-align: right !important;
-            direction: rtl !important;
-        }
-
-        #__descriptionEditorFA__ .ql-editor {
-            text-align: right !important;
-            direction: rtl !important;
-        }
-    </style>
 }
 
 <div class="scs-page-header mt-2">
     <div>
-        <a class="btn btn-outline-primary btn-sm mb-2" onclick="backToContentList()" href="javascript:void(0);">
+        <button type="button" class="btn btn-outline-primary btn-sm mb-2" onclick="backToContentList()">
             <i class="uil uil-corner-up-left"></i>
             Back to List
-        </a>
+        </button>
         <h1 class="scs-page-title">@(isNew ? "New Content" : "Edit Content")</h1>
         <p class="scs-page-helper">
             @if (isNew)
@@ -41,8 +30,9 @@
         </p>
     </div>
 </div>
-<div class="row card mt-2 p-2">
-    <ul class="nav nav-tabs mb-1">
+<div class="card scs-editor-card mt-2">
+    <div class="card-body p-0">
+    <ul class="nav nav-tabs scs-editor-tabs mb-0" role="tablist">
         <li class="nav-item">
             <a href="#general" data-bs-toggle="tab" aria-expanded="false" class="nav-link active">
                 <i class="mdi mdi-home-variant d-md-none d-block"></i>
@@ -51,7 +41,7 @@
         </li>
         @await Html.PartialAsync("_ContentFormTabs", Model)
     </ul>
-    <div class="tab-content mb-3">
+    <div class="tab-content p-3 p-lg-4">
         <div class="tab-pane show active" id="general">
             <form class="needs-validation row" novalidate id="frmContent" method="POST" asp-action="SaveContentForm">
                 <input type="hidden" asp-for="Id" id="hidContentId" />
@@ -101,7 +91,7 @@
                     <label class="form-label" asp-for="Description">Description</label>
                     <textarea class="form-control" asp-for="Description" style="display: none;"
                               id="textAreaDescription"></textarea>
-                    <div id="__descriptionEditor__" style="height: 300px;">
+                    <div id="__descriptionEditor__" class="scs-rich-editor">
                     </div>
                 </div>
                 <div class="col-md-3 mb-2">
@@ -123,6 +113,7 @@
             </form>
         </div>
         @await Html.PartialAsync("_ContentFormTabsBody", Model)
+    </div>
     </div>
 </div>
 <script src="/BackOffice/vendor/quill/quill.min.js"></script>

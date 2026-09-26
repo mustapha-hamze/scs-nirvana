@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- SQL Server adapter for the Content Delivery SDK: implements IContentDeliveryClient directly
+       against the existing CMS schema. References no Core project (Domain/Application/
+       Infrastructure/Web); its EF model, DbContext and queries are internal, so consumers see only
+       Cms.ContentDelivery contracts plus the registration extension.
+       ContentDeliveryBoundaryTests enforces this. -->
+  <PropertyGroup>
+    <!-- net9.0 like the SDK, so net9 and net10 websites can both consume it. -->
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>Cms.ContentDelivery.SqlServer</AssemblyName>
+    <RootNamespace>Cms.ContentDelivery.SqlServer</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Cms.ContentDelivery.SqlServer</PackageId>
+    <Description>SQL Server adapter for Cms.ContentDelivery: registers IContentDeliveryClient over the CMS database with AddSqlServerContentDelivery.</Description>
+  </PropertyGroup>
+
+  <Import Project="..\ContentDelivery\Package.props" />
+
+  <ItemGroup>
+    <!-- Kept on the 9.0 line so a net9 consumer is not forced onto net10 assemblies. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.20" />
+    <!-- IHealthChecksBuilder/IHealthCheck for the opt-in AddContentDeliveryHealthChecks. -->
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The fingerprint/localized-text authority shared with Application as source, so the
+         adapter validates translations exactly as the translation workflow writes them without
+         referencing any Core layer. -->
+    <Compile Include="..\ContentLocalization\*.cs" LinkBase="ContentLocalization" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ContentDelivery\ContentDelivery.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Core.Tests" />
+    <InternalsVisibleTo Include="Cms.ContentDelivery.SqlServer.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -67,8 +67,7 @@ public partial class LocalizedContentReader
         var translation = await _repository.FindTranslation(master.Id, cultureId, cancellationToken);
         if (translation?.CultureId == cultureId
             && ContentTranslationJobProcessor.IsReady(translation, ContentSourceFingerprint.Compute(master))
-            && LegacyFarsiContentParser.ReadStored(translation.LocalizedTextJson) is { } stored
-            && MatchesMaster(stored, master))
+            && LegacyFarsiContentParser.ReadCurrent(translation.LocalizedTextJson, master) is { } stored)
             return (stored, LocalizedContentResolution.Translation);
 
         if (_options.LegacyFarsiCultureId != 0 && cultureId == _options.LegacyFarsiCultureId
@@ -77,21 +76,6 @@ public partial class LocalizedContentReader
             return (LegacyFarsiContentParser.Deserialize(legacy.LocalizedTextJson), LocalizedContentResolution.LegacyFarsi);
 
         return (null, LocalizedContentResolution.Source);
-    }
-
-    // A matching fingerprint should imply this; checked anyway so a corrupt payload is never
-    // half-applied. Exactly master's metadata, section and per-section element IDs.
-    private static bool MatchesMaster(LocalizedContentText text, Content master)
-    {
-        if (text.Metadata?.Id != master.Metadata?.Id)
-            return false;
-        var masterSections = (master.Sections ?? Enumerable.Empty<ContentSection>()).ToList();
-        if (text.Sections.Count != masterSections.Count)
-            return false;
-
-        var sections = text.Sections.ToDictionary(s => s.Id);
-        return masterSections.All(s => sections.TryGetValue(s.Id, out var translated)
-            && translated.Elements.Select(e => e.Id).ToHashSet().SetEquals((s.Elements ?? Enumerable.Empty<SectionElement>()).Select(e => e.Id)));
     }
 
     // Master layout with text overlaid where the IDs match; nodes the text lacks keep English.

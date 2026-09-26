@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Runs the SQL adapter the way a net9 website loads it: .NET 9 runtime and EF Core 9.x.
+       Core.Tests (net10, EF Core 10 via Infrastructure) cannot prove that, because NuGet unifies
+       the adapter's EF Core 9 reference up to 10 there. SQLite stands in for SQL Server. -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>Cms.ContentDelivery.SqlServer.Tests</AssemblyName>
+    <RootNamespace>Cms.ContentDelivery.SqlServer.Tests</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!-- Same 9.0.x line as the adapter's EF Core SqlServer reference. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.20" />
+    <!-- In-memory configuration for the registration smoke test. -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.20" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ContentDelivery.SqlServer\ContentDelivery.SqlServer.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -6,6 +6,9 @@
     <Nullable>disable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- Only affects #nullable enable regions (the rest of this project is nullable-disabled):
+         lets ContentDelivery consumer-usage tests prove the SDK's nullable guidance compiles clean. -->
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +27,8 @@
          (e.g. tenant-guard coverage) by reflecting over the real Web assembly instead of
          duplicating its controller list by hand. -->
     <ProjectReference Include="..\..\Web\Web.csproj" />
+    <ProjectReference Include="..\ContentDelivery\ContentDelivery.csproj" />
+    <ProjectReference Include="..\ContentDelivery.SqlServer\ContentDelivery.SqlServer.csproj" />
   </ItemGroup>
 
 </Project>
