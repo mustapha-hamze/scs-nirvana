@@ -2,9 +2,9 @@
 @model Application.Contracts.General.TagDto
 @{
     ViewData["Title"] = "Tags";
-    ViewData["PageHelper"] = "Manage the tags editors attach to content.";
-    ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("General Settings") };
 }
+
+@section PageHelper { Manage the tags editors attach to content. }
 
 @section PageActions {
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#general-modal"

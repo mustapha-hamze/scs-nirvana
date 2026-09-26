@@ -139,11 +139,12 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync();
 
-        // Dashboard > Content Management (menu group, not a link) > Categories (current page).
+        // Server renders Dashboard > Categories (current page); the shell script inserts the
+        // sidebar's menu groups between them, so they aren't asserted here.
         Assert.Contains("<nav aria-label=\"Breadcrumb\">", body);
+        Assert.Contains("href=\"/BackOffice/Home/Index\">Dashboard</a>", body);
         Assert.Contains("aria-current=\"page\">Categories</li>", body);
-        Assert.Matches(@"<li class=""breadcrumb-item"">\s*Content Management\s*</li>", body);
-        Assert.Contains("<h1 class=\"scs-page-title\">Categories</h1>", body);
+        Assert.Matches(@"<h1 class=""scs-page-title"">\s*Categories\s*</h1>", body);
         Assert.Matches(@"class=""scs-page-actions"">\s*<button[^>]*newCategoryForm", body);
     }
 

@@ -800,6 +800,15 @@ html[data-sidenav-size=condensed] .scs-sidebar-workspace {
     line-height: 1.35;
 }
 
+/* Nested group toggles keep room for their arrow once the label wraps. */
+.scs-backoffice .side-nav-second-level .side-nav-item > a[data-bs-toggle="collapse"] {
+    padding-right: 2.25rem;
+}
+
+.scs-backoffice .side-nav-second-level .side-nav-item > a[data-bs-toggle="collapse"] .menu-arrow {
+    right: 6px;
+}
+
 .scs-backoffice .side-nav-third-level {
     margin-left: 1.9rem;
     padding-left: .35rem;

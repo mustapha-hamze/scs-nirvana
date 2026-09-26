@@ -86,40 +86,27 @@
             <div class="content">
             <main class="container-fluid" id="main-content" tabindex="-1">
                 @* Shared page header (docs/backoffice-design-system.md#page-header): a page sets
-                   ViewData["Title"], optional ViewData["PageHelper"] / ["PageHeading"] /
-                   ["Breadcrumb"] (BackOfficeCrumb[]; omitted on the dashboard), and an optional
-                   PageActions section for its primary action. *@
+                   ViewData["Title"] and optional sections PageHeading (h1 override), PageHelper,
+                   PageActions and Breadcrumb (extra linked crumbs, e.g. the editor's parent list).
+                   The menu groups between Dashboard and the page come from the sidebar (script below). *@
                 @if (ViewData["Title"] is string pageTitle)
                 {
-                    var crumbs = ViewData["Breadcrumb"] as BackOfficeCrumb[];
                     <div class="scs-page-header">
                         <div class="scs-page-heading">
-                            @if (crumbs is not null)
+                            @if (ViewContext.RouteData.Values["controller"] as string != "Home")
                             {
                                 <nav aria-label="Breadcrumb">
                                     <ol class="breadcrumb scs-breadcrumb">
                                         <li class="breadcrumb-item"><a href="/BackOffice/Home/Index">Dashboard</a></li>
-                                        @foreach (var crumb in crumbs)
-                                        {
-                                            <li class="breadcrumb-item">
-                                                @if (crumb.Href is null)
-                                                {
-                                                    @crumb.Label
-                                                }
-                                                else
-                                                {
-                                                    <a href="@crumb.Href">@crumb.Label</a>
-                                                }
-                                            </li>
-                                        }
+                                        @await RenderSectionAsync("Breadcrumb", required: false)
                                         <li class="breadcrumb-item active" aria-current="page">@pageTitle</li>
                                     </ol>
                                 </nav>
                             }
-                            <h1 class="scs-page-title">@(ViewData["PageHeading"] ?? pageTitle)</h1>
-                            @if (ViewData["PageHelper"] is string pageHelper)
+                            <h1 class="scs-page-title">@if (IsSectionDefined("PageHeading")) { @await RenderSectionAsync("PageHeading") } else { @pageTitle }</h1>
+                            @if (IsSectionDefined("PageHelper"))
                             {
-                                <p class="scs-page-helper">@pageHelper</p>
+                                <p class="scs-page-helper">@await RenderSectionAsync("PageHelper")</p>
                             }
                         </div>
                         @if (IsSectionDefined("PageActions"))
@@ -216,7 +203,7 @@
     <!-- App js -->
     <script src="/BackOffice/js/app.min.js"></script>
 
-    <!-- Shell accessibility on top of Hyper's sidebar (app.min.js): current-page and expanded
+    <!-- Shell script on top of Hyper's sidebar (app.min.js): breadcrumb menu groups, current-page and expanded
          state for assistive tech, and focus/Escape handling for the mobile off-canvas menu. -->
     <script>
         (function () {
@@ -226,14 +213,16 @@
             var closeBtn = document.querySelector(".button-close-fullsidebar");
 
             // Pages that aren't menu links (e.g. the content editor) highlight the list they belong
-            // to: the deepest linked breadcrumb below Dashboard.
+            // to: the page's last linked breadcrumb below Dashboard.
+            var crumbList = document.querySelector(".scs-page-header .breadcrumb");
+            var crumbLinks = crumbList ? crumbList.querySelectorAll("a") : [];
+            var parentCrumb = crumbLinks.length > 1 ? crumbLinks[crumbLinks.length - 1] : null;
             var isMenuPage = !!nav.querySelector("a.active");
-            if (!isMenuPage) {
-                var crumbLinks = document.querySelectorAll(".scs-page-header .breadcrumb a");
-                var parentHref = crumbLinks.length > 1 ? crumbLinks[crumbLinks.length - 1].getAttribute("href") : null;
-                var parentLink = parentHref && nav.querySelector('a[href="' + parentHref + '"]');
+            if (!isMenuPage && parentCrumb) {
+                var parentLink = nav.querySelector('a[href="' + parentCrumb.getAttribute("href") + '"]');
                 if (parentLink) {
                     parentLink.classList.add("active");
+                    parentCrumb.textContent = parentLink.textContent.trim();
                     for (var el = parentLink.parentElement; el !== nav; el = el.parentElement) {
                         if (el.classList.contains("collapse")) el.classList.add("show");
                         if (el.tagName === "LI") el.classList.add("menuitem-active");
@@ -244,6 +233,19 @@
             var activeLink = nav.querySelector("a.active");
             // "true" when the highlighted link is the section this page belongs to, not the page itself.
             if (activeLink) activeLink.setAttribute("aria-current", isMenuPage ? "page" : "true");
+
+            // Breadcrumb groups mirror the sidebar: each menu group above the highlighted link,
+            // inserted after "Dashboard" (e.g. Content Management > Pages).
+            if (crumbList && activeLink && activeLink.getAttribute("href") !== "/BackOffice/Home/Index") {
+                var dashboardCrumb = crumbList.firstElementChild;
+                for (var group = activeLink.closest(".collapse"); group && nav.contains(group); group = group.parentElement.closest(".collapse")) {
+                    var groupToggle = nav.querySelector('[href="#' + group.id + '"]');
+                    var crumb = document.createElement("li");
+                    crumb.className = "breadcrumb-item";
+                    crumb.textContent = groupToggle.textContent.trim();
+                    dashboardCrumb.after(crumb);
+                }
+            }
 
             // Hyper opens the active branch by adding .show directly; Bootstrap keeps aria-expanded
             // in sync from here on.

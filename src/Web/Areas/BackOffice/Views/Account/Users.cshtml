@@ -2,9 +2,9 @@
 
 @{
     ViewData["Title"] = "Users";
-    ViewData["PageHelper"] = "Manage BackOffice users, approvals, and access.";
-    ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("User Management") };
 }
+
+@section PageHelper { Manage BackOffice users, approvals, and access. }
 
 @section PageActions {
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#user-modal"

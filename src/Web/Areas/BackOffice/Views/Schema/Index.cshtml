@@ -1,8 +1,8 @@
 @{
     ViewData["Title"] = "Schemas";
-    ViewData["PageHelper"] = "Define structured, reusable data schemas for your content types.";
-    ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("Content Management") };
 }
+
+@section PageHelper { Define structured, reusable data schemas for your content types. }
 
 @section PageActions {
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" onclick="schemaForm()" data-bs-target="#schema-modal">

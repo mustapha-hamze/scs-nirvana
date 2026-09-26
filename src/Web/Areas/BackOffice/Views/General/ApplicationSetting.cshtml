@@ -1,8 +1,8 @@
 @{
     ViewData["Title"] = "Application Settings";
-    ViewData["PageHelper"] = "Manage configuration values for this workspace.";
-    ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("General Settings") };
 }
+
+@section PageHelper { Manage configuration values for this workspace. }
 
 @section PageActions {
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#general-modal"

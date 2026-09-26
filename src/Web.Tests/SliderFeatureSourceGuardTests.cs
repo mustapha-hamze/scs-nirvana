@@ -48,9 +48,6 @@ public sealed class SliderFeatureSourceGuardTests
             $"Found banned '{bannedSubstring}' in: {string.Join(", ", offending)}");
     }
 
-    // The shared page header's metadata (_Layout.cshtml) is display-only, like the title.
-    private static readonly HashSet<string> PageHeaderMetadataKeys = new() { "Title", "PageHeading", "PageHelper", "Breadcrumb" };
-
     [Fact]
     public void SliderViews_OnlyViewDataUsageIsTitleMetadata()
     {
@@ -61,7 +58,7 @@ public sealed class SliderFeatureSourceGuardTests
             var text = File.ReadAllText(file);
             foreach (Match match in viewDataPattern.Matches(text))
             {
-                if (!PageHeaderMetadataKeys.Contains(match.Groups["key"].Value))
+                if (match.Groups["key"].Value != "Title")
                     offending.Add($"{Path.GetFileName(file)}: ViewData[\"{match.Groups["key"].Value}\"]");
             }
         }

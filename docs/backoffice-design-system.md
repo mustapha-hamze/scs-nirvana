@@ -34,28 +34,25 @@ The Hyper variables `--ct-primary*`, `--ct-link-*`, `--ct-focus-ring-color`, `--
 ## App shell navigation
 
 - **Sidebar** (`Shared/_SideBar.cshtml`): brand, then the current-workspace card (`.scs-sidebar-workspace`, a group labelled "Current workspace", with a "Switch workspace" link only for users who can switch), then task sections: Overview, Content, Administration. Keep the existing menu partials and their access gates. Nested content types wrap rather than clip.
-- **Active and open states**: Hyper marks the link for the current URL. The layout script then sets `aria-current="page"` on it and syncs `aria-expanded` on every collapse toggle. A page that isn't in the menu (for example the content editor) highlights the list it belongs to, taken from its last linked breadcrumb, with `aria-current="true"`. The current item gets a fill, a 3px leading bar and bold text, so it doesn't rely on colour. Open groups rotate their arrow.
+- **Active and open states**: Hyper marks the link for the current URL. The layout script then sets `aria-current="page"` on it and syncs `aria-expanded` on every collapse toggle. A page that isn't in the menu (for example the content editor) highlights the list it belongs to, taken from its last linked breadcrumb, with `aria-current="true"`. Sidebar icons use the Unicons set (`uil uil-*`) from `icons.min.css`. Dripicons aren't bundled. The current item gets a fill, a 3px leading bar and bold text, so it doesn't rely on colour. Open groups rotate their arrow.
 - **Topbar** (`Shared/_Navbar.cshtml`): the menu toggle (`aria-controls="leftside-menu"`, with `aria-expanded` kept in sync), the current workspace name, and the profile menu (name, email, Switch workspace, Log out). Only add controls that have real behaviour. No demo search, notifications or fullscreen.
 - **Responsive**: at 1140px and below the sidebar becomes Hyper's icon rail, where the workspace card is hidden and the topbar still names the workspace. Under 768px it's an off-canvas panel. Opening it moves focus to the Close button, and Escape or the backdrop closes it and returns focus to the toggle. While closed it is `visibility: hidden`, so it can't be tabbed into.
 
 ## Page header
 
-`_Layout.cshtml` renders one standard header for every page that sets `ViewData["Title"]`:
+`_Layout.cshtml` renders one standard header for every page that sets `ViewData["Title"]`. Everything else is an optional Razor section, so views need no extra view data or C# types:
 
 ```cshtml
-@{
-    ViewData["Title"] = "Categories";                         // h1 and last breadcrumb
-    ViewData["PageHelper"] = "One short sentence.";           // optional
-    ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("Content Management") }; // omit on the dashboard
-    // ViewData["PageHeading"] overrides the h1 text only (the dashboard greeting)
-}
-@section PageActions {
-    <button type="button" class="btn btn-primary">…</button>  // right-aligned; full width under 768px
-}
+@{ ViewData["Title"] = "Categories"; }                      // h1 and current crumb
+@section PageHelper { One short sentence. }
+@section PageActions { <button type="button" class="btn btn-primary">…</button> }  // right-aligned; full width under 768px
+@* PageHeading overrides the h1 text only (the dashboard greeting).
+   Breadcrumb adds linked crumbs before the page, e.g. the editor's parent list. *@
 ```
 
-- The breadcrumb is always `Dashboard › <menu groups> › <page>`. Name the sidebar groups the user sees, never controllers or routes. A crumb gets an `Href` only when it's a real page (for example the content type list above the editor).
-- Put one primary action in `PageActions`, plus a secondary outline button if the page needs one. Don't build page headers by hand in views. Controllers may set the same `ViewData` keys when the view model owns the data (see `ContentController`).
+- The breadcrumb reads `Dashboard › <menu groups> › <page>`. The server renders Dashboard, any `Breadcrumb` section and the page. The shell script then inserts the sidebar groups above the highlighted menu link (for example Content Management › Pages), so the trail always uses the menu's own labels. The dashboard has no breadcrumb.
+- A page that isn't a menu link sets its parent list as the last linked crumb. The script highlights that menu link (`aria-current="true"`) and relabels the crumb with the menu's text.
+- Put one primary action in `PageActions`, plus a secondary outline button if the page needs one. Don't build page headers by hand in views.
 
 ## Typography
 

@@ -1,8 +1,6 @@
 @model ContentIndexViewModel
 
-@{
-    ViewData["PageHelper"] = $"Create, edit, and publish {Model.TypeTitle.ToLower()} items.";
-}
+@section PageHelper { Create, edit, and publish @(Model.TypeTitle.ToLower()) items. }
 
 @section PageActions {
     @await Html.PartialAsync("_CreateContentButton", Model.CanCreateContent)

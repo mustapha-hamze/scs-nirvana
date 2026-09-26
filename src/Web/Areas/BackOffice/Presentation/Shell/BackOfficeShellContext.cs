@@ -29,11 +29,6 @@ public sealed record BackOfficeContentTypeLink(int Id, string Title);
 
 public sealed record BackOfficeAppPageLink(string PageType, string Title);
 
-// One ancestor in the shared page header's breadcrumb (_Layout renders "Dashboard", then these,
-// then the page title). Labels name the user-facing menu hierarchy; Href is null for menu groups
-// that have no page of their own.
-public sealed record BackOfficeCrumb(string Label, string Href = null);
-
 // Exact AccessKeys token semantics - the same comparison AccessKeyAuthorizer uses server-side, not
 // Razor's old accesses.Contains(prefix)/StartsWith. CanAccess/CanAnyAccess only ever return true
 // for a key (or SuperAdmin) that would also satisfy the matching [RequireAccess] check server-side

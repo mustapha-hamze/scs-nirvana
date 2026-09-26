@@ -4,9 +4,25 @@
     var publishDateTime = Model.PublishDt.ToString("yyyy-MM-dd HH:mm");
     bool isNew = Model.IsNew;
     ViewData["Title"] = isNew ? "New Content" : "Edit Content";
-    ViewData["PageHelper"] = isNew
-        ? "Fill in the general details below, then save to unlock body, images, and relations."
-        : $"Content #{Model.Id} · update the fields below and save your changes.";
+}
+
+@section PageHelper {
+    @if (isNew)
+    {
+        <text>Fill in the general details below, then save to unlock body, images, and relations.</text>
+    }
+    else
+    {
+        <text>Content #@Model.Id &middot; update the fields below and save your changes.</text>
+    }
+}
+
+@* The list this item belongs to. _Layout's shell script highlights its menu link, adds the menu
+   groups above it and takes its label from the menu (app pages aren't in Model.Types). *@
+@section Breadcrumb {
+    <li class="breadcrumb-item">
+        <a href="/BackOffice/Content/Index/@Model.RouteTypeId">@(Model.Types.FirstOrDefault(t => t.Id == Model.RouteTypeId)?.Title ?? "Content list")</a>
+    </li>
 }
 
 @section PageActions {

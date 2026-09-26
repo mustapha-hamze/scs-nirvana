@@ -1,9 +1,9 @@
 @model Application.Contracts.General.CultureDto
 @{
     ViewData["Title"] = "Cultures";
-    ViewData["PageHelper"] = "Manage the languages content can be published in.";
-    ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("General Settings") };
 }
+
+@section PageHelper { Manage the languages content can be published in. }
 
 @section PageActions {
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#general-modal"

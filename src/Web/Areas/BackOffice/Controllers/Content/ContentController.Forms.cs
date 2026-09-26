@@ -1,6 +1,5 @@
 using Application.UseCases.TranslatorServices;
 using Web.Areas.BackOffice.Features.Content.ViewModels;
-using Web.Areas.BackOffice.Presentation.Shell;
 
 namespace Web.Areas.BackOffice.Controllers;
 
@@ -15,24 +14,13 @@ public partial class ContentController
     public async Task<IActionResult> Index(int id)
     {
         var shell = await _shellContext.GetSnapshotAsync();
-        var (typeTitle, menuGroup) = DescribeContentType(shell, id);
+        var typeTitle = shell.ContentTypes.FirstOrDefault(t => t.Id == id)?.Title
+            ?? shell.AppPages.FirstOrDefault(p => p.PageType == id.ToString())?.Title
+            ?? "Content";
         var canCreateContent = shell.Access.CanAccess(AccessKeys.Content.Add);
 
         ViewData["Title"] = typeTitle;
-        ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("Content Management"), new(menuGroup) };
         return View(new ContentIndexViewModel(id, typeTitle, canCreateContent));
-    }
-
-    // A content type's display title and the sidebar group listing it (_SideBarCMS.cshtml's
-    // "Content" types or "Pages"), for the shared page header's breadcrumb.
-    private static (string Title, string MenuGroup) DescribeContentType(BackOfficeShellSnapshot shell, int typeId)
-    {
-        var contentType = shell.ContentTypes.FirstOrDefault(t => t.Id == typeId);
-        if (contentType is not null)
-            return (contentType.Title, "Content");
-
-        var appPage = shell.AppPages.FirstOrDefault(p => p.PageType == typeId.ToString());
-        return appPage is not null ? (appPage.Title, "Pages") : ("Content", "Content");
     }
 
     // Shared by two UI entry points with different keys (_CreateContentButton.cshtml's Add vs.
@@ -102,16 +90,6 @@ public partial class ContentController
             CanPreviewAttachments = canPreviewAttachments,
             CanPreviewRelations = canPreviewRelations,
             CanPreviewMetadata = canPreviewMetadata,
-        };
-
-        // The editor sits under its type's list; _Layout also highlights that list's menu link
-        // from this last linked crumb.
-        var (typeTitle, menuGroup) = DescribeContentType(shell, typeId);
-        ViewData["Breadcrumb"] = new BackOfficeCrumb[]
-        {
-            new("Content Management"),
-            new(menuGroup),
-            new(typeTitle, $"/BackOffice/Content/Index/{typeId}"),
         };
         return View(model);
     }
