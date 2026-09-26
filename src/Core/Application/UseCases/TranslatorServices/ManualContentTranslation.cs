@@ -1,5 +1,4 @@
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Application.CMSRepository;
 using Domains.Entities.ContentManagement;
@@ -19,7 +18,11 @@ public enum ManualTranslationSaveResult
     TranslationDeleted,
 
     // A concurrent writer won; nothing was saved.
-    Conflict
+    Conflict,
+
+    // The English source changed since the editor loaded (fingerprint mismatch); nothing was
+    // saved - the editor must reload and review against the current source.
+    SourceChanged
 }
 
 // Manual (editor) translation save: keeps the legacy FarsiContent snapshot and the canonical
@@ -40,32 +43,32 @@ public class ManualContentTranslation
         _timeProvider = timeProvider;
     }
 
+    // Read-only: the current source fingerprint the editor must send back on save, or null when
+    // the content isn't the application's.
+    public async Task<string> GetSourceFingerprint(int contentId, int applicationId, CancellationToken cancellationToken = default)
+    {
+        if (!await _translations.ContentBelongsToApplication(contentId, applicationId, cancellationToken))
+            return null;
+        return await _translations.FindSourceGraph(contentId, cancellationToken) is { } master ? ContentSourceFingerprint.Compute(master) : null;
+    }
+
     // Read-only: the canonical translation text the editor should start from, or null when the
-    // content isn't the application's or there's no usable (non-deleted, parseable) payload. Any
-    // status qualifies - it only seeds the form; saving re-validates and sets Ready.
+    // content isn't the application's or there's no usable (non-deleted, structurally valid)
+    // payload. Any status qualifies - it only seeds the form; saving re-validates and sets Ready.
     public async Task<LocalizedContentText> GetStoredText(int contentId, int cultureId, int applicationId, CancellationToken cancellationToken = default)
     {
         if (cultureId == 0 || !await _translations.ContentBelongsToApplication(contentId, applicationId, cancellationToken))
             return null;
 
         var translation = await _translations.FindTranslation(contentId, cultureId, cancellationToken);
-        if (translation is not { IsDeleted: false, LocalizedTextJson: { } json })
-            return null;
-
-        try
-        {
-            return LegacyFarsiContentParser.Deserialize(json);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        return translation is { IsDeleted: false } ? LegacyFarsiContentParser.ReadStored(translation.LocalizedTextJson) : null;
     }
 
-    // translatedGraph: the edited translation as a Content graph; farsiContentJson: its legacy
-    // FarsiContent serialization, stored unchanged for the deferred read cutover.
-    public async Task<ManualTranslationSaveResult> Save(int contentId, int cultureId, int applicationId, Content translatedGraph,
-        string farsiContentJson, CancellationToken cancellationToken = default)
+    // expectedSourceFingerprint: GetSourceFingerprint as of when the editor loaded; translatedGraph:
+    // the edited translation as a Content graph; farsiContentJson: its legacy FarsiContent
+    // serialization, stored unchanged for the deferred read cutover.
+    public async Task<ManualTranslationSaveResult> Save(int contentId, int cultureId, int applicationId, string expectedSourceFingerprint,
+        Content translatedGraph, string farsiContentJson, CancellationToken cancellationToken = default)
     {
         if (!await _translations.ContentBelongsToApplication(contentId, applicationId, cancellationToken))
             return ManualTranslationSaveResult.NotFound;
@@ -75,6 +78,10 @@ public class ManualContentTranslation
         var master = await _translations.FindSourceGraph(contentId, cancellationToken);
         if (master == null)
             return ManualTranslationSaveResult.NotFound;
+        // Text-only source edits keep the tree valid, so only the fingerprint catches them.
+        var fingerprint = ContentSourceFingerprint.Compute(master);
+        if (!string.Equals(fingerprint, expectedSourceFingerprint, StringComparison.Ordinal))
+            return ManualTranslationSaveResult.SourceChanged;
         if (translatedGraph?.Id != contentId || TranslationSourceDocument.ToLocalizedTextJson(master, translatedGraph) is not { } localizedTextJson)
             return ManualTranslationSaveResult.InvalidStructure;
 
@@ -88,7 +95,7 @@ public class ManualContentTranslation
         }
 
         translation.TranslationStatus = TranslationStatus.Ready;
-        translation.SourceFingerprint = ContentSourceFingerprint.Compute(master);
+        translation.SourceFingerprint = fingerprint;
         translation.LocalizedTextJson = localizedTextJson;
         translation.Provider = Provider;
         translation.Model = null;

@@ -39,6 +39,7 @@ public static class LegacyFarsiContentParser
     public const string DuplicateId = "duplicate_id";
     public const string IdMismatch = "id_mismatch";
     public const string InvalidText = "invalid_text";
+    public const string MissingProperty = "missing_property";
 
     // Keeps Farsi readable (not \u-escaped) while still escaping HTML-sensitive characters.
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
@@ -83,6 +84,61 @@ public static class LegacyFarsiContentParser
 
     public static LocalizedContentText Deserialize(string localizedTextJson) =>
         JsonSerializer.Deserialize<LocalizedContentText>(localizedTextJson, Options);
+
+    // Strict read of a stored LocalizedTextJson payload (the shape Serialize writes): every field
+    // present, text a string or an explicit null, metadata an object or null, sections/elements
+    // arrays of objects, integer IDs unique per node kind. Not checked against any master - a
+    // stale payload may lack newer nodes or keep removed ones. Null when unusable.
+    public static LocalizedContentText ReadStored(string localizedTextJson)
+    {
+        if (string.IsNullOrWhiteSpace(localizedTextJson))
+            return null;
+        try
+        {
+            using var document = JsonDocument.Parse(localizedTextJson);
+            return ReadStored(document.RootElement);
+        }
+        catch (Exception e) when (e is JsonException or Rejected)
+        {
+            return null;
+        }
+    }
+
+    private static LocalizedContentText ReadStored(JsonElement root)
+    {
+        if (root.ValueKind != JsonValueKind.Object)
+            throw new Rejected(RootNotObject);
+
+        var metadata = Required(root, "Metadata");
+        if (metadata.ValueKind is not (JsonValueKind.Object or JsonValueKind.Null))
+            throw new Rejected(InvalidShape);
+
+        var sectionIds = new HashSet<int>();
+        var elementIds = new HashSet<int>();
+        return new LocalizedContentText(RequiredText(root, "Title"), RequiredText(root, "HeadLine"), RequiredText(root, "Abstract"), RequiredText(root, "Description"),
+            metadata.ValueKind == JsonValueKind.Null ? null
+                : new LocalizedMetadataText(RequiredId(metadata), RequiredText(metadata, "Title"), RequiredText(metadata, "Author"),
+                    RequiredText(metadata, "Keywords"), RequiredText(metadata, "Description")),
+            Objects(Required(root, "Sections")).Select(section => new LocalizedSectionText(UniqueId(section, sectionIds),
+                Objects(Required(section, "Elements")).Select(element => new LocalizedElementText(UniqueId(element, elementIds),
+                    RequiredText(element, "TinyText"), RequiredText(element, "EditorText"))).ToList())).ToList());
+    }
+
+    private static JsonElement Required(JsonElement json, string name) => Find(json, name) ?? throw new Rejected(MissingProperty);
+
+    // Distinguishes an explicit null (kept) from a missing property (rejected).
+    private static string RequiredText(JsonElement json, string name) => Required(json, name) switch
+    {
+        { ValueKind: JsonValueKind.Null } => null,
+        { ValueKind: JsonValueKind.String } value => value.GetString(),
+        _ => throw new Rejected(InvalidText)
+    };
+
+    private static int UniqueId(JsonElement json, HashSet<int> seen)
+    {
+        var id = RequiredId(json);
+        return seen.Add(id) ? id : throw new Rejected(DuplicateId);
+    }
 
     private static LocalizedContentText Extract(JsonElement root, Content master)
     {

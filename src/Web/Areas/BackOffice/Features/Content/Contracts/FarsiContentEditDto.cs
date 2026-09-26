@@ -23,6 +23,9 @@ namespace Web.Areas.BackOffice.Features.Content.Contracts
 
         public DateTime PublishDt { get; set; }
 
+        // ContentSourceFingerprint of the English source the form was rendered from.
+        public string SourceFingerprint { get; set; }
+
         public FarsiContentMetadataEditDto Metadata { get; set; }
         public List<FarsiSectionEditDto> Sections { get; set; }
     }

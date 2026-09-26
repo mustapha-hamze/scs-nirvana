@@ -92,10 +92,15 @@ public sealed class ContentContractsBindingTests : IClassFixture<TestWebApplicat
         var content = await SeedContentWithFarsiShapeAsync(applicationId);
         var section = content.Sections.Single();
         var element = section.Elements.Single();
+        // The source fingerprint the rendered form carries back on save.
+        var page = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{content.Id}/{content.TypeId}");
+        var fingerprint = System.Text.RegularExpressions.Regex.Match(page, "name=\"SourceFingerprint\" value=\"([0-9a-f]{64})\"").Groups[1].Value;
+        Assert.NotEmpty(fingerprint);
 
         var form = new Dictionary<string, string>
         {
             ["Id"] = content.Id.ToString(),
+            ["SourceFingerprint"] = fingerprint,
             ["Title"] = "Updated Farsi title",
             ["HeadLine"] = "Updated Farsi headline",
             ["Abstract"] = "Updated Farsi abstract",

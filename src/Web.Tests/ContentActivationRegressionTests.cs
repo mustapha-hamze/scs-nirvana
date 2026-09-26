@@ -226,15 +226,25 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.False(await Db(c => c.ContentTranslationJobs.AnyAsync(j => j.ContentId == contentId)));
     }
 
-    private static Task<HttpResponseMessage> SaveFarsi(HttpClient client, int contentId, string title) =>
-        client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(new System.Collections.Generic.Dictionary<string, string>
+    private async Task<HttpResponseMessage> SaveFarsi(HttpClient client, int contentId, string title) =>
+        await client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(new System.Collections.Generic.Dictionary<string, string>
         {
             ["Id"] = contentId.ToString(),
+            ["SourceFingerprint"] = await CurrentFingerprint(contentId),
             ["Title"] = title,
             // The form always posts the metadata node's hidden fields, even when master has none.
             ["Metadata.Id"] = "0",
             ["Metadata.ContentId"] = contentId.ToString()
         }));
+
+    private Task<Content> Master(int contentId) =>
+        Db(c => c.Contents.AsNoTracking().Include(x => x.Metadata).Include(x => x.Sections).ThenInclude(x => x.Elements).SingleAsync(x => x.Id == contentId));
+
+    private async Task<string> CurrentFingerprint(int contentId) => ContentSourceFingerprint.Compute(await Master(contentId));
+
+    // The fingerprint the rendered form will post back.
+    private static string FormFingerprint(string body) =>
+        System.Text.RegularExpressions.Regex.Match(body, "name=\"SourceFingerprint\" value=\"([0-9a-f]{64})\"").Groups[1].Value;
 
     private Task<ContentTranslation> Translation(int contentId) =>
         Db(c => c.ContentTranslations.IgnoreQueryFilters().SingleOrDefaultAsync(t => t.ContentId == contentId));
@@ -276,6 +286,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         var save = await client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(new System.Collections.Generic.Dictionary<string, string>
         {
             ["Id"] = contentId.ToString(),
+            ["SourceFingerprint"] = await CurrentFingerprint(contentId),
             ["Title"] = "FA",
             ["Description"] = "<p>FA <em>desc</em></p>",
             ["Metadata.Id"] = "0"
@@ -358,10 +369,12 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.DoesNotContain("999997", body);
         Assert.DoesNotContain("Farsi content was not found", body);
         Assert.Equal(before, await Snapshot(contentId));
+        Assert.Equal(await CurrentFingerprint(contentId), FormFingerprint(body));
 
         var save = await client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(new System.Collections.Generic.Dictionary<string, string>
         {
             ["Id"] = contentId.ToString(),
+            ["SourceFingerprint"] = FormFingerprint(body),
             ["Title"] = "FA-title-2",
             ["Metadata.Id"] = metadataId.ToString(),
             ["Metadata.Title"] = "FA-meta",
@@ -373,8 +386,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.Equal(HttpStatusCode.OK, save.StatusCode);
         Assert.Equal("Done", await save.Content.ReadAsStringAsync());
         var translation = await Translation(contentId);
-        var master = await Db(c => c.Contents.AsNoTracking().Include(x => x.Metadata).Include(x => x.Sections).ThenInclude(x => x.Elements).SingleAsync(x => x.Id == contentId));
-        Assert.Equal((TranslationStatus.Ready, ContentSourceFingerprint.Compute(master), "manual"),
+        Assert.Equal((TranslationStatus.Ready, await CurrentFingerprint(contentId), "manual"),
             (translation.TranslationStatus, translation.SourceFingerprint, translation.Provider));
         var text = LegacyFarsiContentParser.Deserialize(translation.LocalizedTextJson);
         Assert.Equal("FA-title-2", text.Title);
@@ -413,6 +425,84 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.Equal(before, await Snapshot(contentId));
         Assert.Equal(TranslationStatus.Stale, (await Translation(contentId)).TranslationStatus);
         Assert.Equal(HttpStatusCode.Conflict, (await Activate(client, contentId)).StatusCode);
+    }
+
+    // Parseable but incomplete canonical JSON is not a seed: the form falls back to legacy Farsi.
+    [Fact]
+    public async Task FarsiForm_IncompleteCanonical_FallsBackToLegacy_WithoutWriting()
+    {
+        var (client, applicationId) = await SignIn();
+        var (contentId, metadataId, keptSectionId, keptElementId, _) = await SeedStaleFarsi(applicationId);
+        await Db(async c =>
+        {
+            c.ContentTranslations.Add(new ContentTranslation
+            {
+                ContentId = contentId, CultureId = ActivationCultureId, TranslationStatus = TranslationStatus.Stale, SourceFingerprint = "old", IsActive = true,
+                // No headLine/abstract/description, no metadata text, element without editorText.
+                LocalizedTextJson = $$"""
+                    {"title":"CANON-title","metadata":{"id":{{metadataId}},"title":"CANON-meta"},
+                     "sections":[{"id":{{keptSectionId}},"elements":[{"id":{{keptElementId}},"tinyText":"CANON-kept"}]}]}
+                    """
+            });
+            return await c.SaveChangesAsync();
+        });
+        var before = await Snapshot(contentId);
+
+        var body = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+
+        Assert.DoesNotContain("CANON-", body);
+        Assert.Contains("FA-kept", body);
+        Assert.Contains("FA-meta", body);
+        Assert.Equal(before, await Snapshot(contentId));
+        Assert.Equal(TranslationStatus.Stale, (await Translation(contentId)).TranslationStatus);
+    }
+
+    // English edited between GET and save: the save conflicts instead of marking the Farsi,
+    // translated from the older source, as Ready for the new one.
+    [Theory]
+    [InlineData("text")]
+    [InlineData("layout")]
+    public async Task FarsiSave_AfterSourceChangedSinceGet_ConflictsAndWritesNothing(string change)
+    {
+        var (client, applicationId) = await SignIn();
+        var (contentId, metadataId, keptSectionId, keptElementId, legacy) = await SeedStaleFarsi(applicationId);
+        await Db(async c =>
+        {
+            c.ContentTranslations.Add(new ContentTranslation
+            {
+                ContentId = contentId, CultureId = ActivationCultureId, TranslationStatus = TranslationStatus.Stale, SourceFingerprint = "old", IsActive = true,
+                LocalizedTextJson = "{}"
+            });
+            return await c.SaveChangesAsync();
+        });
+        var body = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+        await Db(async c =>
+        {
+            if (change == "text")
+                (await c.SectionElements.SingleAsync(e => e.Id == keptElementId)).TinyText = "EN-kept-edited";
+            else
+                c.SectionElements.Add(new SectionElement { SectionId = keptSectionId, ElementType = 1000, TinyText = "EN-new" });
+            return await c.SaveChangesAsync();
+        });
+        var before = await Snapshot(contentId);
+
+        var save = await client.PostAsync("/BackOffice/Content/SaveFarsiContentForm", new FormUrlEncodedContent(new System.Collections.Generic.Dictionary<string, string>
+        {
+            ["Id"] = contentId.ToString(),
+            ["SourceFingerprint"] = FormFingerprint(body),
+            ["Title"] = "FA-title-2",
+            ["Metadata.Id"] = metadataId.ToString(),
+            ["Sections[0].Id"] = keptSectionId.ToString(),
+            ["Sections[0].SectionElements[0].Id"] = keptElementId.ToString(),
+            ["Sections[0].SectionElements[0].TinyText"] = "FA-kept-2",
+        }));
+
+        Assert.Equal(HttpStatusCode.Conflict, save.StatusCode);
+        Assert.Equal("SourceChanged", await TranslationState(save));
+        Assert.Equal(before, await Snapshot(contentId));
+        Assert.Equal(legacy, before.FarsiContent);
+        var translation = await Translation(contentId);
+        Assert.Equal((TranslationStatus.Stale, "old", "{}"), (translation.TranslationStatus, translation.SourceFingerprint, translation.LocalizedTextJson));
     }
 
     [Fact]

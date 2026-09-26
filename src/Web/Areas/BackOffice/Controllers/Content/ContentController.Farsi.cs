@@ -22,8 +22,11 @@ public partial class ContentController
     public async Task<IActionResult> FarsiContentForm(int id, int typeId)
     {
         var currentApplicationId = _currentApplicationContext.RequireApplicationId();
+        // Fingerprint before the form's source read: a source edit in between makes the save
+        // conflict rather than mark stale text Ready.
+        var sourceFingerprint = await _manualTranslation.GetSourceFingerprint(id, currentApplicationId);
         var englishContent = await _contentProvider.GetContentForTranslate(id, currentApplicationId);
-        if (englishContent == null)
+        if (sourceFingerprint == null || englishContent == null)
             return NotFound();
 
         var (source, usedEnglishFallback) = await GetFarsiEditSource(englishContent, currentApplicationId);
@@ -41,6 +44,7 @@ public partial class ContentController
             PublishDt = dto.PublishDt,
             Metadata = dto.Metadata,
             Sections = dto.Sections,
+            SourceFingerprint = sourceFingerprint,
             FarsiInitializedFromEnglish = usedEnglishFallback,
         };
         return View(model);
@@ -67,7 +71,8 @@ public partial class ContentController
 
         // Validated against the current master, then FarsiContent and the activation culture's
         // Ready ContentTranslation commit together; any failure leaves both unchanged.
-        var result = await _manualTranslation.Save(model.Id, _translationOptions.ActivationCultureId, currentApplicationId, baseContent, farsiJson);
+        var result = await _manualTranslation.Save(model.Id, _translationOptions.ActivationCultureId, currentApplicationId,
+            model.SourceFingerprint, baseContent, farsiJson);
         return result switch
         {
             ManualTranslationSaveResult.Saved => Content("Done"),
