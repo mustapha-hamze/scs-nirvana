@@ -132,6 +132,49 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
         Assert.DoesNotContain("btnRequestTranslation", body); // requires ChangeActivity
     }
 
+    // Tabs carry the full WAI-ARIA tab pattern server-side: tab/tabpanel pairs linked both ways,
+    // one selected tab in the Tab order (roving tabindex), and no pairs for permission-gated tabs.
+    [Fact]
+    public async Task ContentForm_Edit_PermissionLimitedTabs_RenderLinkedTabAndPanelPairs()
+    {
+        var (client, _, applicationId) = await SeedTenantMemberAsync(string.Join(',',
+            AccessKeys.Content.Edit, AccessKeys.Content.PreviewBody, AccessKeys.Content.PreviewRelations));
+        var contentId = await SeedContentAsync(applicationId);
+        await SeedApplicationSettingAsync(applicationId, 5000, "https://example.test");
+
+        var response = await client.GetAsync($"/BackOffice/Content/ContentForm/{contentId}/1000");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("class=\"nav nav-tabs scs-editor-tabs mb-0\" role=\"tablist\"", body);
+        Assert.Contains("<a href=\"#general\" id=\"tab-general\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"general\" aria-selected=\"true\" class=\"nav-link active\">", body);
+        Assert.Contains("<div class=\"tab-pane show active\" id=\"general\" role=\"tabpanel\" aria-labelledby=\"tab-general\" tabindex=\"0\">", body);
+        foreach (var pane in new[] { "body", "relations" })
+        {
+            Assert.Contains($"<a href=\"#{pane}\" id=\"tab-{pane}\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"{pane}\" aria-selected=\"false\" tabindex=\"-1\"", body);
+            Assert.Contains($"<div class=\"tab-pane\" id=\"{pane}\" role=\"tabpanel\" aria-labelledby=\"tab-{pane}\" tabindex=\"0\">", body);
+        }
+        foreach (var pane in new[] { "images", "attachment", "metadata" })
+        {
+            Assert.DoesNotContain($"id=\"tab-{pane}\"", body);
+            Assert.DoesNotContain($"aria-labelledby=\"tab-{pane}\"", body);
+        }
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(body, "aria-selected=\"true\""));
+        Assert.DoesNotContain("aria-expanded=\"", body[body.IndexOf("scs-editor-tabs")..body.IndexOf("scs-editor-panes")]);
+    }
+
+    [Fact]
+    public async Task ContentForm_Create_RendersOnlyTheGeneralTabPair()
+    {
+        var (client, _, _) = await SeedTenantMemberAsync(string.Join(',', AccessKeys.Content.Add, AccessKeys.Content.Save));
+
+        var body = await client.GetStringAsync("/BackOffice/Content/ContentForm/0/1000");
+
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(body, "role=\"tab\""));
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(body, "role=\"tabpanel\""));
+        Assert.Contains("aria-controls=\"general\" aria-selected=\"true\"", body);
+    }
+
     // ---- ContentList action controls ----
 
     [Fact]
@@ -263,6 +306,23 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
         Assert.Contains("alert-info", body);
         Assert.Contains("pre-filled from the English", body);
         Assert.Contains("id=\"hidTypeIdContent_Form\" value=\"1000\"", body);
+    }
+
+    [Fact]
+    public async Task FarsiContentForm_RendersLinkedTabAndPanelPairs()
+    {
+        var (client, _, applicationId) = await SeedTenantMemberAsync(AccessKeys.Content.EditFarsi);
+        var contentId = await SeedContentAsync(applicationId);
+
+        var body = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
+
+        Assert.Contains("role=\"tablist\" aria-label=\"Translation sections\"", body);
+        Assert.Contains("id=\"tab-general\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"general\" aria-selected=\"true\" class=\"nav-link active\"", body);
+        foreach (var pane in new[] { "body", "metadata" })
+            Assert.Contains($"id=\"tab-{pane}\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"{pane}\" aria-selected=\"false\" tabindex=\"-1\"", body);
+        Assert.Contains("<div class=\"tab-pane show active\" id=\"general\" role=\"tabpanel\" aria-labelledby=\"tab-general\" tabindex=\"0\">", body);
+        foreach (var pane in new[] { "body", "metadata" })
+            Assert.Contains($"<div class=\"tab-pane\" id=\"{pane}\" role=\"tabpanel\" aria-labelledby=\"tab-{pane}\" tabindex=\"0\">", body);
     }
 
     // ---- Sections ----

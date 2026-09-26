@@ -7,32 +7,32 @@
 {
     @if (Model.CanPreviewBody)
     {
-        <li class="nav-item">
-            <a href="#body" data-bs-toggle="tab" aria-expanded="true" class="nav-link">Body</a>
+        <li class="nav-item" role="presentation">
+            <a href="#body" id="tab-body" data-bs-toggle="tab" role="tab" aria-controls="body" aria-selected="false" tabindex="-1" class="nav-link">Body</a>
         </li>
     }
     @if (Model.CanPreviewImages)
     {
-        <li class="nav-item">
-            <a href="#images" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Images</a>
+        <li class="nav-item" role="presentation">
+            <a href="#images" id="tab-images" data-bs-toggle="tab" role="tab" aria-controls="images" aria-selected="false" tabindex="-1" class="nav-link">Images</a>
         </li>
     }
     @if (Model.CanPreviewAttachments)
     {
-        <li class="nav-item">
-            <a href="#attachment" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Attachments</a>
+        <li class="nav-item" role="presentation">
+            <a href="#attachment" id="tab-attachment" data-bs-toggle="tab" role="tab" aria-controls="attachment" aria-selected="false" tabindex="-1" class="nav-link">Attachments</a>
         </li>
     }
     @if (Model.CanPreviewRelations)
     {
-        <li class="nav-item">
-            <a href="#relations" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Relations</a>
+        <li class="nav-item" role="presentation">
+            <a href="#relations" id="tab-relations" data-bs-toggle="tab" role="tab" aria-controls="relations" aria-selected="false" tabindex="-1" class="nav-link">Relations</a>
         </li>
     }
     @if (Model.CanPreviewMetadata)
     {
-        <li class="nav-item">
-            <a href="#metadata" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Metadata</a>
+        <li class="nav-item" role="presentation">
+            <a href="#metadata" id="tab-metadata" data-bs-toggle="tab" role="tab" aria-controls="metadata" aria-selected="false" tabindex="-1" class="nav-link">Metadata</a>
         </li>
     }
 }

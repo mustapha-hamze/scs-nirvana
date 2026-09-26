@@ -40,8 +40,8 @@
 <div class="card scs-editor-card">
     <div class="card-body p-0">
     <ul class="nav nav-tabs scs-editor-tabs mb-0" role="tablist" aria-label="Content editor steps">
-        <li class="nav-item">
-            <a href="#general" data-bs-toggle="tab" aria-expanded="false" class="nav-link active">General</a>
+        <li class="nav-item" role="presentation">
+            <a href="#general" id="tab-general" data-bs-toggle="tab" role="tab" aria-controls="general" aria-selected="true" class="nav-link active">General</a>
         </li>
         @await Html.PartialAsync("_ContentFormTabs", Model)
     </ul>
@@ -50,7 +50,7 @@
         <p class="scs-editor-note"><i class="mdi mdi-lock-outline" aria-hidden="true"></i> Body, media, relations and metadata unlock after the first save.</p>
     }
     <div class="tab-content scs-editor-panes">
-        <div class="tab-pane show active" id="general">
+        <div class="tab-pane show active" id="general" role="tabpanel" aria-labelledby="tab-general" tabindex="0">
             <form class="needs-validation row g-4" novalidate id="frmContent" method="POST" asp-action="SaveContentForm">
                 <input type="hidden" asp-for="Id" id="hidContentId" />
                 <input type="hidden" asp-for="ApplicationId" />

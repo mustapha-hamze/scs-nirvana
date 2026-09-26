@@ -7,27 +7,27 @@
 {
     @if (Model.CanPreviewBody)
     {
-        <div class="tab-pane" id="body">
+        <div class="tab-pane" id="body" role="tabpanel" aria-labelledby="tab-body" tabindex="0">
 </div>
     }
     @if (Model.CanPreviewImages)
     {
-        <div class="tab-pane" id="images">
+        <div class="tab-pane" id="images" role="tabpanel" aria-labelledby="tab-images" tabindex="0">
 </div>
     }
     @if (Model.CanPreviewAttachments)
     {
-        <div class="tab-pane" id="attachment">
+        <div class="tab-pane" id="attachment" role="tabpanel" aria-labelledby="tab-attachment" tabindex="0">
 </div>
     }
     @if (Model.CanPreviewRelations)
     {
-        <div class="tab-pane" id="relations">
+        <div class="tab-pane" id="relations" role="tabpanel" aria-labelledby="tab-relations" tabindex="0">
 </div>
     }
     @if (Model.CanPreviewMetadata)
     {
-        <div class="tab-pane" id="metadata">
+        <div class="tab-pane" id="metadata" role="tabpanel" aria-labelledby="tab-metadata" tabindex="0">
 </div>
     }
 }

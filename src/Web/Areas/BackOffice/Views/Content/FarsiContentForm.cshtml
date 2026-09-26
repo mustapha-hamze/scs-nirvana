@@ -64,14 +64,14 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
 
 <div class="card scs-editor-card">
     <ul class="nav nav-tabs scs-editor-tabs mb-0" role="tablist" aria-label="Translation sections">
-        <li class="nav-item">
-            <a href="#general" data-bs-toggle="tab" aria-expanded="false" class="nav-link active">General</a>
+        <li class="nav-item" role="presentation">
+            <a href="#general" id="tab-general" data-bs-toggle="tab" role="tab" aria-controls="general" aria-selected="true" class="nav-link active">General</a>
         </li>
-        <li class="nav-item">
-            <a href="#body" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Body</a>
+        <li class="nav-item" role="presentation">
+            <a href="#body" id="tab-body" data-bs-toggle="tab" role="tab" aria-controls="body" aria-selected="false" tabindex="-1" class="nav-link">Body</a>
         </li>
-        <li class="nav-item">
-            <a href="#metadata" data-bs-toggle="tab" aria-expanded="false" class="nav-link">Metadata</a>
+        <li class="nav-item" role="presentation">
+            <a href="#metadata" id="tab-metadata" data-bs-toggle="tab" role="tab" aria-controls="metadata" aria-selected="false" tabindex="-1" class="nav-link">Metadata</a>
         </li>
     </ul>
 
@@ -80,7 +80,7 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
         <input type="hidden" asp-for="SourceFingerprint" />
 
         <div class="tab-content scs-editor-panes">
-            <div class="tab-pane show active" id="general">
+            <div class="tab-pane show active" id="general" role="tabpanel" aria-labelledby="tab-general" tabindex="0">
                 <div class="row">
                     <div class="col-md-12 mb-2">
                         <label class="form-label" asp-for="Title">Title</label>
@@ -106,7 +106,7 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                 </div>
             </div>
 
-            <div class="tab-pane" id="body">
+            <div class="tab-pane" id="body" role="tabpanel" aria-labelledby="tab-body" tabindex="0">
                 @* Sections/elements come in master order; layout, titles and media are master data. *@
                 @if (Model.Sections.Count > 0)
                 {
@@ -186,7 +186,7 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                 }
             </div>
 
-            <div class="tab-pane" id="metadata">
+            <div class="tab-pane" id="metadata" role="tabpanel" aria-labelledby="tab-metadata" tabindex="0">
                 @if (Model.Metadata != null)
                 {
                     var sourceMetadata = Model.Source.Metadata;

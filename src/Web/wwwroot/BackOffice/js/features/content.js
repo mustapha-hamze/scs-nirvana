@@ -913,3 +913,48 @@ function updateBodyLayout() {
     loadContentBody();
   });
 }
+
+// Editor tabs (English and Farsi forms): WAI-ARIA tabs with automatic activation.
+// Left/Right follow the tab bar's visual direction and wrap; Home/End jump to the ends.
+// Only rendered tabs take part, so permission-gated tabs that aren't in the DOM are skipped.
+function nextEditorTabIndex(index, count, key, isRtl) {
+  switch (key) {
+    case "Home":
+      return 0;
+    case "End":
+      return count - 1;
+    case "ArrowRight":
+      return (index + (isRtl ? count - 1 : 1)) % count;
+    case "ArrowLeft":
+      return (index + (isRtl ? 1 : count - 1)) % count;
+    default:
+      return -1;
+  }
+}
+
+function initEditorTabs(tablist) {
+  // Capture phase, so this runs instead of Bootstrap 5.3.0's per-tab arrow handler
+  // (no Home/End, no RTL) rather than moving focus a second time.
+  tablist.addEventListener(
+    "keydown",
+    function (event) {
+      var tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+      var index = tabs.indexOf(event.target);
+      if (index < 0) return;
+      var isRtl = getComputedStyle(tablist).direction === "rtl";
+      var next = nextEditorTabIndex(index, tabs.length, event.key, isRtl);
+      if (next < 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      tabs[next].focus();
+      bootstrap.Tab.getOrCreateInstance(tabs[next]).show();
+    },
+    true,
+  );
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".scs-editor-tabs").forEach(initEditorTabs);
+  });
+}
