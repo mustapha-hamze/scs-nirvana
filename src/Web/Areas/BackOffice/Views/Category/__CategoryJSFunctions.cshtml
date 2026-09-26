@@ -39,8 +39,11 @@
             $("#findCategoriesResultBody").html(data);
             $("#datatable-buttons").DataTable({
                 lengthChange: !1,
+                pageLength: 25,
                 buttons: ["copy", "print"],
+                order: [[1, "asc"]],
                 language: {
+                    zeroRecords: "No categories match your search. Try a shorter or different term.",
                     paginate: {
                         previous: "<i class='mdi mdi-chevron-left'>",
                         next: "<i class='mdi mdi-chevron-right'>"

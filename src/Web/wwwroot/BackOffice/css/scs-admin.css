@@ -384,6 +384,11 @@
     border-color: var(--scs-danger-solid);
 }
 
+/* MVC always renders the validation summary; keep it out of the layout until it holds errors. */
+.validation-summary-valid {
+    display: none;
+}
+
 /* Error text keeps an icon so the state is not signalled by colour alone. */
 .invalid-feedback {
     font-size: var(--scs-text-meta);
@@ -1067,6 +1072,95 @@
     max-width: 28rem;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Supporting CMS lists: long names truncate (full text in title) instead of widening the table. */
+.scs-cell-truncate {
+    max-width: 24rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.scs-cell-media {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--scs-space-2);
+    max-width: 100%;
+}
+
+.scs-cell-media > .scs-cell-truncate {
+    min-width: 0;
+}
+
+.scs-logo-thumb {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    padding: 2px;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-xs);
+    background: var(--scs-surface-muted);
+    object-fit: contain;
+}
+
+.scs-code {
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+}
+
+/* Schema logo field: bounded current-logo preview beside its replace action. */
+.scs-logo-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--scs-space-3);
+}
+
+.scs-logo-preview {
+    width: 8rem;
+}
+
+.scs-logo-preview .scs-media-thumb {
+    aspect-ratio: 1;
+    padding: var(--scs-space-2);
+}
+
+/* Slides are wide banners; a 16:9 box keeps any upload bounded. */
+.scs-media-card--wide .scs-media-thumb {
+    aspect-ratio: 16 / 9;
+}
+
+.scs-slide-caption {
+    display: grid;
+    gap: var(--scs-space-2);
+}
+
+.scs-slide-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--scs-space-2);
+    min-width: 0;
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+.scs-slide-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--scs-space-1);
+}
+
+.scs-slide-actions > .btn {
+    margin-right: auto;
+}
+
+/* Focused tool modals (schema fields, slides): stacked sections with one divider between them. */
+.scs-tool-section + .scs-tool-section {
+    margin-top: var(--scs-space-5);
+    padding-top: var(--scs-space-4);
+    border-top: 1px solid var(--scs-border);
 }
 
 .scs-backoffice .modal-content {

@@ -19,7 +19,7 @@
 
         console.log(frmCreateSliderItemForm);
 
-        $("#__btnCreateSliderItem__").html("Please wait ...");
+        $("#__btnCreateSliderItem__").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Saving");
         $("#__btnCreateSliderItem__").removeAttr("onclick");
         var frmCreateSliderItemForm = $("#__frmCreateSliderItemForm__");
         $.ajax({
@@ -45,10 +45,10 @@
             contentType: false
         }).done(function () {
             if ($("#__sliderItem_FRM_ImageFileName").val() == "") {
-                $("#__btnCreateSliderItem__").html("Create slider item");
+                $("#__btnCreateSliderItem__").html("Add slide");
                 $("#__btnCreateSliderItem__").attr("onclick", "createSliderItem()");
             } else {
-                $("#__btnUpdateSliderItem__").html("Update slider item");
+                $("#__btnUpdateSliderItem__").html("Save slide");
                 $("#__btnUpdateSliderItem__").attr("onclick", "updateSliderItem()");
             }
             sliderItems($("#__sliderItem_FRM_SliderId").val());
@@ -103,7 +103,7 @@
     }
 
     function createSlider() {
-        $("#__btnCreateSlider__").html("Please wait ...");
+        $("#__btnCreateSlider__").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Saving");
         $("#__btnCreateSlider__").removeAttr("onclick");
         var frmCreateSliderForm = $("#__frmCreateSliderForm__");
         $.ajax({
@@ -137,12 +137,35 @@
     }
 
     function deleteSliderItem(sliderItemId) {
-        $.ajax({
-            url: '/BackOffice/Slider/DeleteItem?sliderItemId=' + sliderItemId,
-            type: "DELETE"
-        }).done(function (data) {
-            sliderItems($("#__sliderItem_FRM_SliderId").val());
+        Swal.fire({
+            title: "Delete this slide?",
+            text: "The slide is removed from the slider. This can't be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "var(--scs-danger-solid)",
+            confirmButtonText: "Delete slide",
+            cancelButtonText: "Keep slide",
+            focusCancel: true
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            $.ajax({
+                url: '/BackOffice/Slider/DeleteItem?sliderItemId=' + sliderItemId,
+                type: "DELETE"
+            }).done(function (data) {
+                sliderItems($("#__sliderItem_FRM_SliderId").val());
+            });
         });
+    }
+
+    // Shows the chosen file in the form's bounded preview before it is uploaded.
+    function previewSliderItemImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const preview = $("#sliderItemImagePreview");
+        preview.find("img").attr({ src: URL.createObjectURL(file), alt: "Preview of " + file.name });
+        preview.find("figcaption").text(file.name + " (not saved yet)");
+        preview.prop("hidden", false);
+        $("#sliderItemImageEmpty").prop("hidden", true);
     }
 
     function editSliderItem(sliderItemId, sliderId) {
@@ -167,7 +190,7 @@
             }
         }
 
-        $("#__btnUpdateSliderItem__").html("Please wait ...");
+        $("#__btnUpdateSliderItem__").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Saving");
         $("#__btnUpdateSliderItem__").removeAttr("onclick");
         var frmCreateSliderItemForm = $("#__frmCreateSliderItemForm__");
         $.ajax({
@@ -178,7 +201,7 @@
             if (file != undefined) {
                 uploadSliderItemImage($("#__sliderItem_FRM_SliderId").val(), $("#__sliderItem_FRM_ImageFileName").val());
             } else {
-                $("#__btnUpdateSliderItem__").html("Update slider item");
+                $("#__btnUpdateSliderItem__").html("Save slide");
                 $("#__btnUpdateSliderItem__").attr("onclick", "updateSliderItem()");
             }
         });

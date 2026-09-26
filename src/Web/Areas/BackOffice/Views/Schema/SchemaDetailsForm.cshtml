@@ -5,21 +5,18 @@
 @using Application.UseCases.Utilities.ApplicationConst;
 @model Application.Contracts.CMS.SchemaDetailsDto
 
-<form class="needs-validation row" novalidate id="frmSchemaDetails" method="POST">
+<form class="needs-validation row g-3 align-items-start" novalidate id="frmSchemaDetails" method="POST">
     <input type="hidden" asp-for="SchemaId" id="hideSchemaId" value="@ViewData["SchemaId"]" />
     <div asp-validation-summary="All" class="text-danger">
     </div>
-    <div class="col-md-6 mb-2">
-        <label class="form-label" asp-for="Title">Title</label>
-        <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
-            maxlength="64">
-        <div class="invalid-feedback">
-            Min length is 4 and max length is 64
-        </div>
+    <div class="col-md-5">
+        <label class="form-label scs-required" asp-for="Title">Field label</label>
+        <input type="text" class="form-control" asp-for="Title" required minlength="4" maxlength="64">
+        <div class="invalid-feedback">Enter a label between 4 and 64 characters.</div>
     </div>
-    <div class="col-md-6 mb-2">
-        <label class="form-label" asp-for="TypeId">TypeId</label>
-        <select class="form-control" asp-for="TypeId">
+    <div class="col-sm-7 col-md-4">
+        <label class="form-label" asp-for="TypeId">Field type</label>
+        <select class="form-select" asp-for="TypeId">
             <option value="1000">Input Text</option>
             <option value="1001">Image</option>
             <option value="1002">Text Editor</option>
@@ -34,16 +31,15 @@
             <option value="1011">Headline 6</option>
         </select>
     </div>
-    <div class="col-md-6 mb-2">
-        <label class="form-label" asp-for="Size">Size</label>
-        <input type="text" class="form-control" asp-for="Size" required>
-        </select>
-        <div class="invalid-feedback">
-            It must be a number 1 between 12
-        </div>
+    <div class="col-sm-5 col-md-3">
+        <label class="form-label scs-required" asp-for="Size">Width</label>
+        <input type="number" class="form-control" asp-for="Size" required min="1" max="12" step="1"
+            aria-describedby="schemaFieldSizeHelp">
+        <div class="form-text" id="schemaFieldSizeHelp">Columns out of 12 in the editor.</div>
+        <div class="invalid-feedback">Enter a whole number from 1 to 12.</div>
     </div>
-    <div class="mb-3 col-md-12">
-        <a href="javascript: void(0);" id="btnSaveSchemaDetailsForm" class="btn btn-primary mt-2"
-            onclick="saveSchemaDetailsForm()"><i class="uil uil-file-check-alt"></i> Save Schema Detail</a>
+    <div class="col-12 scs-author-actions justify-content-end mt-2">
+        <button type="button" id="btnSaveSchemaDetailsForm" class="btn btn-primary"
+            onclick="saveSchemaDetailsForm()"><i class="uil uil-plus" aria-hidden="true"></i> Add field</button>
     </div>
 </form>

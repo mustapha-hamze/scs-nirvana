@@ -3,17 +3,29 @@
     Layout = null;
 }
 
-<div class="col-md-4">
-    <form action="" method="post" id="__frmCreateSliderForm__">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="ApplicationId" id="ApplicationId" value="@Model.ApplicationId">
-        <input type="text" class="form-control" placeholder="Title" id="Title" name="Title" value="">
-    </form>
-</div>
-<div class="col-md-8">
-    @if (Model.CanSave)
-    {
-        <button class="btn btn-primary" id="__btnCreateSlider__" onclick="createSlider()" type="button">Create
-            slider</button>
-    }
+<div class="card">
+    <div class="card-body">
+        <form action="" method="post" id="__frmCreateSliderForm__" class="row g-2 align-items-end" aria-labelledby="sliderCreateHeading">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ApplicationId" id="ApplicationId" value="@Model.ApplicationId">
+            <div class="col-12">
+                <h2 class="scs-section-title mb-0" id="sliderCreateHeading">New slider</h2>
+            </div>
+            <div class="col-md-6 col-lg-5">
+                <label class="form-label" for="Title">Slider title</label>
+                <input type="text" class="form-control" id="Title" name="Title" value=""
+                    autocomplete="off" @(Model.CanSave ? null : "disabled")>
+            </div>
+            <div class="col-md-auto">
+                @if (Model.CanSave)
+                {
+                    <button class="btn btn-primary w-100" id="__btnCreateSlider__" onclick="createSlider()" type="button">Create slider</button>
+                }
+                else
+                {
+                    <p class="scs-meta mb-2">You don't have permission to save sliders.</p>
+                }
+            </div>
+        </form>
+    </div>
 </div>

@@ -1,8 +1,9 @@
 @model SliderItemFormViewModel
 @{
     Layout = null;
+    var isEdit = Model.Id != 0;
 }
-<form action="" method="post" id="__frmCreateSliderItemForm__">
+<form action="" method="post" id="__frmCreateSliderItemForm__" class="row g-3">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="SliderId" id="__sliderItem_FRM_SliderId" value="@Model.SliderId">
     <input type="hidden" asp-for="CreatedDT" id="CreatedDT" value="@Model.CreatedDT">
@@ -11,53 +12,80 @@
     <input type="hidden" asp-for="IsActive" id="IsActive" value="@Model.IsActive">
     <input type="hidden" asp-for="ImageFileName" id="__sliderItem_FRM_ImageFileName" value="@Model.ImageFileName">
     <input type="hidden" asp-for="Id" id="__sliderItem_FRM_Id" value="@Model.Id">
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Title" id="Title" asp-for="Title" value="@Model.Title">
-        </div>
-        <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Link" id="Link" asp-for="Link" value="@Model.Link">
+    <div class="col-12">
+        <p class="scs-meta mb-0" role="status">
+            @if (isEdit)
+            {
+                <text>Editing <strong>@Model.Title</strong>. Save to apply your changes.</text>
+            }
+            else
+            {
+                <text>Adding a new slide. It starts inactive until you activate it.</text>
+            }
+        </p>
+    </div>
+    <div class="col-md-6 col-lg-12 col-xl-6">
+        @* The page's new-slider form also uses id="Title", so name this field by aria-labelledby. *@
+        <label class="form-label" id="sliderItemTitleLabel">Title</label>
+        <input type="text" class="form-control" id="Title" asp-for="Title" value="@Model.Title" aria-labelledby="sliderItemTitleLabel">
+    </div>
+    <div class="col-md-6 col-lg-12 col-xl-6">
+        <label class="form-label" for="Link">Link</label>
+        <input type="text" class="form-control" id="Link" asp-for="Link" value="@Model.Link" inputmode="url"
+            spellcheck="false" aria-describedby="sliderItemLinkHelp">
+        <div class="form-text" id="sliderItemLinkHelp">Where the slide goes when clicked. Optional.</div>
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="Description">Description</label>
+        <textarea class="form-control" id="Description" asp-for="Description" rows="3"></textarea>
+    </div>
+    <div class="col-12">
+        <label class="form-label@(isEdit ? "" : " scs-required")" for="sliderItemImage">@(isEdit ? "Replace image" : "Image")</label>
+        <input type="file" name="" id="sliderItemImage" class="form-control" accept=".jpg"
+            onchange="previewSliderItemImage(this)" aria-describedby="sliderItemImageHelp">
+        <div class="form-text" id="sliderItemImageHelp">
+            JPG (.jpg) only. @(isEdit ? "Leave empty to keep the current image." : "It uploads when you add the slide.")
         </div>
     </div>
-    <div class="row mb-3">
-        <div class="col-md-12">
-            <textarea type="text" class="form-control" placeholder="Description" id="Description" asp-for="Description"
-                value="@Model.Description"></textarea>
-        </div>
-    </div>
-    <div class="row mb-3">
-        <div class="col-md-12">
-            <input type="file" name="" id="sliderItemImage" class="form-control">
-        </div>
-        @if (Model.Id != 0)
+    <div class="col-12">
+        <figure class="scs-media-card scs-media-card--wide mb-0" id="sliderItemImagePreview" @(isEdit ? null : "hidden")>
+            <span class="scs-media-thumb">
+                @if (isEdit)
+                {
+                    <img asp-append-version="true"
+                        src="/Storage/Slider/@Model.SliderId/@Model.ImageFileName?@Model.ImageVersion" alt="Current image for @Model.Title">
+                }
+                else
+                {
+                    <img alt="">
+                }
+            </span>
+            <figcaption class="text-truncate">@(isEdit ? "Current image" : "")</figcaption>
+        </figure>
+        @if (!isEdit)
         {
-            <div class="col-md-12 mt-3">
-                <img asp-append-version="true" style="width: 100%;"
-                    src="/Storage/Slider/@Model.SliderId/@Model.ImageFileName?@Model.ImageVersion" alt="">
+            <div class="scs-empty-state scs-media-empty py-4" id="sliderItemImageEmpty">
+                <i class="mdi mdi-image-outline" aria-hidden="true"></i>
+                Choose a JPG to preview it here.
             </div>
         }
     </div>
 </form>
-<div class="row">
-    <div class="col-md-12">
-        @if (Model.CanCreateItem)
+<div class="scs-author-actions">
+    @if (Model.CanCreateItem)
+    {
+        if (Model.Id == 0)
         {
-            if (Model.Id == 0)
-            {
-                <button class="btn btn-primary" id="__btnCreateSliderItem__" onclick="createSliderItem()" type="button">Create
-                    slider item</button>
-            }
+            <button class="btn btn-primary" id="__btnCreateSliderItem__" onclick="createSliderItem()" type="button">Add slide</button>
         }
-        @if (Model.CanUpdateItem)
+    }
+    @if (Model.CanUpdateItem)
+    {
+        if (Model.Id != 0)
         {
-            if (Model.Id != 0)
-            {
-                <button class="btn btn-primary" id="__btnUpdateSliderItem__" onclick="updateSliderItem()" type="button">Update
-                    slider item</button>
-                <button class="btn btn-danger" id="__btnNewSliderItem__" onclick="getSliderItemsForm(@Model.SliderId)"
-                    type="button">New
-                    slider item</button>
-            }
+            <button class="btn btn-primary" id="__btnUpdateSliderItem__" onclick="updateSliderItem()" type="button">Save slide</button>
+            <button class="btn btn-outline-secondary" id="__btnNewSliderItem__" onclick="getSliderItemsForm(@Model.SliderId)"
+                type="button">New slide</button>
         }
-    </div>
+    }
 </div>

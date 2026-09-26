@@ -3,78 +3,95 @@
 }
 @using Application.UseCases.Utilities.ApplicationConst
 @model List<Application.Contracts.General.SystemTypeDto>
-<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
-    <thead>
-        <tr>
-            <td>Id</td>
-            <th>Type Group</th>
-            <th>Title</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            //var culture = await cultureServices.GetById(item.CultureId);
+@if (Model.Count == 0)
+{
+    <div class="scs-empty-state">
+        <i class="mdi mdi-shape-outline" aria-hidden="true"></i>
+        No types yet. Use Add Type to create the first one.
+    </div>
+}
+else
+{
+    <table id="datatable-buttons" class="table table-hover dt-responsive nowrap w-100">
+        <thead>
             <tr>
-                <td>@item.Id</td>
-                <td>
-                    @switch (item.TypeGroupId)
-                    {
-                        case TypeId.ContentSchema:
-                            <span>Content Schema</span>
-                            break;
-                        case TypeId.Content:
-                            <span>Content</span>
-                            break;
-                        case TypeId.PTEPropertyType:
-                            <span>Property</span>
-                            break;
-                        case TypeId.PTEDevelopmentType:
-                            <span>Development</span>
-                            break;
-                        case TypeId.Company:
-                            <span>Company</span>
-                            break;
-                        case TypeId.User:
-                            <span>User</span>
-                            break;
-                        case TypeId.PTEAttributeGroup:
-                            <span>PT Attribute Group</span>
-                            break;
-                        case TypeId.PTEAttributeGroupItem:
-                            <span>PT Attribute Group Item</span>
-                            break;
-                        case TypeId.PTEDevelopmentUsageType:
-                            <span>PT Development Usage Type</span>
-                            break;
-                        case TypeId.PTEDevelopmentDealType:
-                            <span>PT Development Deal Type</span>
-                            break;
-                        case TypeId.PTEDevelopmentConstructionType:
-                            <span>PT Development Construction Type</span>
-                            break;
-                        case TypeId.PTEDevelopmentAttachment:
-                            <span>PT Development Attachment</span>
-                            break;
-                        case TypeId.PTEPropertyAttachment:
-                            <span>PT Property Attachment</span>
-                            break;
-                        case TypeId.UserGroup:
-                            <span>User Group</span>
-                            break;
-                        case TypeId.SystemCustomMuddle:
-                            <span>System Custom Muddle</span>
-                            break;
-                    }
-                </td>
-                <td>@item.Title</td>
-                <td>
-                    <a href="javascript: void(0);" class="action-icon" title="Delete" aria-label="Delete @item.Title">
-                        <i class="mdi mdi-delete"></i>
-                    </a>
-                </td>
+                <th>Id</th>
+                <th>Type group</th>
+                <th>Title</th>
+                <th>Direction</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="scs-meta">@item.Id</td>
+                    <td>
+                        @switch (item.TypeGroupId)
+                        {
+                            case TypeId.ContentSchema:
+                                <span>Content Schema</span>
+                                break;
+                            case TypeId.Content:
+                                <span>Content</span>
+                                break;
+                            case TypeId.ContentAttachment:
+                                <span>Content Attachment</span>
+                                break;
+                            case TypeId.PTEPropertyType:
+                                <span>Property</span>
+                                break;
+                            case TypeId.PTEDevelopmentType:
+                                <span>Development</span>
+                                break;
+                            case TypeId.Company:
+                                <span>Company</span>
+                                break;
+                            case TypeId.User:
+                                <span>User</span>
+                                break;
+                            case TypeId.PTEAttributeGroup:
+                                <span>PT Attribute Group</span>
+                                break;
+                            case TypeId.PTEAttributeGroupItem:
+                                <span>PT Attribute Group Item</span>
+                                break;
+                            case TypeId.PTEDevelopmentUsageType:
+                                <span>PT Development Usage Type</span>
+                                break;
+                            case TypeId.PTEDevelopmentDealType:
+                                <span>PT Development Deal Type</span>
+                                break;
+                            case TypeId.PTEDevelopmentConstructionType:
+                                <span>PT Development Construction Type</span>
+                                break;
+                            case TypeId.PTEDevelopmentAttachment:
+                                <span>PT Development Attachment</span>
+                                break;
+                            case TypeId.PTEPropertyAttachment:
+                                <span>PT Property Attachment</span>
+                                break;
+                            case TypeId.UserGroup:
+                                <span>User Group</span>
+                                break;
+                            case TypeId.SystemCustomMuddle:
+                                <span>System Custom Muddle</span>
+                                break;
+                        }
+                    </td>
+                    <td class="scs-cell-truncate" title="@item.Title">@item.Title</td>
+                    <td>
+                        @if (item.IsRTL)
+                        {
+                            <span class="scs-status scs-status--info">Right to left</span>
+                        }
+                        else
+                        {
+                            <span class="scs-meta">Left to right</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

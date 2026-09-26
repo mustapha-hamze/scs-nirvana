@@ -110,6 +110,15 @@ Use these for editors built from tabs, such as the content editor and the Farsi 
 - **Repeatable sections**: `.scs-body-section` blocks with a `.scs-body-section-toolbar` of labelled `.scs-btn-icon` controls (move up/down, remove as `.is-danger`). Removal always goes through the SweetAlert confirm. Schema pickers are `<button class="scs-schema-tile">` in a `.scs-schema-picker` grid, so they work from the keyboard.
 - **Tables with DataTables**: render the table inside `.scs-table-wrap` and let DataTables supply search, sort, paging and export. Don't add separate filter controls. Set `language.emptyTable` / `zeroRecords` to plain sentences, make the actions column `orderable: false`, and give formatted dates a sortable `data-order`.
 
+## Supporting CMS modules
+
+Categories, schemas, sliders, tags, cultures, content types and application settings share one pattern.
+
+- **List page**: one `.card` > `.card-body` > `.scs-table-wrap#…ResultBody` under the standard page header. The list partial renders an `.scs-empty-state` (icon plus one sentence naming the page action) instead of an empty table. DataTables sorts by the name column, pages at 25, and sets `zeroRecords` for searches. Long names use `.scs-cell-truncate` with a `title`; dates carry a sortable `data-order`.
+- **Actions**: only render a control that has an endpoint behind it. Row actions are `<button class="action-icon">` with `aria-label`s that name the row; delete is last and `.is-danger`, behind a SweetAlert confirm whose button names the object ("Delete schema").
+- **Modal forms**: `.row.g-3` fields with `.scs-required` labels, `.form-text` help tied by `aria-describedby`, `.invalid-feedback` under the field, then `.scs-author-actions.justify-content-end` with a quiet Cancel (`data-bs-dismiss`) and one primary Save named by object. Close buttons use `aria-label="Close"`. The empty MVC validation summary (`.validation-summary-valid`) is hidden.
+- **Tool modals** (schema fields, slides): `modal-xl modal-dialog-scrollable` plus a `modal-fullscreen-*-down` breakpoint. Sections are `.scs-tool-section` with a `.scs-section-title`. Slides are `.scs-media-card.scs-media-card--wide` (16:9, contained) with an `.scs-status` and labelled Activate/Deactivate, Edit and Delete. A chosen image previews in the form before upload. The schema logo shows as `.scs-logo-thumb` in the list and `.scs-logo-preview` in the form. Keep row gutters at `gx-3` or less inside modals, because Hyper's `g-4` is wider than the modal padding.
+
 ## Accessibility and motion
 
 - Every link, button, tab, check and `[tabindex]` gets a 2px `--scs-focus-color` outline via `:focus-visible` (lightened on the dark sidebar). This overrides the theme's `outline: 0 !important`. Don't remove it.

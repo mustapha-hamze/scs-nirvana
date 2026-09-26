@@ -8,8 +8,12 @@
             $("#findSchemasResultBody").html(data);
             $("#datatable-buttons").DataTable({
                 lengthChange: !1,
+                pageLength: 25,
                 buttons: ["copy", "print"],
+                order: [[0, "asc"]],
+                columnDefs: [{ orderable: false, targets: -1 }],
                 language: {
+                    zeroRecords: "No schemas match your search. Try a shorter or different term.",
                     paginate: {
                         previous: "<i class='mdi mdi-chevron-left'>",
                         next: "<i class='mdi mdi-chevron-right'>"
@@ -95,7 +99,7 @@
             }).done(function (data) {
                 if (data === "Done") {
                     newSchemaDetailsForm($("#hideSchemaId").val());
-                    removeLoadingForBtn("btnSaveSchemaDetailsForm", "saveSchemaDetailsForm()", "Submit form");
+                    removeLoadingForBtn("btnSaveSchemaDetailsForm", "saveSchemaDetailsForm()", "<i class=\"uil uil-plus\" aria-hidden=\"true\"></i> Add field");
                 }
             });
         }
@@ -104,18 +108,19 @@
     function removeLogo() {
         $("#schemaLogoUploaderPlaceHolder").show();
         $("#schemaLogoPreviewPlaceHolder").hide();
-        $("#file-upload-SchemaLogo").attr("required", "required");
+        $("#file-upload-SchemaLogo").attr("required", "required").trigger("focus");
     }
 
     function deleteSchema(id) {
         Swal.fire({
-            title: "Are you sure?",
-            text: "You won't be able to revert this!",
+            title: "Delete this schema?",
+            text: "The schema is removed from this workspace. This can't be undone.",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: "Yes, delete it!"
+            confirmButtonColor: "var(--scs-danger-solid)",
+            confirmButtonText: "Delete schema",
+            cancelButtonText: "Keep schema",
+            focusCancel: true
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
