@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- SQL Server adapter for the Content Delivery SDK: implements IContentDeliveryClient directly
+       against the existing CMS schema. References no Core project (Domain/Application/
+       Infrastructure/Web); its EF model, DbContext and queries are internal, so consumers see only
+       Cms.ContentDelivery contracts plus the registration extension.
+       ContentDeliveryBoundaryTests enforces this. -->
+  <PropertyGroup>
+    <!-- net9.0 like the SDK, so net9 and net10 websites can both consume it. -->
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>Cms.ContentDelivery.SqlServer</AssemblyName>
+    <RootNamespace>Cms.ContentDelivery.SqlServer</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Kept on the 9.0 line so a net9 consumer is not forced onto net10 assemblies. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.20" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ContentDelivery\ContentDelivery.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Core.Tests" />
+  </ItemGroup>
+
+</Project>

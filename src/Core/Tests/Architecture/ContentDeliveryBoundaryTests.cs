@@ -203,9 +203,53 @@ public class ContentDeliveryBoundaryTests
     [InlineData(typeof(Domains.Entities.BaseEntity))]
     [InlineData(typeof(Application.Repository.IRepository<>))]
     [InlineData(typeof(Infrastructure.Data.ApplicationDbContext))]
+    [InlineData(typeof(Web.ReverseProxyOptions))]
     public void CoreLayers_DoNotDependOnTheSdk(Type typeFromAssembly)
     {
-        Assert.DoesNotContain(typeFromAssembly.Assembly.GetReferencedAssemblies(), a => a.Name == Sdk.GetName().Name);
+        var referenced = typeFromAssembly.Assembly.GetReferencedAssemblies().Select(a => a.Name).ToList();
+        Assert.DoesNotContain(Sdk.GetName().Name, referenced);
+        Assert.DoesNotContain(SqlAdapter.GetName().Name, referenced);
+    }
+
+    // The SQL adapter reads the CMS tables itself: it must not pull Core layers into websites, and
+    // its EF model/DbContext/queries stay internal - consumers see only the registration extension.
+    private static readonly Assembly SqlAdapter = typeof(SqlServerContentDeliveryServiceCollectionExtensions).Assembly;
+
+    [Fact]
+    public void SqlAdapter_ReferencesOnlyTheSdkEfCoreAndFramework()
+    {
+        var violations = SqlAdapter.GetReferencedAssemblies()
+            .Select(a => a.Name)
+            .Where(name => name != Sdk.GetName().Name
+                           && !AllowedReferencePrefixes.Any(prefix => name == prefix || name.StartsWith(prefix + "."))
+                           && !name.StartsWith("Microsoft.EntityFrameworkCore")
+                           && !name.StartsWith("Microsoft.Extensions."))
+            .ToList();
+
+        Assert.True(violations.Count == 0, $"Cms.ContentDelivery.SqlServer must not reference {string.Join(", ", violations)}.");
+    }
+
+    [Fact]
+    public void SqlAdapter_ExposesOnlyItsRegistration()
+    {
+        Assert.Equal(new[] { typeof(SqlServerContentDeliveryServiceCollectionExtensions) }, SqlAdapter.GetExportedTypes());
+
+        var surface = typeof(SqlServerContentDeliveryServiceCollectionExtensions)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .SelectMany(m => m.GetParameters().Select(p => p.ParameterType).Append(m.ReturnType));
+        Assert.All(surface, t => Assert.True(t.Namespace.StartsWith("System") || t.Namespace.StartsWith("Microsoft.Extensions"), t.FullName));
+    }
+
+    [Fact]
+    public void SqlAdapter_TargetsNet9_WithoutNewerAssemblies()
+    {
+        Assert.Equal(".NETCoreApp,Version=v9.0", SqlAdapter.GetCustomAttribute<TargetFrameworkAttribute>()?.FrameworkName);
+
+        var violations = SqlAdapter.GetReferencedAssemblies()
+            .Where(a => a.Name != "netstandard" && a.Version.Major > 9)
+            .Select(a => $"{a.Name} {a.Version}")
+            .ToList();
+        Assert.True(violations.Count == 0, $"A net9 consumer cannot satisfy: {string.Join(", ", violations)}.");
     }
 
     private static bool IsReadOnlyCollection(Type type) =>

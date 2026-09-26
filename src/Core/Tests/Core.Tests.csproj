@@ -28,6 +28,7 @@
          duplicating its controller list by hand. -->
     <ProjectReference Include="..\..\Web\Web.csproj" />
     <ProjectReference Include="..\ContentDelivery\ContentDelivery.csproj" />
+    <ProjectReference Include="..\ContentDelivery.SqlServer\ContentDelivery.SqlServer.csproj" />
   </ItemGroup>
 
 </Project>
