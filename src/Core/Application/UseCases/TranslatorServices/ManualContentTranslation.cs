@@ -13,7 +13,8 @@ public enum ManualTranslationSaveResult
     NotFound,
     CultureUnavailable,
 
-    // The edited graph doesn't match the current master (stale or tampered IDs/tree, or HTML).
+    // The edited text doesn't match the current master (stale or tampered IDs/tree, HTML, or text
+    // in a field its element type doesn't edit).
     InvalidStructure,
 
     // The (content, culture) translation row is soft-deleted; it's never resurrected.
@@ -40,31 +41,25 @@ public enum ManualTranslationSeed
 public record ManualTranslationEditor(Content Source, string SourceFingerprint, TranslationStatus? TranslationStatus,
     ManualTranslationSeed Seed, LocalizedContentText Text);
 
-// Manual (editor) translation save: keeps the legacy FarsiContent snapshot and the canonical
-// ContentTranslation for the activation culture in step. Validates before writing anything, and
-// both writes commit in one SaveChanges or not at all. Never calls the translation provider.
+// Manual (editor) translation: reads the editor model and saves the edited text as the activation
+// culture's canonical ContentTranslation. Validates everything before writing, never calls the
+// translation provider or queues work, and never touches the legacy Content.FarsiContent.
 public class ManualContentTranslation
 {
     public const string Provider = "manual";
 
+    // Element types whose text lives in TinyText / EditorText; every other type (image, gallery,
+    // file) has no editable text.
+    private static readonly HashSet<int> TinyTextTypes = new() { 1000, 1006, 1007, 1008, 1009, 1010, 1011 };
+    private static readonly HashSet<int> EditorTextTypes = new() { 1002, 1005 };
+
     private readonly IContentTranslationJobRepository _translations;
-    private readonly IContentCommandRepository _contentCommands;
     private readonly TimeProvider _timeProvider;
 
-    public ManualContentTranslation(IContentTranslationJobRepository translations, IContentCommandRepository contentCommands, TimeProvider timeProvider)
+    public ManualContentTranslation(IContentTranslationJobRepository translations, TimeProvider timeProvider)
     {
         _translations = translations;
-        _contentCommands = contentCommands;
         _timeProvider = timeProvider;
-    }
-
-    // Read-only: the current source fingerprint the editor must send back on save, or null when
-    // the content isn't the application's.
-    public async Task<string> GetSourceFingerprint(int contentId, int applicationId, CancellationToken cancellationToken = default)
-    {
-        if (!await _translations.ContentBelongsToApplication(contentId, applicationId, cancellationToken))
-            return null;
-        return await _translations.FindSourceGraph(contentId, cancellationToken) is { } master ? ContentSourceFingerprint.Compute(master) : null;
     }
 
     // Read-only: null when the content isn't the application's. Text is seeded from the usable
@@ -118,23 +113,10 @@ public class ManualContentTranslation
                 .ToList());
     }
 
-    // Read-only: the canonical translation text the editor should start from, or null when the
-    // content isn't the application's or there's no usable (non-deleted, structurally valid)
-    // payload. Any status qualifies - it only seeds the form; saving re-validates and sets Ready.
-    public async Task<LocalizedContentText> GetStoredText(int contentId, int cultureId, int applicationId, CancellationToken cancellationToken = default)
-    {
-        if (cultureId == 0 || !await _translations.ContentBelongsToApplication(contentId, applicationId, cancellationToken))
-            return null;
-
-        var translation = await _translations.FindTranslation(contentId, cultureId, cancellationToken);
-        return translation is { IsDeleted: false } ? LegacyFarsiContentParser.ReadStored(translation.LocalizedTextJson) : null;
-    }
-
-    // expectedSourceFingerprint: GetSourceFingerprint as of when the editor loaded; translatedGraph:
-    // the edited translation as a Content graph; farsiContentJson: its legacy FarsiContent
-    // serialization, stored unchanged for the deferred read cutover.
+    // expectedSourceFingerprint: the editor's SourceFingerprint as of when it loaded; text: the
+    // edited text keyed by master IDs, only the fields each element type edits.
     public async Task<ManualTranslationSaveResult> Save(int contentId, int cultureId, int applicationId, string expectedSourceFingerprint,
-        Content translatedGraph, string farsiContentJson, CancellationToken cancellationToken = default)
+        LocalizedContentText text, CancellationToken cancellationToken = default)
     {
         if (!await _translations.ContentBelongsToApplication(contentId, applicationId, cancellationToken))
             return ManualTranslationSaveResult.NotFound;
@@ -148,7 +130,7 @@ public class ManualContentTranslation
         var fingerprint = ContentSourceFingerprint.Compute(master);
         if (!string.Equals(fingerprint, expectedSourceFingerprint, StringComparison.Ordinal))
             return ManualTranslationSaveResult.SourceChanged;
-        if (translatedGraph?.Id != contentId || TranslationSourceDocument.ToLocalizedTextJson(master, translatedGraph) is not { } localizedTextJson)
+        if (TranslationSourceDocument.ToLocalizedTextJson(master, text) is not { } localizedTextJson || !EditsOnlyTextFields(master, text))
             return ManualTranslationSaveResult.InvalidStructure;
 
         var translation = await _translations.FindTranslation(contentId, cultureId, cancellationToken);
@@ -168,10 +150,18 @@ public class ManualContentTranslation
         translation.TranslatedAt = _timeProvider.GetUtcNow().UtcDateTime;
         translation.Error = null;
 
-        await _contentCommands.UpdateFarsiContent(contentId, farsiContentJson, cancellationToken);
-
         // A source edit committed after the master read leaves this row's fingerprint behind, so
         // it reads as Stale - never as Ready for the newer source.
         return await _translations.TrySaveChanges(cancellationToken) ? ManualTranslationSaveResult.Saved : ManualTranslationSaveResult.Conflict;
+    }
+
+    // Expects text already matched to master's tree: each element may only carry text in the
+    // field its master type edits.
+    private static bool EditsOnlyTextFields(Content master, LocalizedContentText text)
+    {
+        var types = (master.Sections ?? Enumerable.Empty<ContentSection>()).SelectMany(s => s.Elements ?? Enumerable.Empty<SectionElement>())
+            .ToDictionary(e => e.Id, e => e.ElementType);
+        return (text.Sections ?? new List<LocalizedSectionText>()).SelectMany(s => s.Elements).All(e =>
+            (e.TinyText == null || TinyTextTypes.Contains(types[e.Id])) && (e.EditorText == null || EditorTextTypes.Contains(types[e.Id])));
     }
 }

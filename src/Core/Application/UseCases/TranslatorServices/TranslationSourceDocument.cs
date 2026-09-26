@@ -39,38 +39,24 @@ public static class TranslationSourceDocument
                 .ToList()), Options);
     }
 
-    // The LocalizedTextJson payload for a manually translated Content graph (e.g. the legacy
-    // FarsiContent editor's), or null unless it has exactly master's metadata/section/element IDs
-    // and tree, string-or-null text and master's HTML structure wherever both have text.
-    // Section order is taken from master, so only the ID sets have to match.
-    public static string ToLocalizedTextJson(Content master, Content translated)
+    // The LocalizedTextJson payload for manually edited text, or null unless it has exactly
+    // master's metadata/section/element IDs and tree, and master's HTML structure wherever both
+    // have text (text may be null either way). Sections/elements are compared in master's order,
+    // so only the ID sets and nesting have to match.
+    public static string ToLocalizedTextJson(Content master, LocalizedContentText translated)
     {
-        if (translated == null)
+        var sections = translated?.Sections ?? new List<LocalizedSectionText>();
+        if (translated == null || sections.Any(s => s?.Elements == null || s.Elements.Contains(null)))
             return null;
 
         var masterPriorities = (master.Sections ?? Enumerable.Empty<ContentSection>()).ToDictionary(s => s.Id, s => s.Priority);
-        var metadata = translated.Metadata;
-        // The editor posts an Id-0 metadata node when master has none; it's only droppable empty.
-        if (master.Metadata == null && metadata is { Id: 0, Title: null, Author: null, Keywords: null, Description: null })
-            metadata = null;
+        var translatedJson = JsonSerializer.Serialize(new Document(master.Id, translated.Title, translated.HeadLine, translated.Abstract,
+            translated.Description, translated.Metadata,
+            sections.OrderBy(s => masterPriorities.TryGetValue(s.Id, out var priority) ? priority : int.MaxValue).ThenBy(s => s.Id)
+                .Select(s => s with { Elements = s.Elements.OrderBy(e => e.Id).ToList() })
+                .ToList()), Options);
 
-        var projected = new Content
-        {
-            Id = translated.Id, Title = translated.Title, HeadLine = translated.HeadLine, Abstract = translated.Abstract,
-            Description = translated.Description, Metadata = metadata,
-            Sections = (translated.Sections ?? Enumerable.Empty<ContentSection>())
-                .Select(s => new ContentSection
-                {
-                    Id = s.Id,
-                    Priority = masterPriorities.TryGetValue(s.Id, out var priority) ? priority : int.MaxValue,
-                    Elements = s.Elements
-                })
-                .ToList()
-        };
-
-        var document = Serialize(master);
-        var translatedJson = Serialize(projected);
-        return TranslationOutputValidator.Validate(document, translatedJson, TranslatableFields, allowNullText: true) == null
+        return TranslationOutputValidator.Validate(Serialize(master), translatedJson, TranslatableFields, allowNullText: true) == null
             ? ToLocalizedText(translatedJson)
             : null;
     }

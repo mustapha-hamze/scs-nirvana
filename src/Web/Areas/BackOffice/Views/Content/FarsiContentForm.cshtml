@@ -13,6 +13,12 @@
             text-align: right !important;
             direction: rtl !important;
         }
+
+        .source-text {
+            white-space: pre-wrap;
+            direction: ltr;
+            text-align: left;
+        }
     </style>
 }
 
@@ -25,11 +31,26 @@
     </div>
 </div>
 
-@if (Model.FarsiInitializedFromEnglish)
+@* English source shown read-only (encoded, so HTML tags stay visible for the translator) under each Farsi field. *@
+@functions {
+    private static string SourceText(string text) => string.IsNullOrEmpty(text) ? "(empty)" : text;
+}
+
+<div class="alert alert-secondary mt-2 mb-0" role="status" id="farsiTranslationStatus">
+    Translation status: <strong>@(Model.TranslationStatus?.ToString() ?? "Not translated")</strong>
+</div>
+
+@if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslationSeed.Source)
 {
     <div class="alert alert-info mt-2" role="alert">
         Farsi content was not found (or was invalid). The fields below have been pre-filled from the English
         content as a starting point.
+    </div>
+}
+else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslationSeed.Legacy)
+{
+    <div class="alert alert-info mt-2" role="alert">
+        The fields below were pre-filled from the historical Farsi content. Saving stores them as the current translation.
     </div>
 }
 
@@ -65,25 +86,30 @@
                     <div class="col-md-12 mb-2">
                         <label class="form-label" asp-for="Title">Title</label>
                         <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Title" maxlength="256">
+                        <small class="text-muted d-block source-text">EN: @SourceText(Model.Source.Title)</small>
                     </div>
                     <div class="col-md-12 mb-2">
                         <label class="form-label" asp-for="HeadLine">Head Line</label>
                         <textarea class="form-control fa---elements" dir="rtl" asp-for="HeadLine" maxlength="2048"></textarea>
+                        <small class="text-muted d-block source-text">EN: @SourceText(Model.Source.HeadLine)</small>
                     </div>
                     <div class="col-md-12 mb-2">
                         <label class="form-label" asp-for="Abstract">Abstract</label>
                         <textarea class="form-control fa---elements" dir="rtl" asp-for="Abstract" maxlength="2048"></textarea>
+                        <small class="text-muted d-block source-text">EN: @SourceText(Model.Source.Abstract)</small>
                     </div>
                     <div class="col-md-12 mb-2">
                         <label class="form-label" asp-for="Description">Description</label>
                         <textarea class="form-control" asp-for="Description" style="display: none;" id="textAreaDescriptionFA"></textarea>
                         <div id="__descriptionEditorFA__" class="fa---elements" style="height: 300px;"></div>
+                        <small class="text-muted d-block source-text">EN: @SourceText(Model.Source.Description)</small>
                     </div>
                 </div>
             </div>
 
             <div class="tab-pane" id="body">
-                @if (Model.Sections != null && Model.Sections.Count > 0)
+                @* Sections/elements come in master order; layout, titles and media are master data. *@
+                @if (Model.Sections.Count > 0)
                 {
                     @for (int s = 0; s < Model.Sections.Count; s++)
                     {
@@ -92,11 +118,11 @@
                         <div class="row mb-2 border pt-2 pb-1">
                             @for (int e = 0; e < section.SectionElements.Count; e++)
                             {
-                                var element = section.SectionElements[e];
+                                var source = Model.SourceElements[section.SectionElements[e].Id];
                                 <input type="hidden" asp-for="Sections[s].SectionElements[e].Id" />
-                                <div class="col-md-@element.Size mb-1">
-                                    <label class="mb-1">@element.ElementTitle</label>
-                                    @switch (element.ElementType)
+                                <div class="col-md-@source.Size mb-1">
+                                    <label class="mb-1">@source.ElementTitle</label>
+                                    @switch (source.ElementType)
                                     {
                                         case 1000:
                                         case 1006:
@@ -107,6 +133,7 @@
                                         case 1011:
                                             <input type="text" class="form-control fa---elements" dir="rtl" maxlength="256"
                                                    asp-for="Sections[s].SectionElements[e].TinyText" />
+                                            <small class="text-muted d-block source-text">EN: @SourceText(source.TinyText)</small>
                                             break;
                                         case 1002:
                                             var quillId = "__farsiEditor_" + s + "_" + e + "__";
@@ -115,17 +142,19 @@
                                                       asp-for="Sections[s].SectionElements[e].EditorText"></textarea>
                                             <div id="@quillId" class="fa---elements farsi-rich-editor" data-target="@textAreaId"
                                                  style="height: 250px;"></div>
+                                            <small class="text-muted d-block source-text">EN: @SourceText(source.EditorText)</small>
                                             break;
                                         case 1005:
                                             <textarea class="form-control fa---elements" dir="rtl"
                                                       asp-for="Sections[s].SectionElements[e].EditorText"></textarea>
+                                            <small class="text-muted d-block source-text">EN: @SourceText(source.EditorText)</small>
                                             break;
                                         case 1001:
-                                            <img src="/Storage/Section/Images/@element.FileNameText" class="w-100" />
+                                            <img src="/Storage/Section/Images/@source.FileNameText" class="w-100" />
                                             <small class="text-muted d-block">Preserved from source content (not editable here)</small>
                                             break;
                                         case 1003:
-                                            var images = (element.GalleryImages ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries);
+                                            var images = (source.GalleryImages ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries);
                                             <div class="row">
                                                 @foreach (var galleryImage in images)
                                                 {
@@ -140,7 +169,7 @@
                                             <div class="card text-white bg-success overflow-hidden">
                                                 <div class="card-body">
                                                     <div class="toll-free-box text-center">
-                                                        <h4><i class="mdi mdi-file-cabinet"></i>@element.FileNameText</h4>
+                                                        <h4><i class="mdi mdi-file-cabinet"></i>@source.FileNameText</h4>
                                                     </div>
                                                 </div>
                                             </div>
@@ -159,26 +188,37 @@
             </div>
 
             <div class="tab-pane" id="metadata">
-                <div class="row">
-                    <input type="hidden" asp-for="Metadata.Id" />
-                    <input type="hidden" asp-for="Metadata.ContentId" />
-                    <div class="col-md-6 mb-2">
-                        <label class="form-label" asp-for="Metadata.Title">Title</label>
-                        <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Metadata.Title" maxlength="256">
+                @if (Model.Metadata != null)
+                {
+                    var sourceMetadata = Model.Source.Metadata;
+                    <div class="row">
+                        <input type="hidden" asp-for="Metadata.Id" />
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label" asp-for="Metadata.Title">Title</label>
+                            <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Metadata.Title" maxlength="256">
+                            <small class="text-muted d-block source-text">EN: @SourceText(sourceMetadata.Title)</small>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label" asp-for="Metadata.Author">Author</label>
+                            <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Metadata.Author" maxlength="128">
+                            <small class="text-muted d-block source-text">EN: @SourceText(sourceMetadata.Author)</small>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="form-label" asp-for="Metadata.Keywords">Keywords</label>
+                            <textarea class="form-control fa---elements" dir="rtl" asp-for="Metadata.Keywords" maxlength="1024"></textarea>
+                            <small class="text-muted d-block source-text">EN: @SourceText(sourceMetadata.Keywords)</small>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="form-label" asp-for="Metadata.Description">Description</label>
+                            <textarea class="form-control fa---elements" dir="rtl" asp-for="Metadata.Description" maxlength="2048"></textarea>
+                            <small class="text-muted d-block source-text">EN: @SourceText(sourceMetadata.Description)</small>
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-2">
-                        <label class="form-label" asp-for="Metadata.Author">Author</label>
-                        <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Metadata.Author" maxlength="128">
-                    </div>
-                    <div class="col-md-12 mb-2">
-                        <label class="form-label" asp-for="Metadata.Keywords">Keywords</label>
-                        <textarea class="form-control fa---elements" dir="rtl" asp-for="Metadata.Keywords" maxlength="1024"></textarea>
-                    </div>
-                    <div class="col-md-12 mb-2">
-                        <label class="form-label" asp-for="Metadata.Description">Description</label>
-                        <textarea class="form-control fa---elements" dir="rtl" asp-for="Metadata.Description" maxlength="2048"></textarea>
-                    </div>
-                </div>
+                }
+                else
+                {
+                    <p class="text-muted">This content has no metadata.</p>
+                }
             </div>
         </div>
 
@@ -234,10 +274,30 @@
             }).fail(function (xhr) {
                 removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt"></i> Save');
                 if (xhr.status === 409 && xhr.responseJSON)
-                    messageBox("Not saved", "Farsi content was not saved (" + xhr.responseJSON.translationState + "). Reload the page and try again.", "warning");
+                    messageBox("Not saved", farsiSaveFailure(xhr.responseJSON.translationState), "warning");
+                else if (xhr.status === 404)
+                    messageBox("Not saved", "This content no longer exists.", "error");
                 else
                     messageBox("Error!", "Farsi content has not been saved", "error");
             });
+        }
+
+        // Nothing is written on any of these; the translator's text stays in the form.
+        function farsiSaveFailure(state) {
+            switch (state) {
+                case "SourceChanged":
+                    return "The English source changed since this page was loaded. Copy your text, reload, and review it against the current source.";
+                case "InvalidStructure":
+                    return "The translation doesn't match the current content layout, or its HTML differs from the English source. Reload the page and check the formatted fields.";
+                case "TranslationDeleted":
+                    return "The Farsi translation for this content was deleted and can't be edited here.";
+                case "CultureUnavailable":
+                    return "The Farsi culture isn't configured.";
+                case "Conflict":
+                    return "Someone else saved this translation first. Reload the page and try again.";
+                default:
+                    return "Farsi content was not saved (" + state + "). Reload the page and try again.";
+            }
         }
     </script>
 }

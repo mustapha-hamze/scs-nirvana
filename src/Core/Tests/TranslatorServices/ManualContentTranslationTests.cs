@@ -15,7 +15,6 @@ public class ManualContentTranslationTests : IDisposable
 {
     private const int ApplicationId = 1;
     private const string LegacyFarsi = "{\"Title\":\"legacy\"}";
-    private const string NewFarsi = "{\"Title\":\"manual\"}";
     private static readonly DateTime Now = new(2026, 9, 24, 12, 0, 0, DateTimeKind.Utc);
 
     private readonly SqliteContextFactory _factory = new();
@@ -44,30 +43,35 @@ public class ManualContentTranslationTests : IDisposable
         (_contentId, _cultureId) = (content.Id, culture.Id);
     }
 
-    // The editor's graph: a copy of the current master with translated text.
-    private async Task<Content> Translated(Action<Content> edit = null)
+    // What the editor posts: the text it rendered (seeded from source here) with translated text,
+    // only in the fields each element type edits.
+    private async Task<LocalizedContentText> Translated(Func<LocalizedContentText, LocalizedContentText> edit = null)
     {
-        await using var context = _factory.CreateContext();
-        var graph = await new ContentTranslationJobRepository(context).FindSourceGraph(_contentId);
-        graph.Title = "عنوان";
-        graph.Description = "<p>شرح <strong>کامل</strong></p>";
-        graph.Metadata.Author = "نویسنده"; // text the source doesn't have
-        graph.HeadLine = null;             // left blank by the editor
-        graph.Sections.Single(s => s.Priority == 2).Elements.Single(e => e.ElementType == 1002).EditorText = "<p>متن</p>";
-        edit?.Invoke(graph);
-        return graph;
+        var rendered = (await Editor()).Text;
+        var body = rendered.Sections.Single(s => s.Elements.Count == 2);
+        var text = rendered with
+        {
+            Title = "عنوان",
+            Description = "<p>شرح <strong>کامل</strong></p>",
+            Metadata = rendered.Metadata with { Author = "نویسنده" }, // text the source doesn't have
+            HeadLine = null, // left blank by the editor
+            Sections = rendered.Sections.Select(s => s == body
+                ? s with { Elements = new List<LocalizedElementText> { s.Elements[0] with { TinyText = "ریز" }, s.Elements[1] with { EditorText = "<p>متن</p>" } } }
+                : s).ToList()
+        };
+        return edit == null ? text : edit(text);
     }
 
     // expectedFingerprint defaults to the current source's, i.e. an editor loaded just now.
-    private async Task<ManualTranslationSaveResult> Save(Content graph, int? cultureId = null, int applicationId = ApplicationId, string expectedFingerprint = null)
+    private async Task<ManualTranslationSaveResult> Save(LocalizedContentText text, int? cultureId = null, int applicationId = ApplicationId, string expectedFingerprint = null)
     {
         expectedFingerprint ??= await Fingerprint();
         await using var context = _factory.CreateContext();
-        return await Sut(context).Save(_contentId, cultureId ?? _cultureId, applicationId, expectedFingerprint, graph, NewFarsi);
+        return await Sut(context).Save(_contentId, cultureId ?? _cultureId, applicationId, expectedFingerprint, text);
     }
 
     private static ManualContentTranslation Sut(ApplicationDbContext context) =>
-        new(new ContentTranslationJobRepository(context), new ContentCommandRepository(context), new FakeTimeProvider(Now));
+        new(new ContentTranslationJobRepository(context), new FakeTimeProvider(Now));
 
     private async Task<T> Read<T>(Func<ApplicationDbContext, Task<T>> read)
     {
@@ -76,6 +80,8 @@ public class ManualContentTranslationTests : IDisposable
     }
 
     private Task<string> Legacy() => Read(c => c.Contents.Where(x => x.Id == _contentId).Select(x => x.FarsiContent).SingleAsync());
+
+    private Task<DateTime> ContentUpdated() => Read(c => c.Contents.Where(x => x.Id == _contentId).Select(x => x.UpdatedDT).SingleAsync());
 
     private Task<ContentTranslation> Row() => Read(c => c.ContentTranslations.IgnoreQueryFilters().SingleOrDefaultAsync());
 
@@ -107,14 +113,17 @@ public class ManualContentTranslationTests : IDisposable
     }
 
     [Fact]
-    public async Task ValidSave_PersistsLegacyAndReadyTranslation_AndIsImmediatelyActivatable()
+    public async Task ValidSave_WritesOnlyCurrentReadyTranslation_AndIsImmediatelyActivatable()
     {
         await Seed();
         await AddRow(TranslationStatus.Stale);
+        var updated = await ContentUpdated();
 
         Assert.Equal(ManualTranslationSaveResult.Saved, await Save(await Translated()));
 
-        Assert.Equal(NewFarsi, await Legacy());
+        // Legacy FarsiContent keeps its exact bytes and the content row isn't touched.
+        Assert.Equal((LegacyFarsi, updated), (await Legacy(), await ContentUpdated()));
+        Assert.False(await Read(c => c.ContentTranslationJobs.AnyAsync()));
         var row = await Row();
         Assert.Equal((TranslationStatus.Ready, await Fingerprint(), ManualContentTranslation.Provider, null, Now, null),
             (row.TranslationStatus, row.SourceFingerprint, row.Provider, row.Model, row.TranslatedAt, row.Error));
@@ -123,34 +132,55 @@ public class ManualContentTranslationTests : IDisposable
         // Sections follow master order (priority), not the editor's.
         Assert.Equal(2, text.Sections.Count);
         Assert.Empty(text.Sections[0].Elements);
-        Assert.Contains(text.Sections[1].Elements, e => e.EditorText == "<p>متن</p>");
+        Assert.Equal(new[] { ("ریز", (string)null), (null, "<p>متن</p>") }, text.Sections[1].Elements.Select(e => (e.TinyText, e.EditorText)));
 
         var state = await Read(c => new ContentTranslationRequests(new ContentTranslationJobRepository(c), new FakeTimeProvider(Now)).GetState(_contentId, _cultureId, ApplicationId));
         Assert.Equal(ContentTranslationState.Ready, state);
     }
 
-    public static TheoryData<string, Action<Content>> InvalidEdits => new()
+    [Fact]
+    public async Task ValidSave_SectionsInAnyOrder_AreStoredInMasterOrder()
     {
-        { "extra section (deleted since the editor loaded)", g => g.Sections.Add(new ContentSection { Id = 999, Elements = new List<SectionElement>() }) },
-        { "missing section", g => g.Sections.Remove(g.Sections.First()) },
-        { "missing element", g => g.Sections.Single(s => s.Priority == 2).Elements.Remove(g.Sections.Single(s => s.Priority == 2).Elements.First()) },
-        { "element moved to another section", g =>
+        await Seed();
+
+        Assert.Equal(ManualTranslationSaveResult.Saved, await Save(await Translated(t => t with { Sections = Enumerable.Reverse(t.Sections).ToList() })));
+
+        Assert.Empty(LegacyFarsiContentParser.Deserialize((await Row()).LocalizedTextJson).Sections[0].Elements);
+    }
+
+    private static LocalizedSectionText Body(LocalizedContentText t) => t.Sections.Single(s => s.Elements.Count == 2);
+
+    private static LocalizedContentText WithBody(LocalizedContentText t, Func<LocalizedSectionText, LocalizedSectionText> edit) =>
+        t with { Sections = t.Sections.Select(s => s == Body(t) ? edit(s) : s).ToList() };
+
+    public static TheoryData<string, Func<LocalizedContentText, LocalizedContentText>> InvalidEdits => new()
+    {
+        { "extra section (deleted since the editor loaded)", t => t with { Sections = t.Sections.Append(new LocalizedSectionText(999, new List<LocalizedElementText>())).ToList() } },
+        { "missing section", t => t with { Sections = t.Sections.Skip(1).ToList() } },
+        { "no sections", t => t with { Sections = null } },
+        { "missing element", t => WithBody(t, s => s with { Elements = s.Elements.Skip(1).ToList() }) },
+        { "extra element", t => WithBody(t, s => s with { Elements = s.Elements.Append(new LocalizedElementText(999, "x", null)).ToList() }) },
+        { "duplicate element", t => WithBody(t, s => s with { Elements = new List<LocalizedElementText> { s.Elements[0], s.Elements[0] } }) },
+        { "null element", t => WithBody(t, s => s with { Elements = new List<LocalizedElementText> { s.Elements[0], null } }) },
+        { "null elements", t => WithBody(t, s => s with { Elements = null }) },
+        { "null section", t => t with { Sections = new List<LocalizedSectionText> { Body(t), null } } },
+        { "element moved to another section", t => t with
             {
-                var from = g.Sections.Single(s => s.Priority == 2);
-                var element = from.Elements.First();
-                from.Elements.Remove(element);
-                g.Sections.Single(s => s.Priority == 1).Elements.Add(element);
+                Sections = t.Sections.Select(s => s == Body(t)
+                    ? s with { Elements = s.Elements.Skip(1).ToList() }
+                    : s with { Elements = Body(t).Elements.Take(1).ToList() }).ToList()
             } },
-        { "wrong metadata id", g => g.Metadata.Id = 999 },
-        { "missing metadata", g => g.Metadata = null },
-        { "html structure changed", g => g.Description = "<p>شرح <em>کامل</em></p>" },
-        { "malformed html", g => g.Description = "<p>شرح <strong>کامل</strong></p></div>" },
-        { "other content", g => g.Id = 999 },
+        { "wrong metadata id", t => t with { Metadata = t.Metadata with { Id = 999 } } },
+        { "missing metadata", t => t with { Metadata = null } },
+        { "html structure changed", t => t with { Description = "<p>شرح <em>کامل</em></p>" } },
+        { "malformed html", t => t with { Description = "<p>شرح <strong>کامل</strong></p></div>" } },
+        { "editor text on a tiny-text element", t => WithBody(t, s => s with { Elements = new List<LocalizedElementText> { s.Elements[0] with { EditorText = "x" }, s.Elements[1] } }) },
+        { "tiny text on an editor element", t => WithBody(t, s => s with { Elements = new List<LocalizedElementText> { s.Elements[0], s.Elements[1] with { TinyText = "x" } } }) },
     };
 
     [Theory]
     [MemberData(nameof(InvalidEdits))]
-    public async Task InvalidOrStaleStructure_IsRejected_AndPreservesBothPayloads(string _, Action<Content> edit)
+    public async Task InvalidOrStaleStructure_IsRejected_AndPreservesBothPayloads(string _, Func<LocalizedContentText, LocalizedContentText> edit)
     {
         await Seed();
         await AddRow(TranslationStatus.Stale);
@@ -168,8 +198,8 @@ public class ManualContentTranslationTests : IDisposable
     {
         await Seed();
         await AddRow(TranslationStatus.Stale);
-        var loadedFingerprint = await Fingerprint();
-        var graph = await Translated();
+        var loadedFingerprint = (await Editor()).SourceFingerprint;
+        var text = await Translated();
         await using (var context = _factory.CreateContext())
         {
             if (change == "text")
@@ -182,7 +212,7 @@ public class ManualContentTranslationTests : IDisposable
             await context.SaveChangesAsync();
         }
 
-        Assert.Equal(ManualTranslationSaveResult.SourceChanged, await Save(graph, expectedFingerprint: loadedFingerprint));
+        Assert.Equal(ManualTranslationSaveResult.SourceChanged, await Save(text, expectedFingerprint: loadedFingerprint));
 
         await AssertNothingWritten(TranslationStatus.Stale);
     }
@@ -197,16 +227,6 @@ public class ManualContentTranslationTests : IDisposable
         Assert.Equal(ManualTranslationSaveResult.SourceChanged, await Save(await Translated(), expectedFingerprint: expected));
 
         await AssertNothingWritten(null);
-    }
-
-    [Fact]
-    public async Task GetSourceFingerprint_IsCurrent_AndTenantScoped()
-    {
-        await Seed();
-        await using var context = _factory.CreateContext();
-
-        Assert.Equal(await Fingerprint(), await Sut(context).GetSourceFingerprint(_contentId, ApplicationId));
-        Assert.Null(await Sut(context).GetSourceFingerprint(_contentId, 2));
     }
 
     [Theory]
@@ -244,12 +264,6 @@ public class ManualContentTranslationTests : IDisposable
         await AssertNothingWritten(TranslationStatus.Stale);
     }
 
-    private async Task<LocalizedContentText> StoredText(int? cultureId = null, int applicationId = ApplicationId)
-    {
-        await using var context = _factory.CreateContext();
-        return await Sut(context).GetStoredText(_contentId, cultureId ?? _cultureId, applicationId);
-    }
-
     private async Task AddPayload(string payload, bool deleted = false)
     {
         await using var context = _factory.CreateContext();
@@ -267,41 +281,6 @@ public class ManualContentTranslationTests : IDisposable
          "metadata":{"id":5,"title":null,"author":null,"keywords":null,"description":null},
          "sections":[{"id":1,"elements":[{"id":10,"tinyText":"t","editorText":null}]},{"id":2,"elements":[]}]}
         """;
-
-    [Fact]
-    public async Task GetStoredText_ReturnsCanonicalText_ReadOnly_WhateverItsStatus()
-    {
-        await Seed();
-        await using (var context = _factory.CreateContext())
-        {
-            context.ContentTranslations.Add(new ContentTranslation
-            {
-                ContentId = _contentId, CultureId = _cultureId, TranslationStatus = TranslationStatus.Stale, SourceFingerprint = "old",
-                LocalizedTextJson = Complete, Provider = "test", IsActive = true
-            });
-            await context.SaveChangesAsync();
-        }
-
-        Assert.Equal("canonical", (await StoredText()).Title);
-        Assert.Null(await StoredText(applicationId: 2)); // tenant isolation
-        Assert.Null(await StoredText(cultureId: 0));
-        var row = await Row();
-        Assert.Equal((TranslationStatus.Stale, "old"), (row.TranslationStatus, row.SourceFingerprint));
-        Assert.Equal(LegacyFarsi, await Legacy());
-    }
-
-    [Fact]
-    public async Task GetStoredText_ExplicitNulls_AndNullMetadata_AreValid()
-    {
-        await Seed();
-        await AddPayload(Complete.Replace("{\"id\":5,\"title\":null,\"author\":null,\"keywords\":null,\"description\":null}", "null"));
-
-        var text = await StoredText();
-
-        Assert.Equal(("canonical", null, null, null), (text.Title, text.HeadLine, text.Abstract, text.Metadata));
-        Assert.Equal(new[] { 1, 2 }, text.Sections.Select(s => s.Id));
-        Assert.Equal((10, "t", (string)null), (text.Sections[0].Elements[0].Id, text.Sections[0].Elements[0].TinyText, text.Sections[0].Elements[0].EditorText));
-    }
 
     public static TheoryData<string, string> UnusablePayloads => new()
     {
@@ -331,23 +310,29 @@ public class ManualContentTranslationTests : IDisposable
         { "section not object", Complete.Replace("{\"id\":2,\"elements\":[]}", "2") },
     };
 
+    // Unusable canonical text isn't a seed (legacy here is unusable too, so the source is).
     [Theory]
     [MemberData(nameof(UnusablePayloads))]
-    public async Task GetStoredText_UnusablePayload_ReturnsNull(string _, string payload)
+    public async Task GetEditor_UnusableCanonicalPayload_IsNotASeed(string _, string payload)
     {
         await Seed();
         await AddPayload(payload);
 
-        Assert.Null(await StoredText());
+        var editor = await Editor();
+
+        Assert.Equal((ManualTranslationSeed.Source, "English"), (editor.Seed, editor.Text.Title));
     }
 
     [Fact]
-    public async Task GetStoredText_DeletedRow_ReturnsNull()
+    public async Task GetEditor_CanonicalExplicitNulls_AreKept_UnmatchedNodesKeepSource()
     {
         await Seed();
-        await AddPayload(Complete, deleted: true);
+        await AddPayload(Complete.Replace("\"title\":\"canonical\"", "\"title\":null"));
 
-        Assert.Null(await StoredText());
+        var editor = await Editor();
+
+        Assert.Equal((ManualTranslationSeed.Canonical, null, "<p>x</p>"), (editor.Seed, editor.Text.Title, editor.Text.Description));
+        Assert.Equal("Meta", editor.Text.Metadata.Title); // payload's metadata id isn't master's
     }
 
     private async Task<ManualTranslationEditor> Editor(int applicationId = ApplicationId)
@@ -486,6 +471,6 @@ public class ManualContentTranslationTests : IDisposable
     {
         var parameters = typeof(ManualContentTranslation).GetConstructors().Single().GetParameters().Select(p => p.ParameterType);
 
-        Assert.Equal(new[] { typeof(IContentTranslationJobRepository), typeof(IContentCommandRepository), typeof(TimeProvider) }, parameters);
+        Assert.Equal(new[] { typeof(IContentTranslationJobRepository), typeof(TimeProvider) }, parameters);
     }
 }

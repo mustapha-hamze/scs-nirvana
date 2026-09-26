@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Web.Tests;
@@ -82,7 +81,7 @@ public sealed class ContentContractsBindingTests : IClassFixture<TestWebApplicat
     }
 
     // FarsiContentEditDto/FarsiContentMetadataEditDto/FarsiSectionEditDto/FarsiSectionElementEditDto
-    // are bound from the standard ASP.NET Core form-encoded indexer convention the Razor form
+    // (the text-only localization contract) are bound from the standard ASP.NET Core form-encoded indexer convention the Razor form
     // emits (Sections[0].SectionElements[0].TinyText, Metadata.Title, ...). This proves that shape
     // still binds correctly onto the moved, feature-owned contracts.
     [Fact]
@@ -105,6 +104,7 @@ public sealed class ContentContractsBindingTests : IClassFixture<TestWebApplicat
             ["HeadLine"] = "Updated Farsi headline",
             ["Abstract"] = "Updated Farsi abstract",
             ["Description"] = "Updated Farsi description",
+            ["Metadata.Id"] = content.Metadata!.Id.ToString(),
             ["Metadata.Title"] = "Updated meta title",
             ["Metadata.Author"] = "Updated author",
             ["Metadata.Keywords"] = "kw1,kw2",
@@ -123,16 +123,13 @@ public sealed class ContentContractsBindingTests : IClassFixture<TestWebApplicat
 
         using var verifyScope = _factory.Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var saved = await verifyContext.Contents.SingleAsync(c => c.Id == content.Id);
-        var farsi = JObject.Parse(saved.FarsiContent);
-
-        Assert.Equal("Updated Farsi title", farsi.Value<string>("Title"));
-        Assert.Equal("Updated meta title", farsi["Metadata"]!.Value<string>("Title"));
-        Assert.Equal("updated tiny text", farsi["Sections"]![0]!["Elements"]![0]!.Value<string>("TinyText"));
-
+        // The canonical translation is the only write; legacy FarsiContent stays untouched.
+        Assert.Null((await verifyContext.Contents.SingleAsync(c => c.Id == content.Id)).FarsiContent);
         var translation = await verifyContext.ContentTranslations.SingleAsync(t => t.ContentId == content.Id && t.CultureId == ActivationCultureId);
         Assert.Equal(TranslationStatus.Ready, translation.TranslationStatus);
-        Assert.Contains("updated tiny text", translation.LocalizedTextJson);
+        var text = Application.UseCases.TranslatorServices.LegacyFarsiContentParser.Deserialize(translation.LocalizedTextJson);
+        Assert.Equal(("Updated Farsi title", "Updated meta title", "kw1,kw2"), (text.Title, text.Metadata.Title, text.Metadata.Keywords));
+        Assert.Equal("updated tiny text", text.Sections.Single().Elements.Single().TinyText);
     }
 
     // SaveSection binds SaveContentBodyDto (and its nested ContentBodyElementDto list) from a raw

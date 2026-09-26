@@ -1,4 +1,3 @@
-using Application.ContentManagement;
 using Application.UseCases.TranslatorServices;
 using Microsoft.AspNetCore.Http;
 using Web.Areas.BackOffice.Presentation.Shell;
@@ -15,7 +14,6 @@ namespace Web.Areas.BackOffice.Controllers;
 public partial class ContentController : BaseController
 {
     private readonly IContentServices _contentServices;
-    private readonly IContentProvider _contentProvider;
     private readonly ISchemaServices _schemaServices;
     private readonly ICategoryServices _categoryServices;
     private readonly ITagServices _tagServices;
@@ -37,7 +35,7 @@ public partial class ContentController : BaseController
         IApplicationServices applicationServices, ISystemTypeServices systemTypeServices,
         ICurrentApplicationContext currentApplicationContext, ContentTranslationRequests translationRequests,
         ContentTranslationOptions translationOptions, ManualContentTranslation manualTranslation,
-        IContentProvider contentProvider, IFileUploadService fileUploadService,
+        IFileUploadService fileUploadService,
         AccessKeyAuthorizer accessKeyAuthorizer, IBackOfficeShellContext shellContext)
     {
         _applicationServices = applicationServices;
@@ -52,7 +50,6 @@ public partial class ContentController : BaseController
         _translationRequests = translationRequests;
         _translationOptions = translationOptions;
         _manualTranslation = manualTranslation;
-        _contentProvider = contentProvider;
         _fileUploadService = fileUploadService;
         _accessKeyAuthorizer = accessKeyAuthorizer;
         _shellContext = shellContext;
