@@ -595,14 +595,117 @@
     transform: translateY(-2px);
 }
 
+.scs-dash-card:focus-within {
+    box-shadow: var(--scs-shadow-raised), var(--scs-focus-ring);
+}
+
+.scs-dash-card .card-body {
+    display: flex;
+    gap: var(--scs-space-3);
+}
+
 .scs-dash-card .scs-dash-icon {
     display: inline-flex;
+    flex: none;
     align-items: center;
     justify-content: center;
-    width: 2.9rem;
-    height: 2.9rem;
+    width: 2.75rem;
+    height: 2.75rem;
     border-radius: var(--scs-radius);
+    background: var(--scs-dash-tone-subtle);
+    color: var(--scs-dash-tone);
     font-size: 1.35rem;
+}
+
+/* Module accents: each module keeps one recognisable colour, drawn from the state tokens. */
+.scs-dash-tone-primary { --scs-dash-tone: var(--scs-primary-strong); --scs-dash-tone-subtle: var(--scs-primary-subtle); }
+.scs-dash-tone-accent  { --scs-dash-tone: var(--scs-accent-text);    --scs-dash-tone-subtle: var(--scs-accent-subtle); }
+.scs-dash-tone-success { --scs-dash-tone: var(--scs-success-text);   --scs-dash-tone-subtle: var(--scs-success-subtle); }
+.scs-dash-tone-warning { --scs-dash-tone: var(--scs-warning-text);   --scs-dash-tone-subtle: var(--scs-warning-subtle); }
+.scs-dash-tone-info    { --scs-dash-tone: var(--scs-info-text);      --scs-dash-tone-subtle: var(--scs-info-subtle); }
+.scs-dash-tone-neutral { --scs-dash-tone: var(--scs-ink-soft);       --scs-dash-tone-subtle: var(--scs-surface-sunken); }
+
+.scs-dash-card-text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.scs-dash-purpose {
+    flex: 1;
+    margin-bottom: var(--scs-space-2);
+    color: var(--scs-muted);
+    font-size: var(--scs-text-meta);
+    line-height: var(--scs-leading-body);
+}
+
+.scs-dash-link {
+    align-self: flex-start;
+    padding: var(--scs-space-1) 0;
+    color: var(--scs-primary-strong);
+    font-size: var(--scs-text-meta);
+    font-weight: 700;
+}
+
+.scs-dash-section-title {
+    margin: 0 0 var(--scs-space-3);
+    color: var(--scs-muted);
+    font-size: var(--scs-text-overline);
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+}
+
+/* Beside the module grid, line Quick actions up with the first row of cards, below its title. */
+@media (min-width: 1200px) {
+    .scs-dash-actions {
+        margin-top: calc(var(--scs-text-overline) * 1.5 + var(--scs-space-3));
+    }
+}
+
+.scs-dash-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--scs-space-2);
+    min-height: 2.75rem;
+}
+
+.scs-dash-shortcuts {
+    border-top: 1px solid var(--scs-border-subtle);
+}
+
+.scs-dash-shortcuts a {
+    display: flex;
+    align-items: center;
+    gap: var(--scs-space-2);
+    min-height: 2.75rem;
+    padding: var(--scs-space-2);
+    border-bottom: 1px solid var(--scs-border-subtle);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+    font-weight: 600;
+}
+
+.scs-dash-shortcuts a:hover {
+    background: var(--scs-surface-muted);
+    color: var(--scs-primary-strong);
+}
+
+.scs-dash-shortcuts .uil {
+    color: var(--scs-muted);
+    font-size: 1.05rem;
+}
+
+.scs-dash-activity-empty {
+    padding: var(--scs-space-6) var(--scs-space-4);
+}
+
+.scs-dash-activity-empty p {
+    max-width: 30rem;
+    margin-right: auto;
+    margin-left: auto;
 }
 
 .scs-backoffice .nav-tabs {

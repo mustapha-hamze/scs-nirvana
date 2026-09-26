@@ -91,7 +91,7 @@ Buttons in the shell are at least 38px tall (32px for `.btn-sm`). Loading means 
 
 ## Cards, tabs, modals, alerts, loading
 
-- Cards: 8px radius, `--scs-border`, `--scs-shadow`, 1.35rem padding (1rem under 768px). `.scs-dash-card` lifts on hover.
+- Cards: 8px radius, `--scs-border`, `--scs-shadow`, 1.35rem padding (1rem under 768px). `.scs-dash-card` lifts on hover; its icon tile takes a module accent via `.scs-dash-tone-{primary|accent|success|warning|info|neutral}`.
 - Tabs: `.nav-tabs` / `.nav-pills` follow the primary colour. Editor tabs use `.scs-editor-tabs` (underline style, scrolls horizontally on mobile).
 - Modals: 8px radius, overlay shadow, muted header, `.modal-title` at section-title size. Always set `aria-labelledby`.
 - Alerts: Bootstrap `.alert-{state}` with the state tokens and a 4px leading border. Start the text with a word such as "Error:" or "Saved:".
