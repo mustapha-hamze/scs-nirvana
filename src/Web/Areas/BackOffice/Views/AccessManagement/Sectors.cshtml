@@ -2,20 +2,17 @@
     ViewData["Title"] = "Sectors";
 }
 
-@section PageHelper { Define sectors and the entities that belong to them. }
+@section PageHelper { Sectors group the entities of this workspace. Each entity is an area users can be given permissions on. }
 
-<div class="row mb-2 mt-2" id="__sectorForm__">
-
+<div class="card">
+    <div class="card-body">
+        <h2 class="scs-section-title">Add sector</h2>
+        <div id="__sectorForm__"></div>
+    </div>
 </div>
-<div class="row">
-    <div class="col-xl-12 p-0">
-        <div class="card">
-            <div class="card-body p-1">
-                <div class="table-responsive-sm" id="findSectorsResultBody">
-
-                </div> <!-- end table-responsive-->
-            </div> <!-- end card -->
-        </div><!-- end col-->
+<div class="card">
+    <div class="card-body">
+        <div class="scs-table-wrap" id="findSectorsResultBody"></div>
     </div>
 </div>
 

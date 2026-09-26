@@ -3,46 +3,60 @@
     ViewData["Title"] = "Roles";
 }
 
-@section PageHelper { Create and review BackOffice user roles. }
+@section PageHelper { Roles group what users may do across every workspace. Grant them to people from Users › Access. }
 
-<div class="container-fluid mt-2">
-    <div class="row">
-        <div class="col-xl-5">
-            <div class="card">
-                <div class="card-body">
-                    <form class="needs-validation" novalidate method="POST">
-                        <h4>Create user role</h4>
-                        <hr>
-                        <label class="form-label" for="txtRoleName">Role Name</label>
-                        <input type="text" name="RoleName" class="form-control" id="txtRoleName" placeholder="Role Name"
-                            required>
-                        <button class="btn btn-primary mt-3 w-50" type="submit">Submit form</button>
-                    </form>
-                </div> <!-- end card body-->
-            </div> <!-- end card -->
-        </div><!-- end col-->
-        <div class="col-xl-7">
-            <div class="card">
-                <div class="card-body">
-                    <h4>User roles list</h4>
-                    <hr />
-                    <table class="table table-sm table-centered mb-0">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model)
-                            {
+<div class="row g-3">
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-body">
+                <form class="needs-validation" novalidate method="POST">
+                    <h2 class="scs-section-title">Create role</h2>
+                    <label class="form-label scs-required" for="txtRoleName">Role name</label>
+                    <input type="text" name="RoleName" class="form-control" id="txtRoleName" required
+                        aria-describedby="roleNameHelp" autocomplete="off">
+                    <div class="form-text" id="roleNameHelp">A short, unique name such as Editor. Role names can't be renamed here later.</div>
+                    <div class="invalid-feedback">Enter a role name.</div>
+                    <div class="scs-author-actions justify-content-end">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="uil uil-plus" aria-hidden="true"></i> Create role
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="scs-section-title">All roles <span class="scs-meta fw-normal">(@Model.Count)</span></h2>
+                @if (Model.Count == 0)
+                {
+                    <div class="scs-empty-state">
+                        <i class="mdi mdi-shield-outline" aria-hidden="true"></i>
+                        No roles yet. Create the first one with the form.
+                    </div>
+                }
+                else
+                {
+                    <div class="scs-table-wrap">
+                        <table class="table table-hover mb-0">
+                            <thead>
                                 <tr>
-                                    <td>@item.Name</td>
+                                    <th>Name</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div> <!-- end card body-->
-            </div> <!-- end card -->
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold scs-cell-truncate" title="@item.Name">@item.Name</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>

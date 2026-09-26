@@ -5,37 +5,65 @@
     (List<Application.Contracts.General.ApplicationDto>)ViewData["Applications"];
     var userApplications =
     (List<Application.Contracts.General.UserInApplicationDto>)ViewData["UserApplications"];
+    var grantedApplications = applications.Where(a => userApplications.Any(ua => ua.ApplicationId == a.Id)).ToList();
 }
 
 @model Web.Models.AccessManager.SetAccessDto
 
-<div class="row">
-    <div class="col-md-4" id="div_entities">
-        <form action="" method="post" id="frmSaveEntitiesToUser">
-            @Html.AntiForgeryToken()
+@if (grantedApplications.Count == 0)
+{
+    <div class="scs-empty-state">
+        <i class="mdi mdi-lock-outline" aria-hidden="true"></i>
+        This user has no workspaces yet. Grant a workspace on the Workspaces tab, then set its permissions here.
+    </div>
+}
+<div class="scs-access-assign" hidden="@(grantedApplications.Count == 0)">
+    <p class="scs-meta">Permissions are saved per workspace. Pick a sector and an entity, tick the permissions to grant, then
+        save. Ticks on other entities in the same workspace are kept until you save.</p>
+    <div class="row g-3">
+        <div class="col-lg-4" id="div_entities">
+            <form action="" method="post" id="frmSaveEntitiesToUser">
+                @Html.AntiForgeryToken()
 
-            <select class="form-control mb-1" name="ApplicationId" id="__ddlApplications__"
-                onchange="getApplicationSectors()">
-                @foreach (var application in applications)
-                {
-                    if (userApplications.Any(a => a.ApplicationId == application.Id))
-                    {
-                        <option value="@application.Id">@application.Title</option>
-                    }
-                }
-            </select>
-            <select class="form-control mb-1" id="__ddlSectors__" onchange="getSectorEntities()">
-            </select>
-            <div class="alert alert-info mb-2" id="__checkBox_Entities__">
-            </div>
-            <input type="hidden" id="Accesses" asp-for="Accesses">
-            <input type="hidden" id="UserId" asp-for="UserId">
-
-        </form>
-        <button class="btn btn-success" onclick="saveEntityAccess()">
-            <i class="mdi mdi-content-save"></i>Save
+                <div class="mb-3">
+                    <label class="form-label" for="__ddlApplications__">Workspace</label>
+                    <select class="form-select" name="ApplicationId" id="__ddlApplications__"
+                        onchange="getApplicationSectors()">
+                        @foreach (var application in grantedApplications)
+                        {
+                            <option value="@application.Id">@application.Title</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="__ddlSectors__">Sector</label>
+                    <select class="form-select" id="__ddlSectors__" onchange="getSectorEntities()">
+                    </select>
+                </div>
+                <span class="form-label d-block" id="entityListLabel">Entity</span>
+                <div class="scs-entity-list" id="__checkBox_Entities__" role="group" aria-labelledby="entityListLabel">
+                </div>
+                <input type="hidden" id="Accesses" asp-for="Accesses">
+                <input type="hidden" id="UserId" asp-for="UserId">
+            </form>
+        </div>
+        <div class="col-lg-8">
+            <section class="scs-permission-panel" aria-labelledby="permissionPanelTitle">
+                <h5 class="scs-section-title" id="permissionPanelTitle">Permissions</h5>
+                <div id="div_accesses">
+                    <div class="scs-empty-state">
+                        <i class="mdi mdi-cursor-default-click-outline" aria-hidden="true"></i>
+                        Choose an entity to see the permissions it offers.
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="col-12" id="div_view" hidden></div>
+    </div>
+    <div class="scs-author-actions justify-content-between">
+        <p class="scs-meta mb-0" id="accessSummary" role="status" aria-live="polite"></p>
+        <button type="button" class="btn btn-primary" id="btnSaveEntityAccess" onclick="saveEntityAccess()">
+            <i class="mdi mdi-content-save" aria-hidden="true"></i> Save permissions
         </button>
     </div>
-    <div class="col-md-4" id="div_accesses"></div>
-    <div class="col-md-4" id="div_view"></div>
 </div>

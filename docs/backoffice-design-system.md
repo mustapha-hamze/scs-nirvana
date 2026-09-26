@@ -129,3 +129,11 @@ Categories, schemas, sliders, tags, cultures, content types and application sett
 
 - Under 768px, the page header stacks with its actions full width below the title, card padding drops to 1rem, editor tabs scroll, and wide tables scroll inside `.scs-table-wrap`.
 - The page must never scroll horizontally: bound media with `object-fit` (see the workspace picker logo stage) and truncate long titles with `text-truncate` plus a `title`.
+
+## Users and access
+
+Users, Roles, the per-user access modal, and Access Management (Sectors, Accesses).
+
+- **User list**: the filter bar keeps its posted fields (user type, email) plus an unnamed Approval select that filters the loaded rows through DataTables and is never posted. The list endpoint returns nothing until an email is given, so the script shows a search prompt instead of a blank card. Rows show name over email (`.scs-user-cell`), type and approval as `.scs-status`, and labelled **Access** / **Edit** buttons. Below `md` the approval badge also appears under the name, because DataTables collapses that column.
+- **Access modal**: tabs (`.scs-access-tabs`, with `.scs-count` totals) for Roles, Workspaces, Sectors and Permissions. Role and workspace rows show the name with its status underneath (`.scs-assign-name`), then one action named by its effect (Grant, Remove access). Sectors are grouped by workspace (`.scs-sector-group`). Permissions use a scope column (workspace, sector, `.scs-entity-option` list) beside a `.scs-permission-panel` of `.scs-permission-item` checks, with a live `#accessSummary` count that flags unsaved changes.
+- **Confirmations**: every grant, removal, permission save, sign-in flag change and access-key rename goes through a SweetAlert confirm that names the person and the change, focuses Cancel, and runs inside the open modal (`target`) so Escape closes only the dialog. After a change the modal body reloads and focus returns to the same row's action (`data-focus-key`). A cancelled dialog returns focus to the button that opened it.

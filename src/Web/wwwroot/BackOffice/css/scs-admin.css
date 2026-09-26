@@ -1782,6 +1782,235 @@ body.authentication-bg {
     text-align: right !important;
 }
 
+/* Users and access ------------------------------------------------------- */
+/* User list: name over email in one cell, both truncated so long addresses never widen the table. */
+.scs-user-cell {
+    display: flex;
+    flex-direction: column;
+    max-width: 22rem;
+    min-width: 0;
+}
+
+.scs-user-name {
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+/* Modal forms split into titled groups (Profile, Sign-in, ...). */
+.scs-form-section .scs-section-title {
+    margin: var(--scs-space-2) 0 0;
+    padding-top: var(--scs-space-3);
+    border-top: 1px solid var(--scs-border-subtle);
+}
+
+.scs-form-section:first-of-type .scs-section-title,
+.validation-summary-valid + .scs-form-section .scs-section-title {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+/* A switch with its explanation, boxed so the consequence reads as part of the choice. */
+.scs-switch-card {
+    height: 100%;
+    margin: 0;
+    padding: var(--scs-space-3) var(--scs-space-3) var(--scs-space-3) 3.25rem;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    background: var(--scs-surface-muted);
+}
+
+.scs-switch-card .form-check-label {
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+.scs-switch-card .form-text {
+    margin-top: var(--scs-space-1);
+}
+
+/* Aligns a form's action button with inputs that sit under a label. */
+@media (min-width: 768px) {
+    .scs-inline-action {
+        padding-top: 1.85rem;
+    }
+}
+
+/* Access modal tabs: underline tabs that scroll in their own bar instead of wrapping. */
+.scs-access-tabs {
+    flex-wrap: nowrap;
+    margin-bottom: var(--scs-space-4);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+}
+
+.scs-access-tabs .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    white-space: nowrap;
+}
+
+.scs-access-tabs .nav-link:focus-visible {
+    outline-offset: -2px;
+}
+
+.scs-count {
+    padding: .05rem .45rem;
+    border-radius: var(--scs-radius-pill);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.scs-access-tabs .nav-link.active .scs-count {
+    background: var(--scs-primary-subtle);
+    color: var(--scs-primary-strong);
+}
+
+/* Role and workspace rows: the name with its status badge beneath, so rows fit a phone. */
+.scs-assign-name {
+    display: block;
+    max-width: 100%;
+    margin-bottom: var(--scs-space-1);
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+/* Sectors, grouped under the workspace they belong to. */
+.scs-sector-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: var(--scs-space-3);
+}
+
+.scs-sector-group {
+    min-width: 0;
+    padding: var(--scs-space-3);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+}
+
+.scs-sector-group-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--scs-space-2);
+    margin-bottom: var(--scs-space-3);
+}
+
+.scs-sector-group-header .scs-section-title {
+    min-width: 0;
+    margin: 0;
+}
+
+.scs-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--scs-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.scs-chip-list > li {
+    max-width: 100%;
+    padding: .2rem .6rem;
+    overflow: hidden;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-pill);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Permission assignment: scope pickers and entity list beside the permission panel. */
+.scs-entity-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--scs-space-1);
+    max-height: 22rem;
+    overflow-y: auto;
+}
+
+.scs-entity-option {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    padding: var(--scs-space-2) var(--scs-space-3);
+    border: 1px solid var(--scs-border);
+    border-left: 3px solid transparent;
+    border-radius: var(--scs-radius-sm);
+    background: var(--scs-surface);
+    color: var(--scs-ink-body);
+    font-weight: 600;
+    text-align: left;
+    transition: background-color var(--scs-duration);
+}
+
+.scs-entity-option:hover {
+    background: var(--scs-surface-muted);
+}
+
+.scs-entity-option.is-selected {
+    border-color: var(--scs-primary-border);
+    border-left-color: var(--scs-primary);
+    background: var(--scs-primary-subtle);
+    color: var(--scs-primary-strong);
+}
+
+.scs-entity-option > .scs-cell-truncate {
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+.scs-permission-panel {
+    height: 100%;
+    padding: var(--scs-space-4);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    background: var(--scs-surface);
+}
+
+.scs-permission-panel .scs-empty-state {
+    padding: var(--scs-space-6) var(--scs-space-3);
+}
+
+.scs-permission-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    gap: var(--scs-space-2);
+    margin: 0;
+}
+
+.scs-permission-item {
+    min-width: 0;
+    margin: 0;
+    padding: var(--scs-space-2) var(--scs-space-3) var(--scs-space-2) 2.25rem;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-sm);
+}
+
+.scs-permission-item:has(.form-check-input:checked) {
+    border-color: var(--scs-primary-border);
+    background: var(--scs-primary-subtle);
+}
+
+.scs-permission-item .scs-code {
+    overflow-wrap: anywhere;
+}
+
+#accessSummary.is-unsaved {
+    color: var(--scs-warning-text);
+    font-weight: 700;
+}
+
 /* Responsive ------------------------------------------------------------- */
 @media (max-width: 767.98px) {
     .scs-backoffice .content {

@@ -1,4 +1,25 @@
 <script>
+    // Shared DataTables setup for the sector and access lists (actions column is never sortable).
+    function initAccessTable(noun) {
+        if (!$("#datatable-buttons").length) return;
+        $("#datatable-buttons").DataTable({
+            lengthChange: !1,
+            pageLength: 25,
+            buttons: ["copy", "print"],
+            order: [[1, "asc"]],
+            columnDefs: [{ orderable: false, targets: -1 }],
+            language: {
+                zeroRecords: "No " + noun + " match your search. Try a shorter or different term.",
+                paginate: {
+                    previous: "<i class='mdi mdi-chevron-left'>",
+                    next: "<i class='mdi mdi-chevron-right'>"
+                }
+            },
+            drawCallback: function () {
+                $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+            }
+        });
+    }
 
     function sectorForm() {
         clearModalBody("__sectorForm__");
@@ -17,6 +38,7 @@
             type: "GET"
         }).done(function (data) {
             $("#findSectorsResultBody").html(data);
+            initAccessTable("sectors");
         });
     }
 
@@ -38,6 +60,8 @@
     }
 
     function entities(sectorId) {
+        var sectorTitle = $.trim($('[onclick="entities(' + sectorId + ')"]').closest("tr").find("td").eq(1).text());
+        $("#sectorEntityModalLabel").text(sectorTitle ? "Entities in " + sectorTitle : "Sector entities");
         entityForm(sectorId);
         entityList(sectorId);
     }
@@ -99,7 +123,11 @@
         }).done(function (data) {
             $("#__accessForm__").html(data);
             $("html, body").animate({ scrollTop: 0 }, 500);
+            $("#Access").trigger("focus");
             //getSectorEntitiesDDL();
+        }).fail(function () {
+            $("#__accessForm__").html('<div class="alert alert-danger mb-0" role="alert">Error: this access could not be loaded for editing. ' +
+                '<button type="button" class="btn btn-sm scs-btn-quiet" onclick="accessForm()">Back to Add access</button></div>');
         });
     }
 
@@ -110,6 +138,7 @@
             type: "GET"
         }).done(function (data) {
             $("#findAccessesResultBody").html(data);
+            initAccessTable("accesses");
         });
     }
 
@@ -126,18 +155,49 @@
     }
 
     function saveAccess() {
-        if (checkFormValidity('frmSaveAccess')) {
-            var frmSaveAccess = $("#frmSaveAccess");
-            console.log(frmSaveAccess.serialize());
-            $.ajax({
-                type: "POST",
-                url: '/BackOffice/AccessManagement/SaveAccess',
-                data: frmSaveAccess.serialize(),
-            }).done(function (data) {
-                if (data === "Done") {
-                    accessList();
-                }
-            });
+        if (!checkFormValidity('frmSaveAccess')) {
+            $("#frmSaveAccess :invalid").first().trigger("focus");
+            return;
         }
+        var original = $("#Access").attr("data-original");
+        var current = $("#Access").val();
+        if (!original || original === current) {
+            postAccess();
+            return;
+        }
+        // Renaming an existing key: users keep the old key string they were granted.
+        Swal.fire({
+            title: "Rename access key?",
+            text: "\"" + original + "\" becomes \"" + current + "\". Users who were granted \"" + original + "\" keep that key, and nobody has \"" + current + "\" until you grant it.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "var(--scs-danger-solid)",
+            confirmButtonText: "Rename key",
+            cancelButtonText: "Cancel",
+            focusCancel: true
+        }).then((result) => {
+            if (result.isConfirmed) postAccess();
+        });
+    }
+
+    function postAccess() {
+        var frmSaveAccess = $("#frmSaveAccess");
+        var isEdit = !!$("#Access").attr("data-original");
+        $.ajax({
+            type: "POST",
+            url: '/BackOffice/AccessManagement/SaveAccess',
+            data: frmSaveAccess.serialize(),
+        }).done(function (data) {
+            if (data === "Done") {
+                // After an edit go back to adding; after an add keep the sector and entity for the next key.
+                if (isEdit) {
+                    accessForm();
+                } else {
+                    frmSaveAccess.removeClass("was-validated");
+                    $("#Access").val("").trigger("focus");
+                }
+                accessList();
+            }
+        });
     }
 </script>

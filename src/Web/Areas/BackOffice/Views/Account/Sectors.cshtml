@@ -7,15 +7,42 @@
     var sectors = (List<Application.Contracts.AccessManagement.SectorDto>)ViewData["Sectors"];
 }
 
-<div class="p-2">
-    <div class="alert alert-info mb-3">
-        <div class="row">
-            @foreach (var sector in sectors)
-            {
-                <div class="col-md-3 mt-1">
-                    @sector.Title
-                </div>
-            }
-        </div>
+<p class="scs-meta">Sectors group a workspace's entities. They are defined per workspace under Access Management; grant
+    the permissions inside them on the Permissions tab.</p>
+
+@if (sectors.Count == 0)
+{
+    <div class="scs-empty-state">
+        <i class="mdi mdi-view-grid-outline" aria-hidden="true"></i>
+        No sectors are defined yet. Add them under Access Management › Sectors.
     </div>
-</div>
+}
+else
+{
+    <div class="scs-sector-groups">
+        @foreach (var group in sectors.GroupBy(s => s.ApplicationId))
+        {
+            var application = applications.SingleOrDefault(a => a.Id == group.Key);
+            var hasAccess = userApplications.Any(a => a.ApplicationId == group.Key);
+            <section class="scs-sector-group" aria-label="Sectors in @(application?.Title ?? "Unknown workspace")">
+                <header class="scs-sector-group-header">
+                    <h5 class="scs-section-title scs-cell-truncate" title="@application?.Title">@(application?.Title ?? "Unknown workspace")</h5>
+                    @if (hasAccess)
+                    {
+                        <span class="scs-status scs-status--success">User has access</span>
+                    }
+                    else
+                    {
+                        <span class="scs-status">No workspace access</span>
+                    }
+                </header>
+                <ul class="scs-chip-list">
+                    @foreach (var sector in group)
+                    {
+                        <li>@sector.Title</li>
+                    }
+                </ul>
+            </section>
+        }
+    </div>
+}
