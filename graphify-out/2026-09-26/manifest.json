@@ -1735,8 +1735,8 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/Content/FarsiContentForm.cshtml": {
-    "mtime": 1790413452.3706536,
-    "ast_hash": "4a1983cb5ea7cdc50fa6f324bb1a1db2",
+    "mtime": 1790412177.3755257,
+    "ast_hash": "4945023b95cdd95cc3e84757294c28e8",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Views/Content/Index.cshtml": {
@@ -2255,12 +2255,12 @@
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/Content/ContentController.Farsi.cs": {
-    "mtime": 1790413452.3675063,
-    "ast_hash": "e6c19e8ea3f5bfb5a3b90d51972f2509",
+    "mtime": 1790412120.7182355,
+    "ast_hash": "4cb75df80e255adc9f53d732c48158b8",
     "semantic_hash": ""
   },
   "src/Web/Areas/BackOffice/Controllers/Content/ContentController.Forms.cs": {
-    "mtime": 1790413022.7795372,
+    "mtime": 1790262727.9315953,
     "ast_hash": "4b9b292bf7b04af9b82069239d8784f2",
     "semantic_hash": ""
   },
@@ -2510,8 +2510,8 @@
     "semantic_hash": ""
   },
   "src/Web.Tests/ContentActivationRegressionTests.cs": {
-    "mtime": 1790413452.395885,
-    "ast_hash": "bb26017cb6b07fe8df811390dcf2e3f1",
+    "mtime": 1790412330.518751,
+    "ast_hash": "71ea5d092c3cd54aec42730555c3dda9",
     "semantic_hash": ""
   },
   "docs/Translation-Modernization-Plan.md": {
@@ -2550,7 +2550,7 @@
     "semantic_hash": ""
   },
   "src/Core/Application/UseCases/TranslatorServices/ContentTranslationJobProcessor.cs": {
-    "mtime": 1790412998.3601089,
+    "mtime": 1790411073.2560065,
     "ast_hash": "d4ba9ef4cec68dfa5c9888beaeff5359",
     "semantic_hash": ""
   },
@@ -2560,8 +2560,8 @@
     "semantic_hash": ""
   },
   "src/Core/Application/UseCases/TranslatorServices/LegacyFarsiContentParser.cs": {
-    "mtime": 1790413344.266056,
-    "ast_hash": "8d09db700c36841985b635937b583335",
+    "mtime": 1790412000.3364565,
+    "ast_hash": "772a667b92bcf2deaaa20f030db50c54",
     "semantic_hash": ""
   },
   "src/Core/Application/UseCases/TranslatorServices/LocalizedContentReader.cs": {
@@ -2570,8 +2570,8 @@
     "semantic_hash": ""
   },
   "src/Core/Application/UseCases/TranslatorServices/ManualContentTranslation.cs": {
-    "mtime": 1790413344.2663143,
-    "ast_hash": "9734c787e1af1b7328cef284f7e913c7",
+    "mtime": 1790412095.1004643,
+    "ast_hash": "00fe1753e4decbfedf2514eff23d3072",
     "semantic_hash": ""
   },
   "src/Core/Application/UseCases/TranslatorServices/TranslationSourceDocument.cs": {
@@ -2640,8 +2640,8 @@
     "semantic_hash": ""
   },
   "src/Core/Tests/TranslatorServices/ManualContentTranslationTests.cs": {
-    "mtime": 1790413359.0503967,
-    "ast_hash": "2a356f04413997f93073f97b487fce71",
+    "mtime": 1790412227.7003658,
+    "ast_hash": "99db78d126eb7f6eeb2e897489fd51a9",
     "semantic_hash": ""
   },
   "src/Web.Tests/ContentTranslationWorkerTests.cs": {
