@@ -73,19 +73,64 @@
     <div class="wrapper">
 
         <!-- ========== Topbar Start ========== -->
-        <div class="navbar-custom">
+        <header class="navbar-custom">
             @await Html.PartialAsync("_Navbar")
-        </div>
+        </header>
         <!-- ========== Topbar End ========== -->
 
-        <div class="leftside-menu">
+        <aside class="leftside-menu" id="leftside-menu" aria-label="Sidebar">
             @await Html.PartialAsync("_SideBar")
-        </div>
+        </aside>
 
         <div class="content-page">
             <div class="content">
             <main class="container-fluid" id="main-content" tabindex="-1">
-                    @RenderBody()
+                @* Shared page header (docs/backoffice-design-system.md#page-header): a page sets
+                   ViewData["Title"], optional ViewData["PageHelper"] / ["PageHeading"] /
+                   ["Breadcrumb"] (BackOfficeCrumb[]; omitted on the dashboard), and an optional
+                   PageActions section for its primary action. *@
+                @if (ViewData["Title"] is string pageTitle)
+                {
+                    var crumbs = ViewData["Breadcrumb"] as BackOfficeCrumb[];
+                    <div class="scs-page-header">
+                        <div class="scs-page-heading">
+                            @if (crumbs is not null)
+                            {
+                                <nav aria-label="Breadcrumb">
+                                    <ol class="breadcrumb scs-breadcrumb">
+                                        <li class="breadcrumb-item"><a href="/BackOffice/Home/Index">Dashboard</a></li>
+                                        @foreach (var crumb in crumbs)
+                                        {
+                                            <li class="breadcrumb-item">
+                                                @if (crumb.Href is null)
+                                                {
+                                                    @crumb.Label
+                                                }
+                                                else
+                                                {
+                                                    <a href="@crumb.Href">@crumb.Label</a>
+                                                }
+                                            </li>
+                                        }
+                                        <li class="breadcrumb-item active" aria-current="page">@pageTitle</li>
+                                    </ol>
+                                </nav>
+                            }
+                            <h1 class="scs-page-title">@(ViewData["PageHeading"] ?? pageTitle)</h1>
+                            @if (ViewData["PageHelper"] is string pageHelper)
+                            {
+                                <p class="scs-page-helper">@pageHelper</p>
+                            }
+                        </div>
+                        @if (IsSectionDefined("PageActions"))
+                        {
+                            <div class="scs-page-actions">
+                                @await RenderSectionAsync("PageActions")
+                            </div>
+                        }
+                    </div>
+                }
+                @RenderBody()
             </main>
             </div>
 
@@ -170,6 +215,64 @@
 
     <!-- App js -->
     <script src="/BackOffice/js/app.min.js"></script>
+
+    <!-- Shell accessibility on top of Hyper's sidebar (app.min.js): current-page and expanded
+         state for assistive tech, and focus/Escape handling for the mobile off-canvas menu. -->
+    <script>
+        (function () {
+            var html = document.documentElement;
+            var nav = document.querySelector(".side-nav");
+            var toggle = document.querySelector(".button-toggle-menu");
+            var closeBtn = document.querySelector(".button-close-fullsidebar");
+
+            // Pages that aren't menu links (e.g. the content editor) highlight the list they belong
+            // to: the deepest linked breadcrumb below Dashboard.
+            var isMenuPage = !!nav.querySelector("a.active");
+            if (!isMenuPage) {
+                var crumbLinks = document.querySelectorAll(".scs-page-header .breadcrumb a");
+                var parentHref = crumbLinks.length > 1 ? crumbLinks[crumbLinks.length - 1].getAttribute("href") : null;
+                var parentLink = parentHref && nav.querySelector('a[href="' + parentHref + '"]');
+                if (parentLink) {
+                    parentLink.classList.add("active");
+                    for (var el = parentLink.parentElement; el !== nav; el = el.parentElement) {
+                        if (el.classList.contains("collapse")) el.classList.add("show");
+                        if (el.tagName === "LI") el.classList.add("menuitem-active");
+                    }
+                }
+            }
+
+            var activeLink = nav.querySelector("a.active");
+            // "true" when the highlighted link is the section this page belongs to, not the page itself.
+            if (activeLink) activeLink.setAttribute("aria-current", isMenuPage ? "page" : "true");
+
+            // Hyper opens the active branch by adding .show directly; Bootstrap keeps aria-expanded
+            // in sync from here on.
+            nav.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (trigger) {
+                var target = document.querySelector(trigger.getAttribute("href"));
+                trigger.setAttribute("aria-expanded", String(!!target && target.classList.contains("show")));
+            });
+
+            function isOffcanvas() { return html.getAttribute("data-sidenav-size") === "full"; }
+            function isOpen() {
+                return isOffcanvas() ? html.classList.contains("sidebar-enable") : html.getAttribute("data-sidenav-size") !== "condensed";
+            }
+
+            var wasOffcanvasOpen = false;
+            function syncMenuState() {
+                toggle.setAttribute("aria-expanded", String(isOpen()));
+                var offcanvasOpen = isOffcanvas() && isOpen();
+                if (offcanvasOpen && !wasOffcanvasOpen) closeBtn.focus();
+                if (!offcanvasOpen && wasOffcanvasOpen && isOffcanvas()) toggle.focus();
+                wasOffcanvasOpen = offcanvasOpen;
+            }
+            new MutationObserver(syncMenuState).observe(html, { attributes: true, attributeFilter: ["class", "data-sidenav-size"] });
+            syncMenuState();
+
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape" && isOffcanvas() && isOpen()) closeBtn.click();
+            });
+        })();
+    </script>
 
     <script>
         function checkFormValidity(form) {

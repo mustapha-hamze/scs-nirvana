@@ -7,45 +7,61 @@
 <!-- LOGO -->
 <a href="/BackOffice/Home/Index" class="logo logo-light">
     <span class="logo-lg">
-        <img class="h-100" src="/BackOffice/logo-l.png">
+        <img class="h-100" src="/BackOffice/logo-l.png" alt="Sonic Core System">
     </span>
     <span class="logo-sm">
-        <img src="/BackOffice/logo-s.png">
+        <img src="/BackOffice/logo-s.png" alt="Sonic Core System">
     </span>
 </a>
 
+<!-- Off-canvas close (phones only; Hyper shows it at data-sidenav-size=full) -->
+<button type="button" class="button-close-fullsidebar" aria-label="Close menu" aria-controls="leftside-menu">
+    <i class="ri-close-fill align-middle" aria-hidden="true"></i>
+</button>
+
 <div class="h-100" id="leftside-menu-container" data-simplebar>
 
-    <!--- Sidemenu -->
-    <ul class="side-nav">
-
-        <li class="side-nav-title side-nav-item scs-sidebar-workspace">
-            <span class="scs-sidebar-workspace-label">Current workspace</span>
-            <h5 title="@shell.ApplicationTitle">@shell.ApplicationTitle</h5>
-        </li>
-        <li class="side-nav-title side-nav-item">Navigation</li>
-
-        <li class="side-nav-item">
-            <a href="/BackOffice/Home/Index" class="side-nav-link">
-                <i class="uil uil-monitor"></i>
-                <span> Dashboard </span>
-            </a>
-        </li>
-
-        <li class="side-nav-title side-nav-item">Workspace</li>
-
-        @await Html.PartialAsync("_SideBarCMS")
-
-        @await Html.PartialAsync("_SideBarSCM")
-
-        @if (shell.IsSuperAdmin)
+    <div class="scs-sidebar-workspace" role="group" aria-labelledby="scs-workspace-label">
+        <span class="scs-sidebar-workspace-label" id="scs-workspace-label">Current workspace</span>
+        <p class="scs-sidebar-workspace-name" title="@shell.ApplicationTitle">@shell.ApplicationTitle</p>
+        @if (shell.IsSuperAdmin || shell.HasMultipleApplications)
         {
-            <li class="side-nav-title side-nav-item">Settings</li>
+            <a class="scs-sidebar-workspace-switch" href="/BackOffice/Application/SelectApp">
+                <i class="mdi mdi-swap-horizontal" aria-hidden="true"></i>
+                Switch workspace
+            </a>
         }
-        @await Html.PartialAsync("_SideBarUserManagement")
-        @await Html.PartialAsync("_SideBarAdminMenu")
-    </ul>
-    <!-- End Sidebar -->
+    </div>
+
+    <nav aria-label="Main">
+        <ul class="side-nav">
+
+            <li class="side-nav-title">Overview</li>
+
+            <li class="side-nav-item">
+                <a href="/BackOffice/Home/Index" class="side-nav-link">
+                    <i class="uil uil-monitor" aria-hidden="true"></i>
+                    <span> Dashboard </span>
+                </a>
+            </li>
+
+            @if (shell.Access.CanAnyAccess(Web.Authorization.AccessKeys.Content.Module, Web.Authorization.AccessKeys.Category.Module,
+                Web.Authorization.AccessKeys.Schema.Module, Web.Authorization.AccessKeys.Slider.Module))
+            {
+                <li class="side-nav-title">Content</li>
+            }
+
+            @await Html.PartialAsync("_SideBarCMS")
+
+            @await Html.PartialAsync("_SideBarSCM")
+
+            @if (shell.IsSuperAdmin)
+            {
+                <li class="side-nav-title">Administration</li>
+            }
+            @await Html.PartialAsync("_SideBarUserManagement")
+            @await Html.PartialAsync("_SideBarAdminMenu")
+        </ul>
+    </nav>
 
 </div>
-<!-- Sidebar -left -->

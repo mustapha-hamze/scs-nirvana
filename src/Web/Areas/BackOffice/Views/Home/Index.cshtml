@@ -12,14 +12,9 @@
     bool isSuperAdmin = User.IsInRole("SuperAdmin");
     bool canCMS = isSuperAdmin || accesses.Contains("CMS1000_");
     bool canSCM = isSuperAdmin || accesses.Contains("SCM3000_");
+    ViewData["PageHeading"] = $"Welcome back, {user.FirstName}";
+    ViewData["PageHelper"] = $"{app.Title} · here's an overview of your BackOffice.";
 }
-
-<div class="scs-page-header">
-    <div>
-        <h1 class="scs-page-title">Welcome back, @user.FirstName</h1>
-        <p class="scs-page-helper">@app.Title &middot; here's an overview of your BackOffice.</p>
-    </div>
-</div>
 
 <div class="row">
     @if (canCMS)

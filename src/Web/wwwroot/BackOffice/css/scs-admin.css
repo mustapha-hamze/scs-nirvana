@@ -722,37 +722,92 @@
 
 .scs-backoffice .side-nav-title {
     margin: 22px 0 7px;
-    color: #91a0bd;
+    color: #a3b0c8;
     font-size: .66rem;
     font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
 }
 
+/* Current workspace: an accent-edged card under the brand, so it never reads as a menu item. */
 .scs-sidebar-workspace {
-    padding: 8px 10px 14px !important;
-    margin: 4px 0 10px !important;
-    border-bottom: 1px solid rgba(211, 223, 245, .13);
+    margin: 4px 12px 0;
+    padding: 10px 12px;
+    border: 1px solid rgba(211, 223, 245, .14);
+    border-left: 3px solid var(--scs-accent);
+    border-radius: var(--scs-radius-sm);
+    background: rgba(255, 255, 255, .05);
 }
 
 .scs-sidebar-workspace-label {
     display: block;
-    margin-bottom: 4px;
-    color: #91a0bd;
+    margin-bottom: 2px;
+    color: #a3b0c8;
     font-size: .64rem;
     font-weight: 700;
     letter-spacing: .07em;
     text-transform: uppercase;
 }
 
-.scs-sidebar-workspace h5 {
+.scs-sidebar-workspace-name {
     overflow: hidden;
     margin: 0;
     color: var(--scs-ink-inverse);
-    font-size: .9rem;
-    font-weight: 600;
+    font-size: .92rem;
+    font-weight: 700;
+    line-height: 1.35;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.scs-sidebar-workspace-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    margin-top: 6px;
+    color: #9fdcd5;
+    font-size: .78rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.scs-sidebar-workspace-switch:hover {
+    color: var(--scs-ink-inverse);
+}
+
+/* Hyper's 50px icon column and arrow inset leave "Content Management" running into its arrow.
+   The icon rail keeps Hyper's sizing so icons stay centred there. */
+html:not([data-sidenav-size=condensed]) .scs-backoffice .side-nav .side-nav-link i {
+    width: 2.25rem;
+    min-width: 2.25rem;
+}
+
+.scs-backoffice .side-nav .side-nav-link .menu-arrow {
+    right: 6px;
+}
+
+/* Icon rail (tablet or collapsed): titles and the workspace card have no room; the topbar keeps
+   the workspace visible. */
+html[data-sidenav-size=condensed] .scs-sidebar-workspace {
+    display: none;
+}
+
+/* Nested content types and settings wrap instead of clipping long names. */
+.scs-backoffice .side-nav-second-level li a,
+.scs-backoffice .side-nav-third-level li a {
+    white-space: normal;
+    line-height: 1.35;
+}
+
+.scs-backoffice .side-nav-third-level {
+    margin-left: 1.9rem;
+    padding-left: .35rem;
+    border-left: 1px solid rgba(211, 223, 245, .16);
+}
+
+.scs-backoffice .side-nav-third-level li a {
+    padding-left: .75rem;
 }
 
 .scs-backoffice .side-nav .side-nav-link,
@@ -770,11 +825,20 @@
     color: var(--scs-ink-inverse);
 }
 
-.scs-backoffice .side-nav .side-nav-link.active,
-.scs-backoffice .side-nav .menuitem-active > a {
-    background: rgba(78, 125, 238, .22);
+/* Open groups (and the group holding the current page): bright text, no fill; the rotated
+   arrow is the shape cue. Weight stays put so labels never grow into the arrow. */
+.scs-backoffice .side-nav .menuitem-active > a,
+.scs-backoffice .side-nav a[aria-expanded="true"] {
     color: var(--scs-ink-inverse);
-    font-weight: 600;
+}
+
+/* Current page: fill plus a leading bar and bold weight, so it doesn't rely on colour alone. */
+.scs-backoffice .side-nav a[aria-current],
+.scs-backoffice .side-nav .side-nav-link.active {
+    background: rgba(78, 125, 238, .24);
+    box-shadow: inset 3px 0 0 #8fb0ff;
+    color: var(--scs-ink-inverse);
+    font-weight: 700;
 }
 
 /* Focus on the dark sidebar needs a light ring. */
@@ -793,20 +857,107 @@
     min-height: 68px;
 }
 
-.scs-workspace-switcher {
-    max-width: 300px;
+.scs-backoffice .button-toggle-menu {
+    border-radius: var(--scs-radius-sm);
+}
+
+/* Off-canvas close control (phones): a real button sized as a 44px target. */
+.scs-backoffice .button-close-fullsidebar {
+    width: 44px;
+    height: 44px;
+    top: 12px;
+    right: 12px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--scs-radius-sm);
+    background: transparent;
+    color: #c4cee0;
+    line-height: 44px;
+}
+
+.scs-backoffice .button-close-fullsidebar:hover {
+    background: rgba(255, 255, 255, .075);
+    color: var(--scs-ink-inverse);
+}
+
+/* Keep the wide logo clear of the close button. */
+html[data-sidenav-size=full] .scs-backoffice .leftside-menu .logo {
+    padding-right: 64px;
+}
+
+html[data-sidenav-size=full] .scs-backoffice .leftside-menu .logo img {
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* A closed off-canvas menu sits off-screen at opacity 0; hide it from keyboard and screen
+   readers too (visibility waits for the slide-out to finish). */
+html[data-sidenav-size=full]:not(.sidebar-enable) .scs-backoffice .leftside-menu {
+    visibility: hidden;
+    transition: all .25s ease-in-out, visibility 0s .25s;
+}
+
+/* Opening shows it at once, so focus can move to the close button immediately. */
+html[data-sidenav-size=full].sidebar-enable .scs-backoffice .leftside-menu {
+    transition: all .25s ease-in-out, visibility 0s;
+}
+
+.scs-topbar-workspace {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    max-width: 320px;
+    margin: 0;
     color: #42526d;
     font-size: .875rem;
     font-weight: 600;
 }
 
 .scs-workspace-dot {
+    flex: none;
     width: 9px;
     height: 9px;
     margin-right: .55rem;
     border-radius: 50%;
     background: var(--scs-accent);
     box-shadow: 0 0 0 4px rgba(15, 159, 146, .12);
+}
+
+.scs-profile-toggle {
+    border-top: 0;
+    border-bottom: 0;
+    color: var(--scs-ink);
+}
+
+.scs-profile-avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--scs-primary-subtle);
+    color: var(--scs-primary-strong);
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.scs-profile-name {
+    color: var(--scs-ink);
+    font-size: .875rem;
+    font-weight: 700;
+}
+
+.scs-profile-role {
+    color: var(--scs-muted);
+    font-size: .75rem;
+    font-weight: 600;
+}
+
+.scs-backoffice .profile-dropdown .dropdown-header {
+    max-width: 260px;
+    padding-bottom: .5rem;
 }
 
 /* Page header: breadcrumb + title + helper on the left, actions on the right. */
@@ -822,6 +973,16 @@
     border-bottom: 1px solid var(--scs-border);
 }
 
+.scs-page-heading {
+    min-width: 0;
+}
+
+.scs-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
 .scs-page-header .scs-page-helper {
     max-width: 720px;
     margin: .25rem 0 0;
@@ -831,21 +992,20 @@
 }
 
 .scs-breadcrumb {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .45rem;
     margin: 0 0 .55rem;
     padding: 0;
     color: var(--scs-muted);
     font-size: .76rem;
     font-weight: 600;
-    list-style: none;
 }
 
-.scs-breadcrumb li + li::before {
-    margin-right: .35rem;
+.scs-breadcrumb .breadcrumb-item,
+.scs-breadcrumb .breadcrumb-item.active {
+    color: var(--scs-muted);
+}
+
+.scs-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
     color: var(--scs-border-strong);
-    content: "/";
 }
 
 .scs-breadcrumb a {
@@ -1120,11 +1280,16 @@ body.authentication-bg {
     }
 
     .scs-page-header {
-        align-items: flex-start;
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .scs-page-header .btn {
-        width: 100%;
+    .scs-page-actions .btn {
+        flex: 1 1 auto;
+    }
+
+    .scs-topbar-workspace {
+        max-width: 55vw;
     }
 
     .scs-editor-tabs {

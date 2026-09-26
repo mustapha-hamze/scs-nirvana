@@ -1,4 +1,10 @@
 @model List<Microsoft.AspNetCore.Identity.IdentityRole>
+@{
+    ViewData["Title"] = "Roles";
+    ViewData["PageHelper"] = "Create and review BackOffice user roles.";
+    ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("User Management") };
+}
+
 <div class="container-fluid mt-2">
     <div class="row">
         <div class="col-xl-5">

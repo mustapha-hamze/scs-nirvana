@@ -31,9 +31,35 @@ Nirvana CMS BackOffice styling sits on top of the Hyper (Modern) Bootstrap 5 the
 
 The Hyper variables `--ct-primary*`, `--ct-link-*`, `--ct-focus-ring-color`, `--ct-danger*`, `--ct-form-invalid-*` and `--ct-{state}-{text-emphasis,bg-subtle,border-subtle}` are remapped to these tokens, so `.text-primary`, links, `.alert-*` and validation all follow the system.
 
+## App shell navigation
+
+- **Sidebar** (`Shared/_SideBar.cshtml`): brand, then the current-workspace card (`.scs-sidebar-workspace`, a group labelled "Current workspace", with a "Switch workspace" link only for users who can switch), then task sections: Overview, Content, Administration. Keep the existing menu partials and their access gates. Nested content types wrap rather than clip.
+- **Active and open states**: Hyper marks the link for the current URL. The layout script then sets `aria-current="page"` on it and syncs `aria-expanded` on every collapse toggle. A page that isn't in the menu (for example the content editor) highlights the list it belongs to, taken from its last linked breadcrumb, with `aria-current="true"`. The current item gets a fill, a 3px leading bar and bold text, so it doesn't rely on colour. Open groups rotate their arrow.
+- **Topbar** (`Shared/_Navbar.cshtml`): the menu toggle (`aria-controls="leftside-menu"`, with `aria-expanded` kept in sync), the current workspace name, and the profile menu (name, email, Switch workspace, Log out). Only add controls that have real behaviour. No demo search, notifications or fullscreen.
+- **Responsive**: at 1140px and below the sidebar becomes Hyper's icon rail, where the workspace card is hidden and the topbar still names the workspace. Under 768px it's an off-canvas panel. Opening it moves focus to the Close button, and Escape or the backdrop closes it and returns focus to the toggle. While closed it is `visibility: hidden`, so it can't be tabbed into.
+
+## Page header
+
+`_Layout.cshtml` renders one standard header for every page that sets `ViewData["Title"]`:
+
+```cshtml
+@{
+    ViewData["Title"] = "Categories";                         // h1 and last breadcrumb
+    ViewData["PageHelper"] = "One short sentence.";           // optional
+    ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("Content Management") }; // omit on the dashboard
+    // ViewData["PageHeading"] overrides the h1 text only (the dashboard greeting)
+}
+@section PageActions {
+    <button type="button" class="btn btn-primary">…</button>  // right-aligned; full width under 768px
+}
+```
+
+- The breadcrumb is always `Dashboard › <menu groups> › <page>`. Name the sidebar groups the user sees, never controllers or routes. A crumb gets an `Href` only when it's a real page (for example the content type list above the editor).
+- Put one primary action in `PageActions`, plus a secondary outline button if the page needs one. Don't build page headers by hand in views. Controllers may set the same `ViewData` keys when the view model owns the data (see `ContentController`).
+
 ## Typography
 
-- Page title: `.scs-page-title` inside `.scs-page-header`, with `.scs-breadcrumb` above it and `.scs-page-helper` below.
+- Page title: `.scs-page-title` in the shared page header (see above), with `.scs-breadcrumb` above it and `.scs-page-helper` below.
 - Section title: `.scs-section-title`. Card title: `.card-title`.
 - Metadata: `.scs-meta`. Overline and table headings: `.scs-overline` (uppercase, tracked). Use uppercase only there.
 
@@ -82,5 +108,5 @@ Buttons in the shell are at least 38px tall (32px for `.btn-sm`). Loading means 
 
 ## Responsive
 
-- Under 768px, page-header buttons go full width, card padding drops to 1rem, editor tabs scroll, and wide tables scroll inside `.scs-table-wrap`.
+- Under 768px, the page header stacks with its actions full width below the title, card padding drops to 1rem, editor tabs scroll, and wide tables scroll inside `.scs-table-wrap`.
 - The page must never scroll horizontally: bound media with `object-fit` (see the workspace picker logo stage) and truncate long titles with `text-truncate` plus a `title`.

@@ -2,26 +2,17 @@
 
 @{
     ViewData["Title"] = "Users";
+    ViewData["PageHelper"] = "Manage BackOffice users, approvals, and access.";
+    ViewData["Breadcrumb"] = new BackOfficeCrumb[] { new("User Management") };
 }
 
-<ul class="scs-breadcrumb">
-    <li><a href="/BackOffice/Home/Index">Dashboard</a></li>
-    <li>User Management</li>
-    <li>Users</li>
-</ul>
-<div class="scs-page-header">
-    <div>
-        <h1 class="scs-page-title">Users</h1>
-        <p class="scs-page-helper">Manage BackOffice users, approvals, and access.</p>
-    </div>
-    <div>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#user-modal"
-            onclick="newUserForm()">
-            <i class="uil uil-user-plus"></i>
-            Create User
-        </button>
-    </div>
-</div>
+@section PageActions {
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#user-modal"
+        onclick="newUserForm()">
+        <i class="uil uil-user-plus" aria-hidden="true"></i>
+        Create User
+    </button>
+}
 
 <div class="row">
     <div class="col-md-12 p-0">
@@ -49,7 +40,6 @@
         </div>
     </div>
 </div>
-
 
 <div class="row">
     <div class="col-xl-12 p-0">
