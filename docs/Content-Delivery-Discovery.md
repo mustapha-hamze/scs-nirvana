@@ -55,7 +55,7 @@ categories, and ids; no consumer name, id, route, category, or view model belong
 | F8 | Details requested in a culture with no current localized text | `Found` with `Source` resolution and `Culture` set; the website decides whether to redirect. |
 | F9 | Malformed legacy snapshot or malformed canonical JSON | Source text served; never an exception, never partial overlay. |
 | F10 | Culture value that is not a language tag | `InvalidCulture`, before any lookup. |
-| F11 | Well-formed culture the tenant does not have active (or has twice) | `Found`, source text, `Culture = null`. |
+| F11 | Well-formed culture that is unknown, inactive, deleted, tenant-owned, or ambiguous | `InvalidCulture` (C2). |
 | F12 | Category listing, page n of size 10, plus page beyond the end | 1-based; `TotalCount` real; beyond-end page is `Found` with no items. |
 | F13 | Listing filtered by a category that is missing, inactive, or another tenant's | Per decision D5 (recommended `NotFound`). |
 | F14 | Listing page heading needs the category and its parent's title | Served from `GetTaxonomyAsync` (tree via `ParentId`), no separate category read. |
@@ -73,8 +73,8 @@ approval (§5) before Phase 2 encodes them.
 - **T1** Every query starts from `CMS_Contents.ApplicationId = <bound tenant>` (or the term's own
   `ApplicationId` for taxonomy). No public method accepts an application id. *(Phase 1 contract;
   every Core public read already filters by application.)*
-- **T2** A relation (category, tag, culture, translation) is honoured only when both sides belong
-  to the tenant. *(`IsCategoryOwnedByApplication`, `ContentProvider` term checks.)*
+- **T2** A relation (category, tag, translation) is honoured only when both sides belong to the
+  tenant. Cultures are global rows, not tenant-owned (C2). *(`IsCategoryOwnedByApplication`, `ContentProvider` term checks.)*
 - **T3** Cross-tenant ids behave exactly like missing ids. *(`GetLocalizedContent` 404.)*
 
 ### Visibility
@@ -97,10 +97,12 @@ approval (§5) before Phase 2 encodes them.
 ### Culture
 
 - **C1** `null`/empty culture → source text, `LocalizationInfo { Culture = null, Source = Source }`.
-- **C2** Malformed tag (`^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8}){0,3}$` fails) → `InvalidCulture`,
-  checked before lookup. Well-formed → the tenant's single active, non-deleted culture whose key
-  matches case-insensitively; none or ambiguous → source text with `Culture = null` (not an
-  error). *(`LocalizedContentReader`, `FindActiveCulture`.)*
+- **C2** Delivery cultures are active, non-deleted global rows (`Culture.ApplicationId = 0`).
+  A malformed tag (`^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8}){0,3}\z` fails) → `InvalidCulture`, before any
+  lookup. A well-formed tag must match exactly one such row, case-insensitively; the result
+  reports that row's canonical key. Unknown, inactive, deleted, tenant-owned
+  (`ApplicationId <> 0`) or ambiguous (duplicate key) → `InvalidCulture`. *(Shipped SDK
+  behaviour; Core's `LocalizedContentReader` differs.)*
 - **C3** Canonical translation served only when non-deleted, same culture, `Ready`, current
   source fingerprint, valid JSON, and exact master id structure. *(`LocalizedContentReader.Resolve`.)*
 - **C4** Legacy `FarsiContent` only for the configured legacy culture while fallback is enabled,
@@ -229,7 +231,7 @@ Run read-only on production or a restored copy: first `inspect-schema.sql`, then
 | 6c | Inactive descendants under active content (D2) | discovery §6c | Pending |
 | 6d | Cross-tenant category/tag relation rows (T2) | discovery §6d | Pending |
 | 6e | Category hierarchy integrity (D5) | discovery §6e | Pending |
-| 6f | Duplicate culture keys per application (C2) | discovery §6f | Pending |
+| 6f | Duplicate active global culture keys (C2) | discovery §6f | Pending |
 | 6g | Translation status and JSON validity per culture; legacy coverage (C3, C4) | discovery §6g | Pending |
 | 6h | Ordering-key ties (O1, O2) | discovery §6h | Pending |
 | 7 | Which principal each website connection string uses | Manual (ops) | Pending |

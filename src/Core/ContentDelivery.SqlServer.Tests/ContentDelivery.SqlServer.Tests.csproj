@@ -24,6 +24,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- PackedConsumerGateTests packs the SDK and runs ../ContentDelivery.PackageTests on it. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>CoreDirectory</_Parameter1>
+      <_Parameter2>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ContentDelivery.SqlServer\ContentDelivery.SqlServer.csproj" />
   </ItemGroup>
 
