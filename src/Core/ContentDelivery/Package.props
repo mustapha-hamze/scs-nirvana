@@ -1,0 +1,31 @@
+<Project>
+
+  <!-- NuGet packaging shared by Cms.ContentDelivery and Cms.ContentDelivery.SqlServer. Both ship
+       at one version: the adapter uses SDK internals, so it pins the exact matching SDK package.
+       ContentDelivery.PackageTests packs both and checks their boundary and a consumer build. -->
+  <PropertyGroup>
+    <Version>1.0.0-preview.1</Version>
+    <IsPackable>true</IsPackable>
+    <Authors>SonicCoreSystem</Authors>
+    <Company>SonicCoreSystem</Company>
+    <PackageTags>cms;content-delivery</PackageTags>
+    <RepositoryUrl>https://github.com/mustapha-hamze/scs-nirvana</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>First preview of the Content Delivery SDK.</PackageReleaseNotes>
+
+    <!-- Same inputs, same .nupkg bytes: stable paths in the binaries and fixed zip timestamps. -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(Configuration)' == 'Release'">true</ContinuousIntegrationBuild>
+    <!-- ponytail: fixed zip entry time; derive it from the commit (SOURCE_DATE_EPOCH, which wins
+         when set) if the time inside the package ever matters. -->
+    <DeterministicTimestamp Condition="'$(DeterministicTimestamp)' == '' AND '$(SOURCE_DATE_EPOCH)' == ''">2026-01-01T00:00:00Z</DeterministicTimestamp>
+  </PropertyGroup>
+
+  <!-- A ProjectReference packs as a ">= version" dependency; make it "[version]". -->
+  <Target Name="PinProjectReferenceVersions" AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Update="@(_ProjectReferencesWithVersions)" ProjectVersion="[%(ProjectVersion)]" />
+    </ItemGroup>
+  </Target>
+
+</Project>

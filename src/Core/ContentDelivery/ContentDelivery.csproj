@@ -11,7 +11,11 @@
     <RootNamespace>Cms.ContentDelivery</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>Cms.ContentDelivery</PackageId>
+    <Description>Read-only, tenant-bound CMS content delivery contracts for websites: documents, document sets, listings, taxonomy and sitemap entries, with localization metadata.</Description>
   </PropertyGroup>
+
+  <Import Project="Package.props" />
 
   <ItemGroup>
     <!-- Startup binding/validation of the website's tenant configuration. Kept on the 9.0 line so

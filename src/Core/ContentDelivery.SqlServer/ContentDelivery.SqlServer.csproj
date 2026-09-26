@@ -12,7 +12,11 @@
     <RootNamespace>Cms.ContentDelivery.SqlServer</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>Cms.ContentDelivery.SqlServer</PackageId>
+    <Description>SQL Server adapter for Cms.ContentDelivery: registers IContentDeliveryClient over the CMS database with AddSqlServerContentDelivery.</Description>
   </PropertyGroup>
+
+  <Import Project="..\ContentDelivery\Package.props" />
 
   <ItemGroup>
     <!-- Kept on the 9.0 line so a net9 consumer is not forced onto net10 assemblies. -->
