@@ -159,6 +159,20 @@ public sealed class SupportingCmsModulesRenderingTests : IClassFixture<TestWebAp
     }
 
     [Fact]
+    public async Task SliderList_RendersResponsiveDataTableMarkup()
+    {
+        var (client, applicationId) = await SuperAdminAsync();
+        var slider = await SeedAsync(new Slider { ApplicationId = applicationId, Title = "Homepage hero" });
+
+        var body = await GetOkAsync(client, "/BackOffice/Slider/List");
+
+        Assert.Contains("<table id=\"datatable-buttons\" class=\"table table-hover dt-responsive nowrap w-100\">", body);
+        Assert.Contains("<th class=\"scs-table-actions\">Actions</th>", body);
+        Assert.Contains($"onclick=\"sliderItems('{slider.Id}')\"", body);
+        Assert.DoesNotContain("scs-empty-state", body);
+    }
+
+    [Fact]
     public async Task SliderItemList_RendersBoundedMediaCardsWithStatusAndLabelledActions()
     {
         var (client, applicationId) = await SuperAdminAsync();

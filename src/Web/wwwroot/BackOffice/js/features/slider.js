@@ -70,6 +70,32 @@
             type: "GET"
         }).done(function (data) {
             $("#findSlidersResultBody").html(data);
+            // An empty list renders an empty state instead of the table.
+            if ($("#datatable-buttons").length === 0) return;
+            $("#datatable-buttons").DataTable({
+                lengthChange: !1,
+                pageLength: 25,
+                buttons: ["copy", "print"],
+                order: [[1, "asc"]],
+                // Id stays visible: Responsive only makes the first cell keyboard-focusable, so
+                // it must carry the row-details toggle. Title next, then Actions.
+                columnDefs: [
+                    { orderable: false, targets: -1 },
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: 1 },
+                    { responsivePriority: 3, targets: -1 }
+                ],
+                language: {
+                    zeroRecords: "No sliders match your search. Try a shorter or different term.",
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    }
+                },
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
         });
     }
 
