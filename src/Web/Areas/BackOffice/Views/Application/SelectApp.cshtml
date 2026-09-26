@@ -24,10 +24,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Select Application to login | SCS</title>
-
-    <!-- App favicon -->
-    <link rel="shortcut icon" href="/BackOffice/images/favicon.ico">
+    <title>Select a workspace - Nirvana CMS</title>
 
     @await Html.PartialAsync("_CSSAssets")
 
@@ -35,71 +32,97 @@
 
 <body class="loading authentication-bg"
     data-layout-config='{"leftSideBarTheme":"dark","layoutBoxed":false, "leftSidebarCondensed":false, "leftSidebarScrollable":false,"darkMode":true, "showRightSidebarOnStart": true}'>
-    <div class="account-pages pt-4 pt-sm-5 pb-4 pb-sm-5 scs-app-picker">
+    <main class="account-pages pt-4 pt-sm-5 pb-4 pb-sm-5 scs-app-picker">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-xl-10 col-lg-11">
-                    <div class="card scs-app-picker-card">
 
-                        <!-- Logo -->
-                        <div class="card-header text-center scs-app-picker-header">
-                            <span class="scs-auth-mark mb-2">N</span>
-                            <h1>Select a workspace</h1>
-                            <p>Choose the application you want to manage.</p>
+                    <header class="text-center mb-4 scs-app-picker-header">
+                        <div class="d-inline-flex align-items-center gap-2 mb-3">
+                            <span class="scs-auth-mark" aria-hidden="true">N</span>
+                            <span class="scs-app-picker-brand">Nirvana CMS</span>
                         </div>
+                        <h1>Select a workspace</h1>
+                        <p class="text-muted mb-0">Choose the application whose content you want to manage.</p>
+                    </header>
 
-                        <div class="card-body p-3 p-lg-4">
-                            <div class="row g-3">
-                                @* For a normal user, selection is always driven by their own
-                                   memberships (userApplications) - never the full application
-                                   list - so this page never implies access to an application
-                                   they aren't actually a member of. A SuperAdmin instead sees
-                                   every active, non-deleted application (applicationsToShow,
-                                   computed above). *@
-                                @foreach (var app in applicationsToShow)
-                                {
-                                    <div class="col-md-6 col-xl-4">
-                                        <div class="card d-block h-100 scs-application-card">
-                                            <div class="scs-application-logo-wrap">
-                                                <img class="card-img-top" src="/Storage/Application/Logos/@app.LogoFileName" alt="@app.Title logo" />
-                                            </div>
-                                            <div class="card-body">
-                                                <h5 class="card-title">@app.Title</h5>
-                                                <p class="card-text scs-application-description">@app.Description</p>
-                                                <form method="post" action="/BackOffice/Application/SelectAppToEnter/@app.Id">
-                                                    @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-primary w-100">Select</button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                                @if (User.IsInRole("SuperAdmin"))
-                                {
-                                    <div class="col-md-6 col-xl-4">
-                                        <button class="btn btn-outline-primary h-100 w-100 scs-add-workspace" data-bs-toggle="modal"
-                                            data-bs-target="#application-modal" onclick="newApplicationForm()">
-                                            <i class="uil uil-plus"></i>
-                                            <span>New application</span>
-                                        </button>
-                                    </div>
-                                }
+                    @* For a normal user, selection is always driven by their own
+                       memberships (userApplications) - never the full application
+                       list - so this page never implies access to an application
+                       they aren't actually a member of. A SuperAdmin instead sees
+                       every active, non-deleted application (applicationsToShow,
+                       computed above). *@
+                    @if (applicationsToShow.Count == 0 && !User.IsInRole("SuperAdmin"))
+                    {
+                        <div class="card scs-app-picker-empty">
+                            <div class="card-body text-center p-4 p-lg-5">
+                                <i class="uil uil-apps scs-app-picker-empty-icon" aria-hidden="true"></i>
+                                <h2 class="h4 mt-3">No workspaces available yet</h2>
+                                <p class="text-muted mb-4">Your account isn't a member of any active application.
+                                    Ask an administrator to grant you access, then sign in again.</p>
+                                <form method="post" action="/Logout" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-light">
+                                        <i class="mdi mdi-logout me-1" aria-hidden="true"></i> Sign out
+                                    </button>
+                                </form>
                             </div>
                         </div>
-
-                    </div>
-                    <!-- end card -->
+                    }
+                    else
+                    {
+                        <ul class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 list-unstyled mb-0" aria-label="Workspaces">
+                            @foreach (var app in applicationsToShow)
+                            {
+                                <li class="col">
+                                    <article class="card h-100 mb-0 scs-application-card">
+                                        <div class="scs-application-logo-wrap">
+                                            @if (string.IsNullOrEmpty(app.LogoFileName))
+                                            {
+                                                <span class="scs-application-initial" aria-hidden="true">@(app.Title?.Substring(0, 1).ToUpperInvariant())</span>
+                                            }
+                                            else
+                                            {
+                                                <img src="/Storage/Application/Logos/@app.LogoFileName" alt="@app.Title logo" />
+                                            }
+                                        </div>
+                                        <div class="card-body d-flex flex-column">
+                                            <h2 class="h5 card-title mb-1">@app.Title</h2>
+                                            <p class="card-text scs-application-description">@app.Description</p>
+                                            <form method="post" action="/BackOffice/Application/SelectAppToEnter/@app.Id" class="mt-auto scs-app-picker-form">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-primary w-100" aria-label="Open @app.Title">
+                                                    Open workspace <i class="uil uil-arrow-right ms-1" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </article>
+                                </li>
+                            }
+                            @if (User.IsInRole("SuperAdmin"))
+                            {
+                                <li class="col">
+                                    <button type="button" class="card h-100 mb-0 w-100 scs-add-workspace" data-bs-toggle="modal"
+                                        data-bs-target="#application-modal" onclick="newApplicationForm()">
+                                        <span class="scs-add-workspace-icon" aria-hidden="true"><i class="uil uil-plus"></i></span>
+                                        <span class="fw-semibold">Add workspace</span>
+                                        <span class="text-muted small">Create a new application</span>
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    }
 
                 </div> <!-- end col -->
             </div>
             <!-- end row -->
         </div>
         <!-- end container -->
-    </div>
+    </main>
     <!-- end page -->
 
     <footer class="footer footer-alt">
-        <script>document.write(new Date().getFullYear())</script> © SCS
+        Nirvana CMS &middot; Sonic Core System
     </footer>
 
     <!-- bundle -->
@@ -107,6 +130,17 @@
 
     @await Html.PartialAsync("__ApplicationModal")
     @await Html.PartialAsync("__ApplicationJSFunctions")
+
+    <script>
+        // Loading feedback: lock every workspace button once one is chosen so it can't be double-submitted.
+        document.querySelectorAll(".scs-app-picker-form").forEach(function (form) {
+            form.addEventListener("submit", function () {
+                document.querySelectorAll(".scs-app-picker-form button").forEach(function (btn) { btn.disabled = true; });
+                form.querySelector("button").innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Opening...';
+            });
+        });
+    </script>
 </body>
 
 </html>
