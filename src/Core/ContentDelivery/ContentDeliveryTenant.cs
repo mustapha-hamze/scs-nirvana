@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Cms.ContentDelivery;
@@ -18,6 +19,15 @@ public sealed class ContentDeliveryOptions
 
     // The culture key (e.g. "fa-IR") the legacy snapshot is written in. Ignored when disabled.
     public string? LegacyFallbackCulture { get; init; }
+
+    // In-process caching of delivery reads. Off by default. There is no write-side invalidation:
+    // a cached read can be up to CacheTtl old, so keep it short.
+    public bool CacheEnabled { get; init; }
+
+    // How long a cached read is served, between 1 second and MaxCacheTtl.
+    public TimeSpan CacheTtl { get; init; } = TimeSpan.FromSeconds(30);
+
+    public static readonly TimeSpan MaxCacheTtl = TimeSpan.FromMinutes(5);
 }
 
 internal static class CultureTag
@@ -38,16 +48,18 @@ internal sealed class ContentDeliveryOptionsValidator : IValidateOptions<Content
             return ValidateOptionsResult.Fail($"{ContentDeliveryOptions.SectionName}:ApplicationId must be a positive application id.");
         if (options.LegacyFallbackEnabled && !CultureTag.IsWellFormed(options.LegacyFallbackCulture))
             return ValidateOptionsResult.Fail($"{ContentDeliveryOptions.SectionName}:LegacyFallbackCulture must be a culture key when LegacyFallbackEnabled is true.");
+        if (options.CacheTtl < TimeSpan.FromSeconds(1) || options.CacheTtl > ContentDeliveryOptions.MaxCacheTtl)
+            return ValidateOptionsResult.Fail($"{ContentDeliveryOptions.SectionName}:CacheTtl must be between 00:00:01 and {ContentDeliveryOptions.MaxCacheTtl}.");
         return ValidateOptionsResult.Success;
     }
 }
 
-// The tenant every delivery read is scoped to, plus the legacy fallback culture (null when the
-// fallback is disabled). Captured once from the validated startup configuration; later
+// The tenant every delivery read is scoped to, plus the legacy fallback culture and cache TTL
+// (each null when disabled). Captured once from the validated startup configuration; later
 // configuration reloads cannot re-point it.
 internal sealed class ContentDeliveryTenant
 {
-    public ContentDeliveryTenant(int applicationId, string? legacyFallbackCulture = null)
+    public ContentDeliveryTenant(int applicationId, string? legacyFallbackCulture = null, TimeSpan? cacheTtl = null)
     {
         ApplicationId = applicationId >= 1
             ? applicationId
@@ -55,11 +67,16 @@ internal sealed class ContentDeliveryTenant
         LegacyFallbackCulture = legacyFallbackCulture == null || CultureTag.IsWellFormed(legacyFallbackCulture)
             ? legacyFallbackCulture
             : throw new ArgumentException("Legacy fallback culture must be a culture key.", nameof(legacyFallbackCulture));
+        CacheTtl = cacheTtl is not { } ttl || (ttl > TimeSpan.Zero && ttl <= ContentDeliveryOptions.MaxCacheTtl)
+            ? cacheTtl
+            : throw new ArgumentOutOfRangeException(nameof(cacheTtl), cacheTtl, "Cache TTL is out of range.");
     }
 
     public int ApplicationId { get; }
 
     public string? LegacyFallbackCulture { get; }
+
+    public TimeSpan? CacheTtl { get; }
 }
 
 public static class ContentDeliveryServiceCollectionExtensions
@@ -81,7 +98,28 @@ public static class ContentDeliveryServiceCollectionExtensions
         services.AddSingleton(sp =>
         {
             var options = sp.GetRequiredService<IOptions<ContentDeliveryOptions>>().Value;
-            return new ContentDeliveryTenant(options.ApplicationId, options.LegacyFallbackEnabled ? options.LegacyFallbackCulture : null);
+            return new ContentDeliveryTenant(options.ApplicationId, options.LegacyFallbackEnabled ? options.LegacyFallbackCulture : null,
+                options.CacheEnabled ? options.CacheTtl : null);
+        });
+
+        return services;
+    }
+
+    // Registers an adapter's client behind IContentDeliveryClient, decorated with metrics and,
+    // when CacheEnabled, the in-process read cache. Call after AddContentDelivery.
+    internal static IServiceCollection AddContentDeliveryClient<TClient>(this IServiceCollection services)
+        where TClient : class, IContentDeliveryClient
+    {
+        services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton<ContentDeliveryMetrics>();
+        services.TryAddSingleton<IContentDeliveryCache>(sp => new MemoryContentDeliveryCache(
+            sp.GetRequiredService<TimeProvider>(), sp.GetRequiredService<ContentDeliveryTenant>().CacheTtl ?? throw new InvalidOperationException("Content delivery caching is disabled.")));
+        services.AddScoped<TClient>();
+        services.AddScoped<IContentDeliveryClient>(sp =>
+        {
+            var tenant = sp.GetRequiredService<ContentDeliveryTenant>();
+            return new ContentDeliveryClientDecorator(sp.GetRequiredService<TClient>(), sp.GetRequiredService<ContentDeliveryMetrics>(),
+                tenant.CacheTtl == null ? null : sp.GetRequiredService<IContentDeliveryCache>(), tenant.ApplicationId);
         });
 
         return services;

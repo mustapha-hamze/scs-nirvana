@@ -19,6 +19,8 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <!-- Same 9.0.x line as the adapter's EF Core SqlServer reference. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.20" />
+    <!-- In-memory configuration for the registration smoke test. -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.20" />
   </ItemGroup>
 
   <ItemGroup>

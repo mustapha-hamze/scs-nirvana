@@ -17,6 +17,8 @@
   <ItemGroup>
     <!-- Kept on the 9.0 line so a net9 consumer is not forced onto net10 assemblies. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.20" />
+    <!-- IHealthChecksBuilder/IHealthCheck for the opt-in AddContentDeliveryHealthChecks. -->
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.9" />
   </ItemGroup>
 
   <ItemGroup>

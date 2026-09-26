@@ -1,6 +1,9 @@
 using Cms.ContentLocalization;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Xunit;
 
 namespace Cms.ContentDelivery.SqlServer.Tests;
@@ -145,5 +148,22 @@ public sealed class Net9RuntimeTests : IDisposable
         var legacySummary = (await legacy.GetDocumentAsync(2, "fa-IR")).Value!.Summary;
         Assert.Equal(("دو", LocalizationSource.LegacyFarsi), (legacySummary.Title, legacySummary.Localization.Source));
         Assert.Equal(LocalizationSource.Source, (await _client.GetDocumentAsync(2, "fa-IR")).Value!.Summary.Localization.Source);
+    }
+
+    // The registration path (metrics/cache decorator, health checks) resolves on net9 packages.
+    [Fact]
+    public async Task DecoratedRegistration_AndHealthChecks()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["ContentDelivery:ApplicationId"] = "1", ["ContentDelivery:CacheEnabled"] = "true" })
+            .Build();
+        var services = new ServiceCollection().AddLogging().AddSqlServerContentDelivery(configuration, "Server=cms");
+        services.AddHealthChecks().AddContentDeliveryHealthChecks();
+        await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
+
+        using (var scope = provider.CreateScope())
+            Assert.IsType<ContentDeliveryClientDecorator>(scope.ServiceProvider.GetRequiredService<IContentDeliveryClient>());
+        var report = await provider.GetRequiredService<HealthCheckService>().CheckHealthAsync(r => r.Name == "content-delivery-configuration");
+        Assert.Equal(HealthStatus.Healthy, report.Status);
     }
 }

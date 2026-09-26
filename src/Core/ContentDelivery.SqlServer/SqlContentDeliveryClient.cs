@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text.Json;
 using Cms.ContentLocalization;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,12 +27,14 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
     private readonly ContentDeliveryDbContext _db;
     private readonly int _applicationId;
     private readonly string? _legacyCulture;
+    private readonly ContentDeliveryMetrics? _metrics;
 
-    public SqlContentDeliveryClient(ContentDeliveryDbContext db, ContentDeliveryTenant tenant)
+    public SqlContentDeliveryClient(ContentDeliveryDbContext db, ContentDeliveryTenant tenant, ContentDeliveryMetrics? metrics = null)
     {
         _db = db;
         _applicationId = tenant.ApplicationId;
         _legacyCulture = tenant.LegacyFallbackCulture;
+        _metrics = metrics;
     }
 
     private IQueryable<ContentRow> VisibleContents =>
@@ -118,7 +122,7 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
                     localized[graph.Head.Id] = Resolve(graph, resolved, candidates);
             }
 
-            items.AddRange(heads.Select(h => ToSummary(h, images[h.Id].FirstOrDefault(), localized.GetValueOrDefault(h.Id) ?? SourceText(h, resolved))));
+            items.AddRange(heads.Select(h => Versioned(ToSummary(h, images[h.Id].FirstOrDefault(), localized.GetValueOrDefault(h.Id) ?? SourceText(h, resolved)))));
         }
 
         return ContentDeliveryResult<ContentPage<ContentSummary>>.Found(new ContentPage<ContentSummary>
@@ -237,7 +241,7 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
             var localized = candidates != null && candidates.Has(h.Id) ? Resolve(g, culture!, candidates) : SourceText(h, culture);
             var text = localized.Text;
             var contentImages = imagesByContent[h.Id].ToList();
-            return new ContentDocument
+            return Versioned(new ContentDocument
             {
                 Summary = ToSummary(h, contentImages.FirstOrDefault(), localized),
                 Description = text == null ? h.Description : text.Description,
@@ -249,7 +253,7 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
                 Images = contentImages,
                 Categories = categoriesByContent[h.Id].ToList(),
                 Tags = tagsByContent[h.Id].ToList()
-            };
+            });
         });
     }
 
@@ -330,24 +334,33 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
     private bool IsLegacyCulture(CultureEntry culture) =>
         _legacyCulture != null && string.Equals(culture.Key, _legacyCulture, StringComparison.OrdinalIgnoreCase);
 
+    // A rejected translation or legacy snapshot is counted (outcome only) before falling back.
     private Localized Resolve(Graph graph, CultureEntry culture, Candidates candidates)
     {
         var h = graph.Head;
-        if (candidates.Translations.TryGetValue((h.Id, culture.Id), out var translation)
-            && translation.SourceFingerprint == graph.Fingerprint
-            && LocalizedTextParser.ReadCurrent(translation.LocalizedTextJson, graph.Source) is { } text)
-            return new(text, new() { Culture = culture.Key, Source = LocalizationSource.Translation },
-                $"tr-{culture.Key}-{h.Id}-{h.UpdatedDT.Ticks:x}-{translation.UpdatedDT.Ticks:x}");
+        if (candidates.Translations.TryGetValue((h.Id, culture.Id), out var translation))
+        {
+            if (translation.SourceFingerprint != graph.Fingerprint)
+                _metrics?.Fallback("stale_translation");
+            else if (LocalizedTextParser.ReadCurrent(translation.LocalizedTextJson, graph.Source) is { } text)
+                return new(text, new() { Culture = culture.Key, Source = LocalizationSource.Translation },
+                    $"tr-{culture.Key}-{h.Id}-{h.UpdatedDT.Ticks:x}-{translation.UpdatedDT.Ticks:x}");
+            else
+                _metrics?.Fallback("invalid_translation");
+        }
 
         if (IsLegacyCulture(culture)
             && candidates.Legacy.TryGetValue(h.Id, out var snapshot)
-            && !string.IsNullOrWhiteSpace(snapshot)
+            && !string.IsNullOrWhiteSpace(snapshot))
+        {
             // Strict ID/parent/type validation gates it; the served text is the field-by-field
             // overlay (omitted -> source text, explicit null -> blank, string -> replaced).
-            && LocalizedTextParser.ExtractLegacy(snapshot, graph.Source).ReasonCode == null
-            && LocalizedTextParser.ReadLegacy(snapshot, graph.Source) is { } legacy)
-            return new(legacy, new() { Culture = culture.Key, Source = LocalizationSource.LegacyFarsi },
-                $"lf-{culture.Key}-{h.Id}-{h.UpdatedDT.Ticks:x}");
+            if (LocalizedTextParser.ExtractLegacy(snapshot, graph.Source).ReasonCode == null
+                && LocalizedTextParser.ReadLegacy(snapshot, graph.Source) is { } legacy)
+                return new(legacy, new() { Culture = culture.Key, Source = LocalizationSource.LegacyFarsi },
+                    $"lf-{culture.Key}-{h.Id}-{h.UpdatedDT.Ticks:x}");
+            _metrics?.Fallback("invalid_legacy");
+        }
 
         return SourceText(h, culture);
     }
@@ -384,10 +397,20 @@ internal sealed class SqlContentDeliveryClient : IContentDeliveryClient
         PublishedAt = h.PublishDt,
         PrimaryImage = primaryImage,
         Localization = localized.Info,
-        // ponytail: keyed on the content row's UpdatedDT (plus culture and translation row);
-        // a child edit that does not touch the content row keeps the same source tag. Phase 4
-        // (caching) should version the whole graph.
+        // Versioned() completes the tag with a hash of what is delivered.
         Version = new DeliveryVersion { Tag = localized.Tag, UpdatedAt = h.UpdatedDT }
+    };
+
+    // The row/translation tag alone misses child edits (sections, elements, media, taxonomy,
+    // metadata) that do not touch the content row, so the final tag also hashes the delivered DTO
+    // itself: any change to what is served changes the version.
+    private static ContentSummary Versioned(ContentSummary summary) => Stamp(summary, summary);
+
+    private static ContentDocument Versioned(ContentDocument document) => document with { Summary = Stamp(document.Summary, document) };
+
+    private static ContentSummary Stamp<T>(ContentSummary summary, T delivered) => summary with
+    {
+        Version = summary.Version with { Tag = $"{summary.Version.Tag}-{Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(delivered)))[..16]}" }
     };
 
     private sealed record Head(int Id, int TypeId, string? Title, string? HeadLine, string? Abstract, string? Description, DateTime PublishDt, DateTime UpdatedDT);

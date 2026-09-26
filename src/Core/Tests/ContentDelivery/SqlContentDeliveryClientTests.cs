@@ -522,7 +522,9 @@ public class SqlServerContentDeliveryRegistrationTests
         var context = scope.ServiceProvider.GetRequiredService<ContentDeliveryDbContext>();
         var tenant = provider.GetRequiredService<ContentDeliveryTenant>();
 
-        Assert.IsType<SqlContentDeliveryClient>(client);
+        // The adapter's client, behind the metrics/cache decorator.
+        Assert.IsType<ContentDeliveryClientDecorator>(client);
+        Assert.IsType<SqlContentDeliveryClient>(scope.ServiceProvider.GetRequiredService<SqlContentDeliveryClient>());
         Assert.Equal(7, tenant.ApplicationId);
         Assert.Equal("Microsoft.EntityFrameworkCore.SqlServer", context.Database.ProviderName);
         Assert.Contains("Initial Catalog=Cms", context.Database.GetConnectionString());
