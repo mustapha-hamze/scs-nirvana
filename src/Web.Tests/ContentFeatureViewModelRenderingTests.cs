@@ -147,7 +147,7 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("class=\"nav nav-tabs scs-editor-tabs mb-0\" role=\"tablist\"", body);
-        Assert.Contains("<a href=\"#general\" id=\"tab-general\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"general\" aria-selected=\"true\" class=\"nav-link active\">", body);
+        Assert.Contains("<a href=\"#general\" id=\"tab-general\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"general\" aria-selected=\"true\" tabindex=\"0\" class=\"nav-link active\">", body);
         Assert.Contains("<div class=\"tab-pane show active\" id=\"general\" role=\"tabpanel\" aria-labelledby=\"tab-general\" tabindex=\"0\">", body);
         foreach (var pane in new[] { "body", "relations" })
         {
@@ -317,7 +317,7 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
         var body = await client.GetStringAsync($"/BackOffice/Content/FarsiContentForm/{contentId}/1000");
 
         Assert.Contains("role=\"tablist\" aria-label=\"Translation sections\"", body);
-        Assert.Contains("id=\"tab-general\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"general\" aria-selected=\"true\" class=\"nav-link active\"", body);
+        Assert.Contains("id=\"tab-general\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"general\" aria-selected=\"true\" tabindex=\"0\" class=\"nav-link active\"", body);
         foreach (var pane in new[] { "body", "metadata" })
             Assert.Contains($"id=\"tab-{pane}\" data-bs-toggle=\"tab\" role=\"tab\" aria-controls=\"{pane}\" aria-selected=\"false\" tabindex=\"-1\"", body);
         Assert.Contains("<div class=\"tab-pane show active\" id=\"general\" role=\"tabpanel\" aria-labelledby=\"tab-general\" tabindex=\"0\">", body);

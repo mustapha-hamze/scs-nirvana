@@ -932,7 +932,23 @@ function nextEditorTabIndex(index, count, key, isRtl) {
   }
 }
 
+// Roving tabindex: only the active tab is in the Tab order, so Tab returns to it.
+function syncEditorTabStops(tablist, activeTab) {
+  tablist.querySelectorAll('[role="tab"]').forEach(function (tab) {
+    tab.setAttribute("tabindex", tab === activeTab ? "0" : "-1");
+  });
+}
+
 function initEditorTabs(tablist) {
+  syncEditorTabStops(
+    tablist,
+    tablist.querySelector('[role="tab"][aria-selected="true"]'),
+  );
+  // Fires after every Bootstrap activation (mouse, data API or keyboard). Bootstrap 5.3.0 only
+  // removes/sets tabindex itself after its transition callback, so don't rely on it.
+  tablist.addEventListener("shown.bs.tab", function (event) {
+    syncEditorTabStops(tablist, event.target);
+  });
   // Capture phase, so this runs instead of Bootstrap 5.3.0's per-tab arrow handler
   // (no Home/End, no RTL) rather than moving focus a second time.
   tablist.addEventListener(
