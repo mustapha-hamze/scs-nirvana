@@ -50,7 +50,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
             throw new InvalidOperationException("The translation provider must never be called from a request.");
     }
 
-    private async Task<(HttpClient Client, int ApplicationId)> SignIn(bool superAdmin = true, string keys = null)
+    private async Task<(HttpClient Client, int ApplicationId)> SignIn(bool superAdmin = true, string? keys = null)
     {
         var email = $"content-activation-{Guid.NewGuid():N}@test.local";
         var user = superAdmin
@@ -69,7 +69,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         return await action(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
     }
 
-    private Task<int> SeedContent(int applicationId, bool isActive = false, string farsi = LegacyFarsi) => Db(async context =>
+    private Task<int> SeedContent(int applicationId, bool isActive = false, string? farsi = LegacyFarsi) => Db(async context =>
     {
         if (!await context.Cultures.IgnoreQueryFilters().AnyAsync(c => c.Id == ActivationCultureId))
             context.Cultures.Add(new Culture { Id = ActivationCultureId, ApplicationId = applicationId, Title = "Farsi", Key = "fa-IR", IsActive = true });
@@ -96,10 +96,10 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         return await context.SaveChangesAsync();
     });
 
-    private Task<(bool IsActive, string FarsiContent)> ContentState(int contentId) =>
-        Db(async context => await context.Contents.Where(c => c.Id == contentId).Select(c => new ValueTuple<bool, string>(c.IsActive, c.FarsiContent)).SingleAsync());
+    private Task<(bool IsActive, string? FarsiContent)> ContentState(int contentId) =>
+        Db(async context => await context.Contents.Where(c => c.Id == contentId).Select(c => new ValueTuple<bool, string?>(c.IsActive, c.FarsiContent)).SingleAsync());
 
-    private static async Task<string> TranslationState(HttpResponseMessage response) =>
+    private static async Task<string?> TranslationState(HttpResponseMessage response) =>
         (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("translationState").GetString();
 
     private static Task<HttpResponseMessage> Activate(HttpClient client, int contentId, bool mode = true) =>
@@ -246,7 +246,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
     private static string FormFingerprint(string body) =>
         System.Text.RegularExpressions.Regex.Match(body, "name=\"SourceFingerprint\" value=\"([0-9a-f]{64})\"").Groups[1].Value;
 
-    private Task<ContentTranslation> Translation(int contentId) =>
+    private Task<ContentTranslation?> Translation(int contentId) =>
         Db(c => c.ContentTranslations.IgnoreQueryFilters().SingleOrDefaultAsync(t => t.ContentId == contentId));
 
     [Fact]
@@ -262,6 +262,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         var (_, farsiContent) = await ContentState(contentId);
         Assert.Contains("عنوان دستی", farsiContent);
         var translation = await Translation(contentId);
+        Assert.NotNull(translation);
         Assert.Equal((TranslationStatus.Ready, "manual", null), (translation.TranslationStatus, translation.Provider, translation.Error));
         Assert.NotNull(translation.TranslatedAt);
         Assert.Equal("عنوان دستی", LegacyFarsiContentParser.Deserialize(translation.LocalizedTextJson).Title);
@@ -308,7 +309,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         var save = await SaveFarsi(client, foreignContentId, "نفوذ");
 
         Assert.Equal(HttpStatusCode.NotFound, save.StatusCode);
-        Assert.Equal((false, (string)null), await ContentState(foreignContentId));
+        Assert.Equal((false, (string?)null), await ContentState(foreignContentId));
         Assert.Null(await Translation(foreignContentId));
     }
 
@@ -386,6 +387,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.Equal(HttpStatusCode.OK, save.StatusCode);
         Assert.Equal("Done", await save.Content.ReadAsStringAsync());
         var translation = await Translation(contentId);
+        Assert.NotNull(translation);
         Assert.Equal((TranslationStatus.Ready, await CurrentFingerprint(contentId), "manual"),
             (translation.TranslationStatus, translation.SourceFingerprint, translation.Provider));
         var text = LegacyFarsiContentParser.Deserialize(translation.LocalizedTextJson);
@@ -423,7 +425,9 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.DoesNotContain("FA-kept", body);
         Assert.Contains("EN-added", body);
         Assert.Equal(before, await Snapshot(contentId));
-        Assert.Equal(TranslationStatus.Stale, (await Translation(contentId)).TranslationStatus);
+        var translation = await Translation(contentId);
+        Assert.NotNull(translation);
+        Assert.Equal(TranslationStatus.Stale, translation.TranslationStatus);
         Assert.Equal(HttpStatusCode.Conflict, (await Activate(client, contentId)).StatusCode);
     }
 
@@ -454,7 +458,9 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.Contains("FA-kept", body);
         Assert.Contains("FA-meta", body);
         Assert.Equal(before, await Snapshot(contentId));
-        Assert.Equal(TranslationStatus.Stale, (await Translation(contentId)).TranslationStatus);
+        var translation = await Translation(contentId);
+        Assert.NotNull(translation);
+        Assert.Equal(TranslationStatus.Stale, translation.TranslationStatus);
     }
 
     // English edited between GET and save: the save conflicts instead of marking the Farsi,
@@ -502,6 +508,7 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.Equal(before, await Snapshot(contentId));
         Assert.Equal(legacy, before.FarsiContent);
         var translation = await Translation(contentId);
+        Assert.NotNull(translation);
         Assert.Equal((TranslationStatus.Stale, "old", "{}"), (translation.TranslationStatus, translation.SourceFingerprint, translation.LocalizedTextJson));
     }
 

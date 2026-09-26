@@ -12,7 +12,7 @@ namespace Web.Tests;
 public sealed class FarsiContentMapperTests
 {
     // Master now: section 30 (element 40 kept, 41 added), section 31 added; metadata 20 kept.
-    private static Content Master(string farsiContent = null) => new()
+    private static Content Master(string? farsiContent = null) => new()
     {
         Id = 10, TypeId = 1000, Title = "EN title", HeadLine = "EN head", FarsiContent = farsiContent,
         Metadata = new ContentMetadata { Id = 20, ContentId = 10, Title = "EN meta", Author = "EN author" },
