@@ -46,10 +46,16 @@ function load({ byId = {}, all = () => [] } = {}) {
     querySelectorAll: all,
   });
   doc.activeElement = doc.body;
-  const $ = () => ({
+  const $ = (target) => ({
+    ajaxSend: (fn) => (jq.send = fn),
     ajaxError: (fn) => (jq.error = fn),
-    ajaxStop: (fn) => (jq.stop = fn),
     on: (events, fn) => (jq.tables = fn),
+    // clearModalBody: $("#id").html(spinner) puts a fresh pending placeholder in that region.
+    html: () => {
+      const region = byId[String(target).slice(1)];
+      region.placeholder = element({ "data-scs-pending": "" });
+      region.querySelector = () => region.placeholder;
+    },
   });
   const win = { Swal: { fire: (o) => (swal.push(o), Promise.resolve({})) } };
   win.jQuery = $;
@@ -57,6 +63,29 @@ function load({ byId = {}, all = () => [] } = {}) {
   vm.runInNewContext(source, context);
   return { context, jq, swal };
 }
+
+// A jqXHR-shaped request, sent the way jQuery does: ajaxSend fires inside $.ajax, before the caller
+// chains .done/.fail. fail() rejects like jQuery: local fail callbacks first, then the global ajaxError.
+function request(jq, settings = {}) {
+  const callbacks = { done: [], fail: [] };
+  const xhr = {
+    statusText: "",
+    done(fn) { callbacks.done.push(fn); return this; },
+    fail(fn) { callbacks.fail.push(fn); return this; },
+    then(onDone, onFail) { if (onDone) callbacks.done.push(onDone); if (onFail) callbacks.fail.push(onFail); return this; },
+    catch(fn) { callbacks.fail.push(fn); return this; },
+    succeed() { callbacks.done.forEach((fn) => fn()); },
+    failWith(statusText = "error") {
+      xhr.statusText = statusText;
+      callbacks.fail.forEach((fn) => fn(xhr));
+      jq.error({}, xhr, settings);
+    },
+  };
+  jq.send({}, xhr, settings);
+  return xhr;
+}
+
+const errorAlert = /role="alert"/;
 
 test("a busy button is disabled, announced, and restored to its original label", () => {
   const button = element({ id: "btnSave" });
@@ -75,31 +104,113 @@ test("a busy button is disabled, announced, and restored to its original label",
   assert.equal(button.getAttribute("onclick"), "saveTag()");
 });
 
-test("an unhandled failed request unlocks buttons, replaces stuck spinners and says so", () => {
+test("an unhandled failure restores only the busy button and pending region it owned", () => {
   const button = element({ id: "btnSave" });
   button.innerHTML = "Save tag";
-  const spinner = element();
-  const { context, jq, swal } = load({
-    byId: { btnSave: button },
-    all: (s) => (s === "[data-scs-pending]" ? [spinner] : s === "[data-scs-label]" && button.hasAttribute("data-scs-label") ? [button] : []),
-  });
-  context.setLoadingForBtn("btnSave");
+  const region = element({ id: "generalModalBody" });
+  const { context, jq, swal } = load({ byId: { btnSave: button, generalModalBody: region } });
 
-  jq.error({}, { statusText: "error" });
-  jq.stop();
+  context.setLoadingForBtn("btnSave");
+  context.clearModalBody("generalModalBody");
+  const xhr = request(jq).done(() => {});
+  const placeholder = region.placeholder;
+  xhr.failWith();
 
   assert.equal(button.disabled, false);
+  assert.equal(button.getAttribute("aria-busy"), null);
   assert.equal(button.innerHTML, "Save tag");
-  assert.match(spinner.outerHTML, /role="alert"/);
+  assert.match(placeholder.outerHTML, errorAlert);
   assert.equal(swal.length, 1);
 });
 
-test("aborted requests and failures their caller already handled change nothing", () => {
-  const { jq, swal } = load();
-  jq.error({}, { statusText: "abort" });
-  jq.stop();
-  jq.error({}, { statusText: "error" });
-  jq.stop();
+test("a failure the caller handles itself has no generic side effect", () => {
+  for (const handle of [
+    (xhr) => xhr.fail(() => {}),
+    (xhr) => xhr.catch(() => {}),
+    (xhr) => xhr.then(() => {}, () => {}),
+  ]) {
+    const button = element({ id: "btnSave" });
+    const region = element({ id: "body" });
+    const { context, jq, swal } = load({ byId: { btnSave: button, body: region } });
+    context.setLoadingForBtn("btnSave");
+    context.clearModalBody("body");
+    const xhr = request(jq);
+    handle(xhr);
+    xhr.failWith();
+
+    assert.equal(button.disabled, true, "the caller decides what the button does");
+    assert.equal(region.placeholder.outerHTML, undefined);
+    assert.equal(swal.length, 0);
+  }
+
+  // An `error` option counts too.
+  const button = element({ id: "btnSave" });
+  const { context, jq, swal } = load({ byId: { btnSave: button } });
+  context.setLoadingForBtn("btnSave");
+  request(jq, { error() {} }).failWith();
+  assert.equal(button.disabled, true);
+  assert.equal(swal.length, 0);
+});
+
+test("one failed request cannot unlock, replace or report failure for another active request", () => {
+  const formRegion = element({ id: "schema_details_form" });
+  const listRegion = element({ id: "schema_details_list" });
+  const other = element({ id: "btnUserFilter" });
+  const { context, jq, swal } = load({ byId: { schema_details_form: formRegion, schema_details_list: listRegion, btnUserFilter: other } });
+
+  // Two regions loaded together (newSchemaDetailsForm) each belong to their own request, in order.
+  context.clearModalBody("schema_details_form");
+  context.clearModalBody("schema_details_list");
+  const formRequest = request(jq);
+  const listRequest = request(jq);
+  const formPlaceholder = formRegion.placeholder;
+  const listPlaceholder = listRegion.placeholder;
+
+  // An unrelated busy button from a separate, later request.
+  context.setLoadingForBtnFilter("btnUserFilter");
+  request(jq);
+
+  listRequest.failWith();
+  assert.match(listPlaceholder.outerHTML, errorAlert);
+  assert.equal(formPlaceholder.outerHTML, undefined);
+  assert.equal(other.disabled, true);
+  assert.equal(swal.length, 0);
+
+  formRequest.succeed();
+  assert.equal(formPlaceholder.outerHTML, undefined);
+});
+
+test("a request started from a successful one inherits its busy button; a newer busy state is never undone", () => {
+  const button = element({ id: "__btnCreateSliderItem__" });
+  button.innerHTML = "Add slide";
+  const { context, jq, swal } = load({ byId: { __btnCreateSliderItem__: button } });
+
+  // createSliderItem: save, then upload the image from the save's success callback.
+  context.setLoadingForBtn("__btnCreateSliderItem__");
+  let upload;
+  request(jq).done(() => { upload = request(jq); }).succeed();
+  upload.failWith();
+  assert.equal(button.disabled, false);
+  assert.equal(button.innerHTML, "Add slide");
+  assert.equal(swal.length, 1);
+
+  // An old request failing after the button was busied again by a new one leaves the new state alone.
+  context.setLoadingForBtn("__btnCreateSliderItem__");
+  const first = request(jq);
+  context.removeLoadingForBtn("__btnCreateSliderItem__");
+  context.setLoadingForBtn("__btnCreateSliderItem__");
+  request(jq);
+  first.failWith();
+  assert.equal(button.disabled, true);
+  assert.equal(swal.length, 1);
+});
+
+test("aborted requests change nothing", () => {
+  const button = element({ id: "btnSave" });
+  const { context, jq, swal } = load({ byId: { btnSave: button } });
+  context.setLoadingForBtn("btnSave");
+  request(jq).failWith("abort");
+  assert.equal(button.disabled, true);
   assert.equal(swal.length, 0);
 });
 

@@ -44,6 +44,8 @@ function clearModalBody(regionId) {
         '<div class="p-5 text-center" data-scs-pending>' +
         '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading</span></div>' +
         "</div>");
+    var region = document.getElementById(regionId);
+    markPending("regions", region && region.querySelector("[data-scs-pending]"));
 }
 
 // The record is saved before its file is uploaded, so a failed upload still reloads to show the record.
@@ -76,6 +78,9 @@ function setBusy(btnId, text) {
     var button = document.getElementById(btnId);
     if (!button) return;
     if (!button.hasAttribute("data-scs-label")) button.setAttribute("data-scs-label", button.innerHTML);
+    // A new token per busy state, so a request only ever restores the busy state it owned.
+    button.setAttribute("data-scs-busy", String(++busyCount));
+    markPending("buttons", button);
     button.disabled = true;
     button.setAttribute("aria-busy", "true");
     button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>' + text;
@@ -88,6 +93,7 @@ function clearBusy(button, funcName, html) {
     button.removeAttribute("aria-busy");
     if (html !== null) button.innerHTML = html;
     button.removeAttribute("data-scs-label");
+    button.removeAttribute("data-scs-busy");
     if (funcName) button.setAttribute("onclick", funcName);
 }
 
@@ -103,27 +109,72 @@ function messageBox(title, text, icon) {
     return Promise.resolve({});
 }
 
-// A failed request that its caller doesn't handle would leave a region on its spinner or a command button
-// locked. Once every request has settled, put those back into a usable, explained state.
-function recoverFromFailedRequests(doc) {
-    doc.querySelectorAll("[data-scs-pending]").forEach(function (placeholder) {
-        placeholder.outerHTML = '<div class="alert alert-danger mb-0" role="alert">Error: this couldn\'t be loaded or saved. ' +
-            "Close it and try again, or reload the page.</div>";
+// Request-scoped recovery. A busy button or pending region created in the same synchronous turn as a
+// request (setLoadingForBtn / clearModalBody, then $.ajax) belongs to that request, first come first served,
+// so two requests started together each own their own region. A request started from another request's
+// success callback inherits that request's still-pending UI (e.g. save, then reload the list).
+// If a request fails and its caller handles errors itself (.fail, .catch, .then(_, onError) or an `error`
+// option), nothing happens here. Otherwise only the UI that request owned is put back and explained.
+var busyCount = 0;
+var fresh = { buttons: [], regions: [] };
+var freshResetQueued = false;
+var resolvingRequest = null;
+
+function markPending(kind, el) {
+    if (!el) return;
+    fresh[kind].push(el);
+    if (freshResetQueued) return;
+    freshResetQueued = true;
+    Promise.resolve().then(function () {
+        fresh = { buttons: [], regions: [] };
+        freshResetQueued = false;
     });
-    var locked = doc.querySelectorAll("[data-scs-label]");
-    locked.forEach(function (button) { clearBusy(button); });
-    if (locked.length) messageBox("Not saved", "The server couldn't complete the request. Check your connection and try again.", "error");
+}
+
+function claimPendingUi(xhr, settings) {
+    var parent = resolvingRequest;
+    var button = fresh.buttons.shift();
+    xhr.scsButton = button ? { el: button, token: button.getAttribute("data-scs-busy") } : parent && parent.scsButton;
+    xhr.scsRegion = fresh.regions.shift() || (parent && parent.scsRegion);
+    xhr.scsHandled = typeof settings.error === "function" || (Array.isArray(settings.error) && settings.error.length > 0);
+
+    function handledBy(method, failArgIndex) {
+        var original = xhr[method];
+        if (!original) return;
+        xhr[method] = function () {
+            if (typeof arguments[failArgIndex] === "function") xhr.scsHandled = true;
+            return original.apply(this, arguments);
+        };
+    }
+    handledBy("fail", 0);
+    handledBy("catch", 0);
+    handledBy("then", 1);
+
+    // Registered before the caller's own callbacks, so requests they start can see which request they came from.
+    xhr.done(function () {
+        resolvingRequest = xhr;
+        Promise.resolve().then(function () { if (resolvingRequest === xhr) resolvingRequest = null; });
+    });
+}
+
+function recoverFailedRequest(xhr) {
+    if (xhr.statusText === "abort" || xhr.scsHandled) return;
+    var region = xhr.scsRegion;
+    if (region && region.isConnected) {
+        region.outerHTML = '<div class="alert alert-danger mb-0" role="alert">Error: this couldn\'t be loaded or saved. ' +
+            "Close it and try again, or reload the page.</div>";
+    }
+    var owned = xhr.scsButton;
+    if (owned && owned.el.getAttribute("data-scs-busy") === owned.token) {
+        clearBusy(owned.el);
+        messageBox("Not saved", "The server couldn't complete the request. Check your connection and try again.", "error");
+    }
 }
 
 function initBackOfficeComponents(doc, $) {
-    var failed = false;
     if ($) {
-        $(doc).ajaxError(function (event, xhr) { if (xhr.statusText !== "abort") failed = true; });
-        $(doc).ajaxStop(function () {
-            if (!failed) return;
-            failed = false;
-            recoverFromFailedRequests(doc);
-        });
+        $(doc).ajaxSend(function (event, xhr, settings) { claimPendingUi(xhr, settings); });
+        $(doc).ajaxError(function (event, xhr) { recoverFailedRequest(xhr); });
         $(doc).on("draw.dt responsive-resize.dt", function () { labelDetailToggles(doc); });
     }
     // Responsive's own Enter handler clicks the cell, so this covers keyboard and pointer toggles.
