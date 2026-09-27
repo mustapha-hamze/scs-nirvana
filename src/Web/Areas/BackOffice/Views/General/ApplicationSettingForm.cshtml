@@ -8,7 +8,7 @@
 <form class="needs-validation row g-3" novalidate id="frmApplicationSetting" method="POST">
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="ApplicationId" />
-    <div asp-validation-summary="All" class="text-danger">
+    <div asp-validation-summary="All" class="alert alert-danger col-12 mb-0" role="alert">
     </div>
     <div class="col-md-6">
         <label class="form-label scs-required" asp-for="SettingId">Setting</label>

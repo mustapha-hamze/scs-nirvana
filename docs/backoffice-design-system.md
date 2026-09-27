@@ -5,6 +5,7 @@ Nirvana CMS BackOffice styling sits on top of the Hyper (Modern) Bootstrap 5 the
 ## Where it loads
 
 - `Areas/BackOffice/Views/Shared/_Layout.cshtml` (app shell) and `Shared/_CSSAssets.cshtml` (Login, SelectApp, WaitingForApproval; `Views/Home/Error.cshtml` links the same files directly) both load `scs-admin.css` **after** `app-saas.min.css`, with `asp-append-version="true"` so every change gets a new `?v=` hash and browsers never keep a stale copy.
+- Shared component behaviour and the global helpers (`checkFormValidity`, `setLoadingForBtn`, `clearModalBody`, `uploadFile`, `messageBox`) live in `wwwroot/BackOffice/js/features/common.js`, loaded by `_Layout.cshtml` and `_JSAssets.cshtml` before any page script. It is tested by `src/Web.Tests/js/common.test.mjs`.
 - Keep a single design-system stylesheet. Put page-specific CSS in a view's `Styles` section, and build it from the tokens.
 
 ## Scope rules
@@ -70,12 +71,18 @@ The Hyper variables `--ct-primary*`, `--ct-link-*`, `--ct-focus-ring-color`, `--
 | Destructive | `.btn.btn-danger` (in the confirm step) / `.btn.btn-outline-danger` (trigger) | Always confirm, and name the object in the label |
 | Icon-only | `.scs-btn-icon` or `.action-icon` (+ `.is-danger`) | Requires `aria-label` and a `title` or `data-bs-toggle="tooltip"`. 32px target |
 
-Buttons in the shell are at least 38px tall (32px for `.btn-sm`). Loading means disabling the button and swapping its label for a `spinner-border-sm` plus text (see SelectApp).
+Buttons in the shell are at least 38px tall (32px for `.btn-sm`). On touch screens (`pointer: coarse`) icon buttons, `.btn-sm` and modal close buttons grow to 44px targets.
+
+- **Commands vs navigation**: an in-page command (save, delete, toggle) is `<button type="button">`; a link is only for going to another URL. Never `href="javascript:…"` (a source guard test enforces this), because a link can't be disabled and so gets submitted twice.
+- **Loading**: call `setLoadingForBtn(id)` / `setLoadingForBtnFilter(id)` from `js/features/common.js`. It disables the button, sets `aria-busy`, and swaps the label for a spinner plus "Saving"/"Filtering", keeping the original label. `removeLoadingForBtn(id)` restores that label (pass a label only to change it).
 
 ## Forms
 
 - Put `.form-label` on every control and add `.scs-required` to the label when the input has `required`. Help text goes in `.form-text`, tied to the input with `aria-describedby`.
 - Errors: `.is-invalid` / `.was-validated` with `.invalid-feedback`, which gets a ⚠ prefix so the state doesn't rely on colour. Legacy `.text-input-error` still works.
+- Client validation for AJAX forms: `checkFormValidity(formId)` adds `.was-validated`, sets `aria-invalid` on each failing field, ties the field's sibling `.invalid-feedback` to it through `aria-describedby`, moves focus to the first invalid field, and clears the state as the user fixes it. Keep each `.invalid-feedback` inside the same wrapper as its control.
+- Server validation summary: `<div asp-validation-summary="All" class="alert alert-danger col-12 mb-0" role="alert">`. It stays hidden while empty, and once it has errors it opens with "Error: fix the following and save again."
+- Enter key: an AJAX form with no submit button would otherwise POST the whole page when Enter is pressed in a single-field form. `common.js` runs the form's `.btn-primary[onclick]` command instead. Forms with a real submit button, or their own `onsubmit` handler, behave normally.
 - Focus: primary border plus `--scs-focus-ring`. Disabled: sunken background, muted text, `not-allowed` cursor. Read-only: muted background, light border (flatpickr inputs are excluded).
 - `.input-group-text`, `.form-check-input` and Select2 share the strong border and primary checked state.
 - Layout: `.scs-field-grid` gives auto-fit columns of at least 16rem (one column on phones). `.scs-field-span` makes a field span the full row.
@@ -88,14 +95,16 @@ Buttons in the shell are at least 38px tall (32px for `.btn-sm`). Loading means 
 - Status: `<span class="scs-status scs-status--success">Published</span>` (also `--warning`, `--danger`, `--info`, or no modifier for neutral). The dot plus text label is mandatory.
 - Actions column: `.scs-table-actions` holds icon buttons or a `.dropdown` menu, with destructive items as `.dropdown-item.text-danger`.
 - Empty state: `.scs-empty-state` with an icon, one sentence and, where possible, a primary action.
+- Collapsed rows (DataTables Responsive, `dt-responsive`): the first cell is the keyboard toggle (Tab, then Enter) for the hidden columns, row actions included. `common.js` names it with the cell text plus ", show details" or ", hide details".
 
 ## Cards, tabs, modals, alerts, loading
 
 - Cards: 8px radius, `--scs-border`, `--scs-shadow`, 1.35rem padding (1rem under 768px). `.scs-dash-card` lifts on hover; its icon tile takes a module accent via `.scs-dash-tone-{primary|accent|success|warning|info|neutral}`.
 - Tabs: `.nav-tabs` / `.nav-pills` follow the primary colour. Editor tabs use `.scs-editor-tabs`: underline style, numbered steps from a CSS counter (so permission-gated tabs renumber themselves), and they scroll inside their own bar at every width. Give the list `role="tablist"` and plain-text labels. Bootstrap 5.3 adds tab roles and arrow-key navigation.
-- Modals: 8px radius, overlay shadow, muted header, `.modal-title` at section-title size. Always set `aria-labelledby`.
+- Modals: 8px radius, overlay shadow, muted header, `.modal-title` at section-title size. Always set `aria-labelledby` to the modal's own `.modal-title` id, and give the title text (set it from script before showing, e.g. "New tag"). The close button is `<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">`, never `aria-hidden`. Open with `data-bs-toggle="modal"` so Bootstrap handles Escape, the backdrop and focus. If saving re-renders the list the opener lived in, `common.js` returns focus to the re-rendered opener (same id, or the same `onclick` and `data-bs-target`), otherwise to `#main-content`.
 - Alerts: Bootstrap `.alert-{state}` with the state tokens and a 4px leading border. Start the text with a word such as "Error:" or "Saved:".
-- Loading: put `aria-busy="true"` and `.scs-loading` on a region to dim and lock it. Spinners carry `.visually-hidden` text.
+- Loading: put `aria-busy="true"` and `.scs-loading` on a region to dim and lock it. Spinners carry `.visually-hidden` text. `clearModalBody(id)` fills a region with a pending spinner while its content loads.
+- Failed requests: a caller should handle `.fail` itself where it can say something specific. As a safety net, once all requests have settled after a failure, `common.js` replaces any spinner still pending with an `.alert-danger` and re-enables any button still busy, then shows one "Not saved" message. `uploadFile` reports a failed upload (the record itself is already saved) before it reloads.
 
 ## Authoring screens
 

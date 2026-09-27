@@ -47,10 +47,10 @@
         <div class="invalid-feedback">Enter the access key.</div>
     </div>
     <div class="col-md-4 col-xl-2 scs-inline-action d-grid">
-        <a href="javascript:void(0);" class="btn btn-primary" role="button" onclick="saveAccess()">
+        <button type="button" class="btn btn-primary" onclick="saveAccess()">
             <i class="uil uil-file-check-alt" aria-hidden="true"></i>
             @(isEdit ? "Save access" : "Add access")
-        </a>
+        </button>
     </div>
     @if (isEdit)
     {

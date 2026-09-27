@@ -326,6 +326,25 @@
     color: var(--scs-danger-text);
 }
 
+/* Touch screens get 44px targets; the glyph keeps its size. */
+@media (pointer: coarse) {
+    .scs-btn-icon,
+    .scs-backoffice .action-icon {
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        min-height: 44px;
+    }
+
+    .scs-backoffice .btn-sm {
+        min-height: 44px;
+    }
+
+    .scs-backoffice .btn-close {
+        padding: .75rem;
+    }
+}
+
 /* 5. Forms ---------------------------------------------------------------- */
 .form-label {
     margin-bottom: .42rem;
@@ -387,6 +406,18 @@
 /* MVC always renders the validation summary; keep it out of the layout until it holds errors. */
 .validation-summary-valid {
     display: none;
+}
+
+/* Server errors render in .alert.alert-danger (role="alert"); the lead-in names the state, as alerts do. */
+.validation-summary-errors::before {
+    display: block;
+    font-weight: 700;
+    content: "Error: fix the following and save again.";
+}
+
+.validation-summary-errors ul {
+    margin: var(--scs-space-1) 0 0;
+    padding-left: 1.1rem;
 }
 
 /* Error text keeps an icon so the state is not signalled by colour alone. */

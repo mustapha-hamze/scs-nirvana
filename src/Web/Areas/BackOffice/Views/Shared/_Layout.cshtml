@@ -276,81 +276,8 @@
         })();
     </script>
 
-    <script>
-        function checkFormValidity(form) {
-            var flag = false;
-
-            var form = document.getElementById(form);
-            form.classList.add('was-validated');
-
-            if (form.checkValidity()) {
-                return true;
-            }
-
-            return flag;
-        }
-
-        function clearModalBody(modalBodyId) {
-            modalBodyId = "#" + modalBodyId;
-            var html = "";
-            html += "<div class=\"p-5 text-center\">";
-            html += "<div class=\"spinner-border text-primary\" role=\"status\">";
-            html += "<span class=\"visually-hidden\">Loading</span>";
-            html += "</div>";
-            html += "</div>";
-            $(modalBodyId).html(html);
-        }
-
-        function uploadFile(file, url, entityId) {
-            var upload = new FormData();
-            upload.append("File", file);
-            upload.append("EntityId", entityId);
-            upload.append("Extension", file.type.toLowerCase());
-
-            $.ajax({
-                url: url,
-                type: "POST",
-                contentType: false,
-                processData: false,
-                data: upload
-            }).done(function (data) {
-                var _data = data.split('|');
-                if (data === "Done") {
-                    location.reload();
-                }
-                else {
-                    return false;
-                }
-            });
-        }
-
-        function setLoadingForBtnFilter(btnId) {
-            $("#" + btnId).prop("disabled", true).attr("aria-busy", "true").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Filtering");
-        }
-
-        function removeLoadingForBtnFilter(btnId, funcName) {
-            $("#" + btnId).prop("disabled", false).removeAttr("aria-busy").html("<i class=\"uil uil-filter\"></i> Filter");
-            $("#" + btnId).attr("onclick", funcName);
-        }
-
-        function setLoadingForBtn(btnId) {
-            $("#" + btnId).prop("disabled", true).attr("aria-busy", "true").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Saving");
-        }
-
-        function removeLoadingForBtn(btnId, funcName, text) {
-            $("#" + btnId).prop("disabled", false).removeAttr("aria-busy").html(text);
-            $("#" + btnId).attr("onclick", funcName);
-        }
-
-        function messageBox(title, text, icon) {
-            Swal.fire({
-                backdrop: false,
-                title,
-                text,
-                icon
-            });
-        }
-    </script>
+    <!-- Shared helpers (checkFormValidity, setLoadingForBtn, messageBox, ...) and modal/form/request behaviour -->
+    <script src="/BackOffice/js/features/common.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

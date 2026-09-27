@@ -17,31 +17,32 @@
     {
         @if (Model.IsActive)
         {
-            <a href="javascript: void(0);" id="btnDeactiveContent"
+            <button type="button" id="btnDeactiveContent"
                 onclick="changeContentActiveMode(@Model.TypeId, @Model.Id, false, 'btnDeactiveContent')"
-                class="btn btn-outline-secondary" role="button" title="Take this content off the public site">
+                class="btn btn-outline-secondary" title="Take this content off the public site">
                 <i class="mdi mdi-eye-off-outline" aria-hidden="true"></i> Deactivate
-            </a>
+            </button>
         }
         else
         {
-            <a href="javascript: void(0);" id="btnActiveContent"
+            <button type="button" id="btnActiveContent"
                 onclick="changeContentActiveMode(@Model.TypeId, @Model.Id, true,'btnActiveContent')"
-                class="btn btn-outline-success" role="button" title="Make this content visible on the public site">
+                class="btn btn-outline-success" title="Make this content visible on the public site">
                 <i class="mdi mdi-eye-outline" aria-hidden="true"></i> Activate
-            </a>
+            </button>
         }
         @if (Model.ActivationCultureId > 0)
         {
-            <a href="javascript: void(0);" id="btnRequestTranslation"
+            <button type="button" id="btnRequestTranslation"
                 onclick="requestContentTranslation(@Model.Id, @Model.ActivationCultureId, 'btnRequestTranslation')"
-                class="btn btn-outline-primary" role="button" title="Queue a background translation of the current content">
+                class="btn btn-outline-primary" title="Queue a background translation of the current content">
                 <i class="mdi mdi-translate" aria-hidden="true"></i> Request translation
-            </a>
+            </button>
         }
         else
         {
-            <span id="btnRequestTranslation" class="btn btn-outline-secondary disabled" aria-disabled="true">
+            @* A status, not a control: there is nothing to press until an activation culture is configured. *@
+            <span id="btnRequestTranslation" class="scs-meta">
                 Translation unavailable (no activation culture configured)
             </span>
         }

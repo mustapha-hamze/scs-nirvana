@@ -338,8 +338,9 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("id=\"hidPriority__ContentSection\" value=\"0\"", body);
-        Assert.Contains("id=\"btnSaveContentBody\"", body);
-        Assert.Contains("id=\"btnUpdateContentBodyLayout\"", body);
+        // Native buttons, so the shared loading state can disable them against a second submit.
+        Assert.Contains("<button type=\"button\" id=\"btnSaveContentBody\"", body);
+        Assert.Contains("<button type=\"button\" id=\"btnUpdateContentBodyLayout\"", body);
     }
 
     [Fact]

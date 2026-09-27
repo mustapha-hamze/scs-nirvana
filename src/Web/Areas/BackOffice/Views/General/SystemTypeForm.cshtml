@@ -5,7 +5,7 @@
 @model Application.Contracts.General.SystemTypeDto
 <form class="needs-validation row g-3" novalidate id="frmSystemType" method="POST">
     <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="All" class="text-danger">
+    <div asp-validation-summary="All" class="alert alert-danger col-12 mb-0" role="alert">
     </div>
     <div class="col-md-6">
         <label class="form-label scs-required" asp-for="Title">Title</label>

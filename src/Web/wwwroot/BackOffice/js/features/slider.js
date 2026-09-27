@@ -17,10 +17,7 @@
             return;
         }
 
-        console.log(frmCreateSliderItemForm);
-
-        $("#__btnCreateSliderItem__").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Saving");
-        $("#__btnCreateSliderItem__").removeAttr("onclick");
+        setLoadingForBtn("__btnCreateSliderItem__");
         var frmCreateSliderItemForm = $("#__frmCreateSliderItemForm__");
         $.ajax({
             type: "POST",
@@ -45,11 +42,9 @@
             contentType: false
         }).done(function () {
             if ($("#__sliderItem_FRM_ImageFileName").val() == "") {
-                $("#__btnCreateSliderItem__").html("Add slide");
-                $("#__btnCreateSliderItem__").attr("onclick", "createSliderItem()");
+                removeLoadingForBtn("__btnCreateSliderItem__");
             } else {
-                $("#__btnUpdateSliderItem__").html("Save slide");
-                $("#__btnUpdateSliderItem__").attr("onclick", "updateSliderItem()");
+                removeLoadingForBtn("__btnUpdateSliderItem__");
             }
             sliderItems($("#__sliderItem_FRM_SliderId").val());
         });
@@ -129,8 +124,7 @@
     }
 
     function createSlider() {
-        $("#__btnCreateSlider__").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Saving");
-        $("#__btnCreateSlider__").removeAttr("onclick");
+        setLoadingForBtn("__btnCreateSlider__");
         var frmCreateSliderForm = $("#__frmCreateSliderForm__");
         $.ajax({
             type: "POST",
@@ -139,8 +133,7 @@
         }).done(function (data) {
             getSliderList();
             getSliderForm();
-            $("#__btnCreateSlider__").html("Create slider");
-            $("#__btnCreateSlider__").attr("onclick", "createSlider()");
+            removeLoadingForBtn("__btnCreateSlider__");
         });
     }
 
@@ -216,8 +209,7 @@
             }
         }
 
-        $("#__btnUpdateSliderItem__").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Saving");
-        $("#__btnUpdateSliderItem__").removeAttr("onclick");
+        setLoadingForBtn("__btnUpdateSliderItem__");
         var frmCreateSliderItemForm = $("#__frmCreateSliderItemForm__");
         $.ajax({
             type: "POST",
@@ -227,8 +219,7 @@
             if (file != undefined) {
                 uploadSliderItemImage($("#__sliderItem_FRM_SliderId").val(), $("#__sliderItem_FRM_ImageFileName").val());
             } else {
-                $("#__btnUpdateSliderItem__").html("Save slide");
-                $("#__btnUpdateSliderItem__").attr("onclick", "updateSliderItem()");
+                removeLoadingForBtn("__btnUpdateSliderItem__");
             }
         });
     }
