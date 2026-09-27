@@ -17,11 +17,7 @@ public enum ContentTranslationState
     NeedsReview,
 
     // The culture doesn't exist or is deleted: nothing can be queued or activated for it.
-    CultureUnavailable,
-
-    // Only from Request with ContentTranslationPrecondition.NoTranslation: a translation row
-    // (in any state, or soft-deleted) exists, so nothing was queued.
-    TranslationExists
+    CultureUnavailable
 }
 
 // Created: this call queued (or re-queued) the job, rather than finding an existing active one or
@@ -44,10 +40,8 @@ public class ContentTranslationRequests
 
     // Idempotent: a matching Ready translation or an active job for the current fingerprint is
     // returned as is; otherwise exactly one job is queued (a terminal job for the same tuple is
-    // re-queued - this is the explicit retry). With NoTranslation, nothing is queued when any
-    // translation row exists, and the queued job carries that precondition to the worker.
-    public async Task<ContentTranslationRequestResult> Request(int contentId, int cultureId, int applicationId, CancellationToken cancellationToken = default,
-        ContentTranslationPrecondition precondition = ContentTranslationPrecondition.None)
+    // re-queued - this is the explicit retry).
+    public async Task<ContentTranslationRequestResult> Request(int contentId, int cultureId, int applicationId, CancellationToken cancellationToken = default)
     {
         // Two tries: losing the insert/requeue race to a concurrent request means the winner's job
         // now exists, and the second pass returns it.
@@ -62,8 +56,6 @@ public class ContentTranslationRequests
                 return new ContentTranslationRequestResult(ContentTranslationState.CultureUnavailable, null);
             if (ContentTranslationJobProcessor.IsReady(translation, fingerprint))
                 return new ContentTranslationRequestResult(ContentTranslationState.Ready, null);
-            if (precondition == ContentTranslationPrecondition.NoTranslation && translation != null)
-                return new ContentTranslationRequestResult(ContentTranslationState.TranslationExists, null);
             if (job is { State: ContentTranslationJobState.Queued or ContentTranslationJobState.Processing })
                 return new ContentTranslationRequestResult(ToState(job.State), job.Id);
 
@@ -78,7 +70,6 @@ public class ContentTranslationRequests
             }
 
             job.State = ContentTranslationJobState.Queued;
-            job.TranslationPrecondition = precondition;
             job.AttemptCount = 0;
             job.NextAttemptAt = _timeProvider.GetUtcNow().UtcDateTime;
             job.ErrorCode = null;

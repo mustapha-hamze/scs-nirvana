@@ -22,8 +22,6 @@ public class ContentTranslationJobConfiguration : IEntityTypeConfiguration<Conte
         builder.Property(x => x.LeaseOwner).HasMaxLength(100).IsUnicode(false);
         builder.Property(x => x.ErrorCode).HasMaxLength(64).IsUnicode(false);
         builder.Property(x => x.Version).IsRequired().IsConcurrencyToken();
-        // docs/content-translation-db/01-add-job-translation-precondition.sql (NOT NULL DEFAULT 0).
-        builder.Property(x => x.TranslationPrecondition).IsRequired();
 
         builder.HasIndex(x => new { x.ContentId, x.CultureId, x.SourceFingerprint }).IsUnique();
         builder.HasIndex(x => new { x.State, x.NextAttemptAt });

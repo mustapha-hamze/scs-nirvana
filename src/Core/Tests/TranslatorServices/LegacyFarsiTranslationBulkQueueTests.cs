@@ -88,7 +88,6 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
         Assert.Equal([new(b, Queued, await JobId(b)), new(a, Queued, await JobId(a))], first);
         Assert.Equal([new(a, AlreadyQueued, await JobId(a)), new(b, AlreadyQueued, await JobId(b))], second);
         Assert.Equal(2, (await Jobs()).Count);
-        Assert.All(await Jobs(), j => Assert.Equal(ContentTranslationPrecondition.NoTranslation, j.TranslationPrecondition));
     }
 
     [Theory]
@@ -150,8 +149,6 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
 
         Assert.Equal([new(processing, AlreadyQueued, processingJob), new(failed, Queued, failedJob), new(oldSource, Queued, (await Jobs()).Max(j => j.Id))], items);
         Assert.Equal(4, (await Jobs()).Count);
-        Assert.Equal(ContentTranslationPrecondition.NoTranslation, (await Jobs()).Single(j => j.Id == failedJob).TranslationPrecondition);
-        Assert.Equal(ContentTranslationPrecondition.None, (await Jobs()).Single(j => j.Id == processingJob).TranslationPrecondition);
     }
 
     [Theory]
@@ -201,68 +198,6 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
         var jobs = await Jobs();
         Assert.Equal(new LegacyFarsiBulkQueueItem(id, expected, expected == AlreadyQueued ? jobs.Single().Id : null), item);
         Assert.True(jobs.Count <= 1);
-    }
-
-    [Theory]
-    [InlineData(TranslationStatus.Ready, false)] // for an older source
-    [InlineData(TranslationStatus.Stale, false)]
-    [InlineData(TranslationStatus.Failed, false)]
-    [InlineData(TranslationStatus.NeedsReview, false)]
-    [InlineData(TranslationStatus.Ready, true)]
-    public async Task TranslationWrittenAfterClassification_BeforeQueueing_IsSkipped_WithNoJob(TranslationStatus status, bool deleted)
-    {
-        await SeedCulture();
-        var id = await AddContent();
-
-        var items = await Queue([id], jobRepository: context =>
-            new RacingRepository(context, () => Add(Translation(id, status, isDeleted: deleted)), onSave: false));
-
-        Assert.Equal([new(id, Skipped, null)], items);
-        Assert.Empty(await Jobs());
-    }
-
-    // The row lands after Request's own check but before its job is saved: the job is queued, and
-    // the worker must fail it without calling the provider or touching the row.
-    [Fact]
-    public async Task TranslationWrittenWhileQueueing_WorkerFailsTheJob_WithoutProviderCall_OrOverwrite()
-    {
-        await SeedCulture();
-        var id = await AddContent();
-        var items = await Queue([id], jobRepository: context =>
-            new RacingRepository(context, () => Add(Translation(id, TranslationStatus.NeedsReview)), onSave: true));
-        var jobId = Assert.Single(await Jobs()).Id;
-        Assert.Equal([new(id, Queued, jobId)], items);
-        var before = await RowSnapshot(id);
-
-        await using (var context = _factory.CreateContext())
-        {
-            var port = new NeverCalledPort();
-            await new ContentTranslationJobProcessor(new ContentTranslationJobRepository(context), port, new ContentTranslationOptions(), new FakeTimeProvider(Now))
-                .RunOnce("worker", default);
-            Assert.Equal(0, port.Calls);
-        }
-
-        var job = Assert.Single(await Jobs());
-        Assert.Equal((ContentTranslationJobState.Failed, ContentTranslationErrorCodes.TranslationConflict), (job.State, job.ErrorCode));
-        Assert.Equal(before, await RowSnapshot(id));
-    }
-
-    private sealed class NeverCalledPort : ITranslationPort
-    {
-        public int Calls;
-
-        public Task<TranslationResult> TranslateAsync(TranslationRequest request, CancellationToken cancellationToken = default)
-        {
-            Calls++;
-            return Task.FromResult(TranslationResult.Ok("{}", "p", "m"));
-        }
-    }
-
-    private async Task<string> RowSnapshot(int contentId)
-    {
-        await using var context = _factory.CreateContext();
-        return System.Text.Json.JsonSerializer.Serialize(
-            await context.ContentTranslations.IgnoreQueryFilters().AsNoTracking().SingleAsync(t => t.ContentId == contentId));
     }
 
     [Fact]

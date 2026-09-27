@@ -154,9 +154,6 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.Equal("Queued", firstBody.GetProperty("translationState").GetString());
         Assert.Equal(firstBody.GetProperty("jobId").GetInt32(), secondBody.GetProperty("jobId").GetInt32());
         Assert.Equal(1, await Db(c => c.ContentTranslationJobs.CountAsync(j => j.ContentId == contentId)));
-        // Single-content requests keep the normal (stale/failed retry) precondition.
-        Assert.Equal(ContentTranslationPrecondition.None,
-            await Db(c => c.ContentTranslationJobs.Where(j => j.ContentId == contentId).Select(j => j.TranslationPrecondition).SingleAsync()));
 
         var activation = await Activate(client, contentId);
         Assert.Equal(HttpStatusCode.Conflict, activation.StatusCode);

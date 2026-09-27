@@ -63,9 +63,6 @@ public static class ContentTranslationErrorCodes
     public const string LeaseExpired = "lease_expired";
     public const string CultureUnavailable = "culture_unavailable";
     public const string TranslationDeleted = "translation_deleted";
-
-    // A NoTranslation job found a translation row written after it was queued; nothing was stored.
-    public const string TranslationConflict = "translation_conflict";
 }
 
 // Claims and runs one background translation job per call. Never runs inside a database
@@ -131,13 +128,6 @@ public class ContentTranslationJobProcessor
             return;
         }
 
-        if (job.TranslationPrecondition == ContentTranslationPrecondition.NoTranslation
-            && await _repository.FindTranslation(job.ContentId, job.CultureId, stoppingToken) != null)
-        {
-            await Complete(job, ContentTranslationJobState.Failed, ContentTranslationErrorCodes.TranslationConflict, stoppingToken);
-            return;
-        }
-
         var document = TranslationSourceDocument.Serialize(source);
         TranslationResult result;
         using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken))
@@ -192,12 +182,6 @@ public class ContentTranslationJobProcessor
             return;
         }
 
-        if (job.TranslationPrecondition == ContentTranslationPrecondition.NoTranslation && translation != null)
-        {
-            await Complete(job, ContentTranslationJobState.Failed, ContentTranslationErrorCodes.TranslationConflict, CancellationToken.None);
-            return;
-        }
-
         // A matching Ready row (e.g. written concurrently) is kept as is.
         if (!IsReady(translation, job.SourceFingerprint))
         {
@@ -217,26 +201,10 @@ public class ContentTranslationJobProcessor
         }
 
         // One SaveChanges: the translation and the job's success commit together, or (lost lease,
-        // concurrent row insert) neither does. A NoTranslation job only ever inserts here, so the
-        // unique (ContentId, CultureId) index makes its check-and-write atomic: a row written by
-        // anyone since the check fails the whole save.
-        // ponytail: a lost write of a None job leaves it Processing until its lease expires (->
-        // Failed, lease_expired); an explicit request then finds any concurrently written Ready row.
-        var version = job.Version;
-        if (!await Complete(job, ContentTranslationJobState.Succeeded, null, CancellationToken.None)
-            && job.TranslationPrecondition == ContentTranslationPrecondition.NoTranslation)
-            await FailLostNoTranslationWrite(job, version);
-    }
-
-    // Nothing was stored. If the job is still exactly as this worker left it (Processing, same
-    // Version), the failure was the translation write, not a lost lease: fail it now as a
-    // conflict rather than leaving it Processing (a transient save error lands here too - also
-    // safe, as nothing was written and a retry is explicit).
-    private async Task FailLostNoTranslationWrite(ContentTranslationJob lost, int claimedVersion)
-    {
-        var job = await _repository.FindJob(lost.ContentId, lost.CultureId, lost.SourceFingerprint, CancellationToken.None);
-        if (job is { State: ContentTranslationJobState.Processing } && job.Version == claimedVersion)
-            await Complete(job, ContentTranslationJobState.Failed, ContentTranslationErrorCodes.TranslationConflict, CancellationToken.None);
+        // concurrent row insert) neither does.
+        // ponytail: a lost write leaves the job Processing until its lease expires (-> Failed,
+        // lease_expired); an explicit request then finds any concurrently written Ready row.
+        await Complete(job, ContentTranslationJobState.Succeeded, null, CancellationToken.None);
     }
 
     public static bool IsReady(ContentTranslation translation, string sourceFingerprint) =>
@@ -257,7 +225,7 @@ public class ContentTranslationJobProcessor
         return Save(job, CancellationToken.None);
     }
 
-    private Task<bool> Complete(ContentTranslationJob job, ContentTranslationJobState state, string errorCode, CancellationToken cancellationToken)
+    private Task Complete(ContentTranslationJob job, ContentTranslationJobState state, string errorCode, CancellationToken cancellationToken)
     {
         job.State = state;
         job.ErrorCode = errorCode;
