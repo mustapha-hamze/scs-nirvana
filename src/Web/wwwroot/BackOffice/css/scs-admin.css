@@ -1541,36 +1541,6 @@ body.authentication-bg {
     background: var(--scs-surface-sunken);
 }
 
-.authentication-bg .auth-fluid-form-box {
-    background: var(--scs-surface);
-}
-
-.authentication-bg .auth-fluid-right {
-    position: relative;
-    overflow: hidden;
-    background: var(--scs-chrome);
-}
-
-.authentication-bg .auth-fluid-right::before {
-    position: absolute;
-    inset: 0;
-    content: "";
-    background: linear-gradient(145deg, rgba(29, 51, 94, .9), rgba(15, 159, 146, .46));
-}
-
-.authentication-bg .auth-user-testimonial {
-    z-index: 1;
-    max-width: 460px;
-}
-
-.authentication-bg .auth-brand h5 {
-    color: var(--scs-ink) !important;
-}
-
-.scs-auth-shell {
-    background: transparent;
-}
-
 .scs-auth-mark {
     display: inline-flex;
     align-items: center;
@@ -1585,10 +1555,155 @@ body.authentication-bg {
     box-shadow: 0 5px 12px rgba(var(--scs-primary-rgb), .24);
 }
 
-.scs-auth-message {
-    top: 50% !important;
-    transform: translateY(-50%);
-    text-align: left;
+/* Auth status pages: sign-in, pending approval, errors. One centred card on the
+   same stage as the workspace picker, so the whole sign-in flow reads as one place. */
+.scs-auth-page {
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - 60px);
+    padding: var(--scs-space-6) 0;
+}
+
+.scs-auth-page > .container {
+    width: 100%;
+}
+
+.scs-auth-card {
+    max-width: 440px;
+    margin: 0 auto;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    box-shadow: var(--scs-shadow);
+}
+
+.scs-auth-card > .card-body {
+    padding: var(--scs-space-6);
+}
+
+.scs-auth-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--scs-space-2);
+    margin-bottom: var(--scs-space-5);
+    text-decoration: none;
+}
+
+.scs-auth-title {
+    margin: 0 0 var(--scs-space-2);
+    color: var(--scs-ink);
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: var(--scs-leading-tight);
+}
+
+.scs-auth-lead {
+    margin-bottom: var(--scs-space-5);
+    color: var(--scs-ink-soft);
+    font-size: var(--scs-text-body);
+    line-height: var(--scs-leading-body);
+}
+
+/* State icon tile; the heading beside it always names the state, so colour is never the only signal. */
+.scs-auth-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: var(--scs-space-4);
+    border-radius: 50%;
+    font-size: 1.5rem;
+}
+
+.scs-auth-status--warning {
+    background: var(--scs-warning-subtle);
+    color: var(--scs-warning-text);
+}
+
+.scs-auth-status--danger {
+    background: var(--scs-danger-subtle);
+    color: var(--scs-danger-text);
+}
+
+.scs-auth-alert {
+    font-size: var(--scs-text-body);
+}
+
+.scs-auth-alert > i {
+    font-size: 1.1rem;
+    line-height: 1.3;
+}
+
+.scs-auth-steps {
+    margin-bottom: var(--scs-space-5);
+    padding: var(--scs-space-3) var(--scs-space-4) var(--scs-space-3) 2.1rem;
+    border-radius: var(--scs-radius-sm);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-body);
+}
+
+.scs-auth-steps li + li {
+    margin-top: var(--scs-space-1);
+}
+
+.scs-auth-reference {
+    color: var(--scs-muted);
+    font-size: var(--scs-text-meta);
+    overflow-wrap: anywhere;
+}
+
+.scs-auth-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--scs-space-2);
+}
+
+.scs-auth-actions > * {
+    flex: 1 1 10rem;
+}
+
+/* Labels stay on one line; a button that doesn't fit wraps whole, onto its own full-width row. */
+.scs-auth-actions .btn {
+    white-space: nowrap;
+}
+
+.scs-auth-footer {
+    margin: var(--scs-space-4) 0 0;
+    color: var(--scs-muted);
+    font-size: var(--scs-text-meta);
+    text-align: center;
+}
+
+/* Password field: the reveal button joins the input as one control and keeps the input's boundary colour. */
+.scs-password-toggle {
+    border: 1px solid var(--scs-border-strong);
+    border-left: 0;
+    background: var(--scs-surface);
+    color: var(--scs-muted);
+}
+
+.scs-password-toggle:hover {
+    color: var(--scs-ink);
+}
+
+/* MVC's validation message span: only visible (with its icon) once it holds a server error. */
+.invalid-feedback.field-validation-error {
+    display: block;
+}
+
+.scs-password-field .form-control.is-invalid + .scs-password-toggle {
+    border-color: var(--scs-danger-solid);
+}
+
+@media (max-width: 575.98px) {
+    .scs-auth-page {
+        padding: var(--scs-space-4) 0;
+    }
+
+    .scs-auth-card > .card-body {
+        padding: var(--scs-space-5) var(--scs-space-4);
+    }
 }
 
 /* Workspace picker (/BackOffice/Application/SelectApp) */

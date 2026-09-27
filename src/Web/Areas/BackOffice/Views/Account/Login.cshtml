@@ -1,5 +1,11 @@
 @{
     Layout = null;
+
+    // Server-side outcomes: "user_data_wrong" is the controller's single, deliberately vague
+    // credentials error; field errors come from UserLoginDto's data annotations.
+    var signInError = ViewData.ModelState["user_data_wrong"]?.Errors.FirstOrDefault()?.ErrorMessage;
+    var emailInvalid = ViewData.ModelState["EmailAddress"]?.Errors.Count > 0;
+    var passwordInvalid = ViewData.ModelState["Password"]?.Errors.Count > 0;
 }
 @model Web.Models.UserManagement.UserLoginDto
 <!DOCTYPE html>
@@ -7,88 +13,82 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Sign In - Nirvana CMS</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- App css -->
+    <title>Sign in - Nirvana CMS</title>
     @await Html.PartialAsync("_CSSAssets")
-
 </head>
 
-<body class="authentication-bg pb-0" data-layout-config='{"darkMode":true}'>
+<body class="authentication-bg">
 
-    <div class="auth-fluid scs-auth-shell">
-        <!--Auth fluid left content -->
-        <div class="auth-fluid-form-box">
-            <div class="align-items-center d-flex h-100">
+    <main class="scs-auth-page">
+        <div class="container">
+            <div class="card scs-auth-card">
                 <div class="card-body">
 
-                    <!-- Logo -->
-                    <div class="auth-brand text-center text-lg-start">
-                        <a class="logo-light d-flex align-items-center justify-content-center justify-content-lg-start gap-2" href="/">
-                            <span class="scs-auth-mark">N</span>
-                            <h5 class="m-0">Nirvana CMS</h5>
-                        </a>
-                    </div>
+                    <a class="scs-auth-brand" href="/">
+                        <span class="scs-auth-mark" aria-hidden="true">N</span>
+                        <span class="scs-app-picker-brand">Nirvana CMS</span>
+                    </a>
 
-                    <!-- title-->
-                    <h4 class="mt-0">Welcome back</h4>
-                    <p class="text-muted mb-4">Sign in to the Nirvana CMS BackOffice to manage content, schemas, and
-                        users.</p>
+                    <h1 class="scs-auth-title">Sign in to the BackOffice</h1>
+                    <p class="scs-auth-lead">Use your administrator email and password. You'll choose a workspace next.</p>
 
-                    <!-- form -->
-                    <form method="post">
+                    @if (!string.IsNullOrEmpty(signInError))
+                    {
+                        <div class="alert alert-danger d-flex gap-2 scs-auth-alert" role="alert" id="signin-error">
+                            <i class="uil uil-exclamation-circle" aria-hidden="true"></i>
+                            <div><strong>Sign-in failed:</strong> check your email and password, then try again.</div>
+                        </div>
+                    }
+
+                    <form method="post" data-scs-auth-form>
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
                             <label for="emailaddress" class="form-label">Email address</label>
-                            <input class="form-control" type="email" id="emailaddress" required=""
-                                placeholder="Enter your email" asp-for="EmailAddress">
+                            <input class="form-control @(emailInvalid ? "is-invalid" : null)" type="email" id="emailaddress" required=""
+                                placeholder="name@company.com" autocomplete="username" autofocus asp-for="EmailAddress"
+                                aria-invalid="@(emailInvalid ? "true" : null)"
+                                aria-describedby="@(emailInvalid ? "emailaddress-error" : null)">
+                            <span asp-validation-for="EmailAddress" class="invalid-feedback" id="emailaddress-error"></span>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input class="form-control" type="password" required="" id="password" maxlength="64"
-                                placeholder="Enter your password" asp-for="Password">
+                            <div class="input-group scs-password-field">
+                                <input class="form-control @(passwordInvalid ? "is-invalid" : null)" type="password" required="" id="password" maxlength="64"
+                                    placeholder="Enter your password" autocomplete="current-password" asp-for="Password"
+                                    aria-invalid="@(passwordInvalid ? "true" : null)"
+                                    aria-describedby="@(passwordInvalid ? "password-error" : null)">
+                                <button type="button" class="btn scs-password-toggle" data-scs-password-toggle
+                                    aria-controls="password" aria-pressed="false" aria-label="Show password" title="Show password">
+                                    <i class="uil uil-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="invalid-feedback" id="password-error"></span>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" id="checkbox-signin">
-                                <label class="form-check-label" asp-for="RememberMe" for="checkbox-signin">Remember
-                                    me</label>
+                                <label class="form-check-label" asp-for="RememberMe" for="checkbox-signin">Remember me</label>
                             </div>
                         </div>
-                        <div class="d-grid mb-0 text-center">
-                            <button class="btn btn-primary" type="submit"><i class="mdi mdi-login"></i> Log In </button>
+                        <div class="d-grid">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="mdi mdi-login me-1" aria-hidden="true"></i> Sign in
+                            </button>
                         </div>
                     </form>
 
-                    <!-- end form-->
-
-                    <!-- Footer-->
-                    <footer class="footer footer-alt">
-                        <p class="text-muted">Nirvana CMS &middot; Sonic Core System</p>
-                    </footer>
-
-                </div> <!-- end .card-body -->
-            </div> <!-- end .align-items-center.d-flex.h-100-->
+                </div>
+            </div>
+            <p class="scs-auth-footer">No account or locked out? Ask a Nirvana CMS administrator.</p>
         </div>
-        <!-- end auth-fluid-form-box-->
+    </main>
 
-        <!-- Auth fluid right content -->
-        <div class="auth-fluid-right text-center">
-            <div class="auth-user-testimonial scs-auth-message">
-                <h2 class="mb-3">Nirvana CMS</h2>
-                <p class="lead">
-                    One BackOffice for content, categories, schemas, and access &mdash; built for the teams behind
-                    Sonic Core System's applications.
-                </p>
-            </div> <!-- end auth-user-testimonial-->
-        </div>
-        <!-- end Auth fluid right content -->
-    </div>
-    <!-- end auth-fluid-->
+    <footer class="footer footer-alt">Nirvana CMS &middot; Sonic Core System</footer>
 
     <!-- bundle -->
     <script src="/BackOffice/js/vendor.min.js"></script>
     <script src="/BackOffice/js/app.min.js"></script>
+    <script src="/BackOffice/js/features/auth.js" asp-append-version="true"></script>
 
 </body>
 

@@ -4,7 +4,7 @@ Nirvana CMS BackOffice styling sits on top of the Hyper (Modern) Bootstrap 5 the
 
 ## Where it loads
 
-- `Areas/BackOffice/Views/Shared/_Layout.cshtml` (app shell) and `Shared/_CSSAssets.cshtml` (Login, SelectApp, WaitingForApproval) both load `scs-admin.css` **after** `app-saas.min.css`, with `asp-append-version="true"` so every change gets a new `?v=` hash and browsers never keep a stale copy.
+- `Areas/BackOffice/Views/Shared/_Layout.cshtml` (app shell) and `Shared/_CSSAssets.cshtml` (Login, SelectApp, WaitingForApproval; `Views/Home/Error.cshtml` links the same files directly) both load `scs-admin.css` **after** `app-saas.min.css`, with `asp-append-version="true"` so every change gets a new `?v=` hash and browsers never keep a stale copy.
 - Keep a single design-system stylesheet. Put page-specific CSS in a view's `Styles` section, and build it from the tokens.
 
 ## Scope rules
@@ -118,6 +118,16 @@ Categories, schemas, sliders, tags, cultures, content types and application sett
 - **Actions**: only render a control that has an endpoint behind it. Row actions are `<button class="action-icon">` with `aria-label`s that name the row; delete is last and `.is-danger`, behind a SweetAlert confirm whose button names the object ("Delete schema").
 - **Modal forms**: `.row.g-3` fields with `.scs-required` labels, `.form-text` help tied by `aria-describedby`, `.invalid-feedback` under the field, then `.scs-author-actions.justify-content-end` with a quiet Cancel (`data-bs-dismiss`) and one primary Save named by object. Close buttons use `aria-label="Close"`. The empty MVC validation summary (`.validation-summary-valid`) is hidden.
 - **Tool modals** (schema fields, slides): `modal-xl modal-dialog-scrollable` plus a `modal-fullscreen-*-down` breakpoint. Sections are `.scs-tool-section` with a `.scs-section-title`. Slides are `.scs-media-card.scs-media-card--wide` (16:9, contained) with an `.scs-status` and labelled Activate/Deactivate, Edit and Delete. A chosen image previews in the form before upload. The schema logo shows as `.scs-logo-thumb` in the list and `.scs-logo-preview` in the form. Keep row gutters at `gx-3` or less inside modals, because Hyper's `g-4` is wider than the modal padding.
+
+## Sign-in flow and status pages
+
+Login, Waiting for approval, the workspace picker and both error pages share one stage: `body.authentication-bg` (sunken canvas) with a centred card.
+
+- **Structure**: `main.scs-auth-page` > `.container` > `.card.scs-auth-card` (440px max) > `.card-body`. Start with the brand lockup (`a.scs-auth-brand` holding `.scs-auth-mark` and `.scs-app-picker-brand`), then an optional `.scs-auth-status--{warning|danger}` icon tile, one `h1.scs-auth-title`, and a `.scs-auth-lead` that says what happened.
+- **Next action**: every state ends in `.scs-auth-actions`: one primary action plus at most one quiet `.btn-light` alternative. Buttons share the row and wrap full width on phones. Pending approval lists what happens next in `.scs-auth-steps`. Error pages show the request reference in `.scs-auth-reference` and never show diagnostics.
+- **Sign-in form**: native `required`/`type="email"` validation, `autocomplete` hints, and server field errors as `.is-invalid` + `aria-invalid` + `.invalid-feedback` tied by `aria-describedby`. The controller's credentials error renders as an `.alert-danger` that starts with "Sign-in failed:". `js/features/auth.js` supplies the password reveal (`[data-scs-password-toggle]`, a real button with `aria-pressed` and a changing label) and the one-shot submit state (`form[data-scs-auth-form]`: `aria-busy`, disabled button, spinner, reset on back/forward cache restore).
+- **Error pages**: `Views/Home/Error.cshtml` (production handler) links the stylesheets directly and loads no scripts. The in-shell `Areas/BackOffice/Views/Shared/Error.cshtml` reuses the same card inside the app layout.
+- **Access denied**: there is no dedicated page yet. `RequireAccessAttribute` returns a bare 403 and the cookie scheme's default access-denied path has no endpoint. Build one from this pattern (`.scs-auth-status--danger`, "Back to dashboard" / "Switch workspace") when a route is added.
 
 ## Accessibility and motion
 

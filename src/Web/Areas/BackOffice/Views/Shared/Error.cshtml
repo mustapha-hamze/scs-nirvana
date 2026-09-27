@@ -1,27 +1,24 @@
-﻿@model ErrorViewModel
+@model ErrorViewModel
 @{
     ViewData["Title"] = "Error";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="card scs-auth-card mt-4">
+    <div class="card-body">
+        <span class="scs-auth-status scs-auth-status--danger" aria-hidden="true"><i class="uil uil-exclamation-triangle"></i></span>
+        <h1 class="scs-auth-title">Something went wrong</h1>
+        <p class="scs-auth-lead">We couldn't complete that request. Try again, or go back to the dashboard.</p>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-    <strong>Request ID:</strong> <code>@Model.RequestId</code>
-</p>
-}
+        @if (Model.ShowRequestId)
+        {
+            <p class="scs-auth-reference">If it keeps happening, contact support and quote reference <code>@Model.RequestId</code>.</p>
+        }
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that
-    occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the
-    <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+        <div class="scs-auth-actions">
+            <a class="btn btn-primary" href="/BackOffice/Home/Index">
+                <i class="uil uil-arrow-left me-1" aria-hidden="true"></i> Back to dashboard
+            </a>
+            <a class="btn btn-light" href="/BackOffice/Application/SelectApp">Switch workspace</a>
+        </div>
+    </div>
+</div>
