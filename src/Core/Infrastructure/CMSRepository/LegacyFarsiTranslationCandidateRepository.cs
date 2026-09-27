@@ -55,6 +55,17 @@ public class LegacyFarsiTranslationCandidateRepository : ILegacyFarsiTranslation
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<Dictionary<int, bool>> ClassifyOwned(LegacyFarsiCandidateFilter filter, IReadOnlyCollection<int> contentIds,
+        CancellationToken cancellationToken = default)
+    {
+        filter = filter with { Title = null, ContentId = null };
+        var candidates = await Candidates(filter).Where(c => contentIds.Contains(c.Id)).Select(c => c.Id).ToListAsync(cancellationToken);
+        return await _dbContext.Contents.AsNoTracking()
+            .Where(c => !c.IsDeleted && c.ApplicationId == filter.ApplicationId && contentIds.Contains(c.Id))
+            .Select(c => c.Id)
+            .ToDictionaryAsync(id => id, id => candidates.Contains(id), cancellationToken);
+    }
+
     public async Task<(int Total, List<LegacyFarsiTranslationCandidate> Items)> FindPage(LegacyFarsiCandidateFilter filter,
         IReadOnlyCollection<int> excludedContentIds, LegacyFarsiCandidateSort sort, bool descending, int page, int pageSize,
         CancellationToken cancellationToken = default)

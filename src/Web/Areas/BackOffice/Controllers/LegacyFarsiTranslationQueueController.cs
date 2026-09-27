@@ -13,14 +13,21 @@ namespace Web.Areas.BackOffice.Controllers;
 public class LegacyFarsiTranslationQueueController : BaseController
 {
     private readonly LegacyFarsiTranslationCandidates _candidates;
+    private readonly LegacyFarsiTranslationBulkQueue _bulkQueue;
+    private readonly ContentTranslationOptions _options;
     private readonly ICurrentApplicationContext _currentApplicationContext;
 
-    public LegacyFarsiTranslationQueueController(LegacyFarsiTranslationCandidates candidates,
-        ICurrentApplicationContext currentApplicationContext)
+    public LegacyFarsiTranslationQueueController(LegacyFarsiTranslationCandidates candidates, LegacyFarsiTranslationBulkQueue bulkQueue,
+        ContentTranslationOptions options, ICurrentApplicationContext currentApplicationContext)
     {
         _candidates = candidates;
+        _bulkQueue = bulkQueue;
+        _options = options;
         _currentApplicationContext = currentApplicationContext;
     }
+
+    // Only content IDs are accepted; any other JSON property is ignored.
+    public record QueueRequest(int[] ContentIds);
 
     [HttpGet]
     public IActionResult Index()
@@ -38,5 +45,20 @@ public class LegacyFarsiTranslationQueueController : BaseController
 
         var page = await _candidates.Find(query, _currentApplicationContext.RequireApplicationId(), cancellationToken);
         return Json(page);
+    }
+
+    // Queues background translation of the selected content (antiforgery via the global filter and
+    // the X-CSRF-TOKEN header). An empty, over-limit or non-positive request is rejected whole.
+    // Never translates inline.
+    [HttpPost]
+    public async Task<IActionResult> Queue([FromBody] QueueRequest request, CancellationToken cancellationToken)
+    {
+        var items = ModelState.IsValid && request?.ContentIds != null
+            ? await _bulkQueue.Queue(request.ContentIds, _currentApplicationContext.RequireApplicationId(), cancellationToken)
+            : null;
+        if (items == null)
+            return BadRequest(new { error = $"Select 1 to {_options.BulkRequestMaxItems} content items with positive IDs." });
+
+        return Json(new { items = items.Select(i => new { contentId = i.ContentId, outcome = i.Outcome.ToString(), jobId = i.JobId }) });
     }
 }

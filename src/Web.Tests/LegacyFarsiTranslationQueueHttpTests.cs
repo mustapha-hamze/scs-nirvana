@@ -23,7 +23,9 @@ namespace Web.Tests;
 // Phase 2 of the legacy Farsi translation queue: the page and read-only candidate endpoint are
 // SuperAdmin-only (a Content access key is not enough), read only the selected application's
 // content for the configured culture whatever the request says, return only the safe candidate
-// page contract, and never queue, translate, or write.
+// page contract, and never queue, translate, or write. Phase 3: the bulk queue POST is SuperAdmin-only
+// and antiforgery-protected, accepts only content IDs, re-checks each one server-side, and returns
+// only a safe per-item outcome. The worker is off, so the provider can only be reached inline.
 public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWebApplicationFactory>
 {
     private const int ActivationCultureId = 7101;
@@ -34,7 +36,9 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
     private const string PageUrl = "/BackOffice/LegacyFarsiTranslationQueue/Index";
     private const string CandidatesUrl = "/BackOffice/LegacyFarsiTranslationQueue/Candidates";
 
-    private readonly WebApplicationFactory<Program> _factory;
+    private const string QueueUrl = "/BackOffice/LegacyFarsiTranslationQueue/Queue";
+
+    private WebApplicationFactory<Program> _factory;
     private readonly SaveCounter _saves = new();
 
     public LegacyFarsiTranslationQueueHttpTests(TestWebApplicationFactory factory)
@@ -42,6 +46,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         _factory = factory.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("ContentTranslation:ActivationCultureId", ActivationCultureId.ToString());
+            builder.UseSetting("ContentTranslation:WorkerEnabled", "false");
             builder.UseSetting("ContentTranslation:LegacyBulkCandidateTypeIds:0", TypeId.ToString());
             builder.ConfigureTestServices(services =>
             {
@@ -210,7 +215,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         Assert.DoesNotContain("قدیمی", raw);
         Assert.DoesNotContain("secret-job-error", raw);
         Assert.DoesNotContain("Foreign", raw);
-        Assert.DoesNotContain(foreignId.ToString(), body.GetProperty("items").ToString());
+        Assert.DoesNotContain(foreignId, body.GetProperty("items").EnumerateArray().Select(i => i.GetProperty("contentId").GetInt32()));
     }
 
     [Fact]
@@ -272,5 +277,185 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         Assert.False(await Db(context => context.ContentTranslations.AnyAsync(t => t.ContentId == candidateId)));
         var after = await Db(context => context.Contents.AsNoTracking().SingleAsync(x => x.Id == candidateId));
         Assert.Equal((before.FarsiContent, before.UpdatedDT, before.IsActive), (after.FarsiContent, after.UpdatedDT, after.IsActive));
+    }
+
+    private static Task<HttpResponseMessage> PostQueue(HttpClient client, string json) =>
+        client.PostAsync(QueueUrl, new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
+
+    private static Task<HttpResponseMessage> PostQueue(HttpClient client, params int[] ids) =>
+        PostQueue(client, JsonSerializer.Serialize(new { contentIds = ids }));
+
+    private static async Task<(int ContentId, string Outcome, int? JobId)[]> Outcomes(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(new[] { "items" }, body.EnumerateObject().Select(p => p.Name));
+        return body.GetProperty("items").EnumerateArray().Select(i =>
+        {
+            Assert.Equal(new[] { "contentId", "outcome", "jobId" }, i.EnumerateObject().Select(p => p.Name));
+            var jobId = i.GetProperty("jobId");
+            return (i.GetProperty("contentId").GetInt32(), i.GetProperty("outcome").GetString()!, jobId.ValueKind == JsonValueKind.Null ? (int?)null : jobId.GetInt32());
+        }).ToArray();
+    }
+
+    private Task<ContentTranslationJob[]> Jobs(params int[] contentIds) =>
+        Db(context => context.ContentTranslationJobs.AsNoTracking().Where(j => contentIds.Contains(j.ContentId)).ToArrayAsync());
+
+    private Task<string?> Legacy(int contentId) =>
+        Db(context => context.Contents.AsNoTracking().Where(c => c.Id == contentId).Select(c => c.FarsiContent).SingleAsync());
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("content-keys")]
+    public async Task Queue_NonSuperAdmin_EvenWithChangeActivity_IsDenied_AndQueuesNothing(string? keys)
+    {
+        var grant = keys == null ? null : string.Join(',', Web.Authorization.AccessKeys.Content.Module, Web.Authorization.AccessKeys.Content.ChangeActivity);
+        var (client, applicationId) = await SignIn(superAdmin: false, keys: grant);
+        var contentId = await SeedContent(applicationId, "Member");
+
+        var response = await PostQueue(client, contentId);
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Contains("AccessDenied", response.Headers.Location?.OriginalString ?? "", StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(await Jobs(contentId));
+    }
+
+    [Fact]
+    public async Task Queue_WithoutAntiforgeryToken_IsRejected_AndQueuesNothing()
+    {
+        var (client, applicationId) = await SignIn();
+        var contentId = await SeedContent(applicationId, "Mine");
+        client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await PostQueue(client, contentId)).StatusCode);
+        Assert.Empty(await Jobs(contentId));
+    }
+
+    [Fact]
+    public async Task Queue_SuperAdmin_QueuesDistinctIdsInOrder_Idempotently_InSafeShape()
+    {
+        var (client, applicationId) = await SignIn();
+        var a = await SeedContent(applicationId, "A");
+        var b = await SeedContent(applicationId, "B");
+        var legacyBytes = System.Text.Encoding.UTF8.GetBytes((await Legacy(a))!);
+
+        var first = await PostQueue(client, b, a, b);
+        var raw = await first.Content.ReadAsStringAsync();
+        var queued = await Outcomes(first);
+        var second = await Outcomes(await PostQueue(client, a, b));
+
+        var jobs = await Jobs(a, b);
+        Assert.Equal(2, jobs.Length);
+        Assert.All(jobs, j => Assert.Equal((ActivationCultureId, ContentTranslationJobState.Queued), (j.CultureId, j.State)));
+        int JobOf(int id) => jobs.Single(j => j.ContentId == id).Id;
+        Assert.Equal(new[] { (b, "Queued", (int?)JobOf(b)), (a, "Queued", JobOf(a)) }, queued);
+        Assert.Equal(new[] { (a, "AlreadyQueued", (int?)JobOf(a)), (b, "AlreadyQueued", JobOf(b)) }, second);
+        Assert.DoesNotContain("قدیمی", raw);
+        Assert.DoesNotContain(jobs[0].SourceFingerprint, raw);
+        Assert.Equal(legacyBytes, System.Text.Encoding.UTF8.GetBytes((await Legacy(a))!));
+    }
+
+    [Theory]
+    [InlineData("{\"contentIds\":[]}")]
+    [InlineData("{\"contentIds\":[0]}")]
+    [InlineData("{\"contentIds\":[1,-5]}")]
+    [InlineData("{\"contentIds\":[\"x\"]}")]
+    [InlineData("{\"contentIds\":null}")]
+    [InlineData("{}")]
+    [InlineData("")]
+    [InlineData("not json")]
+    [InlineData("over-limit")]
+    [InlineData("over-limit-duplicates")]
+    public async Task Queue_InvalidRequest_Is400_AndQueuesNothing(string json)
+    {
+        var (client, applicationId) = await SignIn();
+        var contentId = await SeedContent(applicationId, "Mine");
+        var limit = new ContentTranslationOptions().BulkRequestMaxItems;
+        if (json.StartsWith("over-limit"))
+            json = JsonSerializer.Serialize(new
+            {
+                contentIds = json == "over-limit" ? Enumerable.Range(contentId, limit + 1) : Enumerable.Repeat(contentId, limit + 1)
+            });
+
+        var response = await PostQueue(client, json);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains($"1 to {limit}", await response.Content.ReadAsStringAsync());
+        Assert.Empty(await Jobs(contentId));
+    }
+
+    [Fact]
+    public async Task Queue_ApplicationCultureAndJobDataInTheRequest_AreIgnored()
+    {
+        var (client, applicationId) = await SignIn();
+        var mine = await SeedContent(applicationId, "Mine");
+        var otherApplicationId = await NewApplication();
+        var foreign = await SeedContent(otherApplicationId, "Foreign");
+        var tampered = JsonSerializer.Serialize(new
+        {
+            contentIds = new[] { foreign, mine },
+            applicationId = otherApplicationId, cultureId = OtherCultureId, activationCultureId = OtherCultureId,
+            sourceFingerprint = new string('f', 64), state = "Succeeded", provider = "evil", eligible = true
+        });
+
+        var items = await Outcomes(await PostQueue(client, tampered));
+
+        var job = Assert.Single(await Jobs(mine, foreign));
+        Assert.Equal(new[] { (foreign, "NotFound", (int?)null), (mine, "Queued", (int?)job.Id) }, items);
+        Assert.Equal((mine, ActivationCultureId, ContentTranslationJobState.Queued), (job.ContentId, job.CultureId, job.State));
+        Assert.NotEqual(new string('f', 64), job.SourceFingerprint);
+    }
+
+    [Fact]
+    public async Task Queue_RevalidatesCandidatesListedEarlier()
+    {
+        var (client, applicationId) = await SignIn();
+        var translated = await SeedContent(applicationId, "Translated");
+        var deleted = await SeedContent(applicationId, "Deleted");
+        var retyped = await SeedContent(applicationId, "Retyped");
+        var cleared = await SeedContent(applicationId, "Cleared");
+        var moved = await SeedContent(applicationId, "Moved");
+        var all = new[] { translated, deleted, retyped, cleared, moved };
+        Assert.Equal(all, (await ItemIds(await client.GetAsync($"{CandidatesUrl}?pageSize=100"))).Where(all.Contains));
+
+        await SeedTranslation(translated, ActivationCultureId);
+        var otherApplicationId = await NewApplication();
+        await Db(async context =>
+        {
+            foreach (var content in await context.Contents.Where(c => all.Contains(c.Id)).ToListAsync())
+            {
+                if (content.Id == deleted) content.IsDeleted = true;
+                if (content.Id == retyped) content.TypeId = 999; // not in the configured allow-list
+                if (content.Id == cleared) content.FarsiContent = " ";
+                if (content.Id == moved) content.ApplicationId = otherApplicationId;
+            }
+            return await context.SaveChangesAsync();
+        });
+
+        var items = await Outcomes(await PostQueue(client, all));
+
+        Assert.Equal(new[]
+        {
+            (translated, "Skipped", (int?)null), (deleted, "NotFound", null), (retyped, "Skipped", null), (cleared, "Skipped", null), (moved, "NotFound", null)
+        }, items);
+        Assert.Empty(await Jobs(all));
+        var raw = await (await PostQueue(client, translated)).Content.ReadAsStringAsync();
+        Assert.DoesNotContain("raw-translation-json", raw);
+        Assert.DoesNotContain("secret-provider", raw);
+    }
+
+    [Fact]
+    public async Task Queue_CultureUnavailable_QueuesAndWritesNothing()
+    {
+        _factory = _factory.WithWebHostBuilder(builder => builder.UseSetting("ContentTranslation:ActivationCultureId", "7199"));
+        var (client, applicationId) = await SignIn();
+        var contentId = await SeedContent(applicationId, "Mine");
+        Interlocked.Exchange(ref _saves.Count, 0);
+
+        var items = await Outcomes(await PostQueue(client, contentId, contentId));
+
+        Assert.Equal(new[] { (contentId, "CultureUnavailable", (int?)null) }, items);
+        Assert.Equal(0, _saves.Count);
+        Assert.Empty(await Jobs(contentId));
     }
 }

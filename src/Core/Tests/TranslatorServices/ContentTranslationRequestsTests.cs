@@ -84,7 +84,8 @@ public class ContentTranslationRequestsTests : IDisposable
         var second = await Request();
 
         Assert.Equal(ContentTranslationState.Queued, first.State);
-        Assert.Equal(first, second);
+        Assert.True(first.Created);
+        Assert.Equal(first with { Created = false }, second);
         var job = Assert.Single(await Jobs());
         Assert.Equal((first.JobId, await Fingerprint(), ContentTranslationJobState.Queued, 0, Now),
             ((int?)job.Id, job.SourceFingerprint, job.State, job.AttemptCount, job.NextAttemptAt));
@@ -133,7 +134,7 @@ public class ContentTranslationRequestsTests : IDisposable
         };
         await Add(job);
 
-        Assert.Equal(new ContentTranslationRequestResult(ContentTranslationState.Queued, job.Id), await Request());
+        Assert.Equal(new ContentTranslationRequestResult(ContentTranslationState.Queued, job.Id, Created: true), await Request());
         var stored = Assert.Single(await Jobs());
         Assert.Equal((ContentTranslationJobState.Queued, 0, null, null, Now, 1),
             (stored.State, stored.AttemptCount, stored.ErrorCode, stored.CompletedAt, stored.NextAttemptAt, stored.Version));

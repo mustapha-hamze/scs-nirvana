@@ -25,6 +25,11 @@ public interface ILegacyFarsiTranslationCandidateRepository
     // The fingerprinted source fields only (ContentSourceFingerprint input), without FarsiContent.
     Task<List<Content>> FindSources(IReadOnlyCollection<int> contentIds, CancellationToken cancellationToken = default);
 
+    // Of contentIds, the filter application's non-deleted content, each mapped to whether it matches
+    // the filter (Title and ContentId are ignored). Missing, deleted and foreign IDs are absent.
+    Task<Dictionary<int, bool>> ClassifyOwned(LegacyFarsiCandidateFilter filter, IReadOnlyCollection<int> contentIds,
+        CancellationToken cancellationToken = default);
+
     // Total and one page of the filter's content minus excludedContentIds, ordered by sort then Id.
     Task<(int Total, List<LegacyFarsiTranslationCandidate> Items)> FindPage(LegacyFarsiCandidateFilter filter,
         IReadOnlyCollection<int> excludedContentIds, LegacyFarsiCandidateSort sort, bool descending, int page, int pageSize,

@@ -188,6 +188,7 @@ public sealed class BackOfficeEndpointAuthorizationMatrixTests
         // ---- LegacyFarsiTranslationQueueController (whole controller is SuperAdmin) ----
         new(typeof(LegacyFarsiTranslationQueueController), nameof(LegacyFarsiTranslationQueueController.Index), P(), V("GET"), Auth.SuperAdminPolicy),
         new(typeof(LegacyFarsiTranslationQueueController), nameof(LegacyFarsiTranslationQueueController.Candidates), P(typeof(Application.UseCases.TranslatorServices.LegacyFarsiTranslationCandidateQuery), typeof(CancellationToken)), V("GET"), Auth.SuperAdminPolicy),
+        new(typeof(LegacyFarsiTranslationQueueController), nameof(LegacyFarsiTranslationQueueController.Queue), P(typeof(LegacyFarsiTranslationQueueController.QueueRequest), typeof(CancellationToken)), V("POST"), Auth.SuperAdminPolicy),
 
         // ---- ContentController (per-action keys; ContentForm/SaveContentForm excluded - see class doc) ----
         new(typeof(ContentController), nameof(ContentController.Index), P(typeof(int)), V("GET"), Auth.AccessKey, K(AccessKeys.Content.Module)),

@@ -20,7 +20,9 @@ public enum ContentTranslationState
     CultureUnavailable
 }
 
-public record ContentTranslationRequestResult(ContentTranslationState State, int? JobId);
+// Created: this call queued (or re-queued) the job, rather than finding an existing active one or
+// losing the race to a concurrent request.
+public record ContentTranslationRequestResult(ContentTranslationState State, int? JobId, bool Created = false);
 
 // Request-scoped translation use cases. Every method returns null when the content isn't the
 // application's (or is deleted) and CultureUnavailable when the culture is missing or deleted.
@@ -76,7 +78,7 @@ public class ContentTranslationRequests
             job.CompletedAt = null;
 
             if (await _repository.TrySaveChanges(cancellationToken))
-                return new ContentTranslationRequestResult(ContentTranslationState.Queued, job.Id);
+                return new ContentTranslationRequestResult(ContentTranslationState.Queued, job.Id, Created: true);
             if (attempt == 1)
                 throw new InvalidOperationException("Translation request conflicted twice.");
         }

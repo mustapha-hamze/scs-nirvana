@@ -116,6 +116,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ContentTranslationJobProcessor>();
         services.AddScoped<ContentTranslationRequests>();
         services.AddScoped<LegacyFarsiTranslationCandidates>();
+        services.AddScoped<LegacyFarsiTranslationBulkQueue>();
         services.AddScoped<ManualContentTranslation>();
         services.AddScoped<LocalizedContentReader>();
         services.AddHostedService<Web.Services.Translation.ContentTranslationWorker>();

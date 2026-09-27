@@ -81,6 +81,7 @@ public class CompositionRootTests
         Assert.IsType<Infrastructure.CMSRepository.LegacyFarsiTranslationCandidateRepository>(
             scope.ServiceProvider.GetRequiredService<ILegacyFarsiTranslationCandidateRepository>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<LegacyFarsiTranslationCandidates>());
+        Assert.NotNull(scope.ServiceProvider.GetRequiredService<LegacyFarsiTranslationBulkQueue>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<ManualContentTranslation>());
         Assert.IsType<Infrastructure.CMSRepository.LocalizedContentReadRepository>(
             scope.ServiceProvider.GetRequiredService<ILocalizedContentReadRepository>());
