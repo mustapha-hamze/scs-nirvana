@@ -123,6 +123,8 @@
     --ct-danger-rgb: var(--scs-danger-rgb);
     --ct-form-invalid-color: var(--scs-danger-text);
     --ct-form-invalid-border-color: var(--scs-danger-solid);
+    --ct-form-valid-color: var(--scs-success-text);
+    --ct-form-valid-border-color: var(--scs-success-solid);
 
     --ct-success-text-emphasis: var(--scs-success-text);
     --ct-success-bg-subtle: var(--scs-success-subtle);
@@ -466,6 +468,12 @@
     min-height: 39px;
 }
 
+/* Select2 4.1 keeps an empty chip list beside the full-width search field, which pushes the
+   placeholder onto a second line; with no chips, drop the list so the box matches an input. */
+.select2-selection--multiple .select2-selection__rendered:empty {
+    display: none;
+}
+
 .scs-backoffice textarea.form-control {
     min-height: 100px;
 }
@@ -539,6 +547,19 @@
 .scs-table-wrap .dataTables_wrapper > .row {
     margin-right: 0;
     margin-left: 0;
+}
+
+/* Pagination: the theme hardcodes its purple (white on it fails AA); follow the primary token. */
+.scs-backoffice .pagination {
+    --ct-pagination-active-bg: var(--scs-primary);
+    --ct-pagination-active-border-color: var(--scs-primary);
+}
+
+/* The theme hides every page number on phones; keep the current one so the pager says where you are. */
+@media (max-width: 767.98px) {
+    .scs-backoffice li.paginate_button.active {
+        display: inline-block;
+    }
 }
 
 .scs-table-actions {
@@ -1194,6 +1215,11 @@
     border-top: 1px solid var(--scs-border);
 }
 
+/* Body and footer share the header's inset, so fields line up under the modal title. */
+.scs-backoffice .modal {
+    --ct-modal-padding: 1.35rem;
+}
+
 .scs-backoffice .modal-content {
     overflow: hidden;
     border: 0;
@@ -1247,6 +1273,9 @@
 }
 
 .scs-backoffice .leftside-menu {
+    /* The icon rail's hover flyout reads these; the theme defaults are its grey and purple. */
+    --ct-menu-bg: var(--scs-chrome);
+    --ct-menu-condensed-link-bg: var(--scs-primary);
     background: var(--scs-chrome);
     box-shadow: none;
 }
@@ -1326,6 +1355,12 @@ html:not([data-sidenav-size=condensed]) .scs-backoffice .side-nav .side-nav-link
    the workspace visible. */
 html[data-sidenav-size=condensed] .scs-sidebar-workspace {
     display: none;
+}
+
+/* With labels and arrows gone, mark the group holding the current page like the current item. */
+html[data-sidenav-size=condensed] .scs-backoffice .side-nav > .menuitem-active > .side-nav-link {
+    background: rgba(78, 125, 238, .24);
+    box-shadow: inset 3px 0 0 #8fb0ff;
 }
 
 /* Nested content types and settings wrap instead of clipping long names. */

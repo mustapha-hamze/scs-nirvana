@@ -286,6 +286,8 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
         Assert.Contains("href=\"#body\"", body);
         Assert.Contains("href=\"#images\"", body);
         Assert.Contains("href=\"#attachment\"", body);
+        // Nothing loads the attachment pane, so it carries its own empty state rather than a blank card.
+        Assert.Contains("Attachments can't be managed from the editor yet.", body);
         Assert.Contains("href=\"#relations\"", body);
         Assert.Contains("href=\"#metadata\"", body);
         Assert.Equal(1, counter.GetUserAccessesCalls);

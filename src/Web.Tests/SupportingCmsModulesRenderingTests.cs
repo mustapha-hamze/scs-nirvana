@@ -51,6 +51,7 @@ public sealed class SupportingCmsModulesRenderingTests : IClassFixture<TestWebAp
         { "/BackOffice/Category/List", "No categories yet." },
         { "/BackOffice/Schema/SchemaList", "No schemas yet." },
         { "/BackOffice/Slider/List", "No sliders yet." },
+        { "/BackOffice/General/Logs", "System logs aren't recorded yet" },
     };
 
     [Theory]

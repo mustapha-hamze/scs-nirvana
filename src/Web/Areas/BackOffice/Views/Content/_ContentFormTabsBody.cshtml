@@ -18,7 +18,12 @@
     @if (Model.CanPreviewAttachments)
     {
         <div class="tab-pane" id="attachment" role="tabpanel" aria-labelledby="tab-attachment" tabindex="0">
-</div>
+            @* Nothing loads this pane yet; say so instead of showing a blank card. *@
+            <div class="scs-empty-state">
+                <i class="mdi mdi-paperclip" aria-hidden="true"></i>
+                Attachments can't be managed from the editor yet.
+            </div>
+        </div>
     }
     @if (Model.CanPreviewRelations)
     {
