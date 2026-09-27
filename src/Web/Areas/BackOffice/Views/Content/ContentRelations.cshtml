@@ -3,64 +3,51 @@
     Layout = null;
 }
 
-<div class="row">
-    <div class="col-md-12">
-        <h4 class="mt-1 fw-normal">Categories</h3>
-    </div>
-    <div class="row">
-        <div class="col-md-12 mb-2">
+<div class="scs-author-section">
+    <p class="scs-meta mb-3">Link this content to categories, tags, and cultures. Remove an item with its &times;.</p>
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <label class="form-label" for="__Select2_Categories__">Categories</label>
             <select class="form-control select2 select2-multiple" data-toggle="select2" multiple="multiple"
-                data-placeholder="Choose ..." id="__Select2_Categories__">
+                data-placeholder="Choose categories" id="__Select2_Categories__" aria-describedby="__Select2_Categories__Help">
                 @foreach (var item in Model.Categories)
                 {
                     <option value="@item.Id">@item.Title</option>
                 }
             </select>
+            <div class="form-text" id="__Select2_Categories__Help">Where the content is listed.</div>
         </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-md-12">
-        <h4 class="mt-1 fw-normal">Tags</h3>
-    </div>
-    <div class="row">
-        <div class="col-md-12 mb-2">
+        <div class="col-lg-4">
+            <label class="form-label" for="__Select2_Tags__">Tags</label>
             <select class="form-control select2 select2-multiple" data-toggle="select2" multiple="multiple"
-                data-placeholder="Choose ..." id="__Select2_Tags__">
+                data-placeholder="Choose tags" id="__Select2_Tags__" aria-describedby="__Select2_Tags__Help">
                 @foreach (var item in Model.Tags)
                 {
                     <option value="@item.Id">@item.Title</option>
                 }
             </select>
+            <div class="form-text" id="__Select2_Tags__Help">Keywords that group related content.</div>
         </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-md-12">
-        <h4 class="mt-1 fw-normal">Cultures</h3>
-    </div>
-    <div class="row">
-        <div class="col-md-12 mb-2">
+        <div class="col-lg-4">
+            <label class="form-label" for="__Select2_Cultures__">Cultures</label>
             <select class="form-control select2 select2-multiple" data-toggle="select2" multiple="multiple"
-                data-placeholder="Choose ..." id="__Select2_Cultures__">
+                data-placeholder="Choose cultures" id="__Select2_Cultures__" aria-describedby="__Select2_Cultures__Help">
                 @foreach (var item in Model.Cultures)
                 {
                     <option value="@item.Id">@item.Title</option>
                 }
             </select>
+            <div class="form-text" id="__Select2_Cultures__Help">Languages this content is published in.</div>
         </div>
     </div>
+    @if (Model.CanSaveRelations)
+    {
+        <div class="scs-author-actions">
+            <button type="button" id="btnSaveContentRelations" onclick="saveContentRelations()"
+                class="btn btn-primary"><i class="uil uil-file-share-alt" aria-hidden="true"></i> Save relations</button>
+        </div>
+    }
 </div>
-@if (Model.CanSaveRelations)
-{
-    <div class="row mt-2">
-    <div class="col-md-12">
-        <a href="javascript: void(0);" id="btnSaveContentRelations" onclick="saveContentRelations()"
-            class="btn btn-primary"><i class="uil uil-file-share-alt"></i> Save
-            Relations</a>
-    </div>
-</div>
-}
 
 <input type="hidden" id="hidCategoriesRelated" value="@Model.CategoriesRelated">
 <input type="hidden" id="hidTagsRelated" value="@Model.TagsRelated">

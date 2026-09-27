@@ -674,7 +674,8 @@ public sealed class ContentActivationRegressionTests : IClassFixture<TestWebAppl
         Assert.Contains("/Storage/Section/Images/master-image.jpg", body);
         Assert.Contains(">Hero<", body);
         Assert.DoesNotContain("name=\"Sections[1].SectionElements[1].TinyText\"", body);
-        Assert.Contains("Translation status: <strong>Not translated</strong>", body);
+        Assert.Contains("Translation status</span>", body);
+        Assert.Contains("<span class=\"scs-status\">Not translated</span>", body);
     }
 
     [Fact]

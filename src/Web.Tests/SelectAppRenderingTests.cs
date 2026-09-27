@@ -50,7 +50,7 @@ public sealed class SelectAppRenderingTests : IClassFixture<TestWebApplicationFa
         var body = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Select application to enter admin panel", body);
+        Assert.Contains("Select a workspace", body);
         Assert.Contains(applicationTitle, body);
         Assert.Contains($"/BackOffice/Application/SelectAppToEnter/{applicationId}", body);
     }

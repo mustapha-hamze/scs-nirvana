@@ -1,7 +1,13 @@
 @model List<SectorEntityDto>
+@if (Model.Count == 0)
+{
+    <p class="scs-meta mb-0">This sector has no entities yet. Add them under Access Management › Sectors.</p>
+}
 @foreach (var item in Model)
 {
-    <div class="">
-        <a href="javascript:void(0);" onclick="loadEntityAccesses('@item.AccessKey', '@item.Id')">@item.Title</a>
-    </div>
+    <button type="button" class="scs-entity-option" data-entity-id="@item.Id" aria-pressed="false"
+        onclick="loadEntityAccesses('@item.AccessKey', '@item.Id')">
+        <span class="scs-cell-truncate" title="@item.Title">@item.Title</span>
+        <code class="scs-code scs-cell-truncate">@item.AccessKey</code>
+    </button>
 }

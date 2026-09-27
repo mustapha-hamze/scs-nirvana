@@ -3,31 +3,42 @@
     Layout = null;
 }
 
-<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Title</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Items)
-        {
+@if (Model.Items.Count == 0)
+{
+    <div class="scs-empty-state">
+        <i class="mdi mdi-view-carousel-outline" aria-hidden="true"></i>
+        No sliders yet. Create one above, then add its slides.
+    </div>
+}
+else
+{
+    <table id="datatable-buttons" class="table table-hover dt-responsive nowrap w-100">
+        <thead>
             <tr>
-                <td>@item.Id</td>
-                <td>@item.Title</td>
-                <td>
-                    @if (item.CanAccessItems)
-                    {
-                        <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
-                            data-bs-target="#sliderItem-modal" onclick="sliderItems('@item.Id')" title="Manage Items"
-                            aria-label="Manage items for @item.Title">
-                            <i class="mdi mdi-menu"></i>
-                        </a>
-                    }
-                </td>
+                <th>Id</th>
+                <th>Title</th>
+                <th class="scs-table-actions">Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td class="scs-meta">@item.Id</td>
+                    <td class="scs-cell-truncate" title="@item.Title">@item.Title</td>
+                    <td class="scs-table-actions">
+                        @if (item.CanAccessItems)
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                data-bs-target="#sliderItem-modal" onclick="sliderItems('@item.Id')"
+                                aria-label="Manage slides for @item.Title">
+                                <i class="mdi mdi-image-multiple-outline" aria-hidden="true"></i>
+                                Manage slides
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -2,56 +2,58 @@
 
 @{
     var shell = await ShellContext.GetSnapshotAsync();
+    var initials = string.Concat(shell.UserDisplayName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2)
+        .Select(part => char.ToUpperInvariant(part[0])));
 }
 
 <div class="topbar container-fluid">
-    <div class="d-flex align-items-center gap-lg-2 gap-1">
-        <!-- Sidebar Menu Toggle Button -->
-        <button class="button-toggle-menu" title="Toggle sidebar" aria-label="Toggle sidebar">
-            <i class="mdi mdi-menu"></i>
+    <div class="d-flex align-items-center gap-lg-2 gap-1 min-w-0">
+        <!-- Sidebar Menu Toggle Button: Hyper collapses it on desktop and opens it off-canvas on phones -->
+        <button type="button" class="button-toggle-menu" aria-label="Main menu" aria-controls="leftside-menu"
+            aria-expanded="true">
+            <i class="mdi mdi-menu" aria-hidden="true"></i>
         </button>
-        <!-- Horizontal Menu Toggle Button -->
-        <button class="navbar-toggle" data-bs-toggle="collapse" data-bs-target="#topnav-menu-content"
-            title="Toggle navigation" aria-label="Toggle navigation">
-            <div class="lines">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </button>
+        <p class="scs-topbar-workspace" title="@shell.ApplicationTitle">
+            <span class="scs-workspace-dot" aria-hidden="true"></span>
+            <span class="visually-hidden">Current workspace:</span>
+            <span class="text-truncate">@shell.ApplicationTitle</span>
+        </p>
     </div>
     <ul class="topbar-menu d-flex align-items-center gap-3">
-        <li class="d-none d-md-flex align-items-center scs-workspace-switcher">
-            <span class="scs-workspace-dot" aria-hidden="true"></span>
-            <span class="text-truncate">@shell.ApplicationTitle</span>
-        </li>
         <li class="dropdown">
-            <a class="nav-link dropdown-toggle arrow-none nav-user px-2" data-bs-toggle="dropdown" href="#"
-                role="button" aria-haspopup="false" aria-expanded="false">
-                <span class="account-user-avatar">
-                    <img src="/BackOffice/images/users/avatar-1.jpg" alt="user-image" width="32" class="rounded-circle">
+            <button type="button" class="nav-link dropdown-toggle arrow-none nav-user px-2 scs-profile-toggle"
+                data-bs-toggle="dropdown" aria-expanded="false" aria-label="Account menu for @shell.UserDisplayName">
+                <span class="scs-profile-avatar" aria-hidden="true">
+                    @if (initials.Length > 0) { @initials } else { <i class="mdi mdi-account"></i> }
                 </span>
-                <span class="d-lg-flex flex-column gap-1 d-none">
-                    <h5 class="my-0">@shell.UserDisplayName</h5>
-                    <h6 class="my-0 fw-normal">Admin</h6>
+                <span class="d-lg-flex flex-column gap-1 d-none text-start" aria-hidden="true">
+                    <span class="scs-profile-name">@shell.UserDisplayName</span>
+                    @if (shell.IsSuperAdmin)
+                    {
+                        <span class="scs-profile-role">Super admin</span>
+                    }
                 </span>
-            </a>
+            </button>
             <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated topbar-dropdown-menu profile-dropdown">
-                <div class=" dropdown-header noti-title">
-                    <h6 class="text-overflow m-0">Welcome !</h6>
+                <div class="dropdown-header">
+                    <span class="scs-profile-name d-block text-truncate">@shell.UserDisplayName</span>
+                    <span class="scs-profile-role d-block text-truncate">@User.Identity?.Name</span>
                 </div>
                 @if (shell.IsSuperAdmin || shell.HasMultipleApplications)
                 {
                     <a href="/BackOffice/Application/SelectApp" class="dropdown-item notify-item">
-                        <i class="mdi mdi-refresh me-1"></i>
-                        <span>Change Application</span>
+                        <i class="mdi mdi-swap-horizontal me-1" aria-hidden="true"></i>
+                        <span>Switch workspace</span>
                     </a>
                 }
+                <div class="dropdown-divider"></div>
                 <form method="post" action="/Logout" class="m-0">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="dropdown-item notify-item border-0 bg-transparent w-100 text-start">
                         <i class="mdi mdi-logout me-1"></i>
-                        <span>Logout</span>
+                        <span>Log out</span>
                     </button>
                 </form>
             </div>

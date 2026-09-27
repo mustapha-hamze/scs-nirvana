@@ -6,110 +6,143 @@
     ViewData["Title"] = isNew ? "New Content" : "Edit Content";
 }
 
+@section PageHelper {
+    @if (isNew)
+    {
+        <text>Start with the title, summary, and publish date. Create the item to continue with its body and media.</text>
+    }
+    else
+    {
+        <text>Content #@Model.Id &middot; update the fields below and save your changes.</text>
+    }
+}
+
+@* The list this item belongs to. _Layout's shell script highlights its menu link, adds the menu
+   groups above it and takes its label from the menu (app pages aren't in Model.Types). *@
+@section Breadcrumb {
+    <li class="breadcrumb-item">
+        <a href="/BackOffice/Content/Index/@Model.RouteTypeId">@(Model.Types.FirstOrDefault(t => t.Id == Model.RouteTypeId)?.Title ?? "Content list")</a>
+    </li>
+}
+
+@section PageActions {
+    <button type="button" class="btn btn-outline-primary" onclick="backToContentList()">
+        <i class="uil uil-corner-up-left" aria-hidden="true"></i>
+        Back to List
+    </button>
+}
+
 @section Styles {
     <link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
     <link href="/BackOffice/vendor/quill/quill.snow.css" rel="stylesheet" type="text/css" />
 }
 
-<div class="scs-page-header mt-2">
-    <div>
-        <button type="button" class="btn btn-outline-primary btn-sm mb-2" onclick="backToContentList()">
-            <i class="uil uil-corner-up-left"></i>
-            Back to List
-        </button>
-        <h1 class="scs-page-title">@(isNew ? "New Content" : "Edit Content")</h1>
-        <p class="scs-page-helper">
-            @if (isNew)
-            {
-                <text>Fill in the general details below, then save to unlock body, images, and relations.</text>
-            }
-            else
-            {
-                <text>Content #@Model.Id &middot; update the fields below and save your changes.</text>
-            }
-        </p>
-    </div>
-</div>
-<div class="card scs-editor-card mt-2">
+<div class="card scs-editor-card">
     <div class="card-body p-0">
-    <ul class="nav nav-tabs scs-editor-tabs mb-0" role="tablist">
-        <li class="nav-item">
-            <a href="#general" data-bs-toggle="tab" aria-expanded="false" class="nav-link active">
-                <i class="mdi mdi-home-variant d-md-none d-block"></i>
-                <span class="d-none d-md-block">General</span>
-            </a>
+    <ul class="nav nav-tabs scs-editor-tabs mb-0" role="tablist" aria-label="Content editor steps">
+        <li class="nav-item" role="presentation">
+            <a href="#general" id="tab-general" data-bs-toggle="tab" role="tab" aria-controls="general" aria-selected="true" tabindex="0" class="nav-link active">General</a>
         </li>
         @await Html.PartialAsync("_ContentFormTabs", Model)
     </ul>
-    <div class="tab-content p-3 p-lg-4">
-        <div class="tab-pane show active" id="general">
-            <form class="needs-validation row" novalidate id="frmContent" method="POST" asp-action="SaveContentForm">
+    @if (isNew)
+    {
+        <p class="scs-editor-note"><i class="mdi mdi-lock-outline" aria-hidden="true"></i> Body, media, relations and metadata unlock after the first save.</p>
+    }
+    <div class="tab-content scs-editor-panes">
+        <div class="tab-pane show active" id="general" role="tabpanel" aria-labelledby="tab-general" tabindex="0">
+            <form class="needs-validation row g-4" novalidate id="frmContent" method="POST" asp-action="SaveContentForm">
                 <input type="hidden" asp-for="Id" id="hidContentId" />
                 <input type="hidden" asp-for="ApplicationId" />
                 <input type="hidden" asp-for="CreatedDT" />
                 <input type="hidden" asp-for="UpdatedDT" />
                 <input type="hidden" asp-for="IsDeleted" />
                 <input type="hidden" asp-for="IsActive" />
-                <div asp-validation-summary="All" class="text-danger">
+                <div asp-validation-summary="All" class="alert alert-danger col-12 mb-0" role="alert">
                 </div>
-                <div class="col-md-4 mb-2">
-                    <label class="form-label" asp-for="TypeId">Type</label>
-                    <select id="ddlContentTypeIds__Form" type="text" class="form-control" asp-for="TypeId"
-                            placeholder="Title">
-                        @if (Model.TypeId.ToString().Contains("100"))
+                <div class="col-xl-8">
+                    <h2 class="scs-overline mb-3">Content</h2>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label scs-required" asp-for="Title">Title</label>
+                            <input type="text" class="form-control" asp-for="Title" required minlength="4"
+                                   maxlength="256" aria-describedby="titleHelp">
+                            <div class="invalid-feedback">
+                                Min length is 4 and max length is 256
+                            </div>
+                            <div class="form-text" id="titleHelp">4 to 256 characters.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" asp-for="HeadLine">Head Line</label>
+                            <textarea class="form-control" asp-for="HeadLine" maxlength="2048" rows="3" aria-describedby="headLineHelp"></textarea>
+                            <div class="form-text" id="headLineHelp">A short, attention-grabbing line shown above the title in listings.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" asp-for="Abstract">Abstract</label>
+                            <textarea class="form-control" asp-for="Abstract" maxlength="2048" rows="3" aria-describedby="abstractHelp"></textarea>
+                            <div class="form-text" id="abstractHelp">A brief summary used in previews, cards, and search results.</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" asp-for="Description">Description</label>
+                            <textarea class="form-control" asp-for="Description" style="display: none;"
+                                      id="textAreaDescription"></textarea>
+                            <div id="__descriptionEditor__" class="scs-rich-editor">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <aside class="col-xl-4">
+                    <div class="scs-publish-panel">
+                        <h2 class="scs-overline mb-3">Publishing</h2>
+                        @if (!isNew)
                         {
-                            <option value="@Model.TypeId">Page</option>
+                            <p class="scs-publish-status">
+                                <span class="scs-meta">Status</span>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="scs-status scs-status--success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="scs-status">Inactive</span>
+                                }
+                            </p>
                         }
-                        else
-                        {
-                            foreach (var item in Model.Types)
+                        <div class="mb-3">
+                            <label class="form-label" asp-for="TypeId">Type</label>
+                            <select id="ddlContentTypeIds__Form" class="form-select" asp-for="TypeId">
+                                @if (Model.TypeId.ToString().Contains("100"))
+                                {
+                                    <option value="@Model.TypeId">Page</option>
+                                }
+                                else
+                                {
+                                    foreach (var item in Model.Types)
+                                    {
+                                        <option value="@item.Id">@item.Title</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="datetime-datepicker-publish">Publish date &amp; time</label>
+                            <input type="text" id="datetime-datepicker-publish" name="PublishDt" asp-for="PublishDt"
+                                   value="@publishDateTime" class="form-control" placeholder="YYYY-MM-DD HH:MM"
+                                   aria-describedby="publishDtHelp">
+                            <div class="form-text" id="publishDtHelp">Content becomes visible on the public site at this date and time.</div>
+                        </div>
+                        <div class="scs-publish-actions">
+                            @await Html.PartialAsync("_ContentFormSaveButton", Model)
+                            @if (!Model.IsNew)
                             {
-                                <option value="@item.Id">@item.Title</option>
+                                <a class="btn btn-outline-secondary" href="@Model.ContentPreviewUrl" target="_blank" rel="noopener" title="Open in a new tab">
+                                    <i class="mdi mdi-open-in-new" aria-hidden="true"></i>
+                                    Preview
+                                </a>
                             }
-                        }
-                    </select>
-                </div>
-                <div class="col-md-8 mb-2">
-                    <label class="form-label" asp-for="Title">Title</label>
-                    <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
-                           maxlength="256">
-                    <div class="invalid-feedback">
-                        Min length is 4 and max length is 256
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-12 mb-2">
-                    <label class="form-label" asp-for="HeadLine">Head Line</label>
-                    <textarea class="form-control" asp-for="HeadLine" maxlength="2048"></textarea>
-                    <small class="text-muted">A short, attention-grabbing line shown above the title in listings.</small>
-                </div>
-                <div class="col-md-12 mb-2">
-                    <label class="form-label" asp-for="Abstract">Abstract</label>
-                    <textarea class="form-control" asp-for="Abstract" maxlength="2048"></textarea>
-                    <small class="text-muted">A brief summary used in previews, cards, and search results.</small>
-                </div>
-                <div class="col-md-12 mb-2">
-                    <label class="form-label" asp-for="Description">Description</label>
-                    <textarea class="form-control" asp-for="Description" style="display: none;"
-                              id="textAreaDescription"></textarea>
-                    <div id="__descriptionEditor__" class="scs-rich-editor">
-                    </div>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label">Publish Date & Time</label>
-                    <input type="text" id="datetime-datepicker-publish" name="PublishDt" asp-for="PublishDt"
-                           value="@publishDateTime" class="form-control" placeholder="Date and Time">
-                    <small class="text-muted">Content becomes visible on the public site at this date and time.</small>
-                </div>
-                <div class="col-md-12 d-flex flex-wrap align-items-center gap-2 border-top pt-3 mt-2">
-                    @await Html.PartialAsync("_ContentFormSaveButton", Model)
-                    @if (!Model.IsNew)
-                    {
-                        <a class="btn btn-info mt-2" href="@Model.ContentPreviewUrl" target="_blank" title="Open in a new tab">
-                            <i class="mdi mdi-eye-outline"></i>
-                            Preview Content
-                        </a>
-                    }
-                </div>
+                </aside>
             </form>
         </div>
         @await Html.PartialAsync("_ContentFormTabsBody", Model)
@@ -123,20 +156,6 @@
     <script>
         $(document).ready(function () {
             $("#ddlContentTypeIds__Form").val($("#hidTypeIdContent_Form").val());
-
-            if ($("#hidTypeIdContent_Form").val().startsWith("100")) {
-                $("#sidebarContentManagement").addClass("show");
-                $("#liCMSAppPages").addClass("menuitem-active");
-                $("#sidebarSecondLevelAppPages").addClass("show");
-                $("#thirdLayerMenu_AppPages_" + $("#hidTypeIdContent_Form").val()).addClass("menuitem-active");
-                $("#thirdLayerMenu_AppPages_" + $("#hidTypeIdContent_Form").val() + " a").addClass("active");
-            } else {
-                $("#sidebarContentManagement").addClass("show");
-                $("#liCMSContent").addClass("menuitem-active");
-                $("#sidebarSecondLevel").addClass("show");
-                $("#thirdLayerMenu_Content_" + $("#hidTypeIdContent_Form").val()).addClass("menuitem-active");
-                $("#thirdLayerMenu_Content_" + $("#hidTypeIdContent_Form").val() + " a").addClass("active");
-            }
 
             initTextEditor("__descriptionEditor__");
             $('#__descriptionEditor__ .ql-editor').html($('#textAreaDescription').val());

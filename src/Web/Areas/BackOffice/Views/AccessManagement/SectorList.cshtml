@@ -3,31 +3,38 @@
 }
 @model List<Application.Contracts.AccessManagement.SectorDto>
 
-<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Title</th>
-            <th>Manage</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+@if (Model.Count == 0)
+{
+    <div class="scs-empty-state">
+        <i class="mdi mdi-view-grid-outline" aria-hidden="true"></i>
+        No sectors yet. Add the first one above, then add its entities.
+    </div>
+}
+else
+{
+    <table id="datatable-buttons" class="table table-hover dt-responsive nowrap w-100">
+        <thead>
             <tr>
-                <td>@item.Id</td>
-                <td>@item.Title</td>
-                <td>
-                    <a href="javascript: void(0);" class="action-icon" title="Edit" aria-label="Edit @item.Title">
-                        <i class="mdi mdi-content-save-edit"></i>
-                    </a>
-                    <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
-                    data-bs-target="#sectorEntity-modal" onclick="entities(@item.Id)" title="Manage Entities"
-                    aria-label="Manage entities for @item.Title">
-                        <i class="mdi mdi-menu"></i>
-                    </a>
-                </td>
+                <th>Id</th>
+                <th>Title</th>
+                <th><span class="visually-hidden">Actions</span></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="scs-meta">@item.Id</td>
+                    <td class="fw-semibold scs-cell-truncate" title="@item.Title">@item.Title</td>
+                    <td class="scs-table-actions">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#sectorEntity-modal" onclick="entities(@item.Id)"
+                            aria-label="Manage entities in @item.Title">
+                            <i class="mdi mdi-format-list-bulleted" aria-hidden="true"></i> Entities
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

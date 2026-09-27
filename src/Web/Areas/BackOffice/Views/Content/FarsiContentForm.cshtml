@@ -1,4 +1,20 @@
 @model FarsiContentFormPageModel
+@{
+    ViewData["Title"] = "Farsi Translation";
+}
+
+@section PageHelper { Content #@Model.Id &middot; write the Farsi version. The English source is shown under each field. }
+
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a href="/BackOffice/Content/Index/@Model.TypeId">Content list</a></li>
+}
+
+@section PageActions {
+    <button type="button" class="btn btn-outline-primary" onclick="backToContentList()">
+        <i class="uil uil-corner-up-left" aria-hidden="true"></i>
+        Back to List
+    </button>
+}
 
 @section Styles {
     <link href="/BackOffice/vendor/quill/quill.core.css" rel="stylesheet" type="text/css" />
@@ -22,57 +38,40 @@
     </style>
 }
 
-<div class="row mt-2">
-    <div class="col-md-2 p-0">
-        <a class="btn btn-primary w-100" onclick="backToContentList()" href="javascript:void(0);">
-            <i class="uil uil-corner-up-left"></i>
-            Back
-        </a>
-    </div>
-</div>
-
 @* English source shown read-only (encoded, so HTML tags stay visible for the translator) under each Farsi field. *@
 @functions {
     private static string SourceText(string text) => string.IsNullOrEmpty(text) ? "(empty)" : text;
 }
 
-<div class="alert alert-secondary mt-2 mb-0" role="status" id="farsiTranslationStatus">
-    Translation status: <strong>@(Model.TranslationStatus?.ToString() ?? "Not translated")</strong>
-</div>
+<p class="scs-publish-status" role="status" id="farsiTranslationStatus">
+    <span class="scs-meta">Translation status</span>
+    <span class="scs-status@(Model.TranslationStatus == Domains.Entities.ContentManagement.TranslationStatus.Ready ? " scs-status--success" : "")">@(Model.TranslationStatus?.ToString() ?? "Not translated")</span>
+</p>
 
 @if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslationSeed.Source)
 {
-    <div class="alert alert-info mt-2" role="alert">
+    <div class="alert alert-info" role="alert">
         Farsi content was not found (or was invalid). The fields below have been pre-filled from the English
         content as a starting point.
     </div>
 }
 else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslationSeed.Legacy)
 {
-    <div class="alert alert-info mt-2" role="alert">
+    <div class="alert alert-info" role="alert">
         The fields below were pre-filled from the historical Farsi content. Saving stores them as the current translation.
     </div>
 }
 
-<div class="row card mt-2 p-2">
-    <ul class="nav nav-tabs mb-1">
-        <li class="nav-item">
-            <a href="#general" data-bs-toggle="tab" aria-expanded="false" class="nav-link active">
-                <i class="mdi mdi-home-variant d-md-none d-block"></i>
-                <span class="d-none d-md-block">General</span>
-            </a>
+<div class="card scs-editor-card">
+    <ul class="nav nav-tabs scs-editor-tabs mb-0" role="tablist" aria-label="Translation sections">
+        <li class="nav-item" role="presentation">
+            <a href="#general" id="tab-general" data-bs-toggle="tab" role="tab" aria-controls="general" aria-selected="true" tabindex="0" class="nav-link active">General</a>
         </li>
-        <li class="nav-item">
-            <a href="#body" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
-                <i class="mdi mdi-file-document-outline d-md-none d-block"></i>
-                <span class="d-none d-md-block">Body</span>
-            </a>
+        <li class="nav-item" role="presentation">
+            <a href="#body" id="tab-body" data-bs-toggle="tab" role="tab" aria-controls="body" aria-selected="false" tabindex="-1" class="nav-link">Body</a>
         </li>
-        <li class="nav-item">
-            <a href="#metadata" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
-                <i class="mdi mdi-tag-text-outline d-md-none d-block"></i>
-                <span class="d-none d-md-block">Metadata</span>
-            </a>
+        <li class="nav-item" role="presentation">
+            <a href="#metadata" id="tab-metadata" data-bs-toggle="tab" role="tab" aria-controls="metadata" aria-selected="false" tabindex="-1" class="nav-link">Metadata</a>
         </li>
     </ul>
 
@@ -80,34 +79,34 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
         <input type="hidden" asp-for="Id" id="hidFarsiContentId" />
         <input type="hidden" asp-for="SourceFingerprint" />
 
-        <div class="tab-content mb-3">
-            <div class="tab-pane show active" id="general">
+        <div class="tab-content scs-editor-panes">
+            <div class="tab-pane show active" id="general" role="tabpanel" aria-labelledby="tab-general" tabindex="0">
                 <div class="row">
                     <div class="col-md-12 mb-2">
                         <label class="form-label" asp-for="Title">Title</label>
                         <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Title" maxlength="256">
-                        <small class="text-muted d-block source-text">EN: @SourceText(Model.Source.Title)</small>
+                        <small class="form-text d-block source-text">EN: @SourceText(Model.Source.Title)</small>
                     </div>
                     <div class="col-md-12 mb-2">
                         <label class="form-label" asp-for="HeadLine">Head Line</label>
                         <textarea class="form-control fa---elements" dir="rtl" asp-for="HeadLine" maxlength="2048"></textarea>
-                        <small class="text-muted d-block source-text">EN: @SourceText(Model.Source.HeadLine)</small>
+                        <small class="form-text d-block source-text">EN: @SourceText(Model.Source.HeadLine)</small>
                     </div>
                     <div class="col-md-12 mb-2">
                         <label class="form-label" asp-for="Abstract">Abstract</label>
                         <textarea class="form-control fa---elements" dir="rtl" asp-for="Abstract" maxlength="2048"></textarea>
-                        <small class="text-muted d-block source-text">EN: @SourceText(Model.Source.Abstract)</small>
+                        <small class="form-text d-block source-text">EN: @SourceText(Model.Source.Abstract)</small>
                     </div>
                     <div class="col-md-12 mb-2">
                         <label class="form-label" asp-for="Description">Description</label>
                         <textarea class="form-control" asp-for="Description" style="display: none;" id="textAreaDescriptionFA"></textarea>
-                        <div id="__descriptionEditorFA__" class="fa---elements" style="height: 300px;"></div>
-                        <small class="text-muted d-block source-text">EN: @SourceText(Model.Source.Description)</small>
+                        <div id="__descriptionEditorFA__" class="fa---elements scs-rich-editor"></div>
+                        <small class="form-text d-block source-text">EN: @SourceText(Model.Source.Description)</small>
                     </div>
                 </div>
             </div>
 
-            <div class="tab-pane" id="body">
+            <div class="tab-pane" id="body" role="tabpanel" aria-labelledby="tab-body" tabindex="0">
                 @* Sections/elements come in master order; layout, titles and media are master data. *@
                 @if (Model.Sections.Count > 0)
                 {
@@ -115,7 +114,7 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                     {
                         var section = Model.Sections[s];
                         <input type="hidden" asp-for="Sections[s].Id" />
-                        <div class="row mb-2 border pt-2 pb-1">
+                        <div class="row scs-body-section">
                             @for (int e = 0; e < section.SectionElements.Count; e++)
                             {
                                 var source = Model.SourceElements[section.SectionElements[e].Id];
@@ -133,7 +132,7 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                                         case 1011:
                                             <input type="text" class="form-control fa---elements" dir="rtl" maxlength="256"
                                                    asp-for="Sections[s].SectionElements[e].TinyText" />
-                                            <small class="text-muted d-block source-text">EN: @SourceText(source.TinyText)</small>
+                                            <small class="form-text d-block source-text">EN: @SourceText(source.TinyText)</small>
                                             break;
                                         case 1002:
                                             var quillId = "__farsiEditor_" + s + "_" + e + "__";
@@ -142,16 +141,16 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                                                       asp-for="Sections[s].SectionElements[e].EditorText"></textarea>
                                             <div id="@quillId" class="fa---elements farsi-rich-editor" data-target="@textAreaId"
                                                  style="height: 250px;"></div>
-                                            <small class="text-muted d-block source-text">EN: @SourceText(source.EditorText)</small>
+                                            <small class="form-text d-block source-text">EN: @SourceText(source.EditorText)</small>
                                             break;
                                         case 1005:
                                             <textarea class="form-control fa---elements" dir="rtl"
                                                       asp-for="Sections[s].SectionElements[e].EditorText"></textarea>
-                                            <small class="text-muted d-block source-text">EN: @SourceText(source.EditorText)</small>
+                                            <small class="form-text d-block source-text">EN: @SourceText(source.EditorText)</small>
                                             break;
                                         case 1001:
                                             <img src="/Storage/Section/Images/@source.FileNameText" class="w-100" />
-                                            <small class="text-muted d-block">Preserved from source content (not editable here)</small>
+                                            <small class="form-text d-block">Preserved from source content (not editable here)</small>
                                             break;
                                         case 1003:
                                             var images = (source.GalleryImages ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries);
@@ -163,7 +162,7 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                                                     </div>
                                                 }
                                             </div>
-                                            <small class="text-muted d-block">Preserved from source content (not editable here)</small>
+                                            <small class="form-text d-block">Preserved from source content (not editable here)</small>
                                             break;
                                         case 1004:
                                             <div class="card text-white bg-success overflow-hidden">
@@ -173,7 +172,7 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                                                     </div>
                                                 </div>
                                             </div>
-                                            <small class="text-muted d-block">Preserved from source content (not editable here)</small>
+                                            <small class="form-text d-block">Preserved from source content (not editable here)</small>
                                             break;
                                     }
                                 </div>
@@ -183,11 +182,11 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                 }
                 else
                 {
-                    <p class="text-muted">This content has no body sections.</p>
+                    <p class="scs-empty-state"><i class="mdi mdi-text-box-outline" aria-hidden="true"></i>This content has no body sections.</p>
                 }
             </div>
 
-            <div class="tab-pane" id="metadata">
+            <div class="tab-pane" id="metadata" role="tabpanel" aria-labelledby="tab-metadata" tabindex="0">
                 @if (Model.Metadata != null)
                 {
                     var sourceMetadata = Model.Source.Metadata;
@@ -196,38 +195,36 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
                         <div class="col-md-6 mb-2">
                             <label class="form-label" asp-for="Metadata.Title">Title</label>
                             <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Metadata.Title" maxlength="256">
-                            <small class="text-muted d-block source-text">EN: @SourceText(sourceMetadata.Title)</small>
+                            <small class="form-text d-block source-text">EN: @SourceText(sourceMetadata.Title)</small>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label class="form-label" asp-for="Metadata.Author">Author</label>
                             <input type="text" class="form-control fa---elements" dir="rtl" asp-for="Metadata.Author" maxlength="128">
-                            <small class="text-muted d-block source-text">EN: @SourceText(sourceMetadata.Author)</small>
+                            <small class="form-text d-block source-text">EN: @SourceText(sourceMetadata.Author)</small>
                         </div>
                         <div class="col-md-12 mb-2">
                             <label class="form-label" asp-for="Metadata.Keywords">Keywords</label>
                             <textarea class="form-control fa---elements" dir="rtl" asp-for="Metadata.Keywords" maxlength="1024"></textarea>
-                            <small class="text-muted d-block source-text">EN: @SourceText(sourceMetadata.Keywords)</small>
+                            <small class="form-text d-block source-text">EN: @SourceText(sourceMetadata.Keywords)</small>
                         </div>
                         <div class="col-md-12 mb-2">
                             <label class="form-label" asp-for="Metadata.Description">Description</label>
                             <textarea class="form-control fa---elements" dir="rtl" asp-for="Metadata.Description" maxlength="2048"></textarea>
-                            <small class="text-muted d-block source-text">EN: @SourceText(sourceMetadata.Description)</small>
+                            <small class="form-text d-block source-text">EN: @SourceText(sourceMetadata.Description)</small>
                         </div>
                     </div>
                 }
                 else
                 {
-                    <p class="text-muted">This content has no metadata.</p>
+                    <p class="scs-empty-state"><i class="mdi mdi-tag-off-outline" aria-hidden="true"></i>This content has no metadata.</p>
                 }
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <a href="javascript:void(0);" id="btnSaveFarsiContent" onclick="saveFarsiContent()" class="btn btn-primary">
-                    <i class="uil uil-file-share-alt"></i> Save
-                </a>
-            </div>
+        <div class="scs-author-actions scs-editor-footer">
+            <button type="button" id="btnSaveFarsiContent" onclick="saveFarsiContent()" class="btn btn-primary">
+                <i class="uil uil-file-share-alt" aria-hidden="true"></i> Save translation
+            </button>
         </div>
     </form>
 </div>
@@ -266,13 +263,13 @@ else if (Model.Seed == Application.UseCases.TranslatorServices.ManualTranslation
             }).done(function (data) {
                 if (data === "Done") {
                     messageBox("Saved!", "Farsi content has been saved", "success");
-                    removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt"></i> Save');
+                    removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt" aria-hidden="true"></i> Save translation');
                 } else {
                     messageBox("Error!", "Farsi content has not been saved", "error");
-                    removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt"></i> Save');
+                    removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt" aria-hidden="true"></i> Save translation');
                 }
             }).fail(function (xhr) {
-                removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt"></i> Save');
+                removeLoadingForBtn('btnSaveFarsiContent', 'saveFarsiContent()', '<i class="uil uil-file-share-alt" aria-hidden="true"></i> Save translation');
                 if ((xhr.status === 409 || xhr.status === 400) && xhr.responseJSON && xhr.responseJSON.translationState)
                     messageBox("Not saved", farsiSaveFailure(xhr.responseJSON.translationState, xhr.responseJSON.fields), "warning");
                 else if (xhr.status === 404)

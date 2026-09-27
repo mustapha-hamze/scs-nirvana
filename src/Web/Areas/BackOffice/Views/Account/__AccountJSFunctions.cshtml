@@ -1,5 +1,76 @@
 <script>
+    // Name of the user whose row action opened a modal, used in modal titles and confirmations.
+    var accessUserName = "";
+    // data-focus-key of the control to focus again after the settings modal body is reloaded.
+    var accessFocusKey = "";
+
+    // Native listener: this partial renders before the layout loads jQuery.
+    document.addEventListener("click", function (e) {
+        var trigger = e.target.closest("[data-user-name]");
+        if (!trigger) return;
+        accessUserName = trigger.getAttribute("data-user-name");
+        var target = trigger.getAttribute("data-bs-target");
+        var title = target === "#user-setting-modal" ? "Manage access: " + accessUserName : "Edit " + accessUserName;
+        document.querySelector(target + " .modal-title").textContent = title;
+    });
+
+    // SweetAlert confirm/notice that stays usable inside an open Bootstrap modal: it renders inside the
+    // modal so the modal's focus trap allows it, and Escape closes only the dialog, not the modal too.
+    // Focus goes back to the opener only when nothing changed; after a change the reloaded modal body
+    // restores focus itself (SweetAlert's own returnFocus would target the replaced button).
+    function accessDialog(options) {
+        var openModal = document.querySelector(".modal.show");
+        var opener = document.activeElement;
+        return Swal.fire($.extend({
+            target: openModal || "body",
+            returnFocus: false,
+            keydownListenerCapture: true,
+            didOpen: function (popup) {
+                popup.addEventListener("keydown", function (e) {
+                    if (e.key === "Escape") e.stopPropagation();
+                });
+            }
+        }, options)).then(function (result) {
+            var changing = result.isConfirmed && options.showCancelButton;
+            if (!changing && opener && opener.isConnected) opener.focus();
+            return result;
+        });
+    }
+
+    // Cancel is the focused, safe default; the confirm button names the change.
+    function confirmAccessChange(title, text, confirmText, isDanger) {
+        return accessDialog({
+            title: title,
+            text: text,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: confirmText,
+            cancelButtonText: "Cancel",
+            confirmButtonColor: isDanger ? "var(--scs-danger-solid)" : "var(--scs-primary)",
+            cancelButtonColor: "var(--scs-ink-soft)",
+            focusCancel: true
+        }).then(function (result) { return result.isConfirmed; });
+    }
+
+    function accessError(text) {
+        accessDialog({ title: "Error", text: text, icon: "error" });
+    }
+
+    function announceAccess(text) {
+        $("#userSettingStatus").text(text);
+    }
+
+    function subjectName() {
+        return accessUserName || "this user";
+    }
+
+    // subjectName() for the start of a sentence.
+    function subjectNameStart() {
+        return accessUserName || "This user";
+    }
+
     function newUserForm() {
+        $("#userModalLabel").text("Create user");
         clearModalBody("userModalBody");
 
         $.ajax({
@@ -22,23 +93,58 @@
         });
     }
 
+    // Changes to an existing user's sign-in flags, described for the confirmation.
+    function userAccessFlagChanges() {
+        var changes = [];
+        var approve = $("#frmUser #IsApprove"), admin = $("#frmUser #IsAdminUser"); // #IsAdminUser is also the list filter
+        var wasApproved = approve.data("initial") === true, isApproved = approve.is(":checked");
+        var wasAdmin = admin.data("initial") === true, isAdmin = admin.is(":checked");
+        if (wasApproved && !isApproved) changes.push({ danger: true, text: "revoke approval, so they can no longer open workspaces" });
+        if (!wasApproved && isApproved) changes.push({ danger: false, text: "approve them, so they can open the workspaces they are granted" });
+        if (wasAdmin && !isAdmin) changes.push({ danger: true, text: "stop them signing in to the BackOffice" });
+        if (!wasAdmin && isAdmin) changes.push({ danger: false, text: "let them sign in to the BackOffice" });
+        return changes;
+    }
+
     function saveUserForm() {
-        if (checkFormValidity('frmUser')) {
-            var frmUser = $("#frmUser");
-            clearModalBody("userModalBody");
-            $.ajax({
-                type: "POST",
-                url: '/BackOffice/Account/SaveUserForm/',
-                data: frmUser.serialize()
-            }).done(function (data) {
-                if (data === "Done") {
-                    location.reload();
-                }
-                else {
-                    $("#userModalBody").html(data);
-                }
-            });
+        if (!checkFormValidity('frmUser')) {
+            $("#frmUser :invalid").first().trigger("focus");
+            return;
         }
+
+        var changes = $("#frmUser").data("mode") === "edit" ? userAccessFlagChanges() : [];
+        if (changes.length === 0) {
+            postUserForm();
+            return;
+        }
+
+        var isDanger = changes.some(function (c) { return c.danger; });
+        confirmAccessChange(
+            "Change sign-in access for " + subjectName() + "?",
+            "Saving will " + changes.map(function (c) { return c.text; }).join(" and ") + ".",
+            "Save and change access",
+            isDanger
+        ).then(function (confirmed) {
+            if (confirmed) postUserForm();
+        });
+    }
+
+    function postUserForm() {
+        var frmUser = $("#frmUser");
+        var formData = frmUser.serialize();
+        clearModalBody("userModalBody");
+        $.ajax({
+            type: "POST",
+            url: '/BackOffice/Account/SaveUserForm/',
+            data: formData
+        }).done(function (data) {
+            if (data === "Done") {
+                location.reload();
+            }
+            else {
+                $("#userModalBody").html(data);
+            }
+        });
     }
 
     function findUsers() {
@@ -49,9 +155,51 @@
             type: "POST",
             data: frmUserFilter.serialize(),
         }).done(function (data) {
+            // The endpoint answers with nothing until an email is given.
+            if (!$.trim(data)) {
+                data = '<div class="scs-empty-state"><i class="mdi mdi-account-search-outline" aria-hidden="true"></i>' +
+                    'Enter all or part of an email address, then choose Filter to list users.</div>';
+            }
             $("#findUsersResultBody").html(data);
+            initUserTable();
+        }).fail(function () {
+            $("#findUsersResultBody").html('<div class="alert alert-danger mb-0" role="alert">Error: the user list could not be loaded. Try again, or reload the page.</div>');
+        }).always(function () {
             removeLoadingForBtnFilter("btnUserFilter", "findUsers()");
         });
+    }
+
+    function initUserTable() {
+        if (!$("#datatable-buttons").length) return;
+        $("#datatable-buttons").DataTable({
+            lengthChange: !1,
+            pageLength: 25,
+            buttons: ["copy", "print"],
+            order: [[0, "asc"]],
+            columnDefs: [{ orderable: false, targets: -1 }],
+            language: {
+                emptyTable: "No users to show.",
+                zeroRecords: "No users match these filters. Clear the approval filter or try another search.",
+                paginate: {
+                    previous: "<i class='mdi mdi-chevron-left'>",
+                    next: "<i class='mdi mdi-chevron-right'>"
+                }
+            },
+            drawCallback: function () {
+                $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+            }
+        });
+        filterUsersByApproval();
+    }
+
+    // Approval is the 4th column; its cells carry data-search="Approved" / "Pending approval".
+    function filterUsersByApproval() {
+        if (!$("#datatable-buttons").length) return;
+        var value = $("#userApprovalFilter").val();
+        $("#datatable-buttons").DataTable()
+            .column(3)
+            .search(value ? "^" + value + "$" : "", true, false)
+            .draw();
     }
 
     function userSettingForm(userId, loadApplicationTab = false) {
@@ -64,37 +212,40 @@
         }).done(function (data) {
             $("#userSettingModalBody").html(data);
             if (loadApplicationTab) {
-                $("#roleTabTitle").removeClass("active");
-                $("#roles").removeClass("show");
-                $("#roles").removeClass("active");
-
-                $("#applicationTabTitle").addClass("active");
-                $("#applications").addClass("show");
-                $("#applications").addClass("active");
+                bootstrap.Tab.getOrCreateInstance(document.getElementById("applicationTabTitle")).show();
             }
+            restoreAccessFocus();
+        }).fail(function () {
+            $("#userSettingModalBody").html('<div class="alert alert-danger mb-0" role="alert">Error: this user\'s access settings could not be loaded. Close and try again.</div>');
         });
     }
 
+    // After a grant/remove reloads the modal body, put focus back on the same row's action.
+    function restoreAccessFocus() {
+        if (!accessFocusKey) return;
+        var target = $('#userSettingModalBody [data-focus-key="' + accessFocusKey + '"]');
+        accessFocusKey = "";
+        target.trigger("focus");
+    }
+
     function addUserToRole(userId, roleName) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Role can give access to user",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: "Yes, add it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
+        confirmAccessChange(
+            "Grant the " + roleName + " role to " + subjectName() + "?",
+            "Roles apply in every workspace. " + subjectNameStart() + " gets everything the " + roleName + " role allows.",
+            "Grant " + roleName,
+            false
+        ).then((confirmed) => {
+            if (confirmed) {
                 $.ajax({
                     url: '/BackOffice/Account/AddUserToRole/' + userId + "/" + roleName,
                     type: "POST"
                 }).done(function (data) {
                     if (data === "Done") {
-                        messageBox("Done !", "The user has been added to role.", "success")
+                        announceAccess(roleName + " role granted.");
+                        accessFocusKey = "role-" + roleName;
                         userSettingForm(userId);
                     } else {
-                        messageBox("Error!", "The user has not been removed from role.", "error")
+                        accessError("The " + roleName + " role was not granted. Try again.");
                     }
                 });
             }
@@ -102,25 +253,23 @@
     }
 
     function removeUserFromRole(userId, roleName) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Role can give access to user",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: "Yes, remove it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
+        confirmAccessChange(
+            "Remove the " + roleName + " role from " + subjectName() + "?",
+            subjectNameStart() + " loses everything the " + roleName + " role allows, in every workspace.",
+            "Remove " + roleName,
+            true
+        ).then((confirmed) => {
+            if (confirmed) {
                 $.ajax({
                     url: '/BackOffice/Account/RemoveUserFromRole/' + userId + "/" + roleName,
                     type: "POST"
                 }).done(function (data) {
                     if (data === "Done") {
-                        messageBox("Done !", "The role has been removed from user.", "success")
+                        announceAccess(roleName + " role removed.");
+                        accessFocusKey = "role-" + roleName;
                         userSettingForm(userId);
                     } else {
-                        messageBox("Error!", "The role has not been removed from user.", "error")
+                        accessError("The " + roleName + " role was not removed. Try again.");
                     }
                 });
             }
@@ -128,25 +277,25 @@
     }
 
     function addUserToApplication(userId, applicationId) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "User can have access to enter the application",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: "Yes, set it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
+        var button = $('[data-app-id="' + applicationId + '"]');
+        var title = button.attr("data-app-title") || "this workspace";
+        confirmAccessChange(
+            "Give " + subjectName() + " access to " + title + "?",
+            subjectNameStart() + " will be able to open " + title + ". What they can do there depends on their roles and permissions.",
+            "Grant access",
+            false
+        ).then((confirmed) => {
+            if (confirmed) {
                 $.ajax({
                     url: '/BackOffice/Account/AddUserToApplication/' + userId + "/" + applicationId,
                     type: "POST"
                 }).done(function (data) {
                     if (data === "Done") {
-                        messageBox("Done !", "The user has been added to application.", "success")
+                        announceAccess("Access to " + title + " granted.");
+                        accessFocusKey = button.attr("data-focus-key");
                         userSettingForm(userId, true);
                     } else {
-                        messageBox("Error!", "The user has not been added from application.", "error")
+                        accessError("Access to " + title + " was not granted. Try again.");
                     }
                 });
             }
@@ -154,25 +303,25 @@
     }
 
     function removeUserFromApplication(userId, relationId) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "User can have access to enter the application",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: "Yes, remove it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
+        var button = $('[data-relation-id="' + relationId + '"]');
+        var title = button.attr("data-app-title") || "this workspace";
+        confirmAccessChange(
+            "Remove " + subjectName() + " from " + title + "?",
+            subjectNameStart() + " will no longer be able to open " + title + ".",
+            "Remove access",
+            true
+        ).then((confirmed) => {
+            if (confirmed) {
                 $.ajax({
                     url: '/BackOffice/Account/RemoveUserFromApplication/' + relationId,
                     type: "POST"
                 }).done(function (data) {
                     if (data === "Done") {
-                        messageBox("Done !", "The user has been removed from application.", "success")
+                        announceAccess("Access to " + title + " removed.");
+                        accessFocusKey = button.attr("data-focus-key");
                         userSettingForm(userId, true);
                     } else {
-                        messageBox("Error!", "The user has not been removed from application.", "error")
+                        accessError("Access to " + title + " was not removed. Try again.");
                     }
                 });
             }
@@ -197,8 +346,16 @@
             type: "GET"
         }).done(function (data) {
             $("#entities").html(data);
-            getApplicationSectors();
+            // No granted workspace means nothing to load; the view shows why.
+            if ($("#__ddlApplications__ option").length) {
+                getApplicationSectors();
+            }
         });
+    }
+
+    function showNoEntityChoice() {
+        $("#permissionPanelTitle").text("Permissions");
+        $("#div_accesses").html('<div class="scs-empty-state"><i class="mdi mdi-cursor-default-click-outline" aria-hidden="true"></i>Choose an entity to see the permissions it offers.</div>');
     }
 
     function getApplicationSectors() {
@@ -208,7 +365,13 @@
             type: "GET"
         }).done(function (data) {
             $("#__ddlSectors__").html(data);
-            getSectorEntities();
+            if ($("#__ddlSectors__ option").length) {
+                getSectorEntities();
+            } else {
+                $("#__checkBox_Entities__").html('<p class="scs-meta mb-0">This workspace has no sectors yet. Add them under Access Management › Sectors.</p>');
+                showNoEntityChoice();
+                getUserAccess($("#__hidTXTUserId__").val());
+            }
         });
     }
 
@@ -219,18 +382,21 @@
         }).done(function (data) {
             var _data = data.split(',');
             $("#Accesses").val(data);
+            $("#Accesses").data("saved", data);
             $.each(_data, function () {
                 var element = "#" + this;
                 if (element !== "#") {
                     $("#" + this).prop("checked", true);
                 }
             });
+            updateAccessSummary();
         });
     }
 
     function getSectorEntities() {
         var sectorId = $("#__ddlSectors__").val();
         clearModalBody("__checkBox_Entities__");
+        showNoEntityChoice();
         $.ajax({
             url: '/BackOffice/Account/GetSectorEntities/' + sectorId,
             type: "GET"
@@ -238,6 +404,18 @@
             $("#__checkBox_Entities__").html(data);
             getUserAccess($("#__hidTXTUserId__").val());
         });
+    }
+
+    // Counts the keys in the hidden Accesses value and flags edits that are not saved yet.
+    function updateAccessSummary() {
+        var value = $("#Accesses").val() || "";
+        var count = value.split(",").filter(function (key) { return key !== ""; }).length;
+        var workspace = $("#__ddlApplications__ option:selected").text();
+        var unsaved = value !== ($("#Accesses").data("saved") || "");
+        $("#accessSummary")
+            .toggleClass("is-unsaved", unsaved)
+            .text(count + (count === 1 ? " permission" : " permissions") + " selected in " + workspace + "." +
+                (unsaved ? " Unsaved changes." : ""));
     }
 
     function setEntityAccessHideInput(value) {
@@ -250,18 +428,41 @@
             accesses = accesses.replace(value + ",", '');
             $("#Accesses").val(accesses);
         }
+        updateAccessSummary();
     }
 
     function saveEntityAccess() {
-        var frmSaveEntitiesToUser = $("#frmSaveEntitiesToUser");
-        $.ajax({
-            url: '/BackOffice/Account/SetAccessForUser',
-            type: "POST",
-            data: frmSaveEntitiesToUser.serialize(),
-        }).done(function (data) {
-            if (data === "Done") {
-                entities(userId);
-            }
+        var workspace = $("#__ddlApplications__ option:selected").text();
+        var count = ($("#Accesses").val() || "").split(",").filter(function (key) { return key !== ""; }).length;
+        confirmAccessChange(
+            "Save " + subjectName() + "'s permissions in " + workspace + "?",
+            "Their permissions in " + workspace + " will be replaced with the " + count + " selected. Other workspaces are not affected.",
+            "Save permissions",
+            false
+        ).then(function (confirmed) {
+            if (!confirmed) return;
+            var frmSaveEntitiesToUser = $("#frmSaveEntitiesToUser");
+            var saveButton = $("#btnSaveEntityAccess");
+            var saveLabel = saveButton.html();
+            setLoadingForBtn("btnSaveEntityAccess");
+            $.ajax({
+                url: '/BackOffice/Account/SetAccessForUser',
+                type: "POST",
+                data: frmSaveEntitiesToUser.serialize(),
+            }).done(function (data) {
+                if (data === "Done") {
+                    $("#Accesses").data("saved", $("#Accesses").val());
+                    updateAccessSummary();
+                    announceAccess("Permissions in " + workspace + " saved.");
+                } else {
+                    accessError("The permissions were not saved. Try again.");
+                }
+            }).fail(function () {
+                accessError("The permissions were not saved. Try again.");
+            }).always(function () {
+                removeLoadingForBtn("btnSaveEntityAccess", "saveEntityAccess()", saveLabel);
+                saveButton.trigger("focus");
+            });
         });
     }
 
@@ -269,12 +470,20 @@
         //console.log(accessKeyElement);
         //console.log(entityId);
         $("#" + accessKeyElement).attr('checked', 'checked');
+        var entityButton = $('.scs-entity-option[data-entity-id="' + entityId + '"]');
+        $(".scs-entity-option").removeClass("is-selected").attr("aria-pressed", "false");
+        entityButton.addClass("is-selected").attr("aria-pressed", "true");
+        $("#permissionPanelTitle").text("Permissions: " + $.trim(entityButton.find("span").first().text()));
         clearModalBody("div_accesses");
         $.ajax({
             url: '/BackOffice/Account/EntityAccesses/' + entityId,
             type: "GET"
         }).done(function (data) {
             $("#div_accesses").html(data);
+            // Below lg the panel stacks under the entity list; bring it into view.
+            if (window.matchMedia("(max-width: 991.98px)").matches) {
+                document.getElementById("permissionPanelTitle").scrollIntoView({ block: "nearest" });
+            }
             var _data = $("#Accesses").val();
             var __data = _data.split(',');
             $.each(__data, function () {

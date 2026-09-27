@@ -12,7 +12,10 @@ function findContents(typeId) {
       pageLength: 25,
       buttons: ["copy", "print"],
       order: [[0, "desc"]],
+      columnDefs: [{ orderable: false, targets: -1 }],
       language: {
+        emptyTable: "No content has been created for this type yet.",
+        zeroRecords: "No content matches your search. Try a shorter or different term.",
         paginate: {
           previous: "<i class='mdi mdi-chevron-left'>",
           next: "<i class='mdi mdi-chevron-right'>",
@@ -497,15 +500,15 @@ function uploadBodyFile(elementId, schemaId) {
         schemaId +
         "' fileName='" +
         _data[1] +
-        '\' class="card text-white bg-primary overflow-hidden">';
-      fileUploader += '<div class="card-body">';
-      fileUploader += '<div class="toll-free-box text-center">';
+        '\' class="scs-file-tile">';
       fileUploader +=
-        '<h4><i class="mdi mdi-file-cabinet"></i>' + file.name + "</h4>";
-      fileUploader += "</div>";
-      fileUploader += "</div>";
+        '<i class="mdi mdi-file-document-outline" aria-hidden="true"></i>';
+      fileUploader += '<span class="text-truncate"></span>';
       fileUploader += "</div>";
       $("#" + elementId).html(fileUploader);
+      $("#" + elementId + " .scs-file-tile span")
+        .text(file.name)
+        .attr("title", file.name);
     } else {
       $("#file-upload-" + elementId).show();
       $("#fileUploaderLoading-" + elementId).hide();
@@ -552,7 +555,7 @@ function uploadBodyImageGallery(elementId) {
           imagesHTML +=
             '<button type="button" onclick="removeImageGallery(\'' +
             imageIdPlaceHolderId[0] +
-            '\')" class="btn btn-sm btn-outline-danger w-100">Remove</button>';
+            '\')" class="btn btn-sm btn-outline-danger w-100 mt-1">Remove image</button>';
           imagesHTML += "</div>";
         }
       });
@@ -908,5 +911,66 @@ function updateBodyLayout() {
       "success",
     );
     loadContentBody();
+  });
+}
+
+// Editor tabs (English and Farsi forms): WAI-ARIA tabs with automatic activation.
+// Left/Right follow the tab bar's visual direction and wrap; Home/End jump to the ends.
+// Only rendered tabs take part, so permission-gated tabs that aren't in the DOM are skipped.
+function nextEditorTabIndex(index, count, key, isRtl) {
+  switch (key) {
+    case "Home":
+      return 0;
+    case "End":
+      return count - 1;
+    case "ArrowRight":
+      return (index + (isRtl ? count - 1 : 1)) % count;
+    case "ArrowLeft":
+      return (index + (isRtl ? 1 : count - 1)) % count;
+    default:
+      return -1;
+  }
+}
+
+// Roving tabindex: only the active tab is in the Tab order, so Tab returns to it.
+function syncEditorTabStops(tablist, activeTab) {
+  tablist.querySelectorAll('[role="tab"]').forEach(function (tab) {
+    tab.setAttribute("tabindex", tab === activeTab ? "0" : "-1");
+  });
+}
+
+function initEditorTabs(tablist) {
+  syncEditorTabStops(
+    tablist,
+    tablist.querySelector('[role="tab"][aria-selected="true"]'),
+  );
+  // Fires after every Bootstrap activation (mouse, data API or keyboard). Bootstrap 5.3.0 only
+  // removes/sets tabindex itself after its transition callback, so don't rely on it.
+  tablist.addEventListener("shown.bs.tab", function (event) {
+    syncEditorTabStops(tablist, event.target);
+  });
+  // Capture phase, so this runs instead of Bootstrap 5.3.0's per-tab arrow handler
+  // (no Home/End, no RTL) rather than moving focus a second time.
+  tablist.addEventListener(
+    "keydown",
+    function (event) {
+      var tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+      var index = tabs.indexOf(event.target);
+      if (index < 0) return;
+      var isRtl = getComputedStyle(tablist).direction === "rtl";
+      var next = nextEditorTabIndex(index, tabs.length, event.key, isRtl);
+      if (next < 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      tabs[next].focus();
+      bootstrap.Tab.getOrCreateInstance(tabs[next]).show();
+    },
+    true,
+  );
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".scs-editor-tabs").forEach(initEditorTabs);
   });
 }

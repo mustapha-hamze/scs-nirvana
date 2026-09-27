@@ -2,21 +2,21 @@
 
 @if (Model.CanEdit)
 {
-    <a href="/BackOffice/Content/ContentForm/@Model.Id/@Model.TypeId" class="action-icon" title="Edit" aria-label="Edit content">
-        <i class="mdi mdi-content-save-edit"></i>
-    </a>
-}
-@if (Model.CanDelete)
-{
-    <a href="javascript: void(0);" class="action-icon" onclick="deleteContent(@Model.Id)" title="Delete"
-       aria-label="Delete content">
-        <i class="mdi mdi-delete"></i>
+    <a href="/BackOffice/Content/ContentForm/@Model.Id/@Model.TypeId" class="action-icon" title="Edit" aria-label="Edit @Model.Title">
+        <i class="mdi mdi-content-save-edit" aria-hidden="true"></i>
     </a>
 }
 @* @if (User.IsInRole("SuperAdmin") || accesses.Contains("CMS1000_1001_EDIT_FARSI_1014"))
 { *@
-<a href="/BackOffice/Content/FarsiContentForm/@Model.Id/@Model.TypeId" class="action-icon" title="Manage Farsi Version"
-   aria-label="Manage Farsi version">
-    <i class="mdi mdi-translate"></i>
+<a href="/BackOffice/Content/FarsiContentForm/@Model.Id/@Model.TypeId" class="action-icon" title="Manage Farsi version"
+   aria-label="Manage Farsi version of @Model.Title">
+    <i class="mdi mdi-translate" aria-hidden="true"></i>
 </a>
 @* } *@
+@if (Model.CanDelete)
+{
+    <button type="button" class="action-icon is-danger" onclick="deleteContent(@Model.Id)" title="Delete"
+       aria-label="Delete @Model.Title">
+        <i class="mdi mdi-delete" aria-hidden="true"></i>
+    </button>
+}

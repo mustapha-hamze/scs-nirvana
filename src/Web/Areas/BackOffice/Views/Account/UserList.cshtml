@@ -4,58 +4,72 @@
 
 @model List<Application.Contracts.UserManagement.UserDto>
 
-<table class="table table-striped table-centered mb-0">
-    <thead>
-        <tr>
-            <th>User</th>
-            <th>Email</th>
-            <th>Phone Number</th>
-            <th>Is Approved</th>
-            <th>Created</th>
-            <th>Updated</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+@if (Model.Count == 0)
+{
+    <div class="scs-empty-state">
+        <i class="mdi mdi-account-search-outline" aria-hidden="true"></i>
+        No users match this email and user type. Check the spelling or switch the user type.
+    </div>
+}
+else
+{
+    <table id="datatable-buttons" class="table table-hover dt-responsive nowrap w-100">
+        <thead>
             <tr>
-                <td class="table-user">
-                    <img src="/BackOffice/images/users/blank-user.png" alt="table-user" class="me-2 rounded-circle" />
-                    @item.FirstName @item.LastName
-                </td>
-                <td>@item.Email</td>
-                <td>@item.PhoneNumber</td>
-                <td>
-                    @if (item.IsApprove)
-                    {
-                        <span class="badge bg-success rounded-pill p-1">Approved</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger rounded-pill p-1">Not Approved</span>
-                    }
-                </td>
-                <td>@item.CreatedDT.ToString("yyyy MMM dd hh:mm")</td>
-                <td>@item.UpdatedDT.ToString("yyyy MMM dd hh:mm")</td>
-                <td class="table-action">
-                    <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
-                        data-bs-target="#user-setting-modal" onclick="userSettingForm('@item.Id')" title="Settings"
-                        aria-label="Settings for @item.FirstName @item.LastName">
-                        <i class="mdi mdi-menu"></i>
-                    </a>
-                    <a href="javascript: void(0);" onclick="editUserForm('@item.Id')" class="action-icon"
-                        data-bs-toggle="modal" data-bs-target="#user-modal" title="Edit"
-                        aria-label="Edit @item.FirstName @item.LastName">
-                        <i class="mdi mdi-pencil"></i>
-                    </a>
-                    <a href="javascript: void(0);" onclick="loadUserAttachmentForm('@item.Id')" class="action-icon"
-                        data-bs-toggle="modal" data-bs-target="#user-attachment-modal" title="Attachments"
-                        aria-label="Attachments for @item.FirstName @item.LastName">
-                        <i class="mdi mdi-attachment"></i>
-                    </a>
-                </td>
+                <th>User</th>
+                <th>Phone</th>
+                <th>Type</th>
+                <th>Approval</th>
+                <th>Updated</th>
+                <th><span class="visually-hidden">Actions</span></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var name = $"{item.FirstName} {item.LastName}";
+                var approval = item.IsApprove ? "Approved" : "Pending approval";
+                <tr>
+                    <td>
+                        <div class="scs-user-cell">
+                            <span class="scs-user-name scs-cell-truncate" title="@name">@name</span>
+                            <span class="scs-meta scs-cell-truncate" title="@item.Email">@item.Email</span>
+                            @* Phones collapse the Approval column, so the status also shows here below md. *@
+                            <span class="scs-status @(item.IsApprove ? "scs-status--success" : "scs-status--warning") d-md-none mt-1 align-self-start">@approval</span>
+                        </div>
+                    </td>
+                    <td>@item.PhoneNumber</td>
+                    <td>
+                        @if (item.IsAdminUser)
+                        {
+                            <span class="scs-status scs-status--info">Admin panel</span>
+                        }
+                        else
+                        {
+                            <span class="scs-status">Site user</span>
+                        }
+                    </td>
+                    <td data-search="@approval">
+                        <span class="scs-status @(item.IsApprove ? "scs-status--success" : "scs-status--warning")">@approval</span>
+                    </td>
+                    <td data-order="@item.UpdatedDT.ToString("yyyy-MM-ddTHH:mm:ss")">
+                        @item.UpdatedDT.ToString("yyyy MMM dd, HH:mm")
+                        <span class="scs-meta d-block">Created @item.CreatedDT.ToString("yyyy MMM dd")</span>
+                    </td>
+                    <td class="scs-table-actions">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#user-setting-modal" data-user-name="@name"
+                            onclick="userSettingForm('@item.Id')" aria-label="Manage access for @name">
+                            <i class="mdi mdi-shield-account-outline" aria-hidden="true"></i> Access
+                        </button>
+                        <button type="button" class="btn btn-sm scs-btn-quiet" data-bs-toggle="modal"
+                            data-bs-target="#user-modal" data-user-name="@name"
+                            onclick="editUserForm('@item.Id')" aria-label="Edit @name">
+                            <i class="mdi mdi-pencil-outline" aria-hidden="true"></i> Edit
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

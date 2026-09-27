@@ -60,8 +60,8 @@
     <link href="/BackOffice/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css" rel="stylesheet"
         type="text/css" />
 
-    <!-- SCS custom overrides, loaded after the vendor theme CSS -->
-    <link href="/BackOffice/css/scs-admin.css" rel="stylesheet" type="text/css" />
+    <!-- Nirvana CMS design system (docs/backoffice-design-system.md); loaded after the theme CSS, versioned so browsers never keep a stale copy -->
+    <link href="/BackOffice/css/scs-admin.css" rel="stylesheet" type="text/css" asp-append-version="true" />
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -73,19 +73,51 @@
     <div class="wrapper">
 
         <!-- ========== Topbar Start ========== -->
-        <div class="navbar-custom">
+        <header class="navbar-custom">
             @await Html.PartialAsync("_Navbar")
-        </div>
+        </header>
         <!-- ========== Topbar End ========== -->
 
-        <div class="leftside-menu">
+        <aside class="leftside-menu" id="leftside-menu" aria-label="Sidebar">
             @await Html.PartialAsync("_SideBar")
-        </div>
+        </aside>
 
         <div class="content-page">
             <div class="content">
             <main class="container-fluid" id="main-content" tabindex="-1">
-                    @RenderBody()
+                @* Shared page header (docs/backoffice-design-system.md#page-header): a page sets
+                   ViewData["Title"] and optional sections PageHeading (h1 override), PageHelper,
+                   PageActions and Breadcrumb (extra linked crumbs, e.g. the editor's parent list).
+                   The menu groups between Dashboard and the page come from the sidebar (script below). *@
+                @if (ViewData["Title"] is string pageTitle)
+                {
+                    <div class="scs-page-header">
+                        <div class="scs-page-heading">
+                            @if (ViewContext.RouteData.Values["controller"] as string != "Home")
+                            {
+                                <nav aria-label="Breadcrumb">
+                                    <ol class="breadcrumb scs-breadcrumb">
+                                        <li class="breadcrumb-item"><a href="/BackOffice/Home/Index">Dashboard</a></li>
+                                        @await RenderSectionAsync("Breadcrumb", required: false)
+                                        <li class="breadcrumb-item active" aria-current="page">@pageTitle</li>
+                                    </ol>
+                                </nav>
+                            }
+                            <h1 class="scs-page-title">@if (IsSectionDefined("PageHeading")) { @await RenderSectionAsync("PageHeading") } else { @pageTitle }</h1>
+                            @if (IsSectionDefined("PageHelper"))
+                            {
+                                <p class="scs-page-helper">@await RenderSectionAsync("PageHelper")</p>
+                            }
+                        </div>
+                        @if (IsSectionDefined("PageActions"))
+                        {
+                            <div class="scs-page-actions">
+                                @await RenderSectionAsync("PageActions")
+                            </div>
+                        }
+                    </div>
+                }
+                @RenderBody()
             </main>
             </div>
 
@@ -171,81 +203,81 @@
     <!-- App js -->
     <script src="/BackOffice/js/app.min.js"></script>
 
+    <!-- Shell script on top of Hyper's sidebar (app.min.js): breadcrumb menu groups, current-page and expanded
+         state for assistive tech, and focus/Escape handling for the mobile off-canvas menu. -->
     <script>
-        function checkFormValidity(form) {
-            var flag = false;
+        (function () {
+            var html = document.documentElement;
+            var nav = document.querySelector(".side-nav");
+            var toggle = document.querySelector(".button-toggle-menu");
+            var closeBtn = document.querySelector(".button-close-fullsidebar");
 
-            var form = document.getElementById(form);
-            form.classList.add('was-validated');
-
-            if (form.checkValidity()) {
-                return true;
+            // Pages that aren't menu links (e.g. the content editor) highlight the list they belong
+            // to: the page's last linked breadcrumb below Dashboard.
+            var crumbList = document.querySelector(".scs-page-header .breadcrumb");
+            var crumbLinks = crumbList ? crumbList.querySelectorAll("a") : [];
+            var parentCrumb = crumbLinks.length > 1 ? crumbLinks[crumbLinks.length - 1] : null;
+            var isMenuPage = !!nav.querySelector("a.active");
+            if (!isMenuPage && parentCrumb) {
+                var parentLink = nav.querySelector('a[href="' + parentCrumb.getAttribute("href") + '"]');
+                if (parentLink) {
+                    parentLink.classList.add("active");
+                    parentCrumb.textContent = parentLink.textContent.trim();
+                    for (var el = parentLink.parentElement; el !== nav; el = el.parentElement) {
+                        if (el.classList.contains("collapse")) el.classList.add("show");
+                        if (el.tagName === "LI") el.classList.add("menuitem-active");
+                    }
+                }
             }
 
-            return flag;
-        }
+            var activeLink = nav.querySelector("a.active");
+            // "true" when the highlighted link is the section this page belongs to, not the page itself.
+            if (activeLink) activeLink.setAttribute("aria-current", isMenuPage ? "page" : "true");
 
-        function clearModalBody(modalBodyId) {
-            modalBodyId = "#" + modalBodyId;
-            var html = "";
-            html += "<div class=\"p-5 text-center\">";
-            html += "<div class=\"spinner-border text-primary\" role=\"status\">";
-            html += "<span class=\"visually-hidden\">Loading</span>";
-            html += "</div>";
-            html += "</div>";
-            $(modalBodyId).html(html);
-        }
-
-        function uploadFile(file, url, entityId) {
-            var upload = new FormData();
-            upload.append("File", file);
-            upload.append("EntityId", entityId);
-            upload.append("Extension", file.type.toLowerCase());
-
-            $.ajax({
-                url: url,
-                type: "POST",
-                contentType: false,
-                processData: false,
-                data: upload
-            }).done(function (data) {
-                var _data = data.split('|');
-                if (data === "Done") {
-                    location.reload();
+            // Breadcrumb groups mirror the sidebar: each menu group above the highlighted link,
+            // inserted after "Dashboard" (e.g. Content Management > Pages).
+            if (crumbList && activeLink && activeLink.getAttribute("href") !== "/BackOffice/Home/Index") {
+                var dashboardCrumb = crumbList.firstElementChild;
+                for (var group = activeLink.closest(".collapse"); group && nav.contains(group); group = group.parentElement.closest(".collapse")) {
+                    var groupToggle = nav.querySelector('[href="#' + group.id + '"]');
+                    var crumb = document.createElement("li");
+                    crumb.className = "breadcrumb-item";
+                    crumb.textContent = groupToggle.textContent.trim();
+                    dashboardCrumb.after(crumb);
                 }
-                else {
-                    return false;
-                }
+            }
+
+            // Hyper opens the active branch by adding .show directly; Bootstrap keeps aria-expanded
+            // in sync from here on.
+            nav.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (trigger) {
+                var target = document.querySelector(trigger.getAttribute("href"));
+                trigger.setAttribute("aria-expanded", String(!!target && target.classList.contains("show")));
             });
-        }
 
-        function setLoadingForBtnFilter(btnId) {
-            $("#" + btnId).prop("disabled", true).attr("aria-busy", "true").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Filtering");
-        }
+            function isOffcanvas() { return html.getAttribute("data-sidenav-size") === "full"; }
+            function isOpen() {
+                return isOffcanvas() ? html.classList.contains("sidebar-enable") : html.getAttribute("data-sidenav-size") !== "condensed";
+            }
 
-        function removeLoadingForBtnFilter(btnId, funcName) {
-            $("#" + btnId).prop("disabled", false).removeAttr("aria-busy").html("<i class=\"uil uil-filter\"></i> Filter");
-            $("#" + btnId).attr("onclick", funcName);
-        }
+            var wasOffcanvasOpen = false;
+            function syncMenuState() {
+                toggle.setAttribute("aria-expanded", String(isOpen()));
+                var offcanvasOpen = isOffcanvas() && isOpen();
+                if (offcanvasOpen && !wasOffcanvasOpen) closeBtn.focus();
+                if (!offcanvasOpen && wasOffcanvasOpen && isOffcanvas()) toggle.focus();
+                wasOffcanvasOpen = offcanvasOpen;
+            }
+            new MutationObserver(syncMenuState).observe(html, { attributes: true, attributeFilter: ["class", "data-sidenav-size"] });
+            syncMenuState();
 
-        function setLoadingForBtn(btnId) {
-            $("#" + btnId).prop("disabled", true).attr("aria-busy", "true").html("<span class=\"spinner-border spinner-border-sm me-1\" aria-hidden=\"true\"></span>Saving");
-        }
-
-        function removeLoadingForBtn(btnId, funcName, text) {
-            $("#" + btnId).prop("disabled", false).removeAttr("aria-busy").html(text);
-            $("#" + btnId).attr("onclick", funcName);
-        }
-
-        function messageBox(title, text, icon) {
-            Swal.fire({
-                backdrop: false,
-                title,
-                text,
-                icon
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape" && isOffcanvas() && isOpen()) closeBtn.click();
             });
-        }
+        })();
     </script>
+
+    <!-- Shared helpers (checkFormValidity, setLoadingForBtn, messageBox, ...) and modal/form/request behaviour -->
+    <script src="/BackOffice/js/features/common.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

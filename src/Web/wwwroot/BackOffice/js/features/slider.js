@@ -17,10 +17,7 @@
             return;
         }
 
-        console.log(frmCreateSliderItemForm);
-
-        $("#__btnCreateSliderItem__").html("Please wait ...");
-        $("#__btnCreateSliderItem__").removeAttr("onclick");
+        setLoadingForBtn("__btnCreateSliderItem__");
         var frmCreateSliderItemForm = $("#__frmCreateSliderItemForm__");
         $.ajax({
             type: "POST",
@@ -45,11 +42,9 @@
             contentType: false
         }).done(function () {
             if ($("#__sliderItem_FRM_ImageFileName").val() == "") {
-                $("#__btnCreateSliderItem__").html("Create slider item");
-                $("#__btnCreateSliderItem__").attr("onclick", "createSliderItem()");
+                removeLoadingForBtn("__btnCreateSliderItem__");
             } else {
-                $("#__btnUpdateSliderItem__").html("Update slider item");
-                $("#__btnUpdateSliderItem__").attr("onclick", "updateSliderItem()");
+                removeLoadingForBtn("__btnUpdateSliderItem__");
             }
             sliderItems($("#__sliderItem_FRM_SliderId").val());
         });
@@ -70,6 +65,32 @@
             type: "GET"
         }).done(function (data) {
             $("#findSlidersResultBody").html(data);
+            // An empty list renders an empty state instead of the table.
+            if ($("#datatable-buttons").length === 0) return;
+            $("#datatable-buttons").DataTable({
+                lengthChange: !1,
+                pageLength: 25,
+                buttons: ["copy", "print"],
+                order: [[1, "asc"]],
+                // Id stays visible: Responsive only makes the first cell keyboard-focusable, so
+                // it must carry the row-details toggle. Title next, then Actions.
+                columnDefs: [
+                    { orderable: false, targets: -1 },
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: 1 },
+                    { responsivePriority: 3, targets: -1 }
+                ],
+                language: {
+                    zeroRecords: "No sliders match your search. Try a shorter or different term.",
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'>",
+                        next: "<i class='mdi mdi-chevron-right'>"
+                    }
+                },
+                drawCallback: function () {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+                }
+            });
         });
     }
 
@@ -103,8 +124,7 @@
     }
 
     function createSlider() {
-        $("#__btnCreateSlider__").html("Please wait ...");
-        $("#__btnCreateSlider__").removeAttr("onclick");
+        setLoadingForBtn("__btnCreateSlider__");
         var frmCreateSliderForm = $("#__frmCreateSliderForm__");
         $.ajax({
             type: "POST",
@@ -113,8 +133,7 @@
         }).done(function (data) {
             getSliderList();
             getSliderForm();
-            $("#__btnCreateSlider__").html("Create slider");
-            $("#__btnCreateSlider__").attr("onclick", "createSlider()");
+            removeLoadingForBtn("__btnCreateSlider__");
         });
     }
 
@@ -137,12 +156,35 @@
     }
 
     function deleteSliderItem(sliderItemId) {
-        $.ajax({
-            url: '/BackOffice/Slider/DeleteItem?sliderItemId=' + sliderItemId,
-            type: "DELETE"
-        }).done(function (data) {
-            sliderItems($("#__sliderItem_FRM_SliderId").val());
+        Swal.fire({
+            title: "Delete this slide?",
+            text: "The slide is removed from the slider. This can't be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "var(--scs-danger-solid)",
+            confirmButtonText: "Delete slide",
+            cancelButtonText: "Keep slide",
+            focusCancel: true
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            $.ajax({
+                url: '/BackOffice/Slider/DeleteItem?sliderItemId=' + sliderItemId,
+                type: "DELETE"
+            }).done(function (data) {
+                sliderItems($("#__sliderItem_FRM_SliderId").val());
+            });
         });
+    }
+
+    // Shows the chosen file in the form's bounded preview before it is uploaded.
+    function previewSliderItemImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const preview = $("#sliderItemImagePreview");
+        preview.find("img").attr({ src: URL.createObjectURL(file), alt: "Preview of " + file.name });
+        preview.find("figcaption").text(file.name + " (not saved yet)");
+        preview.prop("hidden", false);
+        $("#sliderItemImageEmpty").prop("hidden", true);
     }
 
     function editSliderItem(sliderItemId, sliderId) {
@@ -167,8 +209,7 @@
             }
         }
 
-        $("#__btnUpdateSliderItem__").html("Please wait ...");
-        $("#__btnUpdateSliderItem__").removeAttr("onclick");
+        setLoadingForBtn("__btnUpdateSliderItem__");
         var frmCreateSliderItemForm = $("#__frmCreateSliderItemForm__");
         $.ajax({
             type: "POST",
@@ -178,8 +219,7 @@
             if (file != undefined) {
                 uploadSliderItemImage($("#__sliderItem_FRM_SliderId").val(), $("#__sliderItem_FRM_ImageFileName").val());
             } else {
-                $("#__btnUpdateSliderItem__").html("Update slider item");
-                $("#__btnUpdateSliderItem__").attr("onclick", "updateSliderItem()");
+                removeLoadingForBtn("__btnUpdateSliderItem__");
             }
         });
     }

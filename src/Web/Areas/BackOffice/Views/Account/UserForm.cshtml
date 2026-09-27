@@ -1,114 +1,122 @@
 @{
     Layout = null;
+    // A failed create posts back with a model but no UserId, so decide the mode by UserId, not by Model.
+    var isNew = string.IsNullOrEmpty(Model?.UserId);
 }
 @model Web.Models.UserManagement.CreateUserDto
-<form class="needs-validation row" novalidate id="frmUser" method="POST">
+<form class="needs-validation row g-3" novalidate id="frmUser" method="POST" data-mode="@(isNew ? "create" : "edit")">
     <input type="hidden" asp-for="UserId" />
-    <div asp-validation-summary="All" class="text-danger">
+    <div asp-validation-summary="All" class="alert alert-danger col-12 mb-0" role="alert">
     </div>
-    <div class="mb-3 col-md-6">
-        <label class="form-label" asp-for="FirstName">First name</label>
-        <input type="text" class="form-control" asp-for="FirstName" placeholder="First name" required minlength="4"
-            maxlength="64">
-        <div class="invalid-feedback">
-            Min length is 4 and max length is 64
-        </div>
+
+    <div class="col-12 scs-form-section">
+        <h5 class="scs-section-title">Profile</h5>
     </div>
-    <div class="mb-3 col-md-6">
-        <label class="form-label" asp-for="LastName">Last name</label>
-        <input type="text" class="form-control" asp-for="LastName" placeholder="Last name" required minlength="4"
-            maxlength="64">
-        <div class="invalid-feedback">
-            Min length is 4 and max length is 64
-        </div>
+    <div class="col-md-6">
+        <label class="form-label scs-required" asp-for="FirstName">First name</label>
+        <input type="text" class="form-control" asp-for="FirstName" required minlength="4" maxlength="64"
+            aria-describedby="userFirstNameFeedback" autocomplete="given-name">
+        <div class="invalid-feedback" id="userFirstNameFeedback">Enter 4 to 64 characters.</div>
     </div>
-    <div class="mb-3 col-md-6">
-        <label class="form-label" asp-for="BirthDate">Birth Date</label>
+    <div class="col-md-6">
+        <label class="form-label scs-required" asp-for="LastName">Last name</label>
+        <input type="text" class="form-control" asp-for="LastName" required minlength="4" maxlength="64"
+            aria-describedby="userLastNameFeedback" autocomplete="family-name">
+        <div class="invalid-feedback" id="userLastNameFeedback">Enter 4 to 64 characters.</div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label scs-required" for="birthdate">Birth date</label>
         <input type="text" class="form-control date" asp-for="BirthDate" data-toggle="date-picker"
-            placeholder="Birth Date" data-single-date-picker="true" id="birthdate" required>
-        <small>e.g "MM/DD/YYYY"</small>
+            data-single-date-picker="true" id="birthdate" required aria-describedby="userBirthDateHelp">
+        <div class="form-text" id="userBirthDateHelp">Format MM/DD/YYYY.</div>
+        <div class="invalid-feedback">Choose a birth date.</div>
     </div>
-    <div class="mb-3 col-md-6">
-        <label class="form-label" asp-for="PhoneNumber">Phone Number</label>
-        <input type="text" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
-            class="form-control" asp-for="PhoneNumber" placeholder="Phone Number" required minlength="11"
-            maxlength="16">
-        <small>e.g 905553331212</small>
-        <div class="invalid-feedback">
-            Min length is 11
-        </div>
+    <div class="col-md-6">
+        <label class="form-label scs-required" asp-for="PhoneNumber">Phone number</label>
+        <input type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+            class="form-control" asp-for="PhoneNumber" required minlength="11" maxlength="16"
+            aria-describedby="userPhoneHelp" autocomplete="tel">
+        <div class="form-text" id="userPhoneHelp">Digits only, 11 to 16 characters, e.g. 905553331212.</div>
+        <div class="invalid-feedback">Enter 11 to 16 digits.</div>
     </div>
-    @if (Model == null)
+
+    <div class="col-12 scs-form-section">
+        <h5 class="scs-section-title">Sign-in</h5>
+    </div>
+    @if (isNew)
     {
-        <div class="mb-3 col-md-6">
-            <label class="form-label" asp-for="EmailAddress">Email</label>
-            <input type="email" class="form-control" asp-for="EmailAddress" placeholder="Email" required>
-            <div class="invalid-feedback">
-                Please provide a valid email.
-            </div>
+        <div class="col-12">
+            <label class="form-label scs-required" asp-for="EmailAddress">Email</label>
+            <input type="email" class="form-control" asp-for="EmailAddress" required autocomplete="off"
+                aria-describedby="userEmailFormHelp">
+            <div class="form-text" id="userEmailFormHelp">Also used as the user name. It can't be changed later.</div>
+            <div class="invalid-feedback">Enter a valid email address.</div>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label scs-required" asp-for="Password">Password</label>
+            <input type="password" class="form-control" asp-for="Password" required minlength="12" maxlength="64"
+                aria-describedby="userPasswordHelp" autocomplete="new-password">
+            <div class="form-text" id="userPasswordHelp">12 to 64 characters.</div>
+            <div class="invalid-feedback">Enter 12 to 64 characters.</div>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label scs-required" asp-for="ConfirmPassword">Confirm password</label>
+            <input type="password" class="form-control" asp-for="ConfirmPassword" required minlength="12" maxlength="64"
+                autocomplete="new-password">
+            <div class="invalid-feedback">Repeat the password (12 to 64 characters).</div>
         </div>
     }
     else
     {
-        <div class="mb-3 col-md-6">
+        <div class="col-12">
             <label class="form-label" asp-for="EmailAddress">Email</label>
-            <input type="email" class="form-control" asp-for="EmailAddress" placeholder="Email" required readonly>
-            <div class="invalid-feedback">
-                Please provide a valid email.
-            </div>
+            <input type="email" class="form-control" asp-for="EmailAddress" required readonly
+                aria-describedby="userEmailFormHelp">
+            <div class="form-text" id="userEmailFormHelp">The email is the user name and can't be changed.</div>
         </div>
     }
-    @if (Model == null)
-    {
-        <div class="mb-3 col-md-3">
-            <label class="form-label" asp-for="Password">Password</label>
-            <input type="password" class="form-control" asp-for="Password" placeholder="Password" required minlength="12"
-                maxlength="64">
-            <div class="invalid-feedback">
-                Min length is 12 and max length is 64
-            </div>
-        </div>
-        <div class="mb-3 col-md-3">
-            <label class="form-label" asp-for="ConfirmPassword">Confirm Password</label>
-            <input type="password" class="form-control" asp-for="ConfirmPassword" placeholder="Confirm Password" required minlength="12">
-            <div class="invalid-feedback">
-                Min length is 12 and max length is 64
-            </div>
-        </div>
-    }
-    <div class="col-md-12 mb-1">
-        <div class="alert alert-warning">
-            <input type="checkbox" class="form-check-input" asp-for="IsAdminUser">
-            <label class="form-check-label" asp-for="IsAdminUser">Is admin panel user ?</label>
+
+    <div class="col-12 scs-form-section">
+        <h5 class="scs-section-title">BackOffice access</h5>
+    </div>
+    <div class="col-md-6">
+        <div class="form-check form-switch scs-switch-card">
+            <input type="checkbox" class="form-check-input" role="switch" asp-for="IsApprove"
+                data-initial="@(Model?.IsApprove == true ? "true" : "false")" aria-describedby="userApproveHelp">
+            <label class="form-check-label" asp-for="IsApprove">Approved</label>
+            <div class="form-text" id="userApproveHelp">Approved users can open workspaces. Until then they see the waiting-for-approval screen after signing in.</div>
         </div>
     </div>
-    <div class="col-md-12 mb-1">
-        <div class="alert alert-warning">
-            <input type="checkbox" class="form-check-input" asp-for="IsApprove">
-            <label class="form-check-label" asp-for="IsApprove">Is Approved ?</label>
+    <div class="col-md-6">
+        <div class="form-check form-switch scs-switch-card">
+            <input type="checkbox" class="form-check-input" role="switch" asp-for="IsAdminUser"
+                data-initial="@(Model?.IsAdminUser == true ? "true" : "false")" aria-describedby="userAdminHelp">
+            <label class="form-check-label" asp-for="IsAdminUser">Admin panel user</label>
+            <div class="form-text" id="userAdminHelp">Only admin panel users can sign in to the BackOffice. Roles and permissions decide what they can do there.</div>
         </div>
     </div>
-    <div class="mb-3 col-md-12">
-        <label class="form-label" asp-for="BusinessAddress">Business Address</label>
-        <input type="text" class="form-control" asp-for="BusinessAddress" placeholder="Business Address" minlength="16"
-            maxlength="256">
-        <div class="invalid-feedback">
-            Min length is 16 and max length is 256
-        </div>
+
+    <div class="col-12 scs-form-section">
+        <h5 class="scs-section-title">Addresses <span class="scs-meta fw-normal">(optional)</span></h5>
     </div>
-    <div class="mb-3 col-md-12">
-        <label class="form-label" asp-for="ConfirmPassword">Home Address</label>
-        <input type="text" class="form-control" asp-for="HomeAddress" placeholder="Home Address" minlength="16"
-            maxlength="256">
-        <div class="invalid-feedback">
-            Min length is 16 and max length is 256
-        </div>
+    <div class="col-md-6">
+        <label class="form-label" asp-for="BusinessAddress">Business address</label>
+        <input type="text" class="form-control" asp-for="BusinessAddress" minlength="16" maxlength="256">
+        <div class="invalid-feedback">Enter 16 to 256 characters, or leave it empty.</div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" asp-for="HomeAddress">Home address</label>
+        <input type="text" class="form-control" asp-for="HomeAddress" minlength="16" maxlength="256">
+        <div class="invalid-feedback">Enter 16 to 256 characters, or leave it empty.</div>
     </div>
 </form>
-<button class="btn btn-primary mt-2" onclick="saveUserForm()">
-    <i class="uil uil-file-check-alt"></i>
-    Save User
-</button>
+<div class="scs-author-actions justify-content-end">
+    <button type="button" class="btn scs-btn-quiet" data-bs-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-primary" onclick="saveUserForm()">
+        <i class="uil uil-file-check-alt" aria-hidden="true"></i>
+        @(isNew ? "Create user" : "Save user")
+    </button>
+</div>
 <script>
     $('#birthdate').datepicker();
 </script>

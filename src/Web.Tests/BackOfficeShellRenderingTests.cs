@@ -20,6 +20,8 @@ namespace Web.Tests;
 // per rendered request.
 public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplicationFactory>
 {
+    private const string SwitchWorkspaceHref = "href=\"/BackOffice/Application/SelectApp\"";
+
     private readonly TestWebApplicationFactory _factory;
 
     public BackOfficeShellRenderingTests(TestWebApplicationFactory factory)
@@ -42,7 +44,7 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
         Assert.DoesNotContain("id=\"sidebarSCM\"", body);
         Assert.DoesNotContain("id=\"sidebarUserManagement\"", body);
         Assert.DoesNotContain("id=\"sidebarGeneral\"", body);
-        Assert.DoesNotContain("Change Application", body);
+        Assert.DoesNotContain(SwitchWorkspaceHref, body);
     }
 
     [Fact]
@@ -116,7 +118,34 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
 
         var body = await GetHomeIndexAsync(client);
 
-        Assert.Contains($"<h5>{title}</h5>", body);
+        // The sidebar names the workspace in a group labelled "Current workspace"; assert that
+        // accessible relationship and the title inside it, not a specific element shape.
+        var groupStart = body.IndexOf("aria-labelledby=\"scs-workspace-label\"", StringComparison.Ordinal);
+        Assert.True(groupStart >= 0, "Sidebar has no labelled current-workspace group.");
+        Assert.Contains("id=\"scs-workspace-label\">Current workspace<", body);
+        var groupEnd = body.IndexOf("</div>", groupStart, StringComparison.Ordinal);
+        Assert.Contains($">{WebUtility.HtmlEncode(title)}<", body[groupStart..groupEnd]);
+    }
+
+    [Fact]
+    public async Task PageHeader_RendersBreadcrumbTrailTitleAndPrimaryAction()
+    {
+        var email = $"shell-header-{Guid.NewGuid():N}@test.local";
+        var user = await AccountFlowHelper.SeedSuperAdminUserAsync(_factory, email, "CorrectHorseBattery12");
+        var client = await AccountFlowHelper.LoginAsync(_factory, email, "CorrectHorseBattery12");
+        await AccountFlowHelper.SelectApplicationAsync(_factory, client, user);
+
+        var response = await client.GetAsync("/BackOffice/Category/Index");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+
+        // Server renders Dashboard > Categories (current page); the shell script inserts the
+        // sidebar's menu groups between them, so they aren't asserted here.
+        Assert.Contains("<nav aria-label=\"Breadcrumb\">", body);
+        Assert.Contains("href=\"/BackOffice/Home/Index\">Dashboard</a>", body);
+        Assert.Contains("aria-current=\"page\">Categories</li>", body);
+        Assert.Matches(@"<h1 class=""scs-page-title"">\s*Categories\s*</h1>", body);
+        Assert.Matches(@"class=""scs-page-actions"">\s*<button[^>]*newCategoryForm", body);
     }
 
     [Fact]
@@ -129,7 +158,7 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
 
         var body = await GetHomeIndexAsync(client);
 
-        Assert.DoesNotContain("Change Application", body);
+        Assert.DoesNotContain(SwitchWorkspaceHref, body);
     }
 
     [Fact]
@@ -143,7 +172,7 @@ public sealed class BackOfficeShellRenderingTests : IClassFixture<TestWebApplica
 
         var body = await GetHomeIndexAsync(client);
 
-        Assert.Contains("Change Application", body);
+        Assert.Contains(SwitchWorkspaceHref, body);
     }
 
     [Fact]

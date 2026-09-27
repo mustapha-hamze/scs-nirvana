@@ -1,6 +1,6 @@
 <script>
     function newTagForm() {
-        $("#generalModalLabel").html("Add new tag");
+        $("#generalModalLabel").html("New tag");
         clearModalBody("generalModalBody");
         $.ajax({
             url: '/BackOffice/General/TagForm',
@@ -37,8 +37,11 @@
             $("#findTagsResultBody").html(data);
             $("#datatable-buttons").DataTable({
                 lengthChange: !1,
+                pageLength: 25,
                 buttons: ["copy", "print"],
+                order: [[0, "asc"]],
                 language: {
+                    zeroRecords: "No tags match your search. Try a shorter or different term.",
                     paginate: {
                         previous: "<i class='mdi mdi-chevron-left'>",
                         next: "<i class='mdi mdi-chevron-right'>"
@@ -52,7 +55,7 @@
     }
 
     function newCultureForm() {
-        $("#generalModalLabel").html("Add new culture");
+        $("#generalModalLabel").html("New culture");
         clearModalBody("generalModalBody");
         $.ajax({
             url: '/BackOffice/General/CultureForm',
@@ -88,8 +91,11 @@
             $("#findCulturesResultBody").html(data);
             $("#datatable-buttons").DataTable({
                 lengthChange: !1,
+                pageLength: 25,
                 buttons: ["copy", "print"],
+                order: [[0, "asc"]],
                 language: {
+                    zeroRecords: "No cultures match your search. Try a shorter or different term.",
                     paginate: {
                         previous: "<i class='mdi mdi-chevron-left'>",
                         next: "<i class='mdi mdi-chevron-right'>"
@@ -103,7 +109,7 @@
     }
 
     function newApplicationSettingForm() {
-        $("#generalModalLabel").html("Add new setting");
+        $("#generalModalLabel").html("New setting");
         clearModalBody("generalModalBody");
         $.ajax({
             url: '/BackOffice/General/ApplicationSettingForm',
@@ -139,8 +145,11 @@
             $("#findApplicationSettingResultBody").html(data);
             $("#datatable-buttons").DataTable({
                 lengthChange: !1,
+                pageLength: 25,
                 buttons: ["copy", "print"],
+                order: [[0, "asc"]],
                 language: {
+                    zeroRecords: "No settings match your search. Try a shorter or different term.",
                     paginate: {
                         previous: "<i class='mdi mdi-chevron-left'>",
                         next: "<i class='mdi mdi-chevron-right'>"
@@ -154,7 +163,7 @@
     }
 
     function newSystemTypeForm() {
-        $("#generalModalLabel").html("Add system type");
+        $("#generalModalLabel").html("New type");
         clearModalBody("generalModalBody");
         $.ajax({
             url: '/BackOffice/General/SystemTypeForm',
@@ -190,8 +199,11 @@
             $("#findSystemTypesResultBody").html(data);
             $("#datatable-buttons").DataTable({
                 lengthChange: !1,
+                pageLength: 25,
                 buttons: ["copy", "print"],
+                order: [[1, "asc"]],
                 language: {
+                    zeroRecords: "No types match your search. Try a shorter or different term.",
                     paginate: {
                         previous: "<i class='mdi mdi-chevron-left'>",
                         next: "<i class='mdi mdi-chevron-right'>"

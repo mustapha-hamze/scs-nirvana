@@ -1,25 +1,21 @@
 @{
-
+    ViewData["Title"] = "Application Settings";
 }
 
-<div class="row mb-2 mt-2">
-    <div class="col-md-12 p-0">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#general-modal"
-            onclick="newApplicationSettingForm()">
-            <i class="uil uil-plus"></i>
-            Add Setting
-        </button>
-    </div>
-</div>
-<div class="row">
-    <div class="col-xl-12 p-0">
-        <div class="card">
-            <div class="card-body p-1">
-                <div class="table-responsive-sm" id="findApplicationSettingResultBody">
+@section PageHelper { Manage configuration values for this workspace. }
 
-                </div> <!-- end table-responsive-->
-            </div> <!-- end card -->
-        </div><!-- end col-->
+@section PageActions {
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#general-modal"
+        onclick="newApplicationSettingForm()">
+        <i class="uil uil-plus" aria-hidden="true"></i>
+        Add Setting
+    </button>
+}
+
+<div class="card">
+    <div class="card-body">
+        @* The list renders here; DataTables supplies search, sorting, paging and export. *@
+        <div class="scs-table-wrap" id="findApplicationSettingResultBody"></div>
     </div>
 </div>
 @await Html.PartialAsync("__GeneralModal")

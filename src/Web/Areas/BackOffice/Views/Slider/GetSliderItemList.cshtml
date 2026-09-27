@@ -2,50 +2,68 @@
 @{
     Layout = null;
 }
-<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Title</th>
-            <th>Image</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+@if (Model.Items.Count == 0)
+{
+    <div class="scs-empty-state scs-media-empty">
+        <i class="mdi mdi-image-multiple-outline" aria-hidden="true"></i>
+        No slides yet. Add the first one with the form.
+    </div>
+}
+else
+{
+    <ul class="row g-3 list-unstyled mb-0">
         @foreach (var item in Model.Items)
         {
-            <tr>
-                <td>@item.Id</td>
-                <td>@item.Title</td>
-                <td>
-                    <img src="/Storage/Slider/@item.SliderId/@item.ImageFileName?@Model.ImageVersion" width="290" alt="" srcset="">
-                </td>
-                <td>
-                    @if (Model.CanToggleActivity)
-                    {
-                        @if (item.IsActive)
-                        {
-                            <button onclick="deactiveSliderItem(@item.Id)" type="button"
-                                class="btn btn-sm btn-success p-1" title="Active — click to deactivate">Active</button>
-                        }
-                        else
-                        {
-                            <button onclick="activeSliderItem(@item.Id)" type="button"
-                                class="btn btn-sm btn-danger p-1" title="Inactive — click to activate">Inactive</button>
-                        }
-                    }
-                    @if (Model.CanDelete)
-                    {
-                        <button onclick="deleteSliderItem(@item.Id)" type="button"
-                            class="btn btn-sm btn-danger p-1 ml-2">Delete</button>
-                    }
-                    @if (Model.CanUpdate)
-                    {
-                        <button onclick="editSliderItem(@item.Id, @item.SliderId)" type="button"
-                            class="btn btn-sm btn-primary p-1 ml-2">Edit</button>
-                    }
-                </td>
-            </tr>
+            var label = string.IsNullOrEmpty(item.Title) ? "Untitled slide" : item.Title;
+            <li class="col-sm-6">
+                <figure class="scs-media-card scs-media-card--wide mb-0">
+                    <span class="scs-media-thumb">
+                        <img src="/Storage/Slider/@item.SliderId/@item.ImageFileName?@Model.ImageVersion" alt="" loading="lazy">
+                    </span>
+                    <figcaption class="scs-slide-caption">
+                        <span class="scs-slide-title">
+                            <span class="text-truncate" title="@label">@label</span>
+                            @if (item.IsActive)
+                            {
+                                <span class="scs-status scs-status--success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="scs-status">Inactive</span>
+                            }
+                        </span>
+                        <span class="scs-slide-actions">
+                            @if (Model.CanToggleActivity)
+                            {
+                                @if (item.IsActive)
+                                {
+                                    <button onclick="deactiveSliderItem(@item.Id)" type="button"
+                                        class="btn btn-sm btn-outline-secondary" aria-label="Deactivate @label">Deactivate</button>
+                                }
+                                else
+                                {
+                                    <button onclick="activeSliderItem(@item.Id)" type="button"
+                                        class="btn btn-sm btn-outline-primary" aria-label="Activate @label">Activate</button>
+                                }
+                            }
+                            @if (Model.CanUpdate)
+                            {
+                                <button onclick="editSliderItem(@item.Id, @item.SliderId)" type="button"
+                                    class="scs-btn-icon" title="Edit" aria-label="Edit @label">
+                                    <i class="mdi mdi-pencil" aria-hidden="true"></i>
+                                </button>
+                            }
+                            @if (Model.CanDelete)
+                            {
+                                <button onclick="deleteSliderItem(@item.Id)" type="button"
+                                    class="scs-btn-icon is-danger" title="Delete" aria-label="Delete @label">
+                                    <i class="mdi mdi-delete" aria-hidden="true"></i>
+                                </button>
+                            }
+                        </span>
+                    </figcaption>
+                </figure>
+            </li>
         }
-    </tbody>
-</table>
+    </ul>
+}

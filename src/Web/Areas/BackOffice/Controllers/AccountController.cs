@@ -136,7 +136,7 @@ public class AccountController : BaseController
         ViewData["UserId"] = userId;
 
         ViewData["Roles"] = _roleManager.Roles.ToList();
-        ViewData["Applications"] = _applicationServices.List();
+        ViewData["Applications"] = await _applicationServices.List();
         ViewData["UserRoles"] = await _userManager.GetRolesAsync(user);
         ViewData["UserApplications"] = await _applicationServices.GetUserApplications(user.UserName);
 
@@ -154,9 +154,9 @@ public class AccountController : BaseController
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        ViewData["Applications"] = _applicationServices.List();
+        ViewData["Applications"] = await _applicationServices.List();
         ViewData["UserApplications"] = await _applicationServices.GetUserApplications(user.UserName);
-        ViewData["Sectors"] = _sectorServices.GetAllSector();
+        ViewData["Sectors"] = await _sectorServices.GetAllSector();
 
         return View();
     }
@@ -168,7 +168,7 @@ public class AccountController : BaseController
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        ViewData["Applications"] = _applicationServices.List();
+        ViewData["Applications"] = await _applicationServices.List();
         ViewData["UserApplications"] = await _applicationServices.GetUserApplications(user.UserName);
 
         return View();
@@ -180,9 +180,9 @@ public class AccountController : BaseController
     [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpGet]
     [Route("/{area}/{controller}/GetApplicationSectors/{appId}")]
-    public IActionResult GetApplicationSectors(int appId)
+    public async Task<IActionResult> GetApplicationSectors(int appId)
     {
-        var sectors = _sectorServices.GetAllSector(appId);
+        var sectors = await _sectorServices.GetAllSector(appId);
         return PartialView("_SectorOptionsPartial", sectors);
     }
 
@@ -199,9 +199,9 @@ public class AccountController : BaseController
     [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpGet]
     [Route("/{area}/{controller}/GetSectorEntities/{sectorId}")]
-    public IActionResult GetSectorEntities(int sectorId)
+    public async Task<IActionResult> GetSectorEntities(int sectorId)
     {
-        var entities = _SectorEntityServices.GetSectorEntities(sectorId);
+        var entities = await _SectorEntityServices.GetSectorEntities(sectorId);
         return PartialView("_SectorEntityLinksPartial", entities);
     }
 
@@ -329,12 +329,12 @@ public class AccountController : BaseController
     // tenant-scoped self-service.
     [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpPost]
-    public IActionResult UserList(UserDto userFilter)
+    public async Task<IActionResult> UserList(UserDto userFilter)
     {
         if (string.IsNullOrEmpty(userFilter.Email))
             return Content("");
 
-        return View(_userManagementServices.List(userFilter.IsAdminUser, userFilter.Email));
+        return View(await _userManagementServices.List(userFilter.IsAdminUser, userFilter.Email));
     }
 
     [AllowAnonymous]
@@ -401,9 +401,9 @@ public class AccountController : BaseController
     [Authorize(Roles = ApplicationRoles.SuperAdmin)]
     [HttpGet]
     [Route("/BackOffice/Account/EntityAccesses/{id}")]
-    public IActionResult EntityAccesses(int id)
+    public async Task<IActionResult> EntityAccesses(int id)
     {
-        var entityAccesses = _entityAccessServices.GetEntityAccesses(id);
+        var entityAccesses = await _entityAccessServices.GetEntityAccesses(id);
         return PartialView("_EntityAccessCheckboxesPartial", entityAccesses);
     }
 

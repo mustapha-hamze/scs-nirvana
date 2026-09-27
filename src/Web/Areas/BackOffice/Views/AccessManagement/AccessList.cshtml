@@ -5,31 +5,41 @@
 }
 @model List<Application.Contracts.AccessManagement.EntityAccessDto>
 
-<table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Entity</th>
-            <th>Access</th>
-            <th>Manage</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+@if (Model.Count == 0)
+{
+    <div class="scs-empty-state">
+        <i class="mdi mdi-key-outline" aria-hidden="true"></i>
+        No accesses yet. Add the first one with the form above.
+    </div>
+}
+else
+{
+    <table id="datatable-buttons" class="table table-hover dt-responsive nowrap w-100">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Entity</th>
+                <th>Access key</th>
+                <th><span class="visually-hidden">Actions</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
                 <tr>
-                    <td>@item.Id</td>
-                    <td>
-                    @entities.SingleOrDefault(e=>e.Id == item.EntityId).Title
+                    <td class="scs-meta">@item.Id</td>
+                    <td class="fw-semibold">
+                        @entities.SingleOrDefault(e=>e.Id == item.EntityId).Title
                     </td>
-                    <td>@item.Access</td>
-                    <td>
-                        <a href="javascript: void(0);" class="action-icon" onclick="accessEditForm(@item.Id)"
-                            title="Edit" aria-label="Edit access">
-                            <i class="mdi mdi-content-save-edit"></i>
-                        </a>
+                    <td><code class="scs-code">@item.Access</code></td>
+                    <td class="scs-table-actions">
+                        <button type="button" class="btn btn-sm scs-btn-quiet" onclick="accessEditForm(@item.Id)"
+                            aria-label="Edit access @item.Access">
+                            <i class="mdi mdi-pencil-outline" aria-hidden="true"></i> Edit
+                        </button>
                     </td>
                 </tr>
-        }
-    </tbody>
-</table>
+            }
+        </tbody>
+    </table>
+}

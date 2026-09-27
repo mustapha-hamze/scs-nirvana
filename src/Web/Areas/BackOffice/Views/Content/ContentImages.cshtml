@@ -3,45 +3,63 @@
     Layout = null;
 }
 
-<div class="row mt-2">
+<div class="scs-media">
     @if (Model.CanUploadImages)
     {
-        <div class="col-md-4">
-            <select class="form-control" name="" id="ddlImageSetting">
-                <option value="0">Chose image setting</option>
-                @foreach (var item in Model.ContentImageSizes)
-                {
-                    <option value="@item.Id">@item.Title</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-8">
-            <input type="file" onchange="uploadContentImage()" name="" id="contentMainImageUploader" class="form-control">
+        <div class="scs-media-upload row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label scs-required" for="ddlImageSetting">Image size</label>
+                <select class="form-select" name="" id="ddlImageSetting">
+                    <option value="0">Choose an image size</option>
+                    @foreach (var item in Model.ContentImageSizes)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label" for="contentMainImageUploader">Image file</label>
+                <input type="file" onchange="uploadContentImage()" name="" id="contentMainImageUploader" class="form-control"
+                       aria-describedby="contentImageSpecs">
+            </div>
         </div>
     }
-    <div class="col-md-12 mb-2 mt-3">
-        <div class="alert alert-warning">Content image aspect ratio must be :
-            @Model.ContentImageAspectRatio[0].Value
+    <dl class="scs-media-specs" id="contentImageSpecs">
+        <div>
+            <dt>Aspect ratio</dt>
+            <dd>@Model.ContentImageAspectRatio[0].Value</dd>
         </div>
-    </div>
-    <div class="col-md-12">
-        <div class="alert alert-info">
-            <h5>Content image sizes</h5>
-            @foreach (var item in Model.ContentImageSizes)
+        @foreach (var item in Model.ContentImageSizes)
+        {
+            <div>
+                <dt>@item.Title</dt>
+                <dd>@item.Value.ToString().Replace("-", "×") px</dd>
+            </div>
+        }
+    </dl>
+    <h3 class="scs-overline mb-2">Uploaded images</h3>
+    @if (Model.ContentImages.Count == 0)
+    {
+        <div class="scs-empty-state scs-media-empty" id="__contentImagePlaceHolder__">
+            <i class="mdi mdi-image-off-outline" aria-hidden="true"></i>
+            No images have been uploaded for this content yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3" id="__contentImagePlaceHolder__">
+            @foreach (var item in Model.ContentImages)
             {
-                <div class="row">
-                    <div class="col-md-6">@item.Title</div>
-                    <div class="col-md-6">@item.Value.ToString().Replace("-", "*")</div>
+                var imageUrl = $"/Storage/Content/Image/{item.ContentId}/{item.ImageFileName}";
+                <div class="col-6 col-md-4 col-xl-3">
+                    <figure class="scs-media-card">
+                        <a class="scs-media-thumb" href="@imageUrl" target="_blank" rel="noopener" title="Open full size in a new tab">
+                            <img src="@imageUrl" alt="" loading="lazy" />
+                        </a>
+                        <figcaption class="text-truncate" title="@item.ImageFileName">@item.ImageFileName</figcaption>
+                    </figure>
                 </div>
             }
         </div>
-    </div>
-    <div class="row" id="__contentImagePlaceHolder__">
-        @foreach (var item in Model.ContentImages)
-        {
-            <div class="col-md-3 p-2">
-                <img src="/Storage/Content/Image/@item.ContentId/@item.ImageFileName" class="w-100" />
-            </div>
-        }
-    </div>
+    }
 </div>

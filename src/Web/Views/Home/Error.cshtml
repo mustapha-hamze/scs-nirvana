@@ -1,3 +1,4 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     Layout = null;
 }
@@ -5,14 +6,42 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Error</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Something went wrong - Nirvana CMS</title>
+    @* Static links only: this page renders when something has already failed, so it avoids partials and scripts. *@
+    <link rel="shortcut icon" href="/BackOffice/images/favicon.ico">
+    <link href="/BackOffice/css/app-saas.min.css" rel="stylesheet" type="text/css" />
+    <link href="/BackOffice/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <link href="/BackOffice/css/scs-admin.css" rel="stylesheet" type="text/css" asp-append-version="true" />
 </head>
-<body>
-    <h1>Something went wrong.</h1>
-    <p>An unexpected error occurred. Please try again, or contact support if the problem persists.</p>
-    @if (ViewData["RequestId"] is string requestId && !string.IsNullOrEmpty(requestId))
-    {
-        <p><small>Reference: @requestId</small></p>
-    }
+<body class="authentication-bg">
+    <main class="scs-auth-page">
+        <div class="container">
+            <div class="card scs-auth-card">
+                <div class="card-body">
+                    <a class="scs-auth-brand" href="/">
+                        <span class="scs-auth-mark" aria-hidden="true">N</span>
+                        <span class="scs-app-picker-brand">Nirvana CMS</span>
+                    </a>
+
+                    <span class="scs-auth-status scs-auth-status--danger" aria-hidden="true"><i class="uil uil-exclamation-triangle"></i></span>
+                    <h1 class="scs-auth-title">Something went wrong</h1>
+                    <p class="scs-auth-lead">We couldn't complete your request. Please try again in a moment.</p>
+
+                    @if (ViewData["RequestId"] is string requestId && !string.IsNullOrEmpty(requestId))
+                    {
+                        <p class="scs-auth-reference">If it keeps happening, contact support and quote reference <code>@requestId</code>.</p>
+                    }
+
+                    <div class="scs-auth-actions">
+                        <a class="btn btn-primary" href="/BackOffice/Application/SelectApp">
+                            <i class="uil uil-apps me-1" aria-hidden="true"></i> Open BackOffice
+                        </a>
+                        <a class="btn btn-light" href="/">Go to home page</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

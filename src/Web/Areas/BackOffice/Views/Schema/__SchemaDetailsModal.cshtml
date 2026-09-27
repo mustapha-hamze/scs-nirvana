@@ -4,23 +4,21 @@
 
 <div class="modal fade" id="schema-details-modal" tabindex="-1" role="dialog" aria-labelledby="schemaDetailsModalLabel"
     aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-md-down">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title" id="schemaDetailsModalLabel">Schema Details</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true"></button>
+                <h4 class="modal-title" id="schemaDetailsModalLabel">Schema fields</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="schemaDetailsModalBody">
-                <div class="row">
-                    <div class="col-md-12" id="schema_details_form">
-
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12" id="schema_details_list">
-
-                    </div>
-                </div>
+                <section class="scs-tool-section" aria-labelledby="schemaFieldAddHeading">
+                    <h5 class="scs-section-title" id="schemaFieldAddHeading">Add a field</h5>
+                    <div id="schema_details_form"></div>
+                </section>
+                <section class="scs-tool-section" aria-labelledby="schemaFieldListHeading">
+                    <h5 class="scs-section-title" id="schemaFieldListHeading">Fields</h5>
+                    <div class="scs-table-wrap" id="schema_details_list"></div>
+                </section>
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->

@@ -1,154 +1,189 @@
-/* Nirvana CMS BackOffice custom styles — kept separate from the vendor theme CSS. */
+/* ==========================================================================
+   Nirvana CMS BackOffice design system
+   Loaded after the Hyper theme CSS (see Shared/_Layout.cshtml, Shared/_CSSAssets.cshtml).
+   Reference: docs/backoffice-design-system.md
 
-.text-input-error {
-    border-color: #fa5c7c;
-    padding-right: calc(1.5em + .9rem);
-    background-image: url(data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23fa5c7c'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23fa5c7c' stroke='none'/%3e%3c/svg%3e);
-    background-repeat: no-repeat;
-    background-position: right calc(.375em + .225rem) center;
-    background-size: calc(.75em + .45rem) calc(.75em + .45rem);
-}
+   1. Tokens         4. Buttons      7. Cards, tabs, modals, alerts
+   2. Theme mapping  5. Forms        8. App shell
+   3. Base & focus   6. Tables       9. Auth & workspace picker
+                                     10. Legacy helpers, responsive, motion
 
-.ml-3 {
-    margin-left: 1rem;
-}
+   Token and Bootstrap colour/state theming applies to every BackOffice page
+   (this file is BackOffice-only). Density and layout rules stay scoped to the
+   app shell (.scs-backoffice) so auth pages keep their own composition.
+   ========================================================================== */
 
-.ml-2 {
-    margin-left: 0.75rem;
-}
-
-.hand-pointer {
-    cursor: pointer !important;
-}
-
-.remove-section-button {
-    margin-bottom: 3px;
-    padding: 5px;
-    line-height: 5px;
-    font-size: 10px;
-    padding-top: 5px;
-    padding-left: 5px;
-}
-
-.muted-text-editor {
-    background-color: #fffde9;
-    border-radius: 10px;
-    border: solid 1px #c7c7c7;
-    padding: 10px;
-}
-
-/* Page header used across CRUD list/form views for title + breadcrumb + helper text. */
-.scs-page-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.scs-page-header .scs-page-title {
-    margin: 0;
-    font-size: 1.35rem;
-    font-weight: 700;
-}
-
-.scs-page-header .scs-page-helper {
-    margin: 0.25rem 0 0;
-    color: #98a6ad;
-    font-size: 0.875rem;
-}
-
-.scs-breadcrumb {
-    margin: 0 0 0.35rem;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    font-size: 0.8rem;
-    color: #98a6ad;
-}
-
-.scs-breadcrumb li+li::before {
-    content: "/";
-    margin-right: 0.35rem;
-    color: #ced4da;
-}
-
-.scs-breadcrumb a {
-    color: #98a6ad;
-    text-decoration: none;
-}
-
-.scs-breadcrumb a:hover {
-    text-decoration: underline;
-}
-
-/* Dashboard */
-.scs-dash-card {
-    height: 100%;
-}
-
-.scs-dash-card .scs-dash-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 0.5rem;
-    font-size: 1.35rem;
-}
-
-.scs-empty-state {
-    text-align: center;
-    padding: 2.5rem 1rem;
-    color: #98a6ad;
-}
-
-.scs-empty-state i {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-/* --------------------------------------------------------------------------
-   Nirvana CMS design system
-   The Hyper template supplies the component foundation; these rules give the
-   BackOffice a focused content-operations identity without replacing it.
-   -------------------------------------------------------------------------- */
-
+/* 1. Tokens --------------------------------------------------------------- */
 :root {
-    --scs-ink: #172238;
-    --scs-ink-soft: #263553;
+    /* Surfaces */
     --scs-canvas: #f4f7fb;
     --scs-surface: #ffffff;
+    --scs-surface-muted: #f8faff;
+    --scs-surface-sunken: #eef3fb;
+    --scs-chrome: #172238;
+
+    /* Ink (all text tokens are >= 4.5:1 on surface and canvas) */
+    --scs-ink: #172238;
+    --scs-ink-soft: #263553;
+    --scs-ink-body: #3d4d66;
+    --scs-muted: #5d6b82;
+    --scs-ink-inverse: #ffffff;
+
+    /* Borders: default/subtle are decorative; strong is the 3:1 control boundary */
     --scs-border: #e4eaf2;
-    --scs-muted: #66758d;
+    --scs-border-subtle: #edf1f6;
+    --scs-border-strong: #7e8ba1;
+
+    /* Primary action */
     --scs-primary: #356ae6;
+    --scs-primary-rgb: 53, 106, 230;
     --scs-primary-strong: #2454c5;
-    --scs-teal: #0f9f92;
-    --scs-coral: #ee6c5d;
-    --scs-amber: #d88b13;
+    --scs-primary-subtle: #edf2ff;
+    --scs-primary-border: #b9c9ef;
+
+    /* Secondary accent (workspace/brand highlight, never a status) */
+    --scs-accent: #0f9f92;
+    --scs-accent-text: #0f7f75;
+    --scs-accent-subtle: #e6f6f4;
+
+    /* States: -text on -subtle is AA; -solid carries white text or a dot/border */
+    --scs-success-solid: #13875f;
+    --scs-success-text: #0e6b4b;
+    --scs-success-subtle: #e5f5ee;
+    --scs-success-border: #a6dcc6;
+    --scs-warning-solid: #d88b13;
+    --scs-warning-text: #7a5000;
+    --scs-warning-subtle: #fdf3e1;
+    --scs-warning-border: #f0cf94;
+    --scs-danger-solid: #c9303e;
+    --scs-danger-rgb: 201, 48, 62;
+    --scs-danger-strong: #a92632;
+    --scs-danger-text: #a92632;
+    --scs-danger-subtle: #fdecee;
+    --scs-danger-border: #f2b8be;
+    --scs-info-solid: #2f7fc4;
+    --scs-info-text: #1f5f9e;
+    --scs-info-subtle: #e8f2fb;
+    --scs-info-border: #b3d2ee;
+
+    /* Typography: the template's Nunito at a restrained scale */
+    --scs-font: var(--ct-font-sans-serif, "Nunito", sans-serif);
+    --scs-text-page-title: 1.55rem;
+    --scs-text-section-title: 1.05rem;
+    --scs-text-card-title: .95rem;
+    --scs-text-body: .9rem;
+    --scs-text-meta: .8125rem;
+    --scs-text-label: .8rem;
+    --scs-text-overline: .7rem;
+    --scs-leading-tight: 1.25;
+    --scs-leading-body: 1.55;
+
+    /* Spacing (4px base) */
+    --scs-space-1: .25rem;
+    --scs-space-2: .5rem;
+    --scs-space-3: .75rem;
+    --scs-space-4: 1rem;
+    --scs-space-5: 1.5rem;
+    --scs-space-6: 2rem;
+    --scs-space-7: 3rem;
+
+    /* Radius */
+    --scs-radius-xs: 4px;
+    --scs-radius-sm: 6px;
     --scs-radius: 8px;
+    --scs-radius-pill: 50rem;
+
+    /* Elevation */
+    --scs-shadow-sm: 0 1px 3px rgba(24, 37, 61, .08);
     --scs-shadow: 0 2px 8px rgba(24, 37, 61, .05), 0 12px 28px rgba(24, 37, 61, .04);
+    --scs-shadow-raised: 0 8px 22px rgba(31, 53, 89, .11);
+    --scs-shadow-overlay: 0 18px 50px rgba(16, 32, 57, .2);
+
+    /* Focus and motion */
+    --scs-focus-color: var(--scs-primary-strong);
+    --scs-focus-ring: 0 0 0 .2rem rgba(var(--scs-primary-rgb), .25);
+    --scs-duration: .16s;
 }
 
+/* 2. Theme mapping: point Hyper/Bootstrap variables at the tokens --------- */
+:root,
+[data-bs-theme=light] {
+    --ct-primary: var(--scs-primary);
+    --ct-primary-rgb: var(--scs-primary-rgb);
+    --ct-primary-text-emphasis: var(--scs-primary-strong);
+    --ct-primary-bg-subtle: var(--scs-primary-subtle);
+    --ct-primary-border-subtle: var(--scs-primary-border);
+    --ct-link-color: var(--scs-primary-strong);
+    --ct-link-color-rgb: 36, 84, 197;
+    --ct-link-hover-color: #1b4099;
+    --ct-link-hover-color-rgb: 27, 64, 153;
+    --ct-focus-ring-color: rgba(var(--scs-primary-rgb), .25);
+
+    --ct-danger: var(--scs-danger-solid);
+    --ct-danger-rgb: var(--scs-danger-rgb);
+    --ct-form-invalid-color: var(--scs-danger-text);
+    --ct-form-invalid-border-color: var(--scs-danger-solid);
+    --ct-form-valid-color: var(--scs-success-text);
+    --ct-form-valid-border-color: var(--scs-success-solid);
+
+    --ct-success-text-emphasis: var(--scs-success-text);
+    --ct-success-bg-subtle: var(--scs-success-subtle);
+    --ct-success-border-subtle: var(--scs-success-border);
+    --ct-warning-text-emphasis: var(--scs-warning-text);
+    --ct-warning-bg-subtle: var(--scs-warning-subtle);
+    --ct-warning-border-subtle: var(--scs-warning-border);
+    --ct-danger-text-emphasis: var(--scs-danger-text);
+    --ct-danger-bg-subtle: var(--scs-danger-subtle);
+    --ct-danger-border-subtle: var(--scs-danger-border);
+    --ct-info-text-emphasis: var(--scs-info-text);
+    --ct-info-bg-subtle: var(--scs-info-subtle);
+    --ct-info-border-subtle: var(--scs-info-border);
+}
+
+/* 3. Base, typography & focus -------------------------------------------- */
 .scs-backoffice {
     background: var(--scs-canvas);
     color: var(--scs-ink);
 }
 
-.scs-backoffice .content-page {
-    background: var(--scs-canvas);
+.scs-page-title {
+    margin: 0;
+    color: var(--scs-ink);
+    font-size: var(--scs-text-page-title);
+    font-weight: 700;
+    line-height: 1.2;
 }
 
-.scs-backoffice .content {
-    padding: 30px 0 18px;
+.scs-section-title {
+    margin: 0 0 var(--scs-space-3);
+    color: var(--scs-ink);
+    font-size: var(--scs-text-section-title);
+    font-weight: 700;
+    line-height: var(--scs-leading-tight);
 }
 
-.scs-backoffice .container-fluid {
-    max-width: 1760px;
+.scs-meta {
+    color: var(--scs-muted);
+    font-size: var(--scs-text-meta);
+}
+
+.scs-overline {
+    color: var(--scs-muted);
+    font-size: var(--scs-text-overline);
+    font-weight: 700;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+}
+
+/* One visible focus indicator everywhere. !important is required: the theme
+   ships `a, button { outline: 0 !important; }`, which hides keyboard focus. */
+:where(a, button, summary, [tabindex], [role="button"], [role="tab"]):focus-visible,
+.btn:focus-visible,
+.form-check-input:focus-visible,
+.nav-link:focus-visible,
+.dropdown-item:focus-visible {
+    outline: 2px solid var(--scs-focus-color) !important;
+    outline-offset: 2px;
 }
 
 .scs-skip-link {
@@ -157,144 +192,450 @@
     top: .75rem;
     left: .75rem;
     padding: .6rem .85rem;
-    border-radius: 6px;
+    border-radius: var(--scs-radius-sm);
     background: var(--scs-ink);
-    color: #fff;
+    color: var(--scs-ink-inverse);
     transform: translateY(-150%);
-    transition: transform .16s ease;
+    transition: transform var(--scs-duration) ease;
 }
 
 .scs-skip-link:focus {
     transform: translateY(0);
-    color: #fff;
+    color: var(--scs-ink-inverse);
 }
 
-.scs-backoffice .leftside-menu {
-    background: var(--scs-ink);
+/* 4. Buttons --------------------------------------------------------------
+   primary  .btn-primary              one per view/section
+   secondary .btn-outline-primary / .btn-outline-secondary
+   quiet    .scs-btn-quiet (with .btn)
+   destructive .btn-danger (confirm step) / .btn-outline-danger
+   icon-only .scs-btn-icon / .action-icon + aria-label + title/tooltip   */
+.btn {
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.btn-primary {
+    --ct-btn-bg: var(--scs-primary);
+    --ct-btn-border-color: var(--scs-primary);
+    --ct-btn-hover-bg: var(--scs-primary-strong);
+    --ct-btn-hover-border-color: var(--scs-primary-strong);
+    --ct-btn-active-bg: var(--scs-primary-strong);
+    --ct-btn-active-border-color: var(--scs-primary-strong);
+    --ct-btn-disabled-bg: var(--scs-primary);
+    --ct-btn-disabled-border-color: var(--scs-primary);
+    --ct-btn-focus-shadow-rgb: var(--scs-primary-rgb);
+}
+
+.btn-outline-primary {
+    --ct-btn-color: var(--scs-primary-strong);
+    --ct-btn-border-color: var(--scs-primary-border);
+    --ct-btn-hover-color: var(--scs-primary-strong);
+    --ct-btn-hover-bg: var(--scs-primary-subtle);
+    --ct-btn-hover-border-color: var(--scs-primary);
+    --ct-btn-active-color: var(--scs-primary-strong);
+    --ct-btn-active-bg: var(--scs-primary-subtle);
+    --ct-btn-active-border-color: var(--scs-primary);
+    --ct-btn-disabled-color: var(--scs-primary);
+    --ct-btn-disabled-border-color: var(--scs-primary-border);
+    --ct-btn-focus-shadow-rgb: var(--scs-primary-rgb);
+}
+
+.btn-outline-secondary {
+    --ct-btn-color: var(--scs-ink-body);
+    --ct-btn-border-color: var(--scs-border-strong);
+    --ct-btn-hover-color: var(--scs-ink);
+    --ct-btn-hover-bg: var(--scs-surface-muted);
+    --ct-btn-hover-border-color: var(--scs-ink-body);
+    --ct-btn-active-color: var(--scs-ink);
+    --ct-btn-active-bg: var(--scs-surface-sunken);
+    --ct-btn-active-border-color: var(--scs-ink-body);
+}
+
+.scs-btn-quiet {
+    --ct-btn-color: var(--scs-ink-body);
+    --ct-btn-bg: transparent;
+    --ct-btn-border-color: transparent;
+    --ct-btn-hover-color: var(--scs-ink);
+    --ct-btn-hover-bg: var(--scs-surface-sunken);
+    --ct-btn-hover-border-color: transparent;
+    --ct-btn-active-color: var(--scs-ink);
+    --ct-btn-active-bg: var(--scs-border);
+    --ct-btn-active-border-color: transparent;
     box-shadow: none;
 }
 
-.scs-backoffice .side-nav {
-    padding: 14px 12px 32px;
+.btn-danger {
+    --ct-btn-bg: var(--scs-danger-solid);
+    --ct-btn-border-color: var(--scs-danger-solid);
+    --ct-btn-hover-bg: var(--scs-danger-strong);
+    --ct-btn-hover-border-color: var(--scs-danger-strong);
+    --ct-btn-active-bg: var(--scs-danger-strong);
+    --ct-btn-active-border-color: var(--scs-danger-strong);
+    --ct-btn-disabled-bg: var(--scs-danger-solid);
+    --ct-btn-disabled-border-color: var(--scs-danger-solid);
+    --ct-btn-focus-shadow-rgb: var(--scs-danger-rgb);
 }
 
-.scs-backoffice .side-nav-title {
-    color: #91a0bd;
-    font-size: .66rem;
+.btn-outline-danger {
+    --ct-btn-color: var(--scs-danger-text);
+    --ct-btn-border-color: var(--scs-danger-border);
+    --ct-btn-hover-color: var(--scs-ink-inverse);
+    --ct-btn-hover-bg: var(--scs-danger-solid);
+    --ct-btn-hover-border-color: var(--scs-danger-solid);
+    --ct-btn-active-color: var(--scs-ink-inverse);
+    --ct-btn-active-bg: var(--scs-danger-strong);
+    --ct-btn-active-border-color: var(--scs-danger-strong);
+}
+
+.scs-backoffice .btn {
+    min-height: 38px;
+    border-radius: var(--scs-radius-sm);
+}
+
+.scs-backoffice .btn-sm {
+    min-height: 32px;
+}
+
+/* Icon-only: always pair with aria-label and a title/data-bs-toggle="tooltip". */
+.scs-btn-icon,
+.scs-backoffice .action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--scs-radius-sm);
+    background: transparent;
+    color: var(--scs-muted);
+    font-size: 1.05rem;
+    transition: background-color var(--scs-duration) ease, color var(--scs-duration) ease;
+}
+
+.scs-btn-icon:hover,
+.scs-backoffice .action-icon:hover {
+    background: var(--scs-surface-sunken);
+    color: var(--scs-ink);
+}
+
+.scs-btn-icon.is-danger:hover,
+.scs-backoffice .action-icon.is-danger:hover {
+    background: var(--scs-danger-subtle);
+    color: var(--scs-danger-text);
+}
+
+/* Touch screens get 44px targets; the glyph keeps its size. */
+@media (pointer: coarse) {
+    .scs-btn-icon,
+    .scs-backoffice .action-icon {
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        min-height: 44px;
+    }
+
+    .scs-backoffice .btn-sm {
+        min-height: 44px;
+    }
+
+    .scs-backoffice .btn-close {
+        padding: .75rem;
+    }
+}
+
+/* 5. Forms ---------------------------------------------------------------- */
+.form-label {
+    margin-bottom: .42rem;
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-label);
     font-weight: 700;
-    letter-spacing: .08em;
-    margin: 22px 0 7px;
-    text-transform: uppercase;
 }
 
-.scs-sidebar-workspace {
-    padding: 8px 10px 14px !important;
-    margin: 4px 0 10px !important;
-    border-bottom: 1px solid rgba(211, 223, 245, .13);
+/* Required marker: add .scs-required to the label; keep the `required` attribute on the input. */
+.scs-required::after {
+    margin-left: .2rem;
+    color: var(--scs-danger-text);
+    content: "*";
 }
 
-.scs-sidebar-workspace-label {
+.form-control,
+.form-select,
+.select2-container .select2-selection {
+    border-color: var(--scs-border-strong);
+    border-radius: var(--scs-radius-sm);
+    color: var(--scs-ink);
+}
+
+.form-control::placeholder {
+    color: var(--scs-muted);
+    opacity: 1;
+}
+
+.form-control:focus,
+.form-select:focus,
+.select2-container--focus .select2-selection,
+.select2-container--open .select2-selection {
+    border-color: var(--scs-primary) !important;
+    box-shadow: var(--scs-focus-ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+    border-color: var(--scs-border);
+    background-color: var(--scs-surface-sunken);
+    color: var(--scs-muted);
+    cursor: not-allowed;
+}
+
+/* Read-only stays legible and selectable but reads as not-editable
+   (flatpickr marks its pickers readonly, so they are excluded). */
+.form-control[readonly]:not(.flatpickr-input) {
+    border-color: var(--scs-border);
+    background-color: var(--scs-surface-muted);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid,
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+    border-color: var(--scs-danger-solid);
+}
+
+/* MVC always renders the validation summary; keep it out of the layout until it holds errors. */
+.validation-summary-valid {
+    display: none;
+}
+
+/* Server errors render in .alert.alert-danger (role="alert"); the lead-in names the state, as alerts do. */
+.validation-summary-errors::before {
     display: block;
-    margin-bottom: 4px;
-    color: #91a0bd;
-    font-size: .64rem;
     font-weight: 700;
-    letter-spacing: .07em;
-    text-transform: uppercase;
+    content: "Error: fix the following and save again.";
 }
 
-.scs-sidebar-workspace h5 {
-    overflow: hidden;
-    margin: 0;
-    color: #fff;
-    font-size: .9rem;
+.validation-summary-errors ul {
+    margin: var(--scs-space-1) 0 0;
+    padding-left: 1.1rem;
+}
+
+/* Error text keeps an icon so the state is not signalled by colour alone. */
+.invalid-feedback {
+    font-size: var(--scs-text-meta);
     font-weight: 600;
-    text-overflow: ellipsis;
+}
+
+.invalid-feedback::before {
+    content: "\26A0\FE0E\00A0";
+}
+
+.form-text,
+.scs-backoffice small.text-muted {
+    color: var(--scs-muted) !important;
+    font-size: .75rem;
+}
+
+.input-group-text {
+    border-color: var(--scs-border-strong);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+}
+
+.form-check-input {
+    border-color: var(--scs-border-strong);
+}
+
+.form-check-input:checked {
+    border-color: var(--scs-primary);
+    background-color: var(--scs-primary);
+}
+
+.form-check-input:focus {
+    border-color: var(--scs-primary);
+    box-shadow: var(--scs-focus-ring);
+}
+
+.form-check-label {
+    color: var(--scs-ink-body);
+}
+
+.scs-backoffice .form-control,
+.scs-backoffice .form-select,
+.scs-backoffice .select2-container .select2-selection {
+    min-height: 39px;
+}
+
+/* Small controls (the DataTables search) stay compact like .btn-sm, level with the pager. */
+.scs-backoffice .form-control-sm,
+.scs-backoffice .form-select-sm {
+    min-height: 32px;
+}
+
+/* Select2 4.1 keeps an empty chip list beside the full-width search field, which pushes the
+   placeholder onto a second line; with no chips, drop the list so the box matches an input. */
+.select2-selection--multiple .select2-selection__rendered:empty {
+    display: none;
+}
+
+.scs-backoffice textarea.form-control {
+    min-height: 100px;
+}
+
+/* Responsive field grid: one column on phones, auto-fit columns from 16rem up. */
+.scs-field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--scs-space-4) var(--scs-space-5);
+}
+
+.scs-field-grid > .scs-field-span {
+    grid-column: 1 / -1;
+}
+
+.scs-filter-bar {
+    padding: .2rem;
+}
+
+/* 6. Tables --------------------------------------------------------------- */
+.scs-backoffice .table {
+    --ct-table-color: var(--scs-ink-body);
+    --ct-table-hover-bg: var(--scs-surface-muted);
+    margin-bottom: 0;
+}
+
+.scs-backoffice .table > :not(caption) > * > * {
+    padding: .82rem 1rem;
+    border-bottom-color: var(--scs-border-subtle);
+    vertical-align: middle;
+}
+
+.scs-backoffice .table thead th {
+    border-bottom-width: 1px;
+    background: var(--scs-surface-muted);
+    color: var(--scs-muted);
+    font-size: var(--scs-text-overline);
+    font-weight: 700;
+    letter-spacing: .055em;
+    text-transform: uppercase;
     white-space: nowrap;
 }
 
-.scs-backoffice .side-nav .side-nav-link,
-.scs-backoffice .side-nav .side-nav-second-level li a,
-.scs-backoffice .side-nav .side-nav-third-level li a {
-    border-radius: 6px;
-    color: #c4cee0;
-    transition: background-color .16s ease, color .16s ease;
+.scs-backoffice .table tbody tr {
+    transition: background-color var(--scs-duration) ease;
 }
 
-.scs-backoffice .side-nav .side-nav-link:hover,
-.scs-backoffice .side-nav .side-nav-second-level li a:hover,
-.scs-backoffice .side-nav .side-nav-third-level li a:hover {
-    background: rgba(255, 255, 255, .075);
-    color: #fff;
+.scs-backoffice .table tbody tr:hover {
+    background: var(--scs-surface-muted);
 }
 
-.scs-backoffice .side-nav .side-nav-link.active,
-.scs-backoffice .side-nav .menuitem-active > a {
-    background: rgba(78, 125, 238, .22);
-    color: #fff;
-    font-weight: 600;
+/* Selected rows: mark with aria-selected="true" or .is-selected; the inset bar is a non-colour cue. */
+.scs-backoffice .table tbody tr.is-selected,
+.scs-backoffice .table tbody tr[aria-selected="true"] {
+    background: var(--scs-primary-subtle);
 }
 
-.scs-backoffice .navbar-custom {
-    min-height: 68px;
-    border-bottom: 1px solid var(--scs-border);
-    background: rgba(255, 255, 255, .94);
-    box-shadow: none;
+.scs-backoffice .table tbody tr.is-selected > :first-child,
+.scs-backoffice .table tbody tr[aria-selected="true"] > :first-child {
+    box-shadow: inset 3px 0 0 var(--scs-primary);
 }
 
-.scs-backoffice .topbar {
-    min-height: 68px;
+/* Wrap wide tables so they scroll inside the card, never the page. */
+.scs-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-.scs-workspace-switcher {
-    max-width: 300px;
-    color: #42526d;
-    font-size: .875rem;
-    font-weight: 600;
+/* DataTables' layout rows carry negative gutters that would overflow the wrap by a gutter width. */
+.scs-table-wrap .dataTables_wrapper > .row {
+    margin-right: 0;
+    margin-left: 0;
 }
 
-.scs-workspace-dot {
-    width: 9px;
-    height: 9px;
-    margin-right: .55rem;
-    border-radius: 50%;
-    background: var(--scs-teal);
-    box-shadow: 0 0 0 4px rgba(15, 159, 146, .12);
+/* Pagination: the theme hardcodes its purple (white on it fails AA); follow the primary token. */
+.scs-backoffice .pagination {
+    --ct-pagination-active-bg: var(--scs-primary);
+    --ct-pagination-active-border-color: var(--scs-primary);
 }
 
-.scs-page-header {
-    position: relative;
-    align-items: end;
-    margin: 0 0 1.5rem;
-    padding: 0 0 1.1rem;
-    border-bottom: 1px solid var(--scs-border);
+/* The theme hides every page number on phones; keep the current one so the pager says where you are. */
+@media (max-width: 767.98px) {
+    .scs-backoffice li.paginate_button.active {
+        display: inline-block;
+    }
 }
 
-.scs-page-header .scs-page-title {
-    color: var(--scs-ink);
-    font-size: 1.55rem;
+.scs-table-actions {
+    width: 1%;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Status badge: dot + text label, so status never relies on colour alone. */
+.scs-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .2rem .55rem;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-pill);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+    font-size: .75rem;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.3;
+    white-space: nowrap;
 }
 
-.scs-page-header .scs-page-helper {
-    max-width: 720px;
+.scs-status::before {
+    width: .45rem;
+    height: .45rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentColor;
+    content: "";
+}
+
+.scs-status--success { border-color: var(--scs-success-border); background: var(--scs-success-subtle); color: var(--scs-success-text); }
+.scs-status--warning { border-color: var(--scs-warning-border); background: var(--scs-warning-subtle); color: var(--scs-warning-text); }
+.scs-status--danger  { border-color: var(--scs-danger-border);  background: var(--scs-danger-subtle);  color: var(--scs-danger-text); }
+.scs-status--info    { border-color: var(--scs-info-border);    background: var(--scs-info-subtle);    color: var(--scs-info-text); }
+
+.scs-backoffice .dropdown-menu {
+    padding: var(--scs-space-1);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    box-shadow: var(--scs-shadow-raised);
+}
+
+.scs-backoffice .dropdown-item {
+    border-radius: var(--scs-radius-xs);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+}
+
+.scs-backoffice .dropdown-item.text-danger:hover,
+.scs-backoffice .dropdown-item.text-danger:focus {
+    background: var(--scs-danger-subtle);
+}
+
+.scs-empty-state {
+    padding: 3.5rem 1rem;
     color: var(--scs-muted);
-    line-height: 1.55;
+    text-align: center;
 }
 
-.scs-breadcrumb {
-    gap: .45rem;
-    margin: 0 0 .55rem;
-    color: #8491a6;
-    font-size: .76rem;
-    font-weight: 600;
+.scs-empty-state i {
+    display: block;
+    margin-bottom: .5rem;
+    color: #7b96dd;
+    font-size: 2.3rem;
 }
 
-.scs-breadcrumb a {
-    color: var(--scs-muted);
-}
-
+/* 7. Cards, tabs, modals, alerts, loading --------------------------------- */
 .scs-backoffice .card {
     border: 1px solid var(--scs-border);
     border-radius: var(--scs-radius);
@@ -307,116 +648,149 @@
 
 .scs-backoffice .card-title {
     color: var(--scs-ink);
-    font-size: .95rem;
+    font-size: var(--scs-text-card-title);
     font-weight: 700;
 }
 
-.scs-backoffice .btn {
-    min-height: 38px;
-    border-radius: 6px;
-    font-weight: 600;
-    letter-spacing: 0;
+.scs-dash-card {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    transition: transform var(--scs-duration) ease, box-shadow var(--scs-duration) ease;
 }
 
-.scs-backoffice .btn-primary {
-    border-color: var(--scs-primary);
-    background: var(--scs-primary);
-    box-shadow: 0 2px 5px rgba(53, 106, 230, .2);
+.scs-dash-card:hover {
+    box-shadow: var(--scs-shadow-raised);
+    transform: translateY(-2px);
 }
 
-.scs-backoffice .btn-primary:hover,
-.scs-backoffice .btn-primary:focus {
-    border-color: var(--scs-primary-strong);
-    background: var(--scs-primary-strong);
+.scs-dash-card:focus-within {
+    box-shadow: var(--scs-shadow-raised), var(--scs-focus-ring);
 }
 
-.scs-backoffice .btn-outline-primary {
-    border-color: #b9c9ef;
-    color: var(--scs-primary);
+.scs-dash-card .card-body {
+    display: flex;
+    gap: var(--scs-space-3);
 }
 
-.scs-backoffice .btn-outline-primary:hover {
-    background: #edf2ff;
+.scs-dash-card .scs-dash-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--scs-radius);
+    background: var(--scs-dash-tone-subtle);
+    color: var(--scs-dash-tone);
+    font-size: 1.35rem;
+}
+
+/* Module accents: each module keeps one recognisable colour, drawn from the state tokens. */
+.scs-dash-tone-primary { --scs-dash-tone: var(--scs-primary-strong); --scs-dash-tone-subtle: var(--scs-primary-subtle); }
+.scs-dash-tone-accent  { --scs-dash-tone: var(--scs-accent-text);    --scs-dash-tone-subtle: var(--scs-accent-subtle); }
+.scs-dash-tone-success { --scs-dash-tone: var(--scs-success-text);   --scs-dash-tone-subtle: var(--scs-success-subtle); }
+.scs-dash-tone-warning { --scs-dash-tone: var(--scs-warning-text);   --scs-dash-tone-subtle: var(--scs-warning-subtle); }
+.scs-dash-tone-info    { --scs-dash-tone: var(--scs-info-text);      --scs-dash-tone-subtle: var(--scs-info-subtle); }
+.scs-dash-tone-neutral { --scs-dash-tone: var(--scs-ink-soft);       --scs-dash-tone-subtle: var(--scs-surface-sunken); }
+
+.scs-dash-card-text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.scs-dash-purpose {
+    flex: 1;
+    margin-bottom: var(--scs-space-2);
+    color: var(--scs-muted);
+    font-size: var(--scs-text-meta);
+    line-height: var(--scs-leading-body);
+}
+
+.scs-dash-link {
+    align-self: flex-start;
+    padding: var(--scs-space-1) 0;
     color: var(--scs-primary-strong);
-}
-
-.scs-backoffice .form-label {
-    margin-bottom: .42rem;
-    color: #3d4d66;
-    font-size: .79rem;
+    font-size: var(--scs-text-meta);
     font-weight: 700;
 }
 
-.scs-backoffice .form-control,
-.scs-backoffice .form-select,
-.scs-backoffice .select2-container .select2-selection {
-    min-height: 39px;
-    border-color: #d9e1ec;
-    border-radius: 6px;
-    color: var(--scs-ink);
-}
-
-.scs-backoffice textarea.form-control {
-    min-height: 100px;
-}
-
-.scs-backoffice .form-control:focus,
-.scs-backoffice .form-select:focus {
-    border-color: #91afea;
-    box-shadow: 0 0 0 .2rem rgba(53, 106, 230, .12);
-}
-
-.scs-backoffice .form-text,
-.scs-backoffice small.text-muted {
-    color: var(--scs-muted) !important;
-    font-size: .75rem;
-}
-
-.scs-filter-bar {
-    padding: .2rem;
-}
-
-.scs-backoffice .table {
-    margin-bottom: 0;
-}
-
-.scs-backoffice .table > :not(caption) > * > * {
-    padding: .82rem 1rem;
-    border-bottom-color: #edf1f6;
-    vertical-align: middle;
-}
-
-.scs-backoffice .table thead th {
-    border-bottom-width: 1px;
-    background: #f8faff;
-    color: #63718a;
-    font-size: .7rem;
+.scs-dash-section-title {
+    margin: 0 0 var(--scs-space-3);
+    color: var(--scs-muted);
+    font-size: var(--scs-text-overline);
     font-weight: 700;
+    line-height: 1.5;
     letter-spacing: .055em;
     text-transform: uppercase;
 }
 
-.scs-backoffice .table tbody tr {
-    transition: background-color .14s ease;
+/* Beside the module grid, line Quick actions up with the first row of cards, below its title. */
+@media (min-width: 1200px) {
+    .scs-dash-actions {
+        margin-top: calc(var(--scs-text-overline) * 1.5 + var(--scs-space-3));
+    }
 }
 
-.scs-backoffice .table tbody tr:hover {
-    background: #f8faff;
-}
-
-.scs-backoffice .action-icon {
-    display: inline-flex;
+.scs-dash-primary {
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    color: #77869d;
+    gap: var(--scs-space-2);
+    min-height: 2.75rem;
 }
 
-.scs-backoffice .action-icon:hover {
-    background: #fff0ee;
-    color: var(--scs-coral);
+.scs-dash-shortcuts {
+    border-top: 1px solid var(--scs-border-subtle);
+}
+
+.scs-dash-shortcuts a {
+    display: flex;
+    align-items: center;
+    gap: var(--scs-space-2);
+    min-height: 2.75rem;
+    padding: var(--scs-space-2);
+    border-bottom: 1px solid var(--scs-border-subtle);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+    font-weight: 600;
+}
+
+.scs-dash-shortcuts a:hover {
+    background: var(--scs-surface-muted);
+    color: var(--scs-primary-strong);
+}
+
+.scs-dash-shortcuts .uil {
+    color: var(--scs-muted);
+    font-size: 1.05rem;
+}
+
+.scs-dash-activity-empty {
+    padding: var(--scs-space-6) var(--scs-space-4);
+}
+
+.scs-dash-activity-empty p {
+    max-width: 30rem;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.scs-backoffice .nav-tabs {
+    --ct-nav-tabs-border-color: var(--scs-border);
+    --ct-nav-tabs-link-active-color: var(--scs-primary-strong);
+    --ct-nav-tabs-link-active-border-color: var(--scs-border) var(--scs-border) var(--scs-surface);
+}
+
+.scs-backoffice .nav-tabs .nav-link,
+.scs-backoffice .nav-pills .nav-link {
+    color: var(--scs-muted);
+    font-weight: 600;
+}
+
+.scs-backoffice .nav-pills {
+    --ct-nav-pills-link-active-bg: var(--scs-primary);
 }
 
 .scs-editor-card {
@@ -442,53 +816,466 @@
 .scs-editor-tabs .nav-link.active {
     border-bottom-color: var(--scs-primary);
     background: transparent;
-    color: var(--scs-primary);
+    color: var(--scs-primary-strong);
 }
 
-.scs-rich-editor {
+/* Editor tabs are numbered steps (1 General, 2 Body, ...) via a CSS counter, so gated tabs renumber themselves. */
+.scs-editor-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    counter-reset: scs-step;
+    scrollbar-width: thin;
+}
+
+.scs-editor-tabs .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    white-space: nowrap;
+}
+
+/* The scrolling bar clips outlines, so draw the focus ring inside the tab. */
+.scs-editor-tabs .nav-link:focus-visible {
+    outline-offset: -2px;
+}
+
+.scs-editor-tabs .nav-link::before {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border: 1px solid var(--scs-border-strong);
+    border-radius: 50%;
+    counter-increment: scs-step;
+    content: counter(scs-step);
+    font-size: .7rem;
+    font-weight: 700;
+}
+
+.scs-editor-tabs .nav-link.active::before {
+    border-color: var(--scs-primary);
+    background: var(--scs-primary);
+    color: var(--scs-ink-inverse);
+}
+
+.scs-editor-note {
+    margin: 0;
+    padding: var(--scs-space-2) 1.35rem;
+    border-bottom: 1px solid var(--scs-border-subtle);
+    color: var(--scs-muted);
+    font-size: var(--scs-text-meta);
+}
+
+.scs-editor-panes {
+    padding: 1.35rem;
+}
+
+.scs-editor-panes .validation-summary-valid {
+    display: none;
+}
+
+.scs-editor-footer {
+    padding: var(--scs-space-4) 1.35rem;
+    border-top: 1px solid var(--scs-border-subtle);
+}
+
+/* Doubled class beats quill.snow.css .ql-container { height: 100% }, which loads after this sheet. */
+.scs-rich-editor.scs-rich-editor {
     height: 320px;
     overflow: auto;
-    border: 1px solid #d9e1ec;
-    border-radius: 6px;
+    border: 1px solid var(--scs-border-strong);
+    border-radius: var(--scs-radius-sm);
 }
 
-.scs-rich-editor .ql-container.ql-snow,
-.scs-rich-editor .ql-toolbar.ql-snow {
-    border-color: #d9e1ec;
+/* Quill turns the target into .ql-container and inserts its toolbar just before it. */
+.ql-toolbar.ql-snow:has(+ .scs-rich-editor) {
+    border-color: var(--scs-border-strong);
+    border-radius: var(--scs-radius-sm) var(--scs-radius-sm) 0 0;
+    background: var(--scs-surface-muted);
 }
 
-.scs-dash-card {
+.ql-toolbar.ql-snow + .scs-rich-editor {
+    border-top: 0;
+    border-radius: 0 0 var(--scs-radius-sm) var(--scs-radius-sm);
+}
+
+/* Publishing panel: status, type, schedule and actions beside the General fields. */
+.scs-publish-panel {
+    padding: var(--scs-space-4);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    background: var(--scs-surface-muted);
+}
+
+.scs-publish-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--scs-space-2);
+    margin-bottom: var(--scs-space-3);
+}
+
+.scs-publish-actions,
+.scs-author-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--scs-space-2);
+}
+
+.scs-publish-actions {
+    padding-top: var(--scs-space-3);
+    border-top: 1px solid var(--scs-border);
+}
+
+.scs-publish-actions > .btn-primary,
+.scs-publish-actions > #contentTranslationState:not(:empty) {
+    flex: 1 1 100%;
+}
+
+.scs-publish-actions > #contentTranslationState:empty {
+    display: none;
+}
+
+.scs-author-actions {
+    margin-top: var(--scs-space-4);
+    padding-top: var(--scs-space-4);
+    border-top: 1px solid var(--scs-border-subtle);
+}
+
+/* Body sections: one bordered block per section; markup structure is read by content.js saveBody(). */
+.scs-body-section {
     position: relative;
+    margin: 0 0 var(--scs-space-3);
+    padding: var(--scs-space-3) var(--scs-space-2) var(--scs-space-2);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    background: var(--scs-surface);
+}
+
+.scs-body-section > * {
+    margin-bottom: var(--scs-space-2);
+}
+
+.scs-body-section-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--scs-space-1);
+}
+
+.scs-body-section img {
+    max-width: 100%;
+    max-height: 16rem;
+    object-fit: contain;
+    background: var(--scs-surface-muted);
+}
+
+.scs-body-sections:has(> .row) + .scs-body-empty {
+    display: none;
+}
+
+.scs-body-empty {
+    padding: var(--scs-space-5) var(--scs-space-4);
+    border: 1px dashed var(--scs-border-strong);
+    border-radius: var(--scs-radius);
+}
+
+.scs-schema-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    gap: var(--scs-space-2);
+}
+
+.scs-schema-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--scs-space-1);
+    min-width: 0;
+    padding: var(--scs-space-2);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-sm);
+    background: var(--scs-surface);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+    transition: border-color var(--scs-duration) ease, background-color var(--scs-duration) ease;
+}
+
+.scs-schema-tile:hover {
+    border-color: var(--scs-primary-border);
+    background: var(--scs-primary-subtle);
+}
+
+.scs-schema-tile img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.scs-schema-tile span {
+    max-width: 100%;
     overflow: hidden;
-    transition: transform .16s ease, box-shadow .16s ease;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.scs-dash-card:hover {
-    box-shadow: 0 8px 24px rgba(24, 37, 61, .1);
-    transform: translateY(-2px);
+/* Media: bounded thumbnails and file tiles (template file-manager pattern). */
+.scs-media-upload {
+    margin-bottom: var(--scs-space-3);
 }
 
-.scs-dash-card .scs-dash-icon {
-    width: 2.9rem;
-    height: 2.9rem;
-    border-radius: 8px;
+.scs-media-specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--scs-space-2) var(--scs-space-5);
+    margin-bottom: var(--scs-space-4);
+    padding: var(--scs-space-3) var(--scs-space-4);
+    border: 1px solid var(--scs-info-border);
+    border-radius: var(--scs-radius-sm);
+    background: var(--scs-info-subtle);
+    font-size: var(--scs-text-meta);
 }
 
-.scs-empty-state {
-    padding: 3.5rem 1rem;
+.scs-media-specs dt {
     color: var(--scs-muted);
+    font-weight: 600;
 }
 
-.scs-empty-state i {
-    color: #8ba5e9;
-    font-size: 2.3rem;
+.scs-media-specs dd {
+    margin: 0;
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+.scs-media-card {
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    background: var(--scs-surface);
+}
+
+.scs-media-thumb {
+    display: block;
+    aspect-ratio: 4 / 3;
+    background: var(--scs-surface-muted);
+}
+
+.scs-media-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.scs-media-card figcaption {
+    padding: var(--scs-space-2) var(--scs-space-3);
+    border-top: 1px solid var(--scs-border-subtle);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+}
+
+.scs-media-empty {
+    padding: var(--scs-space-6) var(--scs-space-4);
+    border: 1px dashed var(--scs-border-strong);
+    border-radius: var(--scs-radius);
+}
+
+.scs-media-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--scs-space-1);
+    width: 100%;
+    min-height: 6rem;
+    border: 1px dashed var(--scs-primary-border);
+    border-radius: var(--scs-radius-sm);
+    background: var(--scs-primary-subtle);
+    color: var(--scs-primary-strong);
+    font-size: var(--scs-text-meta);
+    font-weight: 700;
+}
+
+.scs-media-add .mdi {
+    font-size: 1.4rem;
+}
+
+.scs-file-tile {
+    display: flex;
+    align-items: center;
+    gap: var(--scs-space-2);
+    min-width: 0;
+    padding: var(--scs-space-2) var(--scs-space-3);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-sm);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+}
+
+.scs-file-tile > .mdi {
+    color: var(--scs-primary-strong);
+    font-size: 1.4rem;
+}
+
+.scs-file-tile > span {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Content list: titles truncate instead of widening the table. */
+.scs-content-table .scs-content-title {
+    max-width: 28rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Supporting CMS lists: long names truncate (full text in title) instead of widening the table. */
+.scs-cell-truncate {
+    max-width: 24rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.scs-cell-media {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--scs-space-2);
+    max-width: 100%;
+}
+
+.scs-cell-media > .scs-cell-truncate {
+    min-width: 0;
+}
+
+.scs-logo-thumb {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    padding: 2px;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-xs);
+    background: var(--scs-surface-muted);
+    object-fit: contain;
+}
+
+/* Missing logo (showLogoFallback in common.js): the placeholder keeps the logo's box and shows a neutral glyph. */
+.scs-logo-fallback {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--scs-space-1);
+    background: var(--scs-surface-muted);
+    color: var(--scs-muted);
+    line-height: 1;
+}
+
+/* Out of flow, the glyph gives no text baseline, so the box aligns by its bottom edge like an image
+   and table rows keep the same height as rows with a logo. */
+.scs-logo-fallback > i {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scs-media-thumb .scs-logo-fallback > i {
+    position: static;
+}
+
+.scs-schema-tile .scs-logo-fallback {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--scs-radius-xs);
+    font-size: 1.5rem;
+}
+
+.scs-media-thumb .scs-logo-fallback {
+    width: 100%;
+    height: 100%;
+    font-size: 2rem;
+}
+
+.scs-logo-fallback > span {
+    font-size: var(--scs-text-meta);
+    font-weight: 600;
+}
+
+.scs-code {
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+}
+
+/* Schema logo field: bounded current-logo preview beside its replace action. */
+.scs-logo-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--scs-space-3);
+}
+
+.scs-logo-preview {
+    width: 8rem;
+}
+
+.scs-logo-preview .scs-media-thumb {
+    aspect-ratio: 1;
+    padding: var(--scs-space-2);
+}
+
+/* Slides are wide banners; a 16:9 box keeps any upload bounded. */
+.scs-media-card--wide .scs-media-thumb {
+    aspect-ratio: 16 / 9;
+}
+
+.scs-slide-caption {
+    display: grid;
+    gap: var(--scs-space-2);
+}
+
+.scs-slide-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--scs-space-2);
+    min-width: 0;
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+.scs-slide-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--scs-space-1);
+}
+
+.scs-slide-actions > .btn {
+    margin-right: auto;
+}
+
+/* Focused tool modals (schema fields, slides): stacked sections with one divider between them. */
+.scs-tool-section + .scs-tool-section {
+    margin-top: var(--scs-space-5);
+    padding-top: var(--scs-space-4);
+    border-top: 1px solid var(--scs-border);
+}
+
+/* Body and footer share the header's inset, so fields line up under the modal title. */
+.scs-backoffice .modal {
+    --ct-modal-padding: 1.35rem;
 }
 
 .scs-backoffice .modal-content {
     overflow: hidden;
     border: 0;
-    border-radius: 9px;
-    box-shadow: 0 18px 50px rgba(16, 32, 57, .2);
+    border-radius: var(--scs-radius);
+    box-shadow: var(--scs-shadow-overlay);
 }
 
 .scs-backoffice .modal-header {
@@ -497,53 +1284,378 @@
     background: #fafcff;
 }
 
+.scs-backoffice .modal-title {
+    color: var(--scs-ink);
+    font-size: var(--scs-text-section-title);
+    font-weight: 700;
+}
+
 .scs-backoffice .modal-footer {
     border-top-color: var(--scs-border);
 }
 
+/* Alerts use the state tokens via the theme mapping; the left bar adds a non-colour cue. */
+.alert {
+    border-left-width: 4px;
+    border-radius: var(--scs-radius-sm);
+}
+
+/* Loading: set aria-busy="true" on the region; spinners carry visually-hidden text. */
+[aria-busy="true"].scs-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+[aria-busy="true"].scs-loading > * {
+    opacity: .45;
+}
+
+/* 8. App shell ------------------------------------------------------------ */
+.scs-backoffice .content-page {
+    background: var(--scs-canvas);
+}
+
+.scs-backoffice .content {
+    padding: 30px 0 18px;
+}
+
+.scs-backoffice .container-fluid {
+    max-width: 1760px;
+}
+
+.scs-backoffice .leftside-menu {
+    /* The icon rail's hover flyout reads these; the theme defaults are its grey and purple. */
+    --ct-menu-bg: var(--scs-chrome);
+    --ct-menu-condensed-link-bg: var(--scs-primary);
+    background: var(--scs-chrome);
+    box-shadow: none;
+}
+
+.scs-backoffice .side-nav {
+    padding: 14px 12px 32px;
+}
+
+.scs-backoffice .side-nav-title {
+    margin: 22px 0 7px;
+    color: #a3b0c8;
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+/* Current workspace: an accent-edged card under the brand, so it never reads as a menu item. */
+.scs-sidebar-workspace {
+    margin: 4px 12px 0;
+    padding: 10px 12px;
+    border: 1px solid rgba(211, 223, 245, .14);
+    border-left: 3px solid var(--scs-accent);
+    border-radius: var(--scs-radius-sm);
+    background: rgba(255, 255, 255, .05);
+}
+
+.scs-sidebar-workspace-label {
+    display: block;
+    margin-bottom: 2px;
+    color: #a3b0c8;
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+}
+
+.scs-sidebar-workspace-name {
+    overflow: hidden;
+    margin: 0;
+    color: var(--scs-ink-inverse);
+    font-size: .92rem;
+    font-weight: 700;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scs-sidebar-workspace-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    margin-top: 6px;
+    color: #9fdcd5;
+    font-size: .78rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.scs-sidebar-workspace-switch:hover {
+    color: var(--scs-ink-inverse);
+}
+
+/* Hyper's 50px icon column and arrow inset leave "Content Management" running into its arrow.
+   The icon rail keeps Hyper's sizing so icons stay centred there. */
+html:not([data-sidenav-size=condensed]) .scs-backoffice .side-nav .side-nav-link i {
+    width: 2.25rem;
+    min-width: 2.25rem;
+}
+
+.scs-backoffice .side-nav .side-nav-link .menu-arrow {
+    right: 6px;
+}
+
+/* Icon rail (tablet or collapsed): titles and the workspace card have no room; the topbar keeps
+   the workspace visible. */
+html[data-sidenav-size=condensed] .scs-sidebar-workspace {
+    display: none;
+}
+
+/* With labels and arrows gone, mark the group holding the current page like the current item. */
+html[data-sidenav-size=condensed] .scs-backoffice .side-nav > .menuitem-active > .side-nav-link {
+    background: rgba(78, 125, 238, .24);
+    box-shadow: inset 3px 0 0 #8fb0ff;
+}
+
+/* Nested content types and settings wrap instead of clipping long names. */
+.scs-backoffice .side-nav-second-level li a,
+.scs-backoffice .side-nav-third-level li a {
+    white-space: normal;
+    line-height: 1.35;
+}
+
+/* Nested group toggles keep room for their arrow once the label wraps. */
+.scs-backoffice .side-nav-second-level .side-nav-item > a[data-bs-toggle="collapse"] {
+    padding-right: 2.25rem;
+}
+
+.scs-backoffice .side-nav-second-level .side-nav-item > a[data-bs-toggle="collapse"] .menu-arrow {
+    right: 6px;
+}
+
+.scs-backoffice .side-nav-third-level {
+    margin-left: 1.9rem;
+    padding-left: .35rem;
+    border-left: 1px solid rgba(211, 223, 245, .16);
+}
+
+.scs-backoffice .side-nav-third-level li a {
+    padding-left: .75rem;
+}
+
+.scs-backoffice .side-nav .side-nav-link,
+.scs-backoffice .side-nav .side-nav-second-level li a,
+.scs-backoffice .side-nav .side-nav-third-level li a {
+    border-radius: var(--scs-radius-sm);
+    color: #c4cee0;
+    transition: background-color var(--scs-duration) ease, color var(--scs-duration) ease;
+}
+
+.scs-backoffice .side-nav .side-nav-link:hover,
+.scs-backoffice .side-nav .side-nav-second-level li a:hover,
+.scs-backoffice .side-nav .side-nav-third-level li a:hover {
+    background: rgba(255, 255, 255, .075);
+    color: var(--scs-ink-inverse);
+}
+
+/* Open groups (and the group holding the current page): bright text, no fill; the rotated
+   arrow is the shape cue. Weight stays put so labels never grow into the arrow. */
+.scs-backoffice .side-nav .menuitem-active > a,
+.scs-backoffice .side-nav a[aria-expanded="true"] {
+    color: var(--scs-ink-inverse);
+}
+
+/* Current page: fill plus a leading bar and bold weight, so it doesn't rely on colour alone. */
+.scs-backoffice .side-nav a[aria-current],
+.scs-backoffice .side-nav .side-nav-link.active {
+    background: rgba(78, 125, 238, .24);
+    box-shadow: inset 3px 0 0 #8fb0ff;
+    color: var(--scs-ink-inverse);
+    font-weight: 700;
+}
+
+/* Focus on the dark sidebar needs a light ring. */
+.scs-backoffice .leftside-menu :focus-visible {
+    outline-color: #c9d7ff !important;
+}
+
+.scs-backoffice .navbar-custom {
+    min-height: 68px;
+    border-bottom: 1px solid var(--scs-border);
+    background: rgba(255, 255, 255, .94);
+    box-shadow: none;
+}
+
+.scs-backoffice .topbar {
+    min-height: 68px;
+}
+
+.scs-backoffice .button-toggle-menu {
+    border-radius: var(--scs-radius-sm);
+}
+
+/* Off-canvas close control (phones): a real button sized as a 44px target. */
+.scs-backoffice .button-close-fullsidebar {
+    width: 44px;
+    height: 44px;
+    top: 12px;
+    right: 12px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--scs-radius-sm);
+    background: transparent;
+    color: #c4cee0;
+    line-height: 44px;
+}
+
+.scs-backoffice .button-close-fullsidebar:hover {
+    background: rgba(255, 255, 255, .075);
+    color: var(--scs-ink-inverse);
+}
+
+/* Keep the wide logo clear of the close button. */
+html[data-sidenav-size=full] .scs-backoffice .leftside-menu .logo {
+    padding-right: 64px;
+}
+
+html[data-sidenav-size=full] .scs-backoffice .leftside-menu .logo img {
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* A closed off-canvas menu sits off-screen at opacity 0; hide it from keyboard and screen
+   readers too (visibility waits for the slide-out to finish). */
+html[data-sidenav-size=full]:not(.sidebar-enable) .scs-backoffice .leftside-menu {
+    visibility: hidden;
+    transition: all .25s ease-in-out, visibility 0s .25s;
+}
+
+/* Opening shows it at once, so focus can move to the close button immediately. */
+html[data-sidenav-size=full].sidebar-enable .scs-backoffice .leftside-menu {
+    transition: all .25s ease-in-out, visibility 0s;
+}
+
+.scs-topbar-workspace {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    max-width: 320px;
+    margin: 0;
+    color: #42526d;
+    font-size: .875rem;
+    font-weight: 600;
+}
+
+.scs-workspace-dot {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    margin-right: .55rem;
+    border-radius: 50%;
+    background: var(--scs-accent);
+    box-shadow: 0 0 0 4px rgba(15, 159, 146, .12);
+}
+
+.scs-profile-toggle {
+    border-top: 0;
+    border-bottom: 0;
+    color: var(--scs-ink);
+}
+
+.scs-profile-avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--scs-primary-subtle);
+    color: var(--scs-primary-strong);
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.scs-profile-name {
+    color: var(--scs-ink);
+    font-size: .875rem;
+    font-weight: 700;
+}
+
+.scs-profile-role {
+    color: var(--scs-muted);
+    font-size: .75rem;
+    font-weight: 600;
+}
+
+.scs-backoffice .profile-dropdown .dropdown-header {
+    max-width: 260px;
+    padding-bottom: .5rem;
+}
+
+/* Page header: breadcrumb + title + helper on the left, actions on the right. */
+.scs-page-header {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: .75rem;
+    margin: 0 0 1.5rem;
+    padding: 0 0 1.1rem;
+    border-bottom: 1px solid var(--scs-border);
+}
+
+.scs-page-heading {
+    min-width: 0;
+}
+
+.scs-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.scs-page-header .scs-page-helper {
+    max-width: 720px;
+    margin: .25rem 0 0;
+    color: var(--scs-muted);
+    font-size: .875rem;
+    line-height: var(--scs-leading-body);
+}
+
+.scs-breadcrumb {
+    margin: 0 0 .55rem;
+    padding: 0;
+    color: var(--scs-muted);
+    font-size: .76rem;
+    font-weight: 600;
+}
+
+.scs-breadcrumb .breadcrumb-item,
+.scs-breadcrumb .breadcrumb-item.active {
+    color: var(--scs-muted);
+}
+
+.scs-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    color: var(--scs-border-strong);
+}
+
+.scs-breadcrumb a {
+    color: var(--scs-muted);
+    text-decoration: none;
+}
+
+.scs-breadcrumb a:hover {
+    color: var(--scs-ink);
+    text-decoration: underline;
+}
+
 .scs-backoffice .footer {
-    color: #8491a6;
+    color: var(--scs-muted);
     font-size: .78rem;
 }
 
-.fa---elements,
-#__descriptionEditorFA__ .ql-editor {
-    direction: rtl !important;
-    text-align: right !important;
-}
-
+/* 9. Auth & workspace picker --------------------------------------------- */
 body.authentication-bg {
-    background: #eef3fb;
-}
-
-.authentication-bg .auth-fluid-form-box {
-    background: #fff;
-}
-
-.authentication-bg .auth-fluid-right {
-    position: relative;
-    overflow: hidden;
-    background: var(--scs-ink);
-}
-
-.authentication-bg .auth-fluid-right::before {
-    position: absolute;
-    inset: 0;
-    content: "";
-    background: linear-gradient(145deg, rgba(29, 51, 94, .9), rgba(15, 159, 146, .46));
-}
-
-.authentication-bg .auth-user-testimonial {
-    z-index: 1;
-    max-width: 460px;
-}
-
-.authentication-bg .auth-brand h5 {
-    color: var(--scs-ink) !important;
-}
-
-.scs-auth-shell {
-    background: transparent;
+    background: var(--scs-surface-sunken);
 }
 
 .scs-auth-mark {
@@ -552,84 +1664,263 @@ body.authentication-bg {
     justify-content: center;
     width: 2.45rem;
     height: 2.45rem;
-    border-radius: 8px;
+    border-radius: var(--scs-radius);
     background: var(--scs-primary);
-    color: #fff;
+    color: var(--scs-ink-inverse);
     font-size: 1.1rem;
     font-weight: 800;
-    box-shadow: 0 5px 12px rgba(53, 106, 230, .24);
+    box-shadow: 0 5px 12px rgba(var(--scs-primary-rgb), .24);
 }
 
-.scs-auth-message {
-    top: 50% !important;
-    transform: translateY(-50%);
-    text-align: left;
+/* Auth status pages: sign-in, pending approval, errors. One centred card on the
+   same stage as the workspace picker, so the whole sign-in flow reads as one place. */
+.scs-auth-page {
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - 60px);
+    padding: var(--scs-space-6) 0;
 }
 
-.scs-app-picker-card {
-    overflow: hidden;
+.scs-auth-page > .container {
+    width: 100%;
 }
 
-.scs-app-picker-header {
-    padding: 2rem 1.5rem 1.6rem;
-    border: 0;
-    background: var(--scs-ink);
-    color: #fff;
+.scs-auth-card {
+    max-width: 440px;
+    margin: 0 auto;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    box-shadow: var(--scs-shadow);
 }
 
-.scs-app-picker-header .scs-auth-mark {
+.scs-auth-card > .card-body {
+    padding: var(--scs-space-6);
+}
+
+.scs-auth-brand {
     display: inline-flex;
-    background: #fff;
-    color: var(--scs-primary);
-    box-shadow: none;
+    align-items: center;
+    gap: var(--scs-space-2);
+    margin-bottom: var(--scs-space-5);
+    text-decoration: none;
 }
 
-.scs-app-picker-header h1 {
-    margin: 0;
-    color: #fff;
-    font-size: 1.45rem;
+.scs-auth-title {
+    margin: 0 0 var(--scs-space-2);
+    color: var(--scs-ink);
+    font-size: 1.35rem;
     font-weight: 700;
+    line-height: var(--scs-leading-tight);
 }
 
-.scs-app-picker-header p {
-    margin: .4rem 0 0;
-    color: #bdc9df;
+.scs-auth-lead {
+    margin-bottom: var(--scs-space-5);
+    color: var(--scs-ink-soft);
+    font-size: var(--scs-text-body);
+    line-height: var(--scs-leading-body);
 }
 
-.scs-application-card {
-    overflow: hidden;
-    transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
-}
-
-.scs-application-card:hover {
-    border-color: #b8caef;
-    box-shadow: 0 8px 22px rgba(31, 53, 89, .11);
-    transform: translateY(-2px);
-}
-
-.scs-application-logo-wrap {
+/* State icon tile; the heading beside it always names the state, so colour is never the only signal. */
+.scs-auth-status {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 118px;
-    padding: 1rem;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: var(--scs-space-4);
+    border-radius: 50%;
+    font-size: 1.5rem;
+}
+
+.scs-auth-status--warning {
+    background: var(--scs-warning-subtle);
+    color: var(--scs-warning-text);
+}
+
+.scs-auth-status--danger {
+    background: var(--scs-danger-subtle);
+    color: var(--scs-danger-text);
+}
+
+.scs-auth-alert {
+    font-size: var(--scs-text-body);
+}
+
+.scs-auth-alert > i {
+    font-size: 1.1rem;
+    line-height: 1.3;
+}
+
+.scs-auth-steps {
+    margin-bottom: var(--scs-space-5);
+    padding: var(--scs-space-3) var(--scs-space-4) var(--scs-space-3) 2.1rem;
+    border-radius: var(--scs-radius-sm);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-body);
+}
+
+.scs-auth-steps li + li {
+    margin-top: var(--scs-space-1);
+}
+
+.scs-auth-reference {
+    color: var(--scs-muted);
+    font-size: var(--scs-text-meta);
+    overflow-wrap: anywhere;
+}
+
+.scs-auth-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--scs-space-2);
+}
+
+.scs-auth-actions > * {
+    flex: 1 1 10rem;
+}
+
+/* Labels stay on one line; a button that doesn't fit wraps whole, onto its own full-width row. */
+.scs-auth-actions .btn {
+    white-space: nowrap;
+}
+
+.scs-auth-footer {
+    margin: var(--scs-space-4) 0 0;
+    color: var(--scs-muted);
+    font-size: var(--scs-text-meta);
+    text-align: center;
+}
+
+/* Password field: the reveal button joins the input as one control and keeps the input's boundary colour. */
+.scs-password-toggle {
+    border: 1px solid var(--scs-border-strong);
+    border-left: 0;
+    background: var(--scs-surface);
+    color: var(--scs-muted);
+}
+
+.scs-password-toggle:hover {
+    color: var(--scs-ink);
+}
+
+/* MVC's validation message span: only visible (with its icon) once it holds a server error. */
+.invalid-feedback.field-validation-error {
+    display: block;
+}
+
+.scs-password-field .form-control.is-invalid + .scs-password-toggle {
+    border-color: var(--scs-danger-solid);
+}
+
+@media (max-width: 575.98px) {
+    .scs-auth-page {
+        padding: var(--scs-space-4) 0;
+    }
+
+    .scs-auth-card > .card-body {
+        padding: var(--scs-space-5) var(--scs-space-4);
+    }
+}
+
+/* Workspace picker (/BackOffice/Application/SelectApp) */
+.scs-app-picker {
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - 60px);
+}
+
+.scs-app-picker > .container {
+    width: 100%;
+}
+
+.scs-app-picker-brand {
+    color: var(--scs-ink);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: .01em;
+}
+
+.scs-app-picker-header h1 {
+    margin: 0 0 .4rem;
+    color: var(--scs-ink);
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.scs-app-picker-lead {
+    color: var(--scs-ink-soft);
+    font-size: .95rem;
+}
+
+/* Shared min-height keeps workspace and add cards equal even when they land on different grid rows;
+   it sits just above a workspace card's natural height (fixed logo stage, 1-line title, 2-line text). */
+.scs-application-card,
+.scs-add-workspace {
+    min-height: 17rem;
+}
+
+.scs-application-card {
+    border: 1px solid var(--scs-border);
+    box-shadow: var(--scs-shadow);
+    transition: border-color var(--scs-duration) ease, box-shadow var(--scs-duration) ease, transform var(--scs-duration) ease;
+}
+
+.scs-application-card:hover,
+.scs-application-card:focus-within {
+    border-color: #b8caef;
+    box-shadow: var(--scs-shadow-raised);
+    transform: translateY(-2px);
+}
+
+.scs-application-card .card-title {
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+/* Fixed stage: logos have untrusted dimensions, so the image is boxed and never sizes the card. */
+.scs-application-logo-wrap {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    height: 96px;
+    padding: 12px 16px;
+    overflow: hidden;
     border-bottom: 1px solid var(--scs-border);
-    background: #f8faff;
+    border-radius: var(--scs-radius) var(--scs-radius) 0 0;
+    background: #f6f8fc;
 }
 
 .scs-application-logo-wrap img {
-    width: auto;
-    max-width: 100%;
-    height: 72px;
-    max-height: 100%;
+    display: block;
+    width: 100%;
+    max-width: 180px;
+    height: 100%;
     object-fit: contain;
+}
+
+.scs-application-initial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--scs-radius);
+    background: #e7eefe;
+    color: var(--scs-primary-strong);
+    font-size: 1.4rem;
+    font-weight: 700;
 }
 
 .scs-application-description {
     display: -webkit-box;
-    min-height: 3rem;
+    min-height: 2.7em;
+    margin-bottom: 1rem;
     overflow: hidden;
-    color: var(--scs-muted);
+    color: #4e5c74;
+    font-size: .875rem;
+    line-height: 1.35;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
 }
@@ -639,22 +1930,320 @@ body.authentication-bg {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: .65rem;
-    min-height: 230px;
-    border-style: dashed;
+    gap: .2rem;
+    padding: 1.25rem;
+    border: 1.5px dashed #9fb6e8;
+    background: var(--scs-surface);
+    color: var(--scs-primary-strong);
+    box-shadow: var(--scs-shadow);
+    transition: border-color var(--scs-duration) ease, background-color var(--scs-duration) ease;
 }
 
-.scs-add-workspace i {
+.scs-add-workspace:hover {
+    border-color: var(--scs-primary);
+    background: #f5f8ff;
+}
+
+.scs-add-workspace-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 3.25rem;
+    height: 3.25rem;
+    margin-bottom: .5rem;
     border-radius: 50%;
-    background: #edf2ff;
-    font-size: 1.3rem;
+    background: #e7eefe;
+    font-size: 1.4rem;
 }
 
+.scs-add-workspace-hint {
+    color: var(--scs-muted);
+    font-size: .8125rem;
+}
+
+.scs-app-picker-empty {
+    max-width: 560px;
+    margin: 0 auto;
+    box-shadow: var(--scs-shadow);
+}
+
+.scs-app-picker-empty-icon {
+    color: var(--scs-primary);
+    font-size: 2.5rem;
+}
+
+/* 10. Legacy helpers (still referenced by feature views) ------------------ */
+.text-input-error {
+    border-color: var(--scs-danger-solid);
+    padding-right: calc(1.5em + .9rem);
+    background-image: url(data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23c9303e'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23c9303e' stroke='none'/%3e%3c/svg%3e);
+    background-repeat: no-repeat;
+    background-position: right calc(.375em + .225rem) center;
+    background-size: calc(.75em + .45rem) calc(.75em + .45rem);
+}
+
+.ml-3 {
+    margin-left: 1rem;
+}
+
+.ml-2 {
+    margin-left: .75rem;
+}
+
+.hand-pointer {
+    cursor: pointer !important;
+}
+
+.remove-section-button {
+    margin-bottom: 3px;
+    padding: 5px;
+    font-size: 10px;
+    line-height: 5px;
+}
+
+.muted-text-editor {
+    padding: 10px;
+    border: 1px solid #c7c7c7;
+    border-radius: 10px;
+    background-color: #fffde9;
+}
+
+.fa---elements,
+#__descriptionEditorFA__ .ql-editor {
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+/* Users and access ------------------------------------------------------- */
+/* User list: name over email in one cell, both truncated so long addresses never widen the table. */
+.scs-user-cell {
+    display: flex;
+    flex-direction: column;
+    max-width: 22rem;
+    min-width: 0;
+}
+
+.scs-user-name {
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+/* Modal forms split into titled groups (Profile, Sign-in, ...). */
+.scs-form-section .scs-section-title {
+    margin: var(--scs-space-2) 0 0;
+    padding-top: var(--scs-space-3);
+    border-top: 1px solid var(--scs-border-subtle);
+}
+
+.scs-form-section:first-of-type .scs-section-title,
+.validation-summary-valid + .scs-form-section .scs-section-title {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+/* A switch with its explanation, boxed so the consequence reads as part of the choice. */
+.scs-switch-card {
+    height: 100%;
+    margin: 0;
+    padding: var(--scs-space-3) var(--scs-space-3) var(--scs-space-3) 3.25rem;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    background: var(--scs-surface-muted);
+}
+
+.scs-switch-card .form-check-label {
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+.scs-switch-card .form-text {
+    margin-top: var(--scs-space-1);
+}
+
+/* Aligns a form's action button with inputs that sit under a label. */
+@media (min-width: 768px) {
+    .scs-inline-action {
+        padding-top: 1.85rem;
+    }
+}
+
+/* Access modal tabs: underline tabs that scroll in their own bar instead of wrapping. */
+.scs-access-tabs {
+    flex-wrap: nowrap;
+    margin-bottom: var(--scs-space-4);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+}
+
+.scs-access-tabs .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    white-space: nowrap;
+}
+
+.scs-access-tabs .nav-link:focus-visible {
+    outline-offset: -2px;
+}
+
+.scs-count {
+    padding: .05rem .45rem;
+    border-radius: var(--scs-radius-pill);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.scs-access-tabs .nav-link.active .scs-count {
+    background: var(--scs-primary-subtle);
+    color: var(--scs-primary-strong);
+}
+
+/* Role and workspace rows: the name with its status badge beneath, so rows fit a phone. */
+.scs-assign-name {
+    display: block;
+    max-width: 100%;
+    margin-bottom: var(--scs-space-1);
+    color: var(--scs-ink);
+    font-weight: 700;
+}
+
+/* Sectors, grouped under the workspace they belong to. */
+.scs-sector-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: var(--scs-space-3);
+}
+
+.scs-sector-group {
+    min-width: 0;
+    padding: var(--scs-space-3);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+}
+
+.scs-sector-group-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--scs-space-2);
+    margin-bottom: var(--scs-space-3);
+}
+
+.scs-sector-group-header .scs-section-title {
+    min-width: 0;
+    margin: 0;
+}
+
+.scs-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--scs-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.scs-chip-list > li {
+    max-width: 100%;
+    padding: .2rem .6rem;
+    overflow: hidden;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-pill);
+    background: var(--scs-surface-muted);
+    color: var(--scs-ink-body);
+    font-size: var(--scs-text-meta);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Permission assignment: scope pickers and entity list beside the permission panel. */
+.scs-entity-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--scs-space-1);
+    max-height: 22rem;
+    overflow-y: auto;
+}
+
+.scs-entity-option {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    padding: var(--scs-space-2) var(--scs-space-3);
+    border: 1px solid var(--scs-border);
+    border-left: 3px solid transparent;
+    border-radius: var(--scs-radius-sm);
+    background: var(--scs-surface);
+    color: var(--scs-ink-body);
+    font-weight: 600;
+    text-align: left;
+    transition: background-color var(--scs-duration);
+}
+
+.scs-entity-option:hover {
+    background: var(--scs-surface-muted);
+}
+
+.scs-entity-option.is-selected {
+    border-color: var(--scs-primary-border);
+    border-left-color: var(--scs-primary);
+    background: var(--scs-primary-subtle);
+    color: var(--scs-primary-strong);
+}
+
+.scs-entity-option > .scs-cell-truncate {
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+.scs-permission-panel {
+    height: 100%;
+    padding: var(--scs-space-4);
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius);
+    background: var(--scs-surface);
+}
+
+.scs-permission-panel .scs-empty-state {
+    padding: var(--scs-space-6) var(--scs-space-3);
+}
+
+.scs-permission-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    gap: var(--scs-space-2);
+    margin: 0;
+}
+
+.scs-permission-item {
+    min-width: 0;
+    margin: 0;
+    padding: var(--scs-space-2) var(--scs-space-3) var(--scs-space-2) 2.25rem;
+    border: 1px solid var(--scs-border);
+    border-radius: var(--scs-radius-sm);
+}
+
+.scs-permission-item:has(.form-check-input:checked) {
+    border-color: var(--scs-primary-border);
+    background: var(--scs-primary-subtle);
+}
+
+.scs-permission-item .scs-code {
+    overflow-wrap: anywhere;
+}
+
+#accessSummary.is-unsaved {
+    color: var(--scs-warning-text);
+    font-weight: 700;
+}
+
+/* Responsive ------------------------------------------------------------- */
 @media (max-width: 767.98px) {
     .scs-backoffice .content {
         padding-top: 22px;
@@ -665,24 +2254,51 @@ body.authentication-bg {
     }
 
     .scs-page-header {
-        align-items: flex-start;
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .scs-page-header .btn {
-        width: 100%;
+    .scs-page-actions .btn {
+        flex: 1 1 auto;
     }
 
-    .scs-editor-tabs {
-        overflow-x: auto;
-        flex-wrap: nowrap;
+    .scs-topbar-workspace {
+        max-width: 55vw;
+    }
+
+    .scs-editor-panes,
+    .scs-editor-footer {
+        padding: 1rem;
+    }
+
+    .scs-editor-note {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
+    .scs-publish-actions > .btn,
+    .scs-author-actions > .btn {
+        flex: 1 1 auto;
+    }
+
+    /* Single column: the add card has no neighbour to match, so let it stay compact. */
+    .scs-add-workspace {
+        min-height: 9rem;
     }
 }
 
+/* Motion ----------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
         scroll-behavior: auto !important;
         transition-duration: .01ms !important;
+    }
+
+    .scs-dash-card:hover,
+    .scs-application-card:hover,
+    .scs-application-card:focus-within {
+        transform: none;
     }
 }

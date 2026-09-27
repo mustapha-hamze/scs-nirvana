@@ -5,22 +5,14 @@
 @model Application.Contracts.General.ApplicationSettingDto
 @using Application.UseCases.Utilities.ApplicationConst
 
-<form class="needs-validation row" novalidate id="frmApplicationSetting" method="POST">
+<form class="needs-validation row g-3" novalidate id="frmApplicationSetting" method="POST">
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="ApplicationId" />
-    <div asp-validation-summary="All" class="text-danger">
+    <div asp-validation-summary="All" class="alert alert-danger col-12 mb-0" role="alert">
     </div>
-    <div class="mb-3 col-md-6">
-        <label class="form-label">Title</label>
-        <input type="text" class="form-control" asp-for="Title" placeholder="Title" required minlength="4"
-            maxlength="256">
-        <div class="invalid-feedback">
-            Min length is 4 and max length is 256
-        </div>
-    </div>
-    <div class="mb-3 col-md-6">
-        <label class="form-label">Setting</label>
-        <select class="form-control" asp-for="SettingId">
+    <div class="col-md-6">
+        <label class="form-label scs-required" asp-for="SettingId">Setting</label>
+        <select class="form-select" asp-for="SettingId">
             <option value="@ApplicationSettingId.ContentImageSize">Content Image Size</option>
             <option value="@ApplicationSettingId.ContentImageAspectRatio">Content Image Aspect Ratio</option>
             <option value="@ApplicationSettingId.FrontContentTypes">Front Content Types</option>
@@ -33,14 +25,24 @@
             <option value="@ApplicationSettingId.WebsitePage">Website Page</option>
         </select>
     </div>
-    <div class="mb-3 col-md-6">
-        <label class="form-label">Value</label>
-        <input type="text" class="form-control" asp-for="Value" placeholder="Value" required minlength="1"
-            maxlength="64">
-        <div class="invalid-feedback">
-            Min length is 1 and max length is 512
-        </div>
+    <div class="col-md-6">
+        <label class="form-label scs-required" asp-for="Title">Title</label>
+        <input type="text" class="form-control" asp-for="Title" required minlength="4" maxlength="256"
+            aria-describedby="applicationSettingTitleHelp">
+        <div class="form-text" id="applicationSettingTitleHelp">A name that tells this value apart, e.g. "Thumbnail".</div>
+        <div class="invalid-feedback">Enter a title between 4 and 256 characters.</div>
+    </div>
+    <div class="col-12">
+        <label class="form-label scs-required" asp-for="Value">Value</label>
+        <input type="text" class="form-control" asp-for="Value" required minlength="1" maxlength="64"
+            spellcheck="false" aria-describedby="applicationSettingValueHelp">
+        <div class="form-text" id="applicationSettingValueHelp">For image sizes, enter width-height in pixels, e.g. 1920-1080.</div>
+        <div class="invalid-feedback">Enter a value of up to 64 characters.</div>
+    </div>
+    <div class="col-12 scs-author-actions justify-content-end">
+        <button type="button" class="btn scs-btn-quiet" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveApplicationSettingForm()">
+            <i class="uil uil-file-check-alt" aria-hidden="true"></i> Save setting
+        </button>
     </div>
 </form>
-<div class="alert alert-warning">Note: for image size, enter the image like 1920-1080(width-height)</div>
-<button class="btn btn-primary mt-2" onclick="saveApplicationSettingForm()">Submit form</button>

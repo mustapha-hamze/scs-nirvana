@@ -4,39 +4,54 @@
 
 @model List<Application.Contracts.CMS.SchemaDto>
 
-<div class="table-responsive-sm">
-    <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+@if (Model.Count == 0)
+{
+    <div class="scs-empty-state">
+        <i class="mdi mdi-shape-plus" aria-hidden="true"></i>
+        No schemas yet. Use Create Schema to define the first one.
+    </div>
+}
+else
+{
+    <table id="datatable-buttons" class="table table-hover dt-responsive nowrap w-100">
         <thead>
             <tr>
-                <th>Title</th>
+                <th>Schema</th>
+                <th>Used for</th>
                 <th>Created</th>
-                <th>Actions</th>
+                <th class="scs-table-actions">Actions</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>@item.Title</td>
-                    <td>@item.CreatedDT.ToString("yyyy MMM dd hh:ss")</td>
-                    <td>
-                        <a href="javascript: void(0);" class="action-icon" onclick="deleteSchema(@item.Id)"
-                            title="Delete" aria-label="Delete @item.Title">
-                            <i class="mdi mdi-delete"></i>
-                        </a>
-                        <a href="javascript: void(0);" data-bs-toggle="modal" onclick="schemaForm(@item.Id)"
+                    <td data-order="@item.Title">
+                        <span class="scs-cell-media">
+                            <img class="scs-logo-thumb" src="/Storage/Schema/Logos/@item.LogoFileName" alt="" loading="lazy" onerror="showLogoFallback(this)" />
+                            <span class="scs-cell-truncate" title="@item.Title">@item.Title</span>
+                        </span>
+                    </td>
+                    <td>@(item.TypeId == 1001 ? "Pages" : "Content")</td>
+                    <td data-order="@item.CreatedDT.ToString("yyyy-MM-ddTHH:mm:ss")">@item.CreatedDT.ToString("yyyy MMM dd, HH:mm")</td>
+                    <td class="scs-table-actions">
+                        <button type="button" class="action-icon" data-bs-toggle="modal"
+                            data-bs-target="#schema-details-modal" onclick="newSchemaDetailsForm(@item.Id)"
+                            title="Manage fields" aria-label="Manage fields for @item.Title">
+                            <i class="mdi mdi-format-list-bulleted-square" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" data-bs-toggle="modal" onclick="schemaForm(@item.Id)"
                             data-bs-target="#schema-modal" class="action-icon" title="Edit"
                             aria-label="Edit @item.Title">
-                            <i class="mdi mdi-pencil"></i>
-                        </a>
-                        <a href="javascript: void(0);" class="action-icon" data-bs-toggle="modal"
-                            data-bs-target="#schema-details-modal" onclick="newSchemaDetailsForm(@item.Id)"
-                            title="Manage Fields" aria-label="Manage fields for @item.Title">
-                            <i class="mdi mdi-menu"></i>
-                        </a>
+                            <i class="mdi mdi-pencil" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="action-icon is-danger" onclick="deleteSchema(@item.Id)"
+                            title="Delete" aria-label="Delete @item.Title">
+                            <i class="mdi mdi-delete" aria-hidden="true"></i>
+                        </button>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-</div>
+}
