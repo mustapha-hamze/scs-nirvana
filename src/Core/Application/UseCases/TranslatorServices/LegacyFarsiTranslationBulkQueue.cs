@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.CMSRepository;
+using Domains.Entities.ContentManagement;
 
 namespace Application.UseCases.TranslatorServices;
 
@@ -51,9 +52,9 @@ public class LegacyFarsiTranslationBulkQueue
             return ids.Select(id => new LegacyFarsiBulkQueueItem(id, LegacyFarsiBulkQueueOutcome.CultureUnavailable, null)).ToList();
 
         // Rule 5 (no active job for the current fingerprint) is Request's own idempotency check,
-        // which reports an existing job as AlreadyQueued instead of queueing a second one.
-        // ponytail: a translation row written between this check and Request (manual save, worker)
-        // is not re-checked there; closing that window needs a guard inside Request.
+        // which reports an existing job as AlreadyQueued instead of queueing a second one. Rule 4
+        // is re-checked by Request (NoTranslation) and then by the worker, so a translation row
+        // written after this check is never overwritten by a job queued here.
         var filter = new LegacyFarsiCandidateFilter(applicationId, cultureId, _options.LegacyBulkCandidateTypeIds, null, null);
         var owned = await _repository.ClassifyOwned(filter, ids, cancellationToken);
 
@@ -65,7 +66,7 @@ public class LegacyFarsiTranslationBulkQueue
             else if (!isCandidate)
                 items.Add(new LegacyFarsiBulkQueueItem(id, LegacyFarsiBulkQueueOutcome.Skipped, null));
             else
-                items.Add(ToItem(id, await _requests.Request(id, cultureId, applicationId, cancellationToken)));
+                items.Add(ToItem(id, await _requests.Request(id, cultureId, applicationId, cancellationToken, ContentTranslationPrecondition.NoTranslation)));
         }
         return items;
     }

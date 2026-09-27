@@ -99,14 +99,15 @@ public class ContentTranslationJobProcessorTests : IDisposable
     }
 
     private async Task<int> SeedJob(int contentId, int cultureId, string fingerprint = null,
-        ContentTranslationJobState state = ContentTranslationJobState.Queued, DateTime? nextAttemptAt = null, DateTime? leaseExpiresAt = null)
+        ContentTranslationJobState state = ContentTranslationJobState.Queued, DateTime? nextAttemptAt = null, DateTime? leaseExpiresAt = null,
+        ContentTranslationPrecondition precondition = ContentTranslationPrecondition.None)
     {
         fingerprint ??= await Fingerprint(contentId);
         await using var context = _factory.CreateContext();
         var job = new ContentTranslationJob
         {
             ContentId = contentId, CultureId = cultureId, SourceFingerprint = fingerprint, State = state,
-            NextAttemptAt = nextAttemptAt ?? Now, LeaseExpiresAt = leaseExpiresAt, IsActive = true
+            NextAttemptAt = nextAttemptAt ?? Now, LeaseExpiresAt = leaseExpiresAt, IsActive = true, TranslationPrecondition = precondition
         };
         context.ContentTranslationJobs.Add(job);
         await context.SaveChangesAsync();
@@ -132,6 +133,174 @@ public class ContentTranslationJobProcessorTests : IDisposable
     private Task<ContentTranslation> Row() => Read(c => c.ContentTranslations.IgnoreQueryFilters().SingleOrDefaultAsync());
 
     private Task<string> Legacy(int contentId) => Read(c => c.Contents.Where(x => x.Id == contentId).Select(x => x.FarsiContent).SingleAsync());
+
+    // Every column of the one translation row, audit fields included.
+    private Task<string> RowSnapshot() =>
+        Read(async c => System.Text.Json.JsonSerializer.Serialize(await c.ContentTranslations.IgnoreQueryFilters().AsNoTracking().SingleAsync()));
+
+    private async Task AddRow(int contentId, int cultureId, TranslationStatus status, string fingerprint, bool deleted = false)
+    {
+        await using var context = _factory.CreateContext();
+        context.ContentTranslations.Add(new ContentTranslation
+        {
+            ContentId = contentId, CultureId = cultureId, TranslationStatus = status, SourceFingerprint = fingerprint,
+            LocalizedTextJson = "{\"title\":\"manual\"}", Provider = "manual", Model = "m", Error = status == TranslationStatus.Failed ? "e" : null,
+            TranslatedAt = Now.AddDays(-1), IsActive = true, IsDeleted = deleted
+        });
+        await context.SaveChangesAsync();
+    }
+
+    public static TheoryData<TranslationStatus, bool, bool> ConflictingRows => new()
+    {
+        // status, soft-deleted, for the job's (current) source fingerprint
+        { TranslationStatus.Ready, false, true },
+        { TranslationStatus.Ready, false, false },
+        { TranslationStatus.Stale, false, false },
+        { TranslationStatus.Failed, false, true },
+        { TranslationStatus.NeedsReview, false, true },
+        { TranslationStatus.Ready, true, true }
+    };
+
+    private async Task AssertConflictAndRowUnchanged(int jobId, string rowBefore, int contentId)
+    {
+        var job = await Job(jobId);
+        var expectedCode = job.ErrorCode == ContentTranslationErrorCodes.TranslationDeleted
+            ? ContentTranslationErrorCodes.TranslationDeleted : ContentTranslationErrorCodes.TranslationConflict;
+        Assert.Equal((ContentTranslationJobState.Failed, expectedCode, null, Now), (job.State, job.ErrorCode, job.LeaseOwner, job.CompletedAt));
+        Assert.Equal(rowBefore, await RowSnapshot());
+        Assert.Equal(LegacyFarsi, await Legacy(contentId));
+    }
+
+    [Theory]
+    [MemberData(nameof(ConflictingRows))]
+    public async Task NoTranslationJob_RowWrittenBeforeWorkerStarts_FailsWithoutProviderCall_AndLeavesRow(TranslationStatus status, bool deleted, bool current)
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId, precondition: ContentTranslationPrecondition.NoTranslation);
+        await AddRow(contentId, cultureId, status, current ? await Fingerprint(contentId) : new string('0', 64), deleted);
+        var before = await RowSnapshot();
+        var port = Translating();
+
+        await RunOnce(port);
+
+        Assert.Empty(port.Requests);
+        Assert.Equal(ContentTranslationErrorCodes.TranslationConflict, (await Job(jobId)).ErrorCode);
+        await AssertConflictAndRowUnchanged(jobId, before, contentId);
+    }
+
+    [Theory]
+    [MemberData(nameof(ConflictingRows))]
+    public async Task NoTranslationJob_RowWrittenDuringProviderCall_FailsWithoutStoring(TranslationStatus status, bool deleted, bool current)
+    {
+        var (contentId, cultureId) = await Seed();
+        var fingerprint = await Fingerprint(contentId);
+        var jobId = await SeedJob(contentId, cultureId, precondition: ContentTranslationPrecondition.NoTranslation);
+        string before = null;
+        var port = new FakePort(async (request, _) =>
+        {
+            await AddRow(contentId, cultureId, status, current ? fingerprint : new string('0', 64), deleted);
+            before = await RowSnapshot();
+            return TranslationResult.Ok(FakeTranslate(request.ContentJson), "fake", "fake-model");
+        });
+
+        await RunOnce(port);
+
+        Assert.Single(port.Requests);
+        await AssertConflictAndRowUnchanged(jobId, before, contentId);
+    }
+
+    // The competing row is inserted after the worker's final check, just before its save: the
+    // insert-only write loses on the unique (ContentId, CultureId) key, atomically with the job.
+    [Theory]
+    [MemberData(nameof(ConflictingRows))]
+    public async Task NoTranslationJob_CompetingFinalWrite_CannotSucceedOrOverwrite(TranslationStatus status, bool deleted, bool current)
+    {
+        var (contentId, cultureId) = await Seed();
+        var fingerprint = await Fingerprint(contentId);
+        var jobId = await SeedJob(contentId, cultureId, precondition: ContentTranslationPrecondition.NoTranslation);
+        string before = null;
+
+        await RunOnce(Translating(), context => new FinalWriteRacingRepository(context, async () =>
+        {
+            await AddRow(contentId, cultureId, status, current ? fingerprint : new string('0', 64), deleted);
+            before = await RowSnapshot();
+        }));
+
+        Assert.NotNull(before);
+        var job = await Job(jobId);
+        Assert.Equal((ContentTranslationJobState.Failed, ContentTranslationErrorCodes.TranslationConflict), (job.State, job.ErrorCode));
+        await AssertConflictAndRowUnchanged(jobId, before, contentId);
+    }
+
+    // A lost lease (another writer bumped the job) is not mistaken for a translation conflict.
+    [Fact]
+    public async Task NoTranslationJob_LostLeaseOnFinalWrite_LeavesTheJobToItsNewOwner()
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId, precondition: ContentTranslationPrecondition.NoTranslation);
+
+        await RunOnce(Translating(), context => new FinalWriteRacingRepository(context, async () =>
+        {
+            await using var other = _factory.CreateContext();
+            await other.ContentTranslationJobs.ExecuteUpdateAsync(s => s.SetProperty(j => j.Version, j => j.Version + 10).SetProperty(j => j.LeaseOwner, "other"));
+        }));
+
+        var job = await Job(jobId);
+        Assert.Equal((ContentTranslationJobState.Processing, "other", null), (job.State, job.LeaseOwner, job.ErrorCode));
+        Assert.Null(await Row());
+    }
+
+    [Fact]
+    public async Task NoTranslationJob_WithNoRow_StoresReadyTranslation()
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId, precondition: ContentTranslationPrecondition.NoTranslation);
+
+        await RunOnce(Translating());
+
+        Assert.Equal(ContentTranslationJobState.Succeeded, (await Job(jobId)).State);
+        Assert.Equal((TranslationStatus.Ready, await Fingerprint(contentId)), ((await Row()).TranslationStatus, (await Row()).SourceFingerprint));
+        Assert.Equal(LegacyFarsi, await Legacy(contentId));
+    }
+
+    // Jobs queued before the column existed read as None (SQL default 0): a normal job still
+    // retranslates an unchanged failed row in place.
+    [Fact]
+    public async Task NoneJob_StillRetranslatesAFailedRow()
+    {
+        var (contentId, cultureId) = await Seed();
+        await AddRow(contentId, cultureId, TranslationStatus.Failed, await Fingerprint(contentId));
+        var jobId = await SeedJob(contentId, cultureId);
+
+        await RunOnce(Translating());
+
+        Assert.Equal(ContentTranslationJobState.Succeeded, (await Job(jobId)).State);
+        var row = await Row();
+        Assert.Equal((TranslationStatus.Ready, "fake", null), (row.TranslationStatus, row.Provider, row.Error));
+    }
+
+    // Runs the race once, immediately before the worker's final (success) save.
+    private sealed class FinalWriteRacingRepository(ApplicationDbContext context, Func<Task> race) : IContentTranslationJobRepository
+    {
+        private readonly ContentTranslationJobRepository _inner = new(context);
+        private int _saves;
+
+        public async Task<bool> TrySaveChanges(CancellationToken ct = default)
+        {
+            if (++_saves == 2) // 1: claim, 2: completion
+                await race();
+            return await _inner.TrySaveChanges(ct);
+        }
+
+        public Task<ContentTranslationJob> FindNextClaimable(DateTime utcNow, CancellationToken ct = default) => _inner.FindNextClaimable(utcNow, ct);
+        public Task<bool> ContentBelongsToApplication(int contentId, int applicationId, CancellationToken ct = default) => _inner.ContentBelongsToApplication(contentId, applicationId, ct);
+        public Task<Culture> FindCulture(int cultureId, CancellationToken ct = default) => _inner.FindCulture(cultureId, ct);
+        public Task<Content> FindSourceGraph(int contentId, CancellationToken ct = default) => _inner.FindSourceGraph(contentId, ct);
+        public Task<ContentTranslation> FindTranslation(int contentId, int cultureId, CancellationToken ct = default) => _inner.FindTranslation(contentId, cultureId, ct);
+        public void AddTranslation(ContentTranslation translation) => _inner.AddTranslation(translation);
+        public Task<ContentTranslationJob> FindJob(int contentId, int cultureId, string fingerprint, CancellationToken ct = default) => _inner.FindJob(contentId, cultureId, fingerprint, ct);
+        public void AddJob(ContentTranslationJob job) => _inner.AddJob(job);
+    }
 
     private async Task AssertNoTranslationWrittenAndLegacyIntact(int contentId)
     {
@@ -485,7 +654,8 @@ public class ContentTranslationJobProcessorTests : IDisposable
                      (nameof(ContentTranslationJob.AttemptCount), "int", false), (nameof(ContentTranslationJob.NextAttemptAt), "datetime2", false),
                      (nameof(ContentTranslationJob.LeaseOwner), "varchar(100)", true), (nameof(ContentTranslationJob.LeaseExpiresAt), "datetime2", true),
                      (nameof(ContentTranslationJob.ErrorCode), "varchar(64)", true), (nameof(ContentTranslationJob.CompletedAt), "datetime2", true),
-                     (nameof(ContentTranslationJob.Version), "int", false)
+                     (nameof(ContentTranslationJob.Version), "int", false),
+                     (nameof(ContentTranslationJob.TranslationPrecondition), "tinyint", false)
                  })
         {
             var property = entity.FindProperty(name);

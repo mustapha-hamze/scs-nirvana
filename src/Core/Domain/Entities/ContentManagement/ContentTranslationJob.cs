@@ -26,6 +26,9 @@ namespace Domains.Entities.ContentManagement
         // Safe, fixed error code (ContentTranslationErrorCodes) - never provider text or payloads.
         public string ErrorCode { get; set; }
 
+        // Assumption about the canonical translation row, captured when the job is (re-)queued.
+        public ContentTranslationPrecondition TranslationPrecondition { get; set; }
+
         // UTC; set when the job reaches a terminal state.
         public DateTime? CompletedAt { get; set; }
 

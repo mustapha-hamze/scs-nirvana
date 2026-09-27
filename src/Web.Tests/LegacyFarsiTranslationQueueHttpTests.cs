@@ -346,7 +346,8 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
 
         var jobs = await Jobs(a, b);
         Assert.Equal(2, jobs.Length);
-        Assert.All(jobs, j => Assert.Equal((ActivationCultureId, ContentTranslationJobState.Queued), (j.CultureId, j.State)));
+        Assert.All(jobs, j => Assert.Equal((ActivationCultureId, ContentTranslationJobState.Queued, ContentTranslationPrecondition.NoTranslation),
+            (j.CultureId, j.State, j.TranslationPrecondition)));
         int JobOf(int id) => jobs.Single(j => j.ContentId == id).Id;
         Assert.Equal(new[] { (b, "Queued", (int?)JobOf(b)), (a, "Queued", JobOf(a)) }, queued);
         Assert.Equal(new[] { (a, "AlreadyQueued", (int?)JobOf(a)), (b, "AlreadyQueued", JobOf(b)) }, second);

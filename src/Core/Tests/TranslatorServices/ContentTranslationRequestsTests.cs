@@ -136,8 +136,8 @@ public class ContentTranslationRequestsTests : IDisposable
 
         Assert.Equal(new ContentTranslationRequestResult(ContentTranslationState.Queued, job.Id, Created: true), await Request());
         var stored = Assert.Single(await Jobs());
-        Assert.Equal((ContentTranslationJobState.Queued, 0, null, null, Now, 1),
-            (stored.State, stored.AttemptCount, stored.ErrorCode, stored.CompletedAt, stored.NextAttemptAt, stored.Version));
+        Assert.Equal((ContentTranslationJobState.Queued, 0, null, null, Now, 1, ContentTranslationPrecondition.None),
+            (stored.State, stored.AttemptCount, stored.ErrorCode, stored.CompletedAt, stored.NextAttemptAt, stored.Version, stored.TranslationPrecondition));
     }
 
     [Fact]
@@ -243,6 +243,42 @@ public class ContentTranslationRequestsTests : IDisposable
         });
 
         Assert.Equal(ContentTranslationState.Failed, await State());
+    }
+
+    [Theory]
+    [InlineData(TranslationStatus.Ready, false)] // for an older source
+    [InlineData(TranslationStatus.Stale, false)]
+    [InlineData(TranslationStatus.Failed, false)]
+    [InlineData(TranslationStatus.NeedsReview, false)]
+    [InlineData(TranslationStatus.Ready, true)]
+    public async Task NoTranslationPrecondition_AnyExistingRow_QueuesNothing(TranslationStatus status, bool deleted)
+    {
+        await Seed();
+        var row = Translation(status, new string('0', 64));
+        row.IsDeleted = deleted;
+        await Add(row);
+
+        var result = await Run(sut => sut.Request(_contentId, _cultureId, ApplicationId, default, ContentTranslationPrecondition.NoTranslation));
+
+        Assert.Equal(new ContentTranslationRequestResult(ContentTranslationState.TranslationExists, null), result);
+        Assert.Empty(await Jobs());
+    }
+
+    [Fact]
+    public async Task Precondition_IsSetOnEveryQueue_SoANormalRetryOfABulkJobIsNormalAgain()
+    {
+        await Seed();
+        var bulk = await Run(sut => sut.Request(_contentId, _cultureId, ApplicationId, default, ContentTranslationPrecondition.NoTranslation));
+        Assert.Equal(ContentTranslationPrecondition.NoTranslation, Assert.Single(await Jobs()).TranslationPrecondition);
+        await using (var context = _factory.CreateContext())
+            await context.ContentTranslationJobs.ExecuteUpdateAsync(s => s.SetProperty(j => j.State, ContentTranslationJobState.Failed));
+        await Add(Translation(TranslationStatus.Stale, await Fingerprint()));
+
+        var retry = await Request();
+
+        Assert.Equal(new ContentTranslationRequestResult(ContentTranslationState.Queued, bulk.JobId, Created: true), retry);
+        var job = Assert.Single(await Jobs());
+        Assert.Equal((ContentTranslationJobState.Queued, ContentTranslationPrecondition.None), (job.State, job.TranslationPrecondition));
     }
 
     // A concurrent request inserts the same (content, culture, fingerprint) job just before save.
