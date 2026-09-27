@@ -1,7 +1,121 @@
+@model Web.Areas.BackOffice.Controllers.LegacyFarsiTranslationQueueController.DashboardViewModel
+
 @section PageHelper { Queue background translation of content that only has legacy Farsi. }
 
-<div class="card">
-    <div class="card-body">
-        <div class="scs-table-wrap" id="legacyFarsiCandidatesResultBody"></div>
+@* Everything dynamic (rows, availability, summary) is filled by js/features/legacy-farsi-queue.js
+   from the Candidates and Queue endpoints. The data-* attributes are the page's only configuration. *@
+<div id="lfqDashboard" data-worker-enabled="@(Model.WorkerEnabled ? "true" : "false")" data-max-items="@Model.MaxItems"
+    data-type-ids="@string.Join(",", Model.TypeIds)">
+
+    <div id="lfqAvailability" aria-live="polite">
+        @if (!Model.WorkerEnabled)
+        {
+            <div class="alert alert-warning" role="alert" id="lfqWorkerUnavailable">
+                Background translation is unavailable in this environment. You can review candidates, but queueing is disabled.
+            </div>
+        }
+        <div class="alert alert-warning" role="alert" id="lfqCultureUnavailable" hidden>
+            The translation target culture is unavailable. Queueing is disabled until it is configured.
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form id="lfqFilters" class="row align-items-end g-3 scs-filter-bar" role="search" aria-label="Find legacy Farsi candidates">
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label" for="lfqTypeId">Content type</label>
+                    <select class="form-select form-select-sm" id="lfqTypeId">
+                        <option value="">All configured types</option>
+                        @foreach (var typeId in Model.TypeIds)
+                        {
+                            <option value="@typeId">@typeId</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label" for="lfqTitle">Title contains</label>
+                    <input type="search" class="form-control form-control-sm" id="lfqTitle" autocomplete="off">
+                </div>
+                <div class="col-sm-4 col-lg-2">
+                    <label class="form-label" for="lfqContentId">Content ID</label>
+                    <input type="number" class="form-control form-control-sm" id="lfqContentId" min="1" step="1" inputmode="numeric" autocomplete="off">
+                </div>
+                <div class="col-sm-4 col-lg-2">
+                    <label class="form-label" for="lfqSort">Sort by</label>
+                    <select class="form-select form-select-sm" id="lfqSort">
+                        <option value="Id">Content ID</option>
+                        <option value="Title">Title</option>
+                        <option value="TypeId">Type ID</option>
+                        <option value="UpdatedAt">Updated</option>
+                    </select>
+                </div>
+                <div class="col-sm-4 col-lg-1">
+                    <label class="form-label" for="lfqDescending">Order</label>
+                    <select class="form-select form-select-sm" id="lfqDescending">
+                        <option value="false">Ascending</option>
+                        <option value="true">Descending</option>
+                    </select>
+                </div>
+                <div class="col-sm-12 col-lg-1 d-grid scs-inline-action">
+                    <button type="submit" class="btn btn-sm btn-primary" id="lfqFilter">
+                        <i class="uil uil-filter" aria-hidden="true"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <span id="lfqSelectedCount" aria-live="polite">0 selected</span>
+                <span class="text-muted small" id="lfqLimit">Up to @Model.MaxItems per request.</span>
+                <button type="button" class="btn btn-sm btn-light" id="lfqClear" disabled>Clear selection</button>
+                <button type="button" class="btn btn-sm btn-primary ms-auto" id="lfqQueue" disabled>
+                    <i class="mdi mdi-translate" aria-hidden="true"></i> Queue selected
+                </button>
+            </div>
+
+            <div id="lfqSummary" class="alert alert-info" role="status" hidden>
+                <p class="mb-1 fw-semibold" id="lfqSummaryTitle"></p>
+                <ul class="mb-0 ps-3" id="lfqSummaryList"></ul>
+            </div>
+
+            <div class="scs-table-wrap">
+                <table class="table table-hover table-sm nowrap w-100" aria-describedby="lfqPageInfo">
+                    <thead>
+                        <tr>
+                            <th scope="col"><span class="visually-hidden">Select</span></th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Type ID</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Updated</th>
+                            <th scope="col">Queue outcome</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lfqRows" aria-live="polite"></tbody>
+                </table>
+            </div>
+
+            <nav class="d-flex flex-wrap align-items-center gap-2 mt-3" aria-label="Candidate pages">
+                <button type="button" class="btn btn-sm btn-light" id="lfqPrev" disabled>
+                    <i class="mdi mdi-chevron-left" aria-hidden="true"></i> Previous
+                </button>
+                <label class="visually-hidden" for="lfqPage">Page</label>
+                <select class="form-select form-select-sm w-auto" id="lfqPage" disabled></select>
+                <button type="button" class="btn btn-sm btn-light" id="lfqNext" disabled>
+                    Next <i class="mdi mdi-chevron-right" aria-hidden="true"></i>
+                </button>
+                <span class="text-muted small" id="lfqPageInfo"></span>
+            </nav>
+        </div>
     </div>
 </div>
+
+<script src="/BackOffice/js/features/legacy-farsi-queue.js"></script>
+@section Scripts {
+    <script>
+        LegacyFarsiQueue.init(document.getElementById("lfqDashboard"));
+    </script>
+}

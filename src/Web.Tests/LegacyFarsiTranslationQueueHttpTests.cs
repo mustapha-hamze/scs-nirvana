@@ -302,7 +302,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         Db(context => context.ContentTranslationJobs.AsNoTracking().Where(j => contentIds.Contains(j.ContentId)).ToArrayAsync());
 
     private Task<string?> Legacy(int contentId) =>
-        Db(context => context.Contents.AsNoTracking().Where(c => c.Id == contentId).Select(c => c.FarsiContent).SingleAsync());
+        Db(context => context.Contents.AsNoTracking().Where(c => c.Id == contentId).Select(c => (string?)c.FarsiContent).SingleAsync());
 
     [Theory]
     [InlineData(null)]
@@ -337,7 +337,9 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         var (client, applicationId) = await SignIn();
         var a = await SeedContent(applicationId, "A");
         var b = await SeedContent(applicationId, "B");
-        var legacyBytes = System.Text.Encoding.UTF8.GetBytes((await Legacy(a))!);
+        var legacyBefore = await Legacy(a);
+        Assert.NotNull(legacyBefore);
+        var legacyBytes = System.Text.Encoding.UTF8.GetBytes(legacyBefore);
 
         var first = await PostQueue(client, b, a, b);
         var raw = await first.Content.ReadAsStringAsync();
@@ -352,7 +354,9 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         Assert.Equal(new[] { (a, "AlreadyQueued", (int?)JobOf(a)), (b, "AlreadyQueued", JobOf(b)) }, second);
         Assert.DoesNotContain("قدیمی", raw);
         Assert.DoesNotContain(jobs[0].SourceFingerprint, raw);
-        Assert.Equal(legacyBytes, System.Text.Encoding.UTF8.GetBytes((await Legacy(a))!));
+        var legacyAfter = await Legacy(a);
+        Assert.NotNull(legacyAfter);
+        Assert.Equal(legacyBytes, System.Text.Encoding.UTF8.GetBytes(legacyAfter));
     }
 
     [Theory]

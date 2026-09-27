@@ -29,11 +29,15 @@ public class LegacyFarsiTranslationQueueController : BaseController
     // Only content IDs are accepted; any other JSON property is ignored.
     public record QueueRequest(int[] ContentIds);
 
+    // The only configuration the dashboard sees: the selectable type IDs, the per-request limit,
+    // and whether background translation is switched on (configuration, not worker health).
+    public record DashboardViewModel(IReadOnlyList<int> TypeIds, int MaxItems, bool WorkerEnabled);
+
     [HttpGet]
     public IActionResult Index()
     {
         ViewData["Title"] = "Legacy Farsi Translation Queue";
-        return View();
+        return View(new DashboardViewModel(_options.LegacyBulkCandidateTypeIds, _options.BulkRequestMaxItems, _options.WorkerEnabled));
     }
 
     // Read-only: never queues, translates or writes. Undefined Sort values fail binding.
