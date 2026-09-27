@@ -310,3 +310,28 @@ test("a collapsed table's details toggle is named by its text plus what Enter do
   jq.tables();
   assert.equal(cell.getAttribute("aria-label"), null);
 });
+
+test("a missing logo becomes a same-class placeholder with no broken-image icon", () => {
+  const { context } = load();
+  doc.createElement = () => element();
+  let replacement = null;
+  const decorative = element({ class: "scs-logo-thumb", alt: "" }, { replaceWith(el) { replacement = el; } });
+
+  context.showLogoFallback(decorative);
+  // Keeps the thumbnail's class (and so its box) and stays out of the accessibility tree, like alt="".
+  assert.equal(replacement.className, "scs-logo-thumb scs-logo-fallback");
+  assert.equal(replacement.getAttribute("aria-hidden"), "true");
+  assert.equal(replacement.getAttribute("role"), null);
+
+  const named = element({ id: "hover-on-image", "data-fallback-label": "Current logo for Card is unavailable" }, {
+    replaceWith(el) { replacement = el; },
+  });
+  named.id = "hover-on-image";
+  context.showLogoFallback(named);
+  // A meaningful logo keeps its id and a name, and says so on screen.
+  assert.equal(replacement.className, "scs-logo-fallback");
+  assert.equal(replacement.id, "hover-on-image");
+  assert.equal(replacement.getAttribute("role"), "img");
+  assert.equal(replacement.getAttribute("aria-label"), "Current logo for Card is unavailable");
+  assert.match(replacement.innerHTML, /No logo/);
+});

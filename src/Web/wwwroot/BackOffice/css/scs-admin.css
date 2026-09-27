@@ -468,6 +468,12 @@
     min-height: 39px;
 }
 
+/* Small controls (the DataTables search) stay compact like .btn-sm, level with the pager. */
+.scs-backoffice .form-control-sm,
+.scs-backoffice .form-select-sm {
+    min-height: 32px;
+}
+
 /* Select2 4.1 keeps an empty chip list beside the full-width search field, which pushes the
    placeholder onto a second line; with no chips, drop the list so the box matches an input. */
 .select2-selection--multiple .select2-selection__rendered:empty {
@@ -1153,6 +1159,51 @@
     border-radius: var(--scs-radius-xs);
     background: var(--scs-surface-muted);
     object-fit: contain;
+}
+
+/* Missing logo (showLogoFallback in common.js): the placeholder keeps the logo's box and shows a neutral glyph. */
+.scs-logo-fallback {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--scs-space-1);
+    background: var(--scs-surface-muted);
+    color: var(--scs-muted);
+    line-height: 1;
+}
+
+/* Out of flow, the glyph gives no text baseline, so the box aligns by its bottom edge like an image
+   and table rows keep the same height as rows with a logo. */
+.scs-logo-fallback > i {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scs-media-thumb .scs-logo-fallback > i {
+    position: static;
+}
+
+.scs-schema-tile .scs-logo-fallback {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--scs-radius-xs);
+    font-size: 1.5rem;
+}
+
+.scs-media-thumb .scs-logo-fallback {
+    width: 100%;
+    height: 100%;
+    font-size: 2rem;
+}
+
+.scs-logo-fallback > span {
+    font-size: var(--scs-text-meta);
+    font-weight: 600;
 }
 
 .scs-code {

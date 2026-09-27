@@ -358,6 +358,24 @@ public sealed class ContentFeatureViewModelRenderingTests : IClassFixture<TestWe
         Assert.DoesNotContain("id=\"btnSaveContentBody\"", body);
     }
 
+    [Fact]
+    public async Task ContentSections_SchemaTileLogo_FallsBackWhenTheFileIsMissing()
+    {
+        var (client, _, applicationId) = await SeedTenantMemberAsync(AccessKeys.Content.PreviewBody);
+        var contentId = await SeedContentAsync(applicationId);
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            context.Schemas.Add(new Schema { ApplicationId = applicationId, Title = "Quote", LogoFileName = "quote.png", TypeId = 1001 });
+            await context.SaveChangesAsync();
+        }
+
+        var body = await client.GetStringAsync($"/BackOffice/Content/ContentSections/{contentId}/1000");
+
+        // The tile is named by its visible title, so the logo (and its placeholder) stays decorative.
+        Assert.Matches(@"<img src=""/Storage/Schema/Logos/quote\.png\?100001"" alt="""" onerror=""showLogoFallback\(this\)"" />\s*<span>Quote</span>", body);
+    }
+
     // ---- Images ----
 
     [Fact]

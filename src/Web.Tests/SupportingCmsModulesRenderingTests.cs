@@ -91,6 +91,8 @@ public sealed class SupportingCmsModulesRenderingTests : IClassFixture<TestWebAp
         var body = await GetOkAsync(client, "/BackOffice/Schema/SchemaList");
 
         Assert.Contains("class=\"scs-logo-thumb\"", body);
+        // A missing logo file swaps to a same-size placeholder instead of the broken-image icon.
+        Assert.Contains("src=\"/Storage/Schema/Logos/logo.png\" alt=\"\" loading=\"lazy\" onerror=\"showLogoFallback(this)\"", body);
         Assert.Contains($"onclick=\"newSchemaDetailsForm({schema.Id})\"", body);
         Assert.Contains($"onclick=\"schemaForm({schema.Id})\"", body);
         Assert.Matches($@"<button type=""button"" class=""action-icon is-danger"" onclick=""deleteSchema\({schema.Id}\)""", body);
@@ -118,6 +120,8 @@ public sealed class SupportingCmsModulesRenderingTests : IClassFixture<TestWebAp
 
         Assert.Contains("id=\"schemaLogoPreviewPlaceHolder\"", body);
         Assert.Contains("scs-logo-preview", body);
+        Assert.Contains("data-fallback-label=\"Current logo for Card is unavailable\"", body);
+        Assert.Contains("onerror=\"showLogoFallback(this)\"", body);
         Assert.Contains("onclick=\"removeLogo()\"", body);
         Assert.Contains("id=\"file-upload-SchemaLogo\"", body);
     }

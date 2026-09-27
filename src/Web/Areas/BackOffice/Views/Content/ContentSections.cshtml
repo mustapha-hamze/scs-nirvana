@@ -227,7 +227,7 @@
     @foreach (SchemaDto item in schemas)
     {
         <button type="button" class="scs-schema-tile" onclick="addContentSection(@item.Id)" title="Add a @item.Title section">
-            <img src="/Storage/Schema/Logos/@item.LogoFileName?100001" asp-append-version="true" alt="" />
+            <img src="/Storage/Schema/Logos/@item.LogoFileName?100001" asp-append-version="true" alt="" onerror="showLogoFallback(this)" />
             <span>@item.Title</span>
         </button>
     }

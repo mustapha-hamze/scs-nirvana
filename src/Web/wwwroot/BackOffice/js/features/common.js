@@ -102,6 +102,25 @@ function removeLoadingForBtnFilter(btnId, funcName) { clearBusy(document.getElem
 function setLoadingForBtn(btnId) { setBusy(btnId, "Saving"); }
 function removeLoadingForBtn(btnId, funcName, text) { clearBusy(document.getElementById(btnId), funcName, text); }
 
+// A logo whose file is missing or unreadable becomes a placeholder of the same size instead of the browser's
+// broken-image icon. Wire it with onerror="showLogoFallback(this)". A decorative logo (alt="", named by the
+// text beside it) stays hidden from assistive tech; give a meaningful one data-fallback-label to name it.
+function showLogoFallback(img) {
+    var fallback = document.createElement("span");
+    if (img.id) fallback.id = img.id;
+    fallback.className = ((img.getAttribute("class") || "") + " scs-logo-fallback").trim();
+    var label = img.getAttribute("data-fallback-label");
+    if (label) {
+        fallback.setAttribute("role", "img");
+        fallback.setAttribute("aria-label", label);
+        fallback.innerHTML = '<i class="mdi mdi-image-off-outline" aria-hidden="true"></i><span>No logo</span>';
+    } else {
+        fallback.setAttribute("aria-hidden", "true");
+        fallback.innerHTML = '<i class="mdi mdi-image-off-outline"></i>';
+    }
+    img.replaceWith(fallback);
+}
+
 // Returns a promise in every case so callers can chain what happens after the message is dismissed.
 function messageBox(title, text, icon) {
     if (window.Swal) return Swal.fire({ backdrop: false, title: title, text: text, icon: icon });

@@ -52,7 +52,8 @@
                 <figure class="scs-media-card scs-logo-preview">
                     <span class="scs-media-thumb">
                         <img id="hover-on-image" src="/Storage/Schema/Logos/@Model.LogoFileName" asp-append-version="true"
-                            alt="Current logo for @Model.Title" />
+                            alt="Current logo for @Model.Title" data-fallback-label="Current logo for @Model.Title is unavailable"
+                            onerror="showLogoFallback(this)" />
                     </span>
                 </figure>
                 <button type="button" onclick="removeLogo()" class="btn btn-sm btn-outline-secondary">
