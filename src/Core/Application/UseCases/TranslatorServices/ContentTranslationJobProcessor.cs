@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Application.CMSRepository;
 using Domains.Entities.ContentManagement;
@@ -34,6 +35,20 @@ public class ContentTranslationOptions
 
     // Culture whose reads may fall back to the legacy Content.FarsiContent snapshot; 0 = none.
     public int LegacyFarsiCultureId { get; set; }
+
+    // Content types the legacy-Farsi bulk translation queue may list; empty = none. Distinct, positive.
+    public int[] LegacyBulkCandidateTypeIds { get; set; } = [];
+
+    // Most content items one bulk translation request may queue.
+    public int BulkRequestMaxItems { get; set; } = 25;
+
+    public const int BulkRequestMaxItemsLimit = 100;
+
+    public bool HasValidLegacyBulkSettings() =>
+        LegacyBulkCandidateTypeIds != null
+        && LegacyBulkCandidateTypeIds.All(id => id > 0)
+        && LegacyBulkCandidateTypeIds.Distinct().Count() == LegacyBulkCandidateTypeIds.Length
+        && BulkRequestMaxItems is >= 1 and <= BulkRequestMaxItemsLimit;
 }
 
 // Safe, fixed codes stored in ContentTranslationJob.ErrorCode.
