@@ -99,6 +99,61 @@ public sealed class LegacyFarsiTranslationQueueDashboardTests : IClassFixture<Te
     }
 
     [Fact]
+    public async Task Dashboard_RendersTwoAccessibleTabs_WithTheQueueAndRecoveredWorkflowsInSeparatePanels()
+    {
+        var html = await Dashboard(Host(workerEnabled: true));
+
+        var tablist = Regex.Match(html, "<ul[^>]*role=\"tablist\"[^>]*>(.*?)</ul>", RegexOptions.Singleline);
+        Assert.True(tablist.Success);
+        Assert.Contains("aria-label=", tablist.Value);
+        var tabs = Regex.Matches(tablist.Groups[1].Value, "<button([^>]*)>(.*?)</button>", RegexOptions.Singleline);
+        Assert.Equal(2, tabs.Count);
+        Assert.Single(Regex.Matches(html, "role=\"tablist\""));
+        Assert.Equal(2, Regex.Matches(html, "role=\"tab\"").Count);
+        Assert.Equal(2, Regex.Matches(html, "role=\"tabpanel\"").Count);
+        Assert.Equal(new[] { "To Translate", "Recovered Jobs" }, tabs.Select(t => Regex.Replace(t.Groups[2].Value, "<[^>]*>", "").Trim()));
+        foreach (var (tab, panel, selected) in new[] { ("lfqTabCandidates", "lfqPanelCandidates", "true"), ("lfqTabRecovered", "lfqPanelRecovered", "false") })
+        {
+            var attributes = tabs.Single(t => t.Groups[1].Value.Contains($"id=\"{tab}\"")).Groups[1].Value;
+            Assert.Contains("type=\"button\"", attributes);
+            Assert.Contains("role=\"tab\"", attributes);
+            Assert.Contains($"aria-selected=\"{selected}\"", attributes);
+            Assert.Contains($"aria-controls=\"{panel}\"", attributes);
+            Assert.DoesNotContain("data-bs-toggle", attributes); // switched by the dashboard script alone
+            Assert.Matches($"<div id=\"{panel}\" role=\"tabpanel\" aria-labelledby=\"{tab}\" tabindex=\"0\"{(selected == "true" ? "" : " hidden")}>", html);
+        }
+        Assert.Contains("<span id=\"lfqRecoveredTabCount\"></span>", html); // the active count is filled in only when there is one
+
+        // To Translate holds the filters, candidate list, selection and the session's batch bar; Recovered Jobs the
+        // activity counts and the recovered list, with no percentage bar.
+        var candidates = html.Substring(html.IndexOf("id=\"lfqPanelCandidates\"", StringComparison.Ordinal));
+        var recovered = candidates.Substring(candidates.IndexOf("id=\"lfqPanelRecovered\"", StringComparison.Ordinal));
+        candidates = candidates.Substring(0, candidates.Length - recovered.Length);
+        foreach (var id in new[] { "lfqFilters", "lfqRows", "lfqPage", "lfqSelectedCount", "lfqClear", "lfqQueue", "lfqSummary", "lfqProgressBar" })
+        {
+            Assert.Contains($"id=\"{id}\"", candidates);
+            Assert.DoesNotContain($"id=\"{id}\"", recovered);
+        }
+        foreach (var id in new[] { "lfqRecoveredStatus", "lfqRecoveredStatusTitle", "lfqRecoveredStatusCounts", "lfqRecoveredRows", "lfqRecoveredNext" })
+        {
+            Assert.Contains($"id=\"{id}\"", recovered);
+            Assert.DoesNotContain($"id=\"{id}\"", candidates);
+        }
+        Assert.DoesNotContain("progress", recovered.Substring(0, recovered.IndexOf("<script", StringComparison.Ordinal)));
+        Assert.True(html.IndexOf("role=\"tablist\"", StringComparison.Ordinal) < html.IndexOf("id=\"lfqPanelCandidates\"", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Dashboard_IsSuperAdminOnly()
+    {
+        var host = Host(workerEnabled: true);
+        var response = await (await SignIn(host, superAdmin: false)).GetAsync(PageUrl);
+
+        Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain("lfqTabRecovered", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task Dashboard_WorkerDisabled_RendersUnavailableState()
     {
         var html = await Dashboard(Host(workerEnabled: false));

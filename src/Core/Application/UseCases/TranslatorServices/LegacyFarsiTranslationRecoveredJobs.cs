@@ -12,8 +12,17 @@ namespace Application.UseCases.TranslatorServices;
 public record LegacyFarsiRecoveredJob(int JobId, int ContentId, string Title, int TypeId, bool IsActive, LegacyFarsiJobProgressState State,
     int AttemptCount, string ErrorCode, DateTime RelevantAt);
 
+// Job counts by state over every page of the recovered scope (the same predicate as its rows).
+public record LegacyFarsiRecoveredJobCounts(int Queued, int Processing, int Succeeded, int Failed, int Superseded)
+{
+    public static readonly LegacyFarsiRecoveredJobCounts None = new(0, 0, 0, 0, 0);
+    public int Active => Queued + Processing;
+    public int Total => Active + Succeeded + Failed + Superseded;
+}
+
 // CultureAvailable is false when ContentTranslation:ActivationCultureId is unset, deleted or inactive.
-public record LegacyFarsiRecoveredJobPage(bool CultureAvailable, IReadOnlyList<LegacyFarsiRecoveredJob> Items, int TotalCount, int Page, int PageSize);
+public record LegacyFarsiRecoveredJobPage(bool CultureAvailable, IReadOnlyList<LegacyFarsiRecoveredJob> Items, int TotalCount, int Page, int PageSize,
+    LegacyFarsiRecoveredJobCounts Counts);
 
 // Read-only recovery of the queue dashboard after a refresh: every Queued/Processing job and every job
 // completed within LegacyBulkRecentJobDays, for the configured activation culture on the application's
@@ -45,14 +54,14 @@ public class LegacyFarsiTranslationRecoveredJobs
 
         var cultureId = _options.ActivationCultureId;
         if (cultureId <= 0 || !await _repository.IsCultureAvailable(cultureId, cancellationToken))
-            return new LegacyFarsiRecoveredJobPage(false, [], 0, page, pageSize);
+            return new LegacyFarsiRecoveredJobPage(false, [], 0, page, pageSize, LegacyFarsiRecoveredJobCounts.None);
         if (_options.LegacyBulkCandidateTypeIds is not { Length: > 0 } typeIds)
-            return new LegacyFarsiRecoveredJobPage(true, [], 0, page, pageSize);
+            return new LegacyFarsiRecoveredJobPage(true, [], 0, page, pageSize, LegacyFarsiRecoveredJobCounts.None);
 
         var completedSince = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-_options.LegacyBulkRecentJobDays);
-        var (total, jobs) = await _repository.FindRecoveredJobs(applicationId, cultureId, typeIds, completedSince, page, pageSize, cancellationToken);
+        var (counts, jobs) = await _repository.FindRecoveredJobs(applicationId, cultureId, typeIds, completedSince, page, pageSize, cancellationToken);
         var items = jobs.Select(j => new LegacyFarsiRecoveredJob(j.JobId, j.ContentId, j.Title, j.TypeId, j.IsActive, LegacyFarsiTranslationProgress.ToState(j.State),
             j.AttemptCount, j.State == ContentTranslationJobState.Failed ? j.ErrorCode : null, j.RelevantAt)).ToList();
-        return new LegacyFarsiRecoveredJobPage(true, items, total, page, pageSize);
+        return new LegacyFarsiRecoveredJobPage(true, items, counts.Total, page, pageSize, counts);
     }
 }

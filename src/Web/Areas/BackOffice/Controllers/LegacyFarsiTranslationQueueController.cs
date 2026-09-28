@@ -95,7 +95,8 @@ public class LegacyFarsiTranslationQueueController : BaseController
     }
 
     // Read-only: the selected application's active and recently completed jobs for the configured
-    // culture, so the dashboard can show them again after a refresh. Paging is clamped as for Candidates.
+    // culture, so the dashboard can show them again after a refresh, with per-state counts over every page.
+    // Paging is clamped as for Candidates.
     // Never queues, retries, fingerprints or translates.
     [HttpGet]
     public async Task<IActionResult> RecoveredJobs(int page = 1, int pageSize = LegacyFarsiTranslationCandidates.DefaultPageSize,
@@ -115,7 +116,12 @@ public class LegacyFarsiTranslationQueueController : BaseController
             }),
             totalCount = result.TotalCount,
             page = result.Page,
-            pageSize = result.PageSize
+            pageSize = result.PageSize,
+            counts = new
+            {
+                queued = result.Counts.Queued, processing = result.Counts.Processing, succeeded = result.Counts.Succeeded, failed = result.Counts.Failed,
+                superseded = result.Counts.Superseded, active = result.Counts.Active, total = result.Counts.Total
+            }
         });
     }
 }

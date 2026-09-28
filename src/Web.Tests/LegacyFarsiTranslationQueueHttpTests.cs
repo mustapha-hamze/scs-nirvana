@@ -617,7 +617,11 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
     {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(new[] { "cultureAvailable", "items", "totalCount", "page", "pageSize" }, body.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(new[] { "cultureAvailable", "items", "totalCount", "page", "pageSize", "counts" }, body.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(new[] { "queued", "processing", "succeeded", "failed", "superseded", "active", "total" },
+            body.GetProperty("counts").EnumerateObject().Select(p => p.Name));
+        Assert.All(body.GetProperty("counts").EnumerateObject(), p => Assert.Equal(JsonValueKind.Number, p.Value.ValueKind));
+        Assert.Equal(body.GetProperty("totalCount").GetInt32(), Counts(body).total);
         foreach (var item in body.GetProperty("items").EnumerateArray())
         {
             Assert.Equal(new[] { "jobId", "contentId", "title", "typeId", "isActive", "state", "attemptCount", "errorCode", "relevantAt" },
@@ -626,6 +630,13 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
                 Assert.DoesNotContain(item.EnumerateObject(), p => p.Name.Equals(forbidden, StringComparison.OrdinalIgnoreCase));
         }
         return body;
+    }
+
+    private static (int queued, int processing, int succeeded, int failed, int superseded, int active, int total) Counts(JsonElement body)
+    {
+        var counts = body.GetProperty("counts");
+        int Get(string name) => counts.GetProperty(name).GetInt32();
+        return (Get("queued"), Get("processing"), Get("succeeded"), Get("failed"), Get("superseded"), Get("active"), Get("total"));
     }
 
     private static int[] RecoveredJobIds(JsonElement body) =>
@@ -655,6 +666,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         Assert.Equal(new[] { queued, failed }, RecoveredJobIds(body));
         Assert.True(body.GetProperty("cultureAvailable").GetBoolean());
         Assert.Equal(2, body.GetProperty("totalCount").GetInt32());
+        Assert.Equal((1, 0, 0, 1, 0, 1, 2), Counts(body)); // the other application's, culture's, deleted and expired jobs are not counted
         var (first, second) = (body.GetProperty("items")[0], body.GetProperty("items")[1]);
         Assert.Equal(("Queued", mine, "Mine", TypeId, 1, JsonValueKind.Null),
             (first.GetProperty("state").GetString(), first.GetProperty("contentId").GetInt32(), first.GetProperty("title").GetString(),
@@ -680,6 +692,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
 
         Assert.Equal((page, pageSize, 2), (body.GetProperty("page").GetInt32(), body.GetProperty("pageSize").GetInt32(), body.GetProperty("totalCount").GetInt32()));
         Assert.Equal(page == 2 ? new[] { older } : pageSize == 1 ? new[] { newer } : new[] { newer, older }, RecoveredJobIds(body));
+        Assert.Equal((2, 0, 0, 0, 0, 2, 2), Counts(body)); // every page, not only the returned one
     }
 
     [Theory]
@@ -726,6 +739,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
 
         Assert.False(body.GetProperty("cultureAvailable").GetBoolean());
         Assert.Empty(RecoveredJobIds(body));
+        Assert.Equal((0, 0, 0, 0, 0, 0, 0), Counts(body));
         Assert.Equal(0, _saves.Count);
     }
 

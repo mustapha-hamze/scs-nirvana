@@ -7,6 +7,21 @@
 <div id="lfqDashboard" data-worker-enabled="@(Model.WorkerEnabled ? "true" : "false")" data-max-items="@Model.MaxItems"
     data-type-ids="@string.Join(",", Model.TypeIds)">
 
+    @* Two views of the same page: switching only shows or hides a panel (legacy-farsi-queue.js), so filters,
+       the selection, the submitted batch and polling carry on whichever panel is shown. *@
+    <ul class="nav nav-tabs mb-3" role="tablist" aria-label="Legacy Farsi queue views">
+        <li class="nav-item" role="presentation">
+            <button type="button" class="nav-link active" id="lfqTabCandidates" role="tab" aria-selected="true" aria-controls="lfqPanelCandidates">
+                To Translate
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button type="button" class="nav-link" id="lfqTabRecovered" role="tab" aria-selected="false" aria-controls="lfqPanelRecovered" tabindex="-1">
+                Recovered Jobs<span id="lfqRecoveredTabCount"></span>
+            </button>
+        </li>
+    </ul>
+
     <div id="lfqAvailability" aria-live="polite">
         @if (!Model.WorkerEnabled)
         {
@@ -19,141 +34,152 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <form id="lfqFilters" class="row align-items-end g-3 scs-filter-bar" role="search" aria-label="Find legacy Farsi candidates">
-                <div class="col-sm-6 col-lg-3">
-                    <label class="form-label" for="lfqTypeId">Content type</label>
-                    <select class="form-select form-select-sm" id="lfqTypeId">
-                        <option value="">All configured types</option>
-                        @foreach (var typeId in Model.TypeIds)
-                        {
-                            <option value="@typeId">@typeId</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                    <label class="form-label" for="lfqTitle">Title contains</label>
-                    <input type="search" class="form-control form-control-sm" id="lfqTitle" autocomplete="off">
-                </div>
-                <div class="col-sm-4 col-lg-2">
-                    <label class="form-label" for="lfqContentId">Content ID</label>
-                    <input type="number" class="form-control form-control-sm" id="lfqContentId" min="1" step="1" inputmode="numeric" autocomplete="off">
-                </div>
-                <div class="col-sm-4 col-lg-2">
-                    <label class="form-label" for="lfqSort">Sort by</label>
-                    <select class="form-select form-select-sm" id="lfqSort">
-                        <option value="Id">Content ID</option>
-                        <option value="Title">Title</option>
-                        <option value="TypeId">Type ID</option>
-                        <option value="UpdatedAt">Updated</option>
-                    </select>
-                </div>
-                <div class="col-sm-4 col-lg-1">
-                    <label class="form-label" for="lfqDescending">Order</label>
-                    <select class="form-select form-select-sm" id="lfqDescending">
-                        <option value="false">Ascending</option>
-                        <option value="true">Descending</option>
-                    </select>
-                </div>
-                <div class="col-sm-12 col-lg-1 d-grid scs-inline-action">
-                    <button type="submit" class="btn btn-sm btn-primary" id="lfqFilter">
-                        <i class="uil uil-filter" aria-hidden="true"></i> Filter
+    <div id="lfqPanelCandidates" role="tabpanel" aria-labelledby="lfqTabCandidates" tabindex="0">
+        <div class="card">
+            <div class="card-body">
+                <form id="lfqFilters" class="row align-items-end g-3 scs-filter-bar" role="search" aria-label="Find legacy Farsi candidates">
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label" for="lfqTypeId">Content type</label>
+                        <select class="form-select form-select-sm" id="lfqTypeId">
+                            <option value="">All configured types</option>
+                            @foreach (var typeId in Model.TypeIds)
+                            {
+                                <option value="@typeId">@typeId</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label" for="lfqTitle">Title contains</label>
+                        <input type="search" class="form-control form-control-sm" id="lfqTitle" autocomplete="off">
+                    </div>
+                    <div class="col-sm-4 col-lg-2">
+                        <label class="form-label" for="lfqContentId">Content ID</label>
+                        <input type="number" class="form-control form-control-sm" id="lfqContentId" min="1" step="1" inputmode="numeric" autocomplete="off">
+                    </div>
+                    <div class="col-sm-4 col-lg-2">
+                        <label class="form-label" for="lfqSort">Sort by</label>
+                        <select class="form-select form-select-sm" id="lfqSort">
+                            <option value="Id">Content ID</option>
+                            <option value="Title">Title</option>
+                            <option value="TypeId">Type ID</option>
+                            <option value="UpdatedAt">Updated</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-4 col-lg-1">
+                        <label class="form-label" for="lfqDescending">Order</label>
+                        <select class="form-select form-select-sm" id="lfqDescending">
+                            <option value="false">Ascending</option>
+                            <option value="true">Descending</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-lg-1 d-grid scs-inline-action">
+                        <button type="submit" class="btn btn-sm btn-primary" id="lfqFilter">
+                            <i class="uil uil-filter" aria-hidden="true"></i> Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span id="lfqSelectedCount" aria-live="polite">0 selected</span>
+                    <span class="text-muted small" id="lfqLimit">Up to @Model.MaxItems per request.</span>
+                    <button type="button" class="btn btn-sm btn-light" id="lfqClear" disabled>Clear selection</button>
+                    <button type="button" class="btn btn-sm btn-primary ms-auto" id="lfqQueue" disabled>
+                        <i class="mdi mdi-translate" aria-hidden="true"></i> Queue selected
                     </button>
                 </div>
-            </form>
-        </div>
-    </div>
 
-    @* Durable view of existing jobs (GET RecoveredJobs), so a refresh or return visit still shows what was
-       submitted. Jobs carry no batch or requester, so this is the whole application's list, not one user's batch. *@
-    <div class="card" id="lfqRecovered">
-        <div class="card-body">
-            <h2 class="scs-overline mb-1">Recovered translation jobs</h2>
-            <p class="text-muted small mb-3" id="lfqRecoveredIntro">
-                Current and recent translation jobs for the selected application and the configured content types: every queued or
-                running job, and jobs completed in the last @Model.RecentJobDays days. They come from every request, not only yours,
-                and stay listed after you refresh or leave this page. Content with a current job is not offered for queueing below.
-            </p>
-            <div class="scs-table-wrap">
-                <table class="table table-sm nowrap w-100" aria-describedby="lfqRecoveredInfo">
-                    <thead>
-                        <tr>
-                            <th scope="col">ID</th>
-                            <th scope="col">Title</th>
-                            <th scope="col">Type ID</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Translation job</th>
-                            <th scope="col">Attempts</th>
-                            <th scope="col">Last change (UTC)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lfqRecoveredRows" aria-live="polite"></tbody>
-                </table>
-            </div>
-            <nav class="d-flex flex-wrap align-items-center gap-2 mt-3" aria-label="Recovered job pages">
-                <button type="button" class="btn btn-sm btn-light" id="lfqRecoveredPrev" disabled>
-                    <i class="mdi mdi-chevron-left" aria-hidden="true"></i> Previous
-                </button>
-                <button type="button" class="btn btn-sm btn-light" id="lfqRecoveredNext" disabled>
-                    Next <i class="mdi mdi-chevron-right" aria-hidden="true"></i>
-                </button>
-                <span class="text-muted small" id="lfqRecoveredInfo"></span>
-            </nav>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                <span id="lfqSelectedCount" aria-live="polite">0 selected</span>
-                <span class="text-muted small" id="lfqLimit">Up to @Model.MaxItems per request.</span>
-                <button type="button" class="btn btn-sm btn-light" id="lfqClear" disabled>Clear selection</button>
-                <button type="button" class="btn btn-sm btn-primary ms-auto" id="lfqQueue" disabled>
-                    <i class="mdi mdi-translate" aria-hidden="true"></i> Queue selected
-                </button>
-            </div>
-
-            @* Submitted batch: the bar measures completed content items out of those submitted. *@
-            <div id="lfqSummary" class="alert alert-info" hidden>
-                <p class="mb-1 fw-semibold" id="lfqSummaryTitle" role="status"></p>
-                <div class="progress mb-2">
-                    <div class="progress-bar" id="lfqProgressBar" role="progressbar" aria-label="Completed content items"
-                        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width: 0%">0%</div>
+                @* Submitted batch: the bar measures completed content items out of those submitted. *@
+                <div id="lfqSummary" class="alert alert-info" hidden>
+                    <p class="mb-1 fw-semibold" id="lfqSummaryTitle" role="status"></p>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" id="lfqProgressBar" role="progressbar" aria-label="Completed content items"
+                            aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width: 0%">0%</div>
+                    </div>
+                    <p class="mb-1 small" id="lfqProgressCounts"></p>
+                    <p class="mb-1 small text-warning" id="lfqPollStatus" role="alert" hidden></p>
+                    <ul class="mb-0 ps-3" id="lfqSummaryList"></ul>
                 </div>
-                <p class="mb-1 small" id="lfqProgressCounts"></p>
-                <p class="mb-1 small text-warning" id="lfqPollStatus" role="alert" hidden></p>
-                <ul class="mb-0 ps-3" id="lfqSummaryList"></ul>
-            </div>
 
-            <div class="scs-table-wrap">
-                <table class="table table-hover table-sm nowrap w-100" aria-describedby="lfqPageInfo">
-                    <thead>
-                        <tr>
-                            <th scope="col"><span class="visually-hidden">Select</span></th>
-                            <th scope="col">ID</th>
-                            <th scope="col">Title</th>
-                            <th scope="col">Type ID</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Updated</th>
-                            <th scope="col">Queue outcome</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lfqRows" aria-live="polite"></tbody>
-                </table>
-            </div>
+                <div class="scs-table-wrap">
+                    <table class="table table-hover table-sm nowrap w-100" aria-describedby="lfqPageInfo">
+                        <thead>
+                            <tr>
+                                <th scope="col"><span class="visually-hidden">Select</span></th>
+                                <th scope="col">ID</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Type ID</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Updated</th>
+                                <th scope="col">Queue outcome</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lfqRows" aria-live="polite"></tbody>
+                    </table>
+                </div>
 
-            <nav class="d-flex flex-wrap align-items-center gap-2 mt-3" aria-label="Candidate pages">
-                <button type="button" class="btn btn-sm btn-light" id="lfqPrev" disabled>
-                    <i class="mdi mdi-chevron-left" aria-hidden="true"></i> Previous
-                </button>
-                <label class="visually-hidden" for="lfqPage">Page</label>
-                <select class="form-select form-select-sm w-auto" id="lfqPage" disabled></select>
-                <button type="button" class="btn btn-sm btn-light" id="lfqNext" disabled>
-                    Next <i class="mdi mdi-chevron-right" aria-hidden="true"></i>
-                </button>
-                <span class="text-muted small" id="lfqPageInfo"></span>
-            </nav>
+                <nav class="d-flex flex-wrap align-items-center gap-2 mt-3" aria-label="Candidate pages">
+                    <button type="button" class="btn btn-sm btn-light" id="lfqPrev" disabled>
+                        <i class="mdi mdi-chevron-left" aria-hidden="true"></i> Previous
+                    </button>
+                    <label class="visually-hidden" for="lfqPage">Page</label>
+                    <select class="form-select form-select-sm w-auto" id="lfqPage" disabled></select>
+                    <button type="button" class="btn btn-sm btn-light" id="lfqNext" disabled>
+                        Next <i class="mdi mdi-chevron-right" aria-hidden="true"></i>
+                    </button>
+                    <span class="text-muted small" id="lfqPageInfo"></span>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div id="lfqPanelRecovered" role="tabpanel" aria-labelledby="lfqTabRecovered" tabindex="0" hidden>
+        @* Durable view of existing jobs (GET RecoveredJobs), so a refresh or return visit still shows what was
+           submitted. Jobs carry no batch or requester, so this is the whole application's list, not one user's batch. *@
+        <div class="card" id="lfqRecovered">
+            <div class="card-body">
+                <h2 class="scs-overline mb-1">Recovered translation jobs</h2>
+                <p class="text-muted small mb-3" id="lfqRecoveredIntro">
+                    Current and recent translation jobs for the selected application and the configured content types: every queued or
+                    running job, and jobs completed in the last @Model.RecentJobDays days. They come from every request, not only yours,
+                    and stay listed after you refresh or leave this page. Content with a current job is not offered for queueing on the To Translate tab.
+                </p>
+                @* Live counts over every recovered job (not one page, not one batch): after a refresh the original
+                   batch and its size are unknown, so there is deliberately no percentage bar here. *@
+                <div id="lfqRecoveredStatus" class="alert alert-info">
+                    <p class="mb-1 fw-semibold">Recovered translation activity</p>
+                    <p class="mb-1" id="lfqRecoveredStatusTitle" role="status">Loading recovered translation activity…</p>
+                    <p class="mb-0 small" id="lfqRecoveredStatusCounts"></p>
+                </div>
+                <div class="scs-table-wrap">
+                    <table class="table table-sm nowrap w-100" aria-describedby="lfqRecoveredInfo">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Type ID</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Translation job</th>
+                                <th scope="col">Attempts</th>
+                                <th scope="col">Last change (UTC)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lfqRecoveredRows" aria-live="polite"></tbody>
+                    </table>
+                </div>
+                <nav class="d-flex flex-wrap align-items-center gap-2 mt-3" aria-label="Recovered job pages">
+                    <button type="button" class="btn btn-sm btn-light" id="lfqRecoveredPrev" disabled>
+                        <i class="mdi mdi-chevron-left" aria-hidden="true"></i> Previous
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light" id="lfqRecoveredNext" disabled>
+                        Next <i class="mdi mdi-chevron-right" aria-hidden="true"></i>
+                    </button>
+                    <span class="text-muted small" id="lfqRecoveredInfo"></span>
+                </nav>
+            </div>
         </div>
     </div>
 </div>

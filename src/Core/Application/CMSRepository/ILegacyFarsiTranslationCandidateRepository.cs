@@ -41,10 +41,10 @@ public interface ILegacyFarsiTranslationCandidateRepository
     Task<List<TranslationJobSnapshot>> FindJobs(int applicationId, int cultureId, IReadOnlyCollection<int> jobIds,
         CancellationToken cancellationToken = default);
 
-    // Total and one page of the non-deleted jobs for cultureId on the application's non-deleted content of
-    // typeIds that are Queued/Processing, or terminal with CompletedAt >= completedSince. Active first,
+    // Per-state counts of, and one page of, the non-deleted jobs for cultureId on the application's non-deleted
+    // content of typeIds that are Queued/Processing, or terminal with CompletedAt >= completedSince. Active first,
     // then RelevantAt descending, then Id descending. No candidate eligibility rule is applied.
-    Task<(int Total, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId, IReadOnlyCollection<int> typeIds,
+    Task<(LegacyFarsiRecoveredJobCounts Counts, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId, IReadOnlyCollection<int> typeIds,
         DateTime completedSince, int page, int pageSize, CancellationToken cancellationToken = default);
 
     // Total and one page of the filter's content minus excludedContentIds, ordered by sort then Id.

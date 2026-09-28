@@ -76,7 +76,7 @@ public class LegacyFarsiTranslationCandidateRepository : ILegacyFarsiTranslation
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<(int Total, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId,
+    public async Task<(LegacyFarsiRecoveredJobCounts Counts, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId,
         IReadOnlyCollection<int> typeIds, DateTime completedSince, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query =
@@ -94,11 +94,15 @@ public class LegacyFarsiTranslationCandidateRepository : ILegacyFarsiTranslation
                     ? j.UpdatedDT
                     : j.CompletedAt ?? j.UpdatedDT
             };
-        var total = await query.CountAsync(cancellationToken);
+        // One grouped query over the same predicate as the page, in place of a plain count.
+        var byState = await query.GroupBy(j => j.State).Select(g => new { State = g.Key, Count = g.Count() }).ToListAsync(cancellationToken);
+        int Count(ContentTranslationJobState state) => byState.Where(s => s.State == state).Sum(s => s.Count);
+        var counts = new LegacyFarsiRecoveredJobCounts(Count(ContentTranslationJobState.Queued), Count(ContentTranslationJobState.Processing),
+            Count(ContentTranslationJobState.Succeeded), Count(ContentTranslationJobState.Failed), Count(ContentTranslationJobState.Superseded));
         var rows = await query.OrderByDescending(j => j.IsPending).ThenByDescending(j => j.RelevantAt).ThenByDescending(j => j.Id)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .ToListAsync(cancellationToken);
-        return (total, rows.Select(j => new RecoveredTranslationJob(j.Id, j.ContentId, j.Title, j.TypeId, j.IsActive, j.State, j.AttemptCount,
+        return (counts, rows.Select(j => new RecoveredTranslationJob(j.Id, j.ContentId, j.Title, j.TypeId, j.IsActive, j.State, j.AttemptCount,
             j.ErrorCode, j.RelevantAt)).ToList());
     }
 

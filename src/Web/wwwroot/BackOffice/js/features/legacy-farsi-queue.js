@@ -4,7 +4,10 @@
 // application's active and recently completed jobs, durable across a refresh - shows them in their own
 // section (never in the submitted batch's bar, whose denominator is unknown after a refresh) and polls the
 // active ones through the same bounded Progress chain, rotating when there are more than one request may
-// carry; a job is polled once however it is known.
+// carry; a job is polled once however it is known. The two sections are tabs ("To Translate" and "Recovered
+// Jobs") that only show or hide their panel. The Recovered Jobs tab heads its rows with live counts over the
+// whole recovered scope (RecoveredJobs counts, adjusted in place by each Progress answer and re-read after a
+// submission and once polling drains) - counts, never a percentage, since no batch survives a refresh.
 // Requests go through $.ajax so the layout's global $.ajaxSetup adds the X-CSRF-TOKEN antiforgery header. Every dynamic value is written with
 // textContent. The server re-checks every submitted ID; the page only reflects the candidate list it
 // was given, the outcomes Queue returned and the job states Progress reports.
@@ -54,6 +57,9 @@ var LegacyFarsiQueue = (function () {
   // An active job or a translation exists for these: not offered for selection again this session.
   // Failed and Superseded jobs may be queued again.
   var LOCKED = { Queued: true, Processing: true, Succeeded: true, AlreadyReady: true };
+
+  // Job states the recovered counts are kept by.
+  var COUNT_KEYS = { Queued: "queued", Processing: "processing", Succeeded: "succeeded", Failed: "failed", Superseded: "superseded" };
 
   // ---- Pure helpers (covered by Web.Tests/js/legacy-farsi-queue.test.mjs) ----
 
@@ -244,6 +250,48 @@ var LegacyFarsiQueue = (function () {
     return recovered.filter(function (item) { return inBatch.indexOf(item.jobId) < 0; });
   }
 
+  function withTotals(counts) {
+    counts.active = counts.queued + counts.processing;
+    counts.total = counts.active + counts.succeeded + counts.failed + counts.superseded;
+    return counts;
+  }
+
+  // The RecoveredJobs per-state counts (every page of the recovered scope); anything but a whole number is 0.
+  function recoveredCounts(raw) {
+    var counts = {};
+    Object.keys(COUNT_KEYS).forEach(function (state) {
+      var value = raw ? raw[COUNT_KEYS[state]] : 0;
+      counts[COUNT_KEYS[state]] = Number.isSafeInteger(value) && value > 0 ? value : 0;
+    });
+    return withTotals(counts);
+  }
+
+  // counts after Progress moved recovered jobs from their before states to their after states (the same
+  // items, as mergeProgress returns them). A job that is NotFound now has left the scope.
+  function applyStateChanges(counts, before, after) {
+    var next = Object.assign({}, counts);
+    before.forEach(function (item, i) {
+      if (item.state === after[i].state) return;
+      var from = COUNT_KEYS[item.state];
+      var to = COUNT_KEYS[after[i].state];
+      if (from && next[from] > 0) next[from]--;
+      if (to) next[to]++;
+    });
+    return withTotals(next);
+  }
+
+  // The recovered-activity headline and counts line. live: an active job is being polled right now.
+  function recoveredStatus(counts, live) {
+    var title = counts.active > 0
+      ? counts.active + " job" + (counts.active === 1 ? "" : "s") + " active" + (live ? " · updating every few seconds" : "")
+      : counts.total > 0 ? "No jobs active." : "No current or recent translation jobs.";
+    var detail = counts.total > 0
+      ? "Queued " + counts.queued + " · Translating " + counts.processing + " · Translated recently " + counts.succeeded +
+        " · Failed " + counts.failed + " · Superseded " + counts.superseded
+      : "";
+    return { title: title, detail: detail };
+  }
+
   function shortTime(value) {
     return String(value || "").slice(0, 16).replace("T", " ");
   }
@@ -258,9 +306,24 @@ var LegacyFarsiQueue = (function () {
       typeIds: (root.getAttribute("data-type-ids") || "").split(",").map(parsePositiveInt).filter(function (x) { return x !== null; }),
     };
     var state = { page: 1, filters: readFilters(), selected: [], batch: [], cultureAvailable: null, busy: false, last: null,
-      recovered: [], recoveredLast: null, recoveredPage: 1 };
+      recovered: [], recoveredLast: null, recoveredPage: 1, recoveredCounts: recoveredCounts(null), recoveredSeq: 0, tabChosen: false };
     // cursors: where the next window starts (see pollWindow); retried: the current window failed once.
     var poll = { timer: null, inFlight: false, stopped: false, cursors: { batch: null, recovered: null }, retried: false };
+
+    var TABS = { candidates: ["lfqTabCandidates", "lfqPanelCandidates"], recovered: ["lfqTabRecovered", "lfqPanelRecovered"] };
+
+    // Shows one panel and hides the other; nothing is loaded, reset or re-polled.
+    function showTab(name, focus) {
+      Object.keys(TABS).forEach(function (key) {
+        var tab = byId(TABS[key][0]);
+        var active = key === name;
+        tab.className = "nav-link" + (active ? " active" : "");
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+        tab.tabIndex = active ? 0 : -1;
+        byId(TABS[key][1]).hidden = !active;
+        if (active && focus) tab.focus();
+      });
+    }
 
     function readFilters() {
       return {
@@ -343,7 +406,7 @@ var LegacyFarsiQueue = (function () {
         tbody.appendChild(tr);
       });
       if (items.length === 0)
-        messageRow("No legacy Farsi content needs queueing for these filters. Content with a current translation job is not listed here; see Recovered translation jobs.");
+        messageRow("No legacy Farsi content needs queueing for these filters. Content with a current translation job is not listed here; see the Recovered Jobs tab.");
     }
 
     function renderToolbar() {
@@ -421,19 +484,36 @@ var LegacyFarsiQueue = (function () {
       if (!last) messageRow("Loading translation jobs…", "lfqRecoveredRows");
       else if (last.failed) messageRow("Translation jobs could not be loaded. Reload the page and try again.", "lfqRecoveredRows");
       else if (shown.length === 0)
-        messageRow(state.recovered.length > 0 ? "These jobs are shown in the submitted batch above." : "No current or recent translation jobs.", "lfqRecoveredRows");
+        messageRow(state.recovered.length > 0 ? "These jobs are shown in the submitted batch on the To Translate tab." : "No current or recent translation jobs.", "lfqRecoveredRows");
       var pages = last && !last.failed ? pageCount(last.totalCount, last.pageSize) : 1;
       byId("lfqRecoveredPrev").disabled = !last || state.recoveredPage <= 1;
       byId("lfqRecoveredNext").disabled = !last || state.recoveredPage >= pages;
       byId("lfqRecoveredInfo").textContent = last && !last.failed
         ? last.totalCount + " job" + (last.totalCount === 1 ? "" : "s") + " · page " + state.recoveredPage + " of " + pages
         : "";
+      renderRecoveredStatus();
     }
 
+    function renderRecoveredStatus() {
+      var last = state.recoveredLast;
+      var counts = state.recoveredCounts;
+      var status = { title: "Loading recovered translation activity…", detail: "" };
+      if (last && last.failed) status.title = "Recovered translation activity could not be loaded. Reload the page and try again.";
+      else if (last && last.cultureAvailable !== true) status.title = "The translation target culture is unavailable, so there is no translation activity to show.";
+      else if (last) status = recoveredStatus(counts, !poll.stopped && tracked().length > 0);
+      byId("lfqRecoveredStatusTitle").textContent = status.title;
+      byId("lfqRecoveredStatusCounts").textContent = status.detail;
+      byId("lfqRecoveredTabCount").textContent = counts.active > 0 ? " (" + counts.active + " active)" : "";
+    }
+
+    // Only the latest read is applied, so an earlier answer arriving late never overwrites a newer one.
     function loadRecovered(page) {
+      var seq = ++state.recoveredSeq;
       $.ajax(recoveredRequest(page))
         .done(function (data) {
+          if (seq !== state.recoveredSeq) return;
           state.recoveredLast = data;
+          state.recoveredCounts = recoveredCounts(data.counts);
           state.recoveredPage = data.page;
           state.recovered = (data.items || []).filter(function (item) { return STATE_LABELS[item.state]; }).map(function (item) {
             return {
@@ -441,12 +521,18 @@ var LegacyFarsiQueue = (function () {
               state: item.state, attemptCount: item.attemptCount, relevantAt: item.relevantAt,
             };
           });
+          // The first answer picks the initial tab once: running work first. A tab chosen by hand is never overridden.
+          if (!state.tabChosen && state.recoveredCounts.active > 0) showTab("recovered", false);
+          state.tabChosen = true;
           renderRecovered();
           schedulePoll();
         })
         .fail(function () {
+          if (seq !== state.recoveredSeq) return;
+          state.tabChosen = true;
           state.recoveredLast = { failed: true };
           state.recovered = [];
+          state.recoveredCounts = recoveredCounts(null);
           renderRecovered();
         });
     }
@@ -502,7 +588,9 @@ var LegacyFarsiQueue = (function () {
       $.ajax(progressRequest(slot.ids))
         .done(function (data) {
           state.batch = mergeProgress(state.batch, data && data.items);
-          state.recovered = mergeProgress(state.recovered, data && data.items);
+          var before = state.recovered;
+          state.recovered = mergeProgress(before, data && data.items);
+          state.recoveredCounts = applyStateChanges(state.recoveredCounts, before, state.recovered);
           poll.cursors = slot.cursors;
           poll.retried = false;
           setPollMessage(null);
@@ -522,7 +610,12 @@ var LegacyFarsiQueue = (function () {
           if (state.last) renderRows(state.last.items);
           renderToolbar();
           if (tracked().length > 0) schedulePoll();
-          else load(state.page); // all terminal: reconcile the list; the summary stays visible
+          else {
+            // All terminal: reconcile both lists (active jobs beyond the recovered page come up to be polled);
+            // the summary stays visible.
+            loadRecovered(state.recoveredPage);
+            load(state.page);
+          }
         });
     }
 
@@ -555,6 +648,7 @@ var LegacyFarsiQueue = (function () {
             state.selected = [];
             renderProgress();
             renderRecovered();
+            loadRecovered(state.recoveredPage); // the new jobs join the recovered counts
           })
           .fail(function (xhr) {
             // A 400 carries the server's fixed validation message only.
@@ -599,9 +693,26 @@ var LegacyFarsiQueue = (function () {
     byId("lfqQueue").addEventListener("click", queueSelected);
     byId("lfqRecoveredPrev").addEventListener("click", function () { loadRecovered(state.recoveredPage - 1); });
     byId("lfqRecoveredNext").addEventListener("click", function () { loadRecovered(state.recoveredPage + 1); });
+    Object.keys(TABS).forEach(function (key) {
+      var tab = byId(TABS[key][0]);
+      tab.addEventListener("click", function () {
+        state.tabChosen = true;
+        showTab(key, false);
+      });
+      // Arrow keys move between the two tabs, Home/End to the first/last (the WAI-ARIA tabs pattern).
+      tab.addEventListener("keydown", function (event) {
+        var other = key === "candidates" ? "recovered" : "candidates";
+        var target = { ArrowLeft: other, ArrowRight: other, Home: "candidates", End: "recovered" }[event.key];
+        if (!target) return;
+        event.preventDefault();
+        state.tabChosen = true;
+        showTab(target, true);
+      });
+    });
     window.addEventListener("pagehide", stopPolling);
     window.addEventListener("beforeunload", stopPolling);
 
+    showTab("candidates", false);
     renderToolbar();
     load(1);
     renderRecovered();
@@ -628,6 +739,9 @@ var LegacyFarsiQueue = (function () {
     mergeProgress: mergeProgress,
     recoveredRequest: recoveredRequest,
     recoveredToShow: recoveredToShow,
+    recoveredCounts: recoveredCounts,
+    applyStateChanges: applyStateChanges,
+    recoveredStatus: recoveredStatus,
     progressCounts: progressCounts,
     progressRequest: progressRequest,
     POLL_INTERVAL_MS: POLL_INTERVAL_MS,

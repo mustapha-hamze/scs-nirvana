@@ -160,6 +160,39 @@ public class LegacyFarsiTranslationRecoveredJobsTests : IDisposable
         Assert.Empty((await Find(page: 4, pageSize: 2)).Items);
     }
 
+    [Fact]
+    public async Task Counts_CoverEveryPage_ByState_WithTheRowsPredicate()
+    {
+        await Seed();
+        var content = await AddContent();
+        await AddJob(content, ContentTranslationJobState.Queued, updatedAt: Now.AddDays(-90)); // active: any age
+        await AddJob(content, ContentTranslationJobState.Queued);
+        await AddJob(content, ContentTranslationJobState.Processing, updatedAt: Now.AddDays(-45));
+        await AddJob(content, ContentTranslationJobState.Succeeded, completedAt: Cutoff); // exactly at the cutoff
+        await AddJob(content, ContentTranslationJobState.Succeeded, completedAt: Now.AddHours(-1));
+        await AddJob(content, ContentTranslationJobState.Failed, completedAt: Now.AddDays(-1), errorCode: "provider_error");
+        await AddJob(content, ContentTranslationJobState.Superseded, completedAt: Now.AddDays(-2));
+        // Outside the scope: past the cutoff, no completion time, other application, culture, type, deleted job or content.
+        await AddJob(content, ContentTranslationJobState.Succeeded, completedAt: Cutoff.AddTicks(-1));
+        await AddJob(content, ContentTranslationJobState.Failed, completedAt: null);
+        await AddJob(await AddContent(applicationId: 2), ContentTranslationJobState.Queued);
+        await AddJob(content, ContentTranslationJobState.Queued, cultureId: _otherCultureId);
+        await AddJob(await AddContent(typeId: 2000), ContentTranslationJobState.Processing);
+        await AddJob(content, ContentTranslationJobState.Queued, isDeleted: true);
+        await AddJob(await AddContent(isDeleted: true), ContentTranslationJobState.Queued);
+
+        var first = await Find(page: 1, pageSize: 2);
+        var all = await Find(page: 1, pageSize: 100);
+
+        Assert.Equal(new LegacyFarsiRecoveredJobCounts(2, 1, 2, 1, 1), first.Counts);
+        Assert.Equal((3, 7, 7), (first.Counts.Active, first.Counts.Total, first.TotalCount));
+        Assert.Equal(first.Counts, all.Counts);
+        Assert.Equal(all.Counts.Total, all.Items.Count); // the rows and the counts share one predicate
+        Assert.Equal(2, _reads); // one repository read per page, however many states
+        Assert.Equal(["Queued", "Processing", "Succeeded", "Failed", "Superseded", "Active", "Total"],
+            typeof(LegacyFarsiRecoveredJobCounts).GetProperties().Select(p => p.Name));
+    }
+
     [Theory]
     [InlineData(0, 0, 1, 1)]
     [InlineData(-5, 1000, 1, LegacyFarsiTranslationCandidates.MaxPageSize)]
@@ -210,6 +243,7 @@ public class LegacyFarsiTranslationRecoveredJobsTests : IDisposable
         var page = await Find(cultureId: cultureId);
 
         Assert.Equal((false, 0), (page.CultureAvailable, page.TotalCount));
+        Assert.Equal(LegacyFarsiRecoveredJobCounts.None, page.Counts);
         Assert.Empty(page.Items);
         Assert.Equal((0, 0), (_reads, _saves));
     }
@@ -262,7 +296,7 @@ public class LegacyFarsiTranslationRecoveredJobsTests : IDisposable
     // Counts FindRecoveredJobs calls; the culture check passes through, and nothing else may be used.
     private sealed class CountingRepository(ILegacyFarsiTranslationCandidateRepository inner, Action onRead) : ILegacyFarsiTranslationCandidateRepository
     {
-        public Task<(int Total, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId, IReadOnlyCollection<int> typeIds,
+        public Task<(LegacyFarsiRecoveredJobCounts Counts, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId, IReadOnlyCollection<int> typeIds,
             DateTime completedSince, int page, int pageSize, CancellationToken ct = default)
         {
             onRead();
