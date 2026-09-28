@@ -44,11 +44,18 @@ public class ContentTranslationOptions
 
     public const int BulkRequestMaxItemsLimit = 100;
 
+    // Days a terminal (Succeeded/Failed/Superseded) job stays in the queue dashboard's recovered-jobs
+    // list after CompletedAt; Queued/Processing jobs are always listed.
+    public int LegacyBulkRecentJobDays { get; set; } = 7;
+
+    public const int LegacyBulkRecentJobDaysLimit = 30;
+
     public bool HasValidLegacyBulkSettings() =>
         LegacyBulkCandidateTypeIds != null
         && LegacyBulkCandidateTypeIds.All(id => id > 0)
         && LegacyBulkCandidateTypeIds.Distinct().Count() == LegacyBulkCandidateTypeIds.Length
-        && BulkRequestMaxItems is >= 1 and <= BulkRequestMaxItemsLimit;
+        && BulkRequestMaxItems is >= 1 and <= BulkRequestMaxItemsLimit
+        && LegacyBulkRecentJobDays is >= 1 and <= LegacyBulkRecentJobDaysLimit;
 }
 
 // Safe, fixed codes stored in ContentTranslationJob.ErrorCode.

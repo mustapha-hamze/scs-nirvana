@@ -1,13 +1,17 @@
 // Legacy Farsi Translation Queue dashboard (Areas/BackOffice/Views/LegacyFarsiTranslationQueue/Index.cshtml).
 // Reads GET Candidates, posts only selected content IDs to POST Queue, then polls GET Progress with the
-// returned job IDs until every submitted item is terminal. Requests go through $.ajax so the layout's
-// global $.ajaxSetup adds the X-CSRF-TOKEN antiforgery header. Every dynamic value is written with
+// returned job IDs until every submitted item is terminal. On load it also reads GET RecoveredJobs - the
+// application's active and recently completed jobs, durable across a refresh - shows them in their own
+// section (never in the submitted batch's bar, whose denominator is unknown after a refresh) and polls the
+// active ones through the same bounded Progress chain; a job is polled once however it is known.
+// Requests go through $.ajax so the layout's global $.ajaxSetup adds the X-CSRF-TOKEN antiforgery header. Every dynamic value is written with
 // textContent. The server re-checks every submitted ID; the page only reflects the candidate list it
 // was given, the outcomes Queue returned and the job states Progress reports.
 var LegacyFarsiQueue = (function () {
   var CANDIDATES_URL = "/BackOffice/LegacyFarsiTranslationQueue/Candidates";
   var QUEUE_URL = "/BackOffice/LegacyFarsiTranslationQueue/Queue";
   var PROGRESS_URL = "/BackOffice/LegacyFarsiTranslationQueue/Progress";
+  var RECOVERED_URL = "/BackOffice/LegacyFarsiTranslationQueue/RecoveredJobs";
   var POLL_INTERVAL_MS = 2500;
   var SORTS = ["Id", "Title", "TypeId", "UpdatedAt"];
   var PAGE_SIZE = 25;
@@ -141,14 +145,27 @@ var LegacyFarsiQueue = (function () {
     return batch.filter(isPending).map(function (item) { return item.jobId; });
   }
 
-  // Applies Progress items by job ID. Unknown states are ignored so a job keeps its last known state.
-  function mergeProgress(batch, progressItems) {
+  // Distinct pending job IDs of the batch and the recovered jobs, at most max (the Progress limit).
+  // ponytail: the first max stay polled until terminal; rotate the window if long queues starve the rest.
+  function trackedJobIds(batch, recovered, max) {
+    var ids = [];
+    batch.concat(recovered).forEach(function (item) {
+      if (isPending(item) && ids.indexOf(item.jobId) < 0) ids.push(item.jobId);
+    });
+    return ids.slice(0, max);
+  }
+
+  // Applies Progress items (state, and attempts for items that show them) by job ID to batch or
+  // recovered items. Unknown states are ignored so a job keeps its last known state.
+  function mergeProgress(items, progressItems) {
     var byJob = {};
-    (progressItems || []).forEach(function (p) { if (STATE_LABELS[p.state]) byJob[p.jobId] = p.state; });
-    return batch.map(function (item) {
-      var state = item.jobId != null ? byJob[item.jobId] : undefined;
-      if (!state) return item;
-      return { contentId: item.contentId, outcome: item.outcome, jobId: item.jobId, state: state };
+    (progressItems || []).forEach(function (p) { if (STATE_LABELS[p.state]) byJob[p.jobId] = p; });
+    return items.map(function (item) {
+      var p = item.jobId != null ? byJob[item.jobId] : undefined;
+      if (!p) return item;
+      var next = Object.assign({}, item, { state: p.state });
+      if ("attemptCount" in item && typeof p.attemptCount === "number") next.attemptCount = p.attemptCount;
+      return next;
     });
   }
 
@@ -183,6 +200,20 @@ var LegacyFarsiQueue = (function () {
     return { url: PROGRESS_URL, type: "GET", dataType: "json", traditional: true, data: { jobIds: jobIds.slice() } };
   }
 
+  function recoveredRequest(page) {
+    return { url: RECOVERED_URL, type: "GET", dataType: "json", data: { page: Math.max(1, parsePositiveInt(page) || 1), pageSize: PAGE_SIZE } };
+  }
+
+  // Recovered jobs to show: those not already in this session's batch panel.
+  function recoveredToShow(recovered, batch) {
+    var inBatch = batch.map(function (item) { return item.jobId; }).filter(function (id) { return id != null; });
+    return recovered.filter(function (item) { return inBatch.indexOf(item.jobId) < 0; });
+  }
+
+  function shortTime(value) {
+    return String(value || "").slice(0, 16).replace("T", " ");
+  }
+
   // ---- Page ----
 
   function init(root) {
@@ -192,7 +223,8 @@ var LegacyFarsiQueue = (function () {
       maxItems: parsePositiveInt(root.getAttribute("data-max-items")) || 1,
       typeIds: (root.getAttribute("data-type-ids") || "").split(",").map(parsePositiveInt).filter(function (x) { return x !== null; }),
     };
-    var state = { page: 1, filters: readFilters(), selected: [], batch: [], cultureAvailable: null, busy: false, last: null };
+    var state = { page: 1, filters: readFilters(), selected: [], batch: [], cultureAvailable: null, busy: false, last: null,
+      recovered: [], recoveredLast: null, recoveredPage: 1 };
     var poll = { timer: null, inFlight: false, stopped: false };
 
     function readFilters() {
@@ -212,8 +244,8 @@ var LegacyFarsiQueue = (function () {
       return node;
     }
 
-    function messageRow(text) {
-      var tbody = byId("lfqRows");
+    function messageRow(text, tbodyId) {
+      var tbody = byId(tbodyId || "lfqRows");
       tbody.replaceChildren();
       var tr = el("tr");
       var td = el("td", "scs-empty-state", text);
@@ -266,7 +298,7 @@ var LegacyFarsiQueue = (function () {
         var active = el("td");
         active.appendChild(el("span", item.isActive ? "scs-status scs-status--success" : "scs-status", item.isActive ? "Active" : "Inactive"));
         tr.appendChild(active);
-        tr.appendChild(el("td", null, String(item.updatedAt || "").slice(0, 16).replace("T", " ")));
+        tr.appendChild(el("td", null, shortTime(item.updatedAt)));
         var outcome = el("td");
         var known = batchItem(id);
         outcome.appendChild(known
@@ -275,7 +307,8 @@ var LegacyFarsiQueue = (function () {
         tr.appendChild(outcome);
         tbody.appendChild(tr);
       });
-      if (items.length === 0) messageRow("No legacy Farsi content matches these filters.");
+      if (items.length === 0)
+        messageRow("No legacy Farsi content needs queueing for these filters. Content with a current translation job is not listed here; see Recovered translation jobs.");
     }
 
     function renderToolbar() {
@@ -328,6 +361,61 @@ var LegacyFarsiQueue = (function () {
         });
     }
 
+    function renderRecovered() {
+      var last = state.recoveredLast;
+      var tbody = byId("lfqRecoveredRows");
+      var shown = recoveredToShow(state.recovered, state.batch);
+      tbody.replaceChildren();
+      shown.forEach(function (item) {
+        var tr = el("tr");
+        tr.appendChild(el("td", "scs-meta", item.contentId));
+        var title = el("td", "scs-content-title", item.title);
+        title.title = item.title || "";
+        tr.appendChild(title);
+        tr.appendChild(el("td", null, item.typeId));
+        var active = el("td");
+        active.appendChild(el("span", item.isActive ? "scs-status scs-status--success" : "scs-status", item.isActive ? "Active" : "Inactive"));
+        tr.appendChild(active);
+        var job = el("td");
+        job.appendChild(el("span", "scs-status " + (STATE_STATUS[item.state] || ""), STATE_LABELS[item.state] || "Not found"));
+        tr.appendChild(job);
+        tr.appendChild(el("td", null, item.attemptCount));
+        tr.appendChild(el("td", null, shortTime(item.relevantAt)));
+        tbody.appendChild(tr);
+      });
+      if (!last) messageRow("Loading translation jobs…", "lfqRecoveredRows");
+      else if (last.failed) messageRow("Translation jobs could not be loaded. Reload the page and try again.", "lfqRecoveredRows");
+      else if (shown.length === 0)
+        messageRow(state.recovered.length > 0 ? "These jobs are shown in the submitted batch above." : "No current or recent translation jobs.", "lfqRecoveredRows");
+      var pages = last && !last.failed ? pageCount(last.totalCount, last.pageSize) : 1;
+      byId("lfqRecoveredPrev").disabled = !last || state.recoveredPage <= 1;
+      byId("lfqRecoveredNext").disabled = !last || state.recoveredPage >= pages;
+      byId("lfqRecoveredInfo").textContent = last && !last.failed
+        ? last.totalCount + " job" + (last.totalCount === 1 ? "" : "s") + " · page " + state.recoveredPage + " of " + pages
+        : "";
+    }
+
+    function loadRecovered(page) {
+      $.ajax(recoveredRequest(page))
+        .done(function (data) {
+          state.recoveredLast = data;
+          state.recoveredPage = data.page;
+          state.recovered = (data.items || []).filter(function (item) { return STATE_LABELS[item.state]; }).map(function (item) {
+            return {
+              jobId: item.jobId, contentId: item.contentId, title: item.title, typeId: item.typeId, isActive: item.isActive === true,
+              state: item.state, attemptCount: item.attemptCount, relevantAt: item.relevantAt,
+            };
+          });
+          renderRecovered();
+          schedulePoll();
+        })
+        .fail(function () {
+          state.recoveredLast = { failed: true };
+          state.recovered = [];
+          renderRecovered();
+        });
+    }
+
     function renderProgress() {
       var counts = progressCounts(state.batch);
       byId("lfqSummaryTitle").textContent = counts.terminal + " of " + counts.total + " submitted item" + (counts.total === 1 ? "" : "s") +
@@ -362,18 +450,23 @@ var LegacyFarsiQueue = (function () {
 
     // One request at a time: the next poll is scheduled only after the previous one has finished.
     function schedulePoll() {
-      if (poll.stopped || poll.inFlight || poll.timer !== null || pendingJobIds(state.batch).length === 0) return;
+      if (poll.stopped || poll.inFlight || poll.timer !== null || tracked().length === 0) return;
       poll.timer = setTimeout(pollOnce, POLL_INTERVAL_MS);
+    }
+
+    function tracked() {
+      return trackedJobIds(state.batch, state.recovered, config.maxItems);
     }
 
     function pollOnce() {
       poll.timer = null;
-      var ids = pendingJobIds(state.batch);
+      var ids = tracked();
       if (poll.stopped || ids.length === 0) return;
       poll.inFlight = true;
       $.ajax(progressRequest(ids))
         .done(function (data) {
           state.batch = mergeProgress(state.batch, data && data.items);
+          state.recovered = mergeProgress(state.recovered, data && data.items);
           setPollMessage(null);
         })
         .fail(function () {
@@ -383,10 +476,11 @@ var LegacyFarsiQueue = (function () {
         .always(function () {
           poll.inFlight = false;
           if (poll.stopped) return;
-          renderProgress();
+          if (state.batch.length > 0) renderProgress();
+          renderRecovered();
           if (state.last) renderRows(state.last.items);
           renderToolbar();
-          if (pendingJobIds(state.batch).length > 0) schedulePoll();
+          if (tracked().length > 0) schedulePoll();
           else load(state.page); // all terminal: reconcile the list; the summary stays visible
         });
     }
@@ -419,6 +513,7 @@ var LegacyFarsiQueue = (function () {
             state.batch = state.batch.filter(function (item) { return ids.indexOf(item.contentId) < 0; }).concat(submitted);
             state.selected = [];
             renderProgress();
+            renderRecovered();
           })
           .fail(function (xhr) {
             // A 400 carries the server's fixed validation message only.
@@ -429,7 +524,7 @@ var LegacyFarsiQueue = (function () {
           })
           .always(function () {
             state.busy = false;
-            if (pendingJobIds(state.batch).length > 0) {
+            if (tracked().length > 0) {
               // Keep the list and the batch visible; rows update in place while polling.
               if (state.last) renderRows(state.last.items);
               renderToolbar();
@@ -461,11 +556,15 @@ var LegacyFarsiQueue = (function () {
       renderToolbar();
     });
     byId("lfqQueue").addEventListener("click", queueSelected);
+    byId("lfqRecoveredPrev").addEventListener("click", function () { loadRecovered(state.recoveredPage - 1); });
+    byId("lfqRecoveredNext").addEventListener("click", function () { loadRecovered(state.recoveredPage + 1); });
     window.addEventListener("pagehide", stopPolling);
     window.addEventListener("beforeunload", stopPolling);
 
     renderToolbar();
     load(1);
+    renderRecovered();
+    loadRecovered(1);
   }
 
   return {
@@ -482,7 +581,10 @@ var LegacyFarsiQueue = (function () {
     outcomeLabel: outcomeLabel,
     batchFromQueue: batchFromQueue,
     pendingJobIds: pendingJobIds,
+    trackedJobIds: trackedJobIds,
     mergeProgress: mergeProgress,
+    recoveredRequest: recoveredRequest,
+    recoveredToShow: recoveredToShow,
     progressCounts: progressCounts,
     progressRequest: progressRequest,
     POLL_INTERVAL_MS: POLL_INTERVAL_MS,

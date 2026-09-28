@@ -76,6 +76,32 @@ public class LegacyFarsiTranslationCandidateRepository : ILegacyFarsiTranslation
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<(int Total, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId,
+        IReadOnlyCollection<int> typeIds, DateTime completedSince, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query =
+            from j in _dbContext.ContentTranslationJobs.AsNoTracking()
+            join c in _dbContext.Contents.AsNoTracking() on j.ContentId equals c.Id
+            where !j.IsDeleted && j.CultureId == cultureId
+                && !c.IsDeleted && c.ApplicationId == applicationId && typeIds.Contains(c.TypeId)
+                && (j.State == ContentTranslationJobState.Queued || j.State == ContentTranslationJobState.Processing
+                    || j.CompletedAt >= completedSince)
+            select new
+            {
+                j.Id, j.ContentId, c.Title, c.TypeId, c.IsActive, j.State, j.AttemptCount, j.ErrorCode,
+                IsPending = j.State == ContentTranslationJobState.Queued || j.State == ContentTranslationJobState.Processing,
+                RelevantAt = j.State == ContentTranslationJobState.Queued || j.State == ContentTranslationJobState.Processing
+                    ? j.UpdatedDT
+                    : j.CompletedAt ?? j.UpdatedDT
+            };
+        var total = await query.CountAsync(cancellationToken);
+        var rows = await query.OrderByDescending(j => j.IsPending).ThenByDescending(j => j.RelevantAt).ThenByDescending(j => j.Id)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .ToListAsync(cancellationToken);
+        return (total, rows.Select(j => new RecoveredTranslationJob(j.Id, j.ContentId, j.Title, j.TypeId, j.IsActive, j.State, j.AttemptCount,
+            j.ErrorCode, j.RelevantAt)).ToList());
+    }
+
     public async Task<(int Total, List<LegacyFarsiTranslationCandidate> Items)> FindPage(LegacyFarsiCandidateFilter filter,
         IReadOnlyCollection<int> excludedContentIds, LegacyFarsiCandidateSort sort, bool descending, int page, int pageSize,
         CancellationToken cancellationToken = default)

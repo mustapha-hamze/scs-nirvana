@@ -278,16 +278,23 @@ public class LegacyFarsiTranslationCandidatesTests : IDisposable
     }
 
     [Theory]
-    [InlineData(new[] { 1112, 1001 }, 25, true)]
-    [InlineData(new int[0], 1, true)]
-    [InlineData(new[] { 1001, 1001 }, 25, false)]
-    [InlineData(new[] { 0 }, 25, false)]
-    [InlineData(new[] { -5 }, 25, false)]
-    [InlineData(new[] { 1001 }, 0, false)]
-    [InlineData(new[] { 1001 }, 101, false)]
-    public void LegacyBulkSettings_AreBoundAndValidated(int[] typeIds, int maxItems, bool valid)
+    [InlineData(new[] { 1112, 1001 }, 25, null, true)]
+    [InlineData(new int[0], 1, null, true)]
+    [InlineData(new[] { 1001, 1001 }, 25, null, false)]
+    [InlineData(new[] { 0 }, 25, null, false)]
+    [InlineData(new[] { -5 }, 25, null, false)]
+    [InlineData(new[] { 1001 }, 0, null, false)]
+    [InlineData(new[] { 1001 }, 101, null, false)]
+    [InlineData(new[] { 1001 }, 25, 1, true)]
+    [InlineData(new[] { 1001 }, 25, 30, true)]
+    [InlineData(new[] { 1001 }, 25, 0, false)]
+    [InlineData(new[] { 1001 }, 25, -1, false)]
+    [InlineData(new[] { 1001 }, 25, 31, false)]
+    public void LegacyBulkSettings_AreBoundAndValidated(int[] typeIds, int maxItems, int? recentJobDays, bool valid)
     {
         var settings = new Dictionary<string, string> { ["ContentTranslation:BulkRequestMaxItems"] = maxItems.ToString() };
+        if (recentJobDays != null)
+            settings["ContentTranslation:LegacyBulkRecentJobDays"] = recentJobDays.ToString();
         for (var i = 0; i < typeIds.Length; i++)
             settings[$"ContentTranslation:LegacyBulkCandidateTypeIds:{i}"] = typeIds[i].ToString();
         var services = new ServiceCollection();
@@ -305,5 +312,6 @@ public class LegacyFarsiTranslationCandidatesTests : IDisposable
         }
         Assert.Equal(typeIds, options().LegacyBulkCandidateTypeIds);
         Assert.Equal(maxItems, options().BulkRequestMaxItems);
+        Assert.Equal(recentJobDays ?? 7, options().LegacyBulkRecentJobDays); // 7 without any setting
     }
 }

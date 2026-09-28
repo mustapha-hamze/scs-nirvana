@@ -177,5 +177,7 @@ public class LegacyFarsiTranslationProgressTests : IDisposable
             throw new InvalidOperationException();
         public Task<(int Total, List<LegacyFarsiTranslationCandidate> Items)> FindPage(LegacyFarsiCandidateFilter filter, IReadOnlyCollection<int> excludedContentIds,
             LegacyFarsiCandidateSort sort, bool descending, int page, int pageSize, CancellationToken ct = default) => throw new InvalidOperationException();
+        public Task<(int Total, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId, IReadOnlyCollection<int> typeIds,
+            DateTime completedSince, int page, int pageSize, CancellationToken ct = default) => throw new InvalidOperationException();
     }
 }

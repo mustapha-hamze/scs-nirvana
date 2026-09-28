@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.UseCases.TranslatorServices;
@@ -13,6 +14,10 @@ public record LegacyFarsiCandidateFilter(int ApplicationId, int CultureId, IRead
 public record ActiveTranslationJob(int ContentId, string SourceFingerprint);
 
 public record TranslationJobSnapshot(int JobId, int ContentId, ContentTranslationJobState State, int AttemptCount, string ErrorCode);
+
+// A job with its content's display fields. RelevantAt is UpdatedDT for Queued/Processing, CompletedAt otherwise.
+public record RecoveredTranslationJob(int JobId, int ContentId, string Title, int TypeId, bool IsActive, ContentTranslationJobState State,
+    int AttemptCount, string ErrorCode, DateTime RelevantAt);
 
 // Read-only persistence port for the legacy-Farsi translation candidate list. Every method is
 // untracked and never loads FarsiContent.
@@ -35,6 +40,12 @@ public interface ILegacyFarsiTranslationCandidateRepository
     // Of jobIds, the non-deleted jobs for cultureId on the application's non-deleted content. Others are absent.
     Task<List<TranslationJobSnapshot>> FindJobs(int applicationId, int cultureId, IReadOnlyCollection<int> jobIds,
         CancellationToken cancellationToken = default);
+
+    // Total and one page of the non-deleted jobs for cultureId on the application's non-deleted content of
+    // typeIds that are Queued/Processing, or terminal with CompletedAt >= completedSince. Active first,
+    // then RelevantAt descending, then Id descending. No candidate eligibility rule is applied.
+    Task<(int Total, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId, IReadOnlyCollection<int> typeIds,
+        DateTime completedSince, int page, int pageSize, CancellationToken cancellationToken = default);
 
     // Total and one page of the filter's content minus excludedContentIds, ordered by sort then Id.
     Task<(int Total, List<LegacyFarsiTranslationCandidate> Items)> FindPage(LegacyFarsiCandidateFilter filter,

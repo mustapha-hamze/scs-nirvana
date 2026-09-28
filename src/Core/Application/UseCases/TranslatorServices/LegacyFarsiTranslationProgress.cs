@@ -54,7 +54,7 @@ public class LegacyFarsiTranslationProgress
             : new LegacyFarsiJobProgress(id, null, LegacyFarsiJobProgressState.NotFound, null, null)).ToList();
     }
 
-    private static LegacyFarsiJobProgressState ToState(ContentTranslationJobState state) => state switch
+    internal static LegacyFarsiJobProgressState ToState(ContentTranslationJobState state) => state switch
     {
         ContentTranslationJobState.Queued => LegacyFarsiJobProgressState.Queued,
         ContentTranslationJobState.Processing => LegacyFarsiJobProgressState.Processing,

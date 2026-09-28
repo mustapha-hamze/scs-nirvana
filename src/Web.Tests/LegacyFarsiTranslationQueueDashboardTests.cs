@@ -117,9 +117,14 @@ public sealed class LegacyFarsiTranslationQueueDashboardTests : IClassFixture<Te
 
         Assert.NotEmpty(main);
         Assert.DoesNotContain(MissingCultureId.ToString(), html);
-        // The fixed culture-unavailable alert is the one expected mention of "culture".
+        // The fixed culture-unavailable alert is the one expected mention of "culture", and the fixed
+        // recovered-jobs intro the one mention of "application" (the selected one, never an ID).
         var withoutAlert = Regex.Replace(main, "<div[^>]*id=\"lfqCultureUnavailable\".*?</div>", "", RegexOptions.Singleline);
         Assert.NotEqual(main, withoutAlert);
+        var intro = Regex.Match(withoutAlert, "<p[^>]*id=\"lfqRecoveredIntro\".*?</p>", RegexOptions.Singleline).Value;
+        Assert.Contains("not only yours", intro);
+        Assert.Contains("completed in the last 7 days", intro);
+        withoutAlert = withoutAlert.Replace(intro, "");
         foreach (var secret in new[] { "culture", "application", "FarsiContent", "fingerprint", "provider", "model", "WorkerEnabled", "PollInterval", "Lease" })
             Assert.DoesNotContain(secret, withoutAlert, StringComparison.OrdinalIgnoreCase);
     }
@@ -136,6 +141,17 @@ public sealed class LegacyFarsiTranslationQueueDashboardTests : IClassFixture<Te
     }
 
     [Fact]
+    public async Task UnavailableCulture_RecoveredJobsReportIt_WithNoJobs()
+    {
+        var client = await SignIn(Host(workerEnabled: true));
+
+        var body = await client.GetFromJsonAsync<JsonElement>("/BackOffice/LegacyFarsiTranslationQueue/RecoveredJobs");
+
+        Assert.False(body.GetProperty("cultureAvailable").GetBoolean());
+        Assert.Equal(0, body.GetProperty("items").GetArrayLength());
+    }
+
+    [Fact]
     public async Task SidebarLink_IsShownToSuperAdminOnly()
     {
         var host = Host(workerEnabled: true);
@@ -146,16 +162,21 @@ public sealed class LegacyFarsiTranslationQueueDashboardTests : IClassFixture<Te
     }
 
     [Fact]
-    public async Task Script_IsServed_AndOnlyCallsTheCandidatesQueueAndProgressEndpoints()
+    public async Task Script_IsServed_AndOnlyCallsTheCandidatesQueueProgressAndRecoveredJobsEndpoints()
     {
         var host = Host(workerEnabled: true);
         var script = await host.CreateClient().GetStringAsync(ScriptPath);
 
-        Assert.Equal(new[] { "/BackOffice/LegacyFarsiTranslationQueue/Candidates", "/BackOffice/LegacyFarsiTranslationQueue/Queue", "/BackOffice/LegacyFarsiTranslationQueue/Progress" },
+        Assert.Equal(new[]
+            {
+                "/BackOffice/LegacyFarsiTranslationQueue/Candidates", "/BackOffice/LegacyFarsiTranslationQueue/Queue", "/BackOffice/LegacyFarsiTranslationQueue/Progress",
+                "/BackOffice/LegacyFarsiTranslationQueue/RecoveredJobs"
+            },
             Regex.Matches(script, "\"(/BackOffice/[^\"]*)\"").Select(m => m.Groups[1].Value).Distinct());
         Assert.Contains("contentType: \"application/json\"", script);
         Assert.Contains("$.ajax(", script);
-        foreach (var banned in new[] { "setInterval", "EventSource", "WebSocket", "signalR", "signalr", "innerHTML", ".html(", "fetch(", "applicationId", "cultureId", "errorCode" })
+        foreach (var banned in new[] { "setInterval", "EventSource", "WebSocket", "signalR", "signalr", "innerHTML", ".html(", "fetch(", "applicationId", "cultureId", "errorCode",
+                     "localStorage", "sessionStorage" })
             Assert.DoesNotContain(banned, script, StringComparison.Ordinal);
 
         var client = await SignIn(host);

@@ -110,7 +110,7 @@ public static class ServiceCollectionExtensions
             .Validate(o => o.PollIntervalSeconds >= 1 && o.LeaseMinutes >= 2 && o.MaxAttempts is >= 1 and <= 10 && o.ActivationCultureId >= 0 && o.LegacyFarsiCultureId >= 0,
                 "ContentTranslation options are out of range.")
             .Validate(o => o.HasValidLegacyBulkSettings(),
-                "ContentTranslation legacy bulk settings are invalid: type IDs must be distinct and positive, and BulkRequestMaxItems must be 1-100.")
+                "ContentTranslation legacy bulk settings are invalid: type IDs must be distinct and positive, BulkRequestMaxItems must be 1-100, and LegacyBulkRecentJobDays must be 1-30.")
             .ValidateOnStart();
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<ContentTranslationOptions>>().Value);
         services.AddScoped<ContentTranslationJobProcessor>();
@@ -118,6 +118,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<LegacyFarsiTranslationCandidates>();
         services.AddScoped<LegacyFarsiTranslationBulkQueue>();
         services.AddScoped<LegacyFarsiTranslationProgress>();
+        services.AddScoped<LegacyFarsiTranslationRecoveredJobs>();
         services.AddScoped<ManualContentTranslation>();
         services.AddScoped<LocalizedContentReader>();
         services.AddHostedService<Web.Services.Translation.ContentTranslationWorker>();

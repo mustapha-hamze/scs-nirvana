@@ -26,7 +26,9 @@ namespace Web.Tests;
 // page contract, and never queue, translate, or write. Phase 3: the bulk queue POST is SuperAdmin-only
 // and antiforgery-protected, accepts only content IDs, re-checks each one server-side, and returns
 // only a safe per-item outcome. Phase 5: the progress GET is SuperAdmin-only, reads only the selected
-// application's jobs for the configured culture, and returns only a safe per-job state. The worker is
+// application's jobs for the configured culture, and returns only a safe per-job state. Recovery: the
+// recovered-jobs GET is SuperAdmin-only, read-only and bounded, and returns only the selected application's
+// active and recent jobs for the configured culture in a safe shape. The worker is
 // off, so the provider can only be reached inline.
 public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWebApplicationFactory>
 {
@@ -40,6 +42,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
 
     private const string QueueUrl = "/BackOffice/LegacyFarsiTranslationQueue/Queue";
     private const string ProgressUrl = "/BackOffice/LegacyFarsiTranslationQueue/Progress";
+    private const string RecoveredUrl = "/BackOffice/LegacyFarsiTranslationQueue/RecoveredJobs";
 
     private WebApplicationFactory<Program> _factory;
     private readonly SaveCounter _saves = new();
@@ -157,6 +160,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
     [InlineData(PageUrl)]
     [InlineData(CandidatesUrl)]
     [InlineData(ProgressUrl + "?jobIds=1")]
+    [InlineData(RecoveredUrl)]
     [InlineData(QueueUrl)]
     public async Task Anonymous_RedirectsToLogin(string url)
     {
@@ -175,6 +179,8 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
     [InlineData(CandidatesUrl, "content-keys")]
     [InlineData(ProgressUrl + "?jobIds=1", null)]
     [InlineData(ProgressUrl + "?jobIds=1", "content-keys")]
+    [InlineData(RecoveredUrl, null)]
+    [InlineData(RecoveredUrl, "content-keys")]
     public async Task NonSuperAdmin_EvenWithChangeActivity_IsDenied(string url, string? keys)
     {
         var grant = keys == null ? null : string.Join(',', Web.Authorization.AccessKeys.Content.Module, Web.Authorization.AccessKeys.Content.ChangeActivity);
@@ -599,5 +605,147 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
 
         Assert.Equal(new[] { (job, (int?)null, "NotFound", (int?)null, (string?)null) }, await States(await client.GetAsync(ProgressQuery(job))));
         Assert.Equal(0, _saves.Count);
+    }
+
+    private Task SetJob(int jobId, DateTime? completedAt) => Db(async context =>
+    {
+        (await context.ContentTranslationJobs.SingleAsync(j => j.Id == jobId)).CompletedAt = completedAt;
+        return await context.SaveChangesAsync();
+    });
+
+    private static async Task<JsonElement> Recovered(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(new[] { "cultureAvailable", "items", "totalCount", "page", "pageSize" }, body.EnumerateObject().Select(p => p.Name));
+        foreach (var item in body.GetProperty("items").EnumerateArray())
+        {
+            Assert.Equal(new[] { "jobId", "contentId", "title", "typeId", "isActive", "state", "attemptCount", "errorCode", "relevantAt" },
+                item.EnumerateObject().Select(p => p.Name));
+            foreach (var forbidden in ForbiddenProgressFields.Except(new[] { "error" }))
+                Assert.DoesNotContain(item.EnumerateObject(), p => p.Name.Equals(forbidden, StringComparison.OrdinalIgnoreCase));
+        }
+        return body;
+    }
+
+    private static int[] RecoveredJobIds(JsonElement body) =>
+        body.GetProperty("items").EnumerateArray().Select(i => i.GetProperty("jobId").GetInt32()).ToArray();
+
+    [Fact]
+    public async Task RecoveredJobs_ReturnActiveAndRecentJobsOfTheSelectedApplication_InSafeShape_WhateverTheRequestSays()
+    {
+        var (client, applicationId) = await SignIn();
+        var mine = await SeedContent(applicationId, "Mine");
+        await SeedTranslation(mine, ActivationCultureId); // a canonical translation never hides a job
+        var queued = await SeedJob(mine, ContentTranslationJobState.Queued, attempts: 1, errorCode: "lease_expired");
+        var failed = await SeedJob(mine, ContentTranslationJobState.Failed, attempts: 3, errorCode: ContentTranslationErrorCodes.ProviderError);
+        await SetJob(failed, DateTime.UtcNow.AddHours(-1));
+        var old = await SeedJob(mine, ContentTranslationJobState.Succeeded);
+        await SetJob(old, DateTime.UtcNow.AddDays(-8));
+        await SeedJob(mine, ContentTranslationJobState.Queued, cultureId: OtherCultureId);
+        await SeedJob(mine, ContentTranslationJobState.Processing, isDeleted: true);
+        var otherApplicationId = await NewApplication();
+        await SeedJob(await SeedContent(otherApplicationId, "Foreign"), ContentTranslationJobState.Queued, errorCode: "provider_timeout");
+        var tampered = $"applicationId={otherApplicationId}&ApplicationId={otherApplicationId}&cultureId={OtherCultureId}&activationCultureId={OtherCultureId}";
+
+        var response = await client.GetAsync($"{RecoveredUrl}?{tampered}");
+        var raw = await response.Content.ReadAsStringAsync();
+        var body = await Recovered(response);
+
+        Assert.Equal(new[] { queued, failed }, RecoveredJobIds(body));
+        Assert.True(body.GetProperty("cultureAvailable").GetBoolean());
+        Assert.Equal(2, body.GetProperty("totalCount").GetInt32());
+        var (first, second) = (body.GetProperty("items")[0], body.GetProperty("items")[1]);
+        Assert.Equal(("Queued", mine, "Mine", TypeId, 1, JsonValueKind.Null),
+            (first.GetProperty("state").GetString(), first.GetProperty("contentId").GetInt32(), first.GetProperty("title").GetString(),
+                first.GetProperty("typeId").GetInt32(), first.GetProperty("attemptCount").GetInt32(), first.GetProperty("errorCode").ValueKind));
+        Assert.Equal(("Failed", ContentTranslationErrorCodes.ProviderError), (second.GetProperty("state").GetString(), second.GetProperty("errorCode").GetString()));
+        foreach (var secret in new[] { "قدیمی", "Foreign", "provider_timeout", "lease_expired", "secret-lease-owner", "raw-translation-json", "secret-provider", "cccc", "aaaa" })
+            Assert.DoesNotContain(secret, raw);
+    }
+
+    [Theory]
+    [InlineData("?page=0&pageSize=0", 1, 1)]
+    [InlineData("?page=-3&pageSize=100000", 1, LegacyFarsiTranslationCandidates.MaxPageSize)]
+    [InlineData("?page=2&pageSize=1", 2, 1)]
+    [InlineData("", 1, LegacyFarsiTranslationCandidates.DefaultPageSize)]
+    public async Task RecoveredJobs_PagingIsBounded(string query, int page, int pageSize)
+    {
+        var (client, applicationId) = await SignIn();
+        var contentId = await SeedContent(applicationId, "Mine");
+        var older = await SeedJob(contentId, ContentTranslationJobState.Queued);
+        var newer = await SeedJob(contentId, ContentTranslationJobState.Queued);
+
+        var body = await Recovered(await client.GetAsync(RecoveredUrl + query));
+
+        Assert.Equal((page, pageSize, 2), (body.GetProperty("page").GetInt32(), body.GetProperty("pageSize").GetInt32(), body.GetProperty("totalCount").GetInt32()));
+        Assert.Equal(page == 2 ? new[] { older } : pageSize == 1 ? new[] { newer } : new[] { newer, older }, RecoveredJobIds(body));
+    }
+
+    [Theory]
+    [InlineData("?page=x")]
+    [InlineData("?pageSize=1.5")]
+    [InlineData("?page=99999999999")]
+    public async Task RecoveredJobs_MalformedPaging_Is400(string query)
+    {
+        var (client, _) = await SignIn();
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync(RecoveredUrl + query)).StatusCode);
+    }
+
+    [Fact]
+    public async Task RecoveredJobs_QueueNothing_CallNoProvider_AndWriteNothing()
+    {
+        var (client, applicationId) = await SignIn();
+        var contentId = await SeedContent(applicationId, "Mine");
+        var job = await SeedJob(contentId, ContentTranslationJobState.Failed, attempts: 5, errorCode: ContentTranslationErrorCodes.ProviderRetriesExhausted);
+        await SetJob(job, DateTime.UtcNow.AddMinutes(-5));
+        var before = (await Jobs(contentId)).Single();
+        Interlocked.Exchange(ref _saves.Count, 0);
+
+        Assert.Equal(new[] { job }, RecoveredJobIds(await Recovered(await client.GetAsync(RecoveredUrl))));
+        Assert.Equal(new[] { job }, RecoveredJobIds(await Recovered(await client.GetAsync(RecoveredUrl + "?page=1&pageSize=100"))));
+
+        Assert.Equal(0, _saves.Count);
+        var after = Assert.Single(await Jobs(contentId));
+        Assert.Equal((before.State, before.AttemptCount, before.Version, before.NextAttemptAt, before.UpdatedDT),
+            (after.State, after.AttemptCount, after.Version, after.NextAttemptAt, after.UpdatedDT));
+        Assert.False(await Db(context => context.ContentTranslations.AnyAsync(t => t.ContentId == contentId)));
+        Assert.Equal(LegacyFarsi, await Db(context => context.Contents.Where(c => c.Id == contentId).Select(c => c.FarsiContent).SingleAsync()));
+    }
+
+    [Fact]
+    public async Task RecoveredJobs_UnavailableConfiguredCulture_IsAnEmptyPage_AndWritesNothing()
+    {
+        _factory = _factory.WithWebHostBuilder(builder => builder.UseSetting("ContentTranslation:ActivationCultureId", "7199"));
+        var (client, applicationId) = await SignIn();
+        await SeedJob(await SeedContent(applicationId, "Mine"), ContentTranslationJobState.Queued);
+        Interlocked.Exchange(ref _saves.Count, 0);
+
+        var body = await Recovered(await client.GetAsync(RecoveredUrl));
+
+        Assert.False(body.GetProperty("cultureAvailable").GetBoolean());
+        Assert.Empty(RecoveredJobIds(body));
+        Assert.Equal(0, _saves.Count);
+    }
+
+    // The P1 recovery defect: after queueing, a returning SuperAdmin's candidate list no longer shows the
+    // content (it has an active job), but the durable job is recovered for the dashboard.
+    [Fact]
+    public async Task ReturningSuperAdmin_WithAnActiveJob_GetsItRecovered_NotJustAnEmptyCandidateList()
+    {
+        var (client, applicationId) = await SignIn();
+        var contentId = await SeedContent(applicationId, "Queued earlier");
+        var queue = await PostQueue(client, contentId);
+        Assert.Equal(HttpStatusCode.OK, queue.StatusCode);
+        var jobId = (await queue.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("items")[0].GetProperty("jobId").GetInt32();
+
+        Assert.Empty(await ItemIds(await client.GetAsync(CandidatesUrl)));
+        var body = await Recovered(await client.GetAsync(RecoveredUrl));
+
+        Assert.Equal(new[] { jobId }, RecoveredJobIds(body));
+        Assert.Equal(("Queued", contentId, "Queued earlier"),
+            (body.GetProperty("items")[0].GetProperty("state").GetString(), body.GetProperty("items")[0].GetProperty("contentId").GetInt32(),
+                body.GetProperty("items")[0].GetProperty("title").GetString()));
     }
 }

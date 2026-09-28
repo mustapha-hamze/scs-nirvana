@@ -167,13 +167,16 @@ class Node {
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
-// Builds the dashboard, answers Candidates with `pages` in order (then the last one again) and
+// Builds the dashboard, answers Candidates with `pages` in order (then the last one again), RecoveredJobs
+// with `recovered` likewise (an empty page by default) and
 // Queue with `queueResult` (or queueResult(contentIds)). `confirm` is what Swal resolves to. Progress requests wait until the test
 // calls answer(data), or answer(null) for a failure. Timers are fake: tick() runs the pending one.
-function page({ workerEnabled = true, maxItems = 2, candidates, queueResult, queueStatus = 200, confirm = true, getFails = false }) {
+function page({ workerEnabled = true, maxItems = 2, candidates, recovered = [recoveredPage([])], recoveredFails = false, queueResult, queueStatus = 200, confirm = true,
+  getFails = false }) {
   const ids = ["lfqRows", "lfqSelectedCount", "lfqClear", "lfqQueue", "lfqCultureUnavailable", "lfqPage", "lfqPrev",
     "lfqNext", "lfqPageInfo", "lfqSummary", "lfqSummaryTitle", "lfqSummaryList", "lfqFilters", "lfqTypeId", "lfqTitle",
-    "lfqContentId", "lfqSort", "lfqDescending", "lfqProgressBar", "lfqProgressCounts", "lfqPollStatus"];
+    "lfqContentId", "lfqSort", "lfqDescending", "lfqProgressBar", "lfqProgressCounts", "lfqPollStatus", "lfqRecoveredRows",
+    "lfqRecoveredPrev", "lfqRecoveredNext", "lfqRecoveredInfo"];
   const elements = Object.fromEntries(ids.map((id) => [id, new Node("div")]));
   elements.lfqSort.value = "Id";
   elements.lfqDescending.value = "false";
@@ -184,6 +187,8 @@ function page({ workerEnabled = true, maxItems = 2, candidates, queueResult, que
 
   const calls = { ajax: [], swal: [], messages: [], timers: [], progress: [] };
   const responses = [...candidates];
+  const recoveredResponses = [...recovered];
+  const next = (list) => plain(list.length > 1 ? list.shift() : list[0]);
   const $ = {
     ajax(request) {
       calls.ajax.push(request);
@@ -203,7 +208,8 @@ function page({ workerEnabled = true, maxItems = 2, candidates, queueResult, que
       }
       setImmediate(() => {
         if (request.type === "GET" && getFails) fail({ status: 500 });
-        else if (request.type === "GET") ok(plain(responses.length > 1 ? responses.shift() : responses[0]));
+        else if (request.url.endsWith("/RecoveredJobs")) recoveredFails ? fail({ status: 500 }) : ok(next(recoveredResponses));
+        else if (request.type === "GET") ok(next(responses));
         else if (queueStatus === 200) ok(plain(typeof queueResult === "function" ? queueResult(JSON.parse(request.data).contentIds) : queueResult));
         else fail({ status: queueStatus, responseJSON: queueResult });
         always && always();
@@ -241,6 +247,19 @@ function page({ workerEnabled = true, maxItems = 2, candidates, queueResult, que
   };
   const unload = (type = "pagehide") => (windowListeners[type] || []).forEach((fn) => fn());
   return { elements, calls, boxes, tick, answer, pendingTimers, unload };
+}
+
+function recoveredPage(jobs, { totalCount = jobs.length, page = 1 } = {}) {
+  return {
+    cultureAvailable: true,
+    items: jobs.map(([jobId, contentId, state, attemptCount = 1]) => ({
+      jobId, contentId, title: `<i>Recovered ${contentId}</i>`, typeId: 1003, isActive: true, state, attemptCount,
+      errorCode: state === "Failed" ? "provider_error" : null, relevantAt: "2026-09-28T08:09:10",
+    })),
+    totalCount,
+    page,
+    pageSize: 25,
+  };
 }
 
 const candidatePage = (ids, { cultureAvailable = true, totalCount = ids.length, page = 1 } = {}) => ({
@@ -283,8 +302,9 @@ test("filters and paging send the typed query", async () => {
   elements.lfqNext.fire("click");
   await flush();
 
-  assert.deepEqual(plain(calls.ajax[1].data), { sort: "UpdatedAt", descending: true, page: 1, pageSize: 25, typeId: 1003, title: "abc" });
-  assert.deepEqual(plain(calls.ajax[2].data), { sort: "UpdatedAt", descending: true, page: 2, pageSize: 25, typeId: 1003, title: "abc" });
+  const gets = calls.ajax.filter((r) => r.url.endsWith("/Candidates"));
+  assert.deepEqual(plain(gets[1].data), { sort: "UpdatedAt", descending: true, page: 1, pageSize: 25, typeId: 1003, title: "abc" });
+  assert.deepEqual(plain(gets[2].data), { sort: "UpdatedAt", descending: true, page: 2, pageSize: 25, typeId: 1003, title: "abc" });
 });
 
 test("an invalid content ID is rejected before any request", async () => {
@@ -294,7 +314,7 @@ test("an invalid content ID is rejected before any request", async () => {
   elements.lfqFilters.fire("submit");
   await flush();
 
-  assert.equal(calls.ajax.length, 1);
+  assert.equal(calls.ajax.filter((r) => r.url.endsWith("/Candidates")).length, 1);
   assert.match(elements.lfqRows.text, /positive whole-number content ID/);
 });
 
@@ -555,4 +575,128 @@ test("a second submission keeps the first batch's running items, and both batche
   assert.equal(elements.lfqSummary.hidden, false);
   assert.equal(elements.lfqSummaryList.children.length, 4); // the reload leaves the summary as it was
   assert.doesNotMatch(elements.lfqSummary.text, /provider_error/);
+});
+
+// ---- Recovery after a refresh ----
+
+const recoveredGets = (calls) => calls.ajax.filter((r) => r.url.endsWith("/RecoveredJobs"));
+const recoveredTexts = (elements) => elements.lfqRecoveredRows.children.map((tr) => tr.children.map((td) => td.text.trim()));
+
+test("recovery helpers: a bounded paged GET, one poll per job across batch and recovered, batch jobs not shown twice", () => {
+  assert.deepEqual(plain(q.recoveredRequest(0)), {
+    url: "/BackOffice/LegacyFarsiTranslationQueue/RecoveredJobs", type: "GET", dataType: "json", data: { page: 1, pageSize: 25 },
+  });
+  const batch = [{ contentId: 1, jobId: 10, state: "Queued" }, { contentId: 2, jobId: null, state: "Skipped" }];
+  const recovered = [{ jobId: 10, state: "Queued" }, { jobId: 20, state: "Processing" }, { jobId: 30, state: "Failed" }, { jobId: 40, state: "Queued" }];
+  assert.deepEqual(plain(q.trackedJobIds(batch, recovered, 25)), [10, 20, 40]);
+  assert.deepEqual(plain(q.trackedJobIds(batch, recovered, 2)), [10, 20]); // never over the Progress limit
+  assert.deepEqual(plain(q.recoveredToShow(recovered, batch).map((j) => j.jobId)), [20, 30, 40]);
+});
+
+test("a fresh page loads recovered jobs separately from candidates and says why the candidate list is empty", async () => {
+  const { elements, calls } = page({
+    candidates: [candidatePage([])],
+    recovered: [recoveredPage([[10, 1, "Queued"], [20, 2, "Failed", 3], [30, 3, "Succeeded"]])],
+  });
+  await flush();
+
+  assert.deepEqual(plain(recoveredGets(calls)[0].data), { page: 1, pageSize: 25 });
+  assert.deepEqual(recoveredTexts(elements), [
+    ["1", "<i>Recovered 1</i>", "1003", "Active", "Queued", "1", "2026-09-28 08:09"],
+    ["2", "<i>Recovered 2</i>", "1003", "Active", "Failed", "3", "2026-09-28 08:09"],
+    ["3", "<i>Recovered 3</i>", "1003", "Active", "Translated", "1", "2026-09-28 08:09"],
+  ]);
+  assert.equal(elements.lfqRecoveredInfo.textContent, "3 jobs · page 1 of 1");
+  assert.match(elements.lfqRows.text, /Content with a current translation job is not listed here; see Recovered translation jobs/);
+  assert.doesNotMatch(elements.lfqRows.text, /No legacy Farsi content matches/);
+  // No batch panel or percentage: nothing was submitted this session.
+  assert.equal(elements.lfqSummaryTitle.textContent, "");
+  assert.equal(elements.lfqProgressBar.style.width, undefined);
+  // Job IDs and error codes are never displayed; every cell is text only.
+  assert.doesNotMatch(elements.lfqRecoveredRows.text, /provider_error|\b10\b|\b20\b|\b30\b/);
+  assert.ok(elements.lfqRecoveredRows.all((n) => n.tagName === "td").every((td) => td.children.every((c) => c.tagName === "span" && c.children.length === 0)));
+});
+
+test("with no jobs the recovered section has its own empty state", async () => {
+  const { elements } = page({ candidates: [candidatePage([1])] });
+  await flush();
+
+  assert.match(elements.lfqRecoveredRows.text, /No current or recent translation jobs\./);
+  assert.equal(elements.lfqRecoveredNext.disabled, true);
+});
+
+test("an active recovered job is polled without any submission, updates in place, and polling stops at terminal", async () => {
+  const { elements, calls, tick, answer, pendingTimers } = page({
+    candidates: [candidatePage([]), candidatePage([2])],
+    recovered: [recoveredPage([[10, 1, "Queued", 0], [20, 2, "Processing"], [30, 3, "Succeeded"]])],
+  });
+  await flush();
+
+  assert.deepEqual(calls.timers.map((t) => t.ms), [2500]);
+  tick();
+  assert.deepEqual(plain(progressGets(calls)[0].data), { jobIds: [10, 20] }); // only active jobs
+  assert.equal(pendingTimers().length, 0); // one request at a time
+  await answer({ items: [{ jobId: 10, state: "Processing", attemptCount: 1 }, { jobId: 20, state: "Processing", attemptCount: 1 }] });
+  assert.deepEqual(recoveredTexts(elements).map((r) => [r[4], r[5]]), [["Translating", "1"], ["Translating", "1"], ["Translated", "1"]]);
+
+  tick();
+  await answer({ items: [{ jobId: 10, state: "Succeeded", attemptCount: 1 }, { jobId: 20, state: "Failed", attemptCount: 2, errorCode: "provider_error" }] });
+  await flush();
+  assert.deepEqual(recoveredTexts(elements).map((r) => r[4]), ["Translated", "Failed", "Translated"]);
+  assert.equal(pendingTimers().length, 0);
+  assert.equal(progressGets(calls).length, 2);
+  assert.equal(elements.lfqSummaryTitle.textContent, ""); // still no batch panel or percentage
+  assert.equal(elements.lfqProgressBar.style.width, undefined);
+  assert.doesNotMatch(elements.lfqRecoveredRows.text, /provider_error/);
+  assert.equal(calls.ajax.at(-1).url, "/BackOffice/LegacyFarsiTranslationQueue/Candidates"); // reconciled once all are terminal
+  assert.equal(recoveredGets(calls).length, 1); // recovery is not re-read; the rows were updated in place
+});
+
+test("a submission whose job is also recovered is polled once and shown once, and keeps its own batch bar", async () => {
+  const view = page({
+    maxItems: 5,
+    candidates: [candidatePage([1, 2])],
+    recovered: [recoveredPage([[10, 1, "Failed", 5], [70, 7, "Queued"]])],
+    queueResult: { items: [{ contentId: 1, outcome: "Queued", jobId: 10 }, { contentId: 2, outcome: "Queued", jobId: 20 }] },
+  });
+  const { elements, calls, boxes, tick, answer, pendingTimers } = view;
+  await flush();
+  for (const box of boxes()) {
+    box.checked = true;
+    box.fire("change");
+  }
+  elements.lfqQueue.fire("click");
+  for (let i = 0; i < 3; i++) await flush();
+
+  assert.equal(pendingTimers().length, 1); // one chain for recovered and submitted jobs
+  assert.deepEqual(recoveredTexts(elements).map((r) => r[0]), ["7"]); // job 10 is shown in the batch panel only
+  assert.deepEqual(elements.lfqSummaryList.children.map((c) => c.textContent), ["Content 1: Queued", "Content 2: Queued"]);
+  assert.equal(elements.lfqSummaryTitle.textContent, "0 of 2 submitted items complete, checking every few seconds."); // recovered jobs are not in the denominator
+
+  tick();
+  assert.deepEqual(plain(progressGets(calls)[0].data), { jobIds: [10, 20, 70] }); // each job once
+  await answer({ items: [{ jobId: 10, state: "Succeeded" }, { jobId: 20, state: "Succeeded" }, { jobId: 70, state: "Processing" }] });
+  assert.equal(elements.lfqProgressBar.style.width, "100%");
+  assert.deepEqual(recoveredTexts(elements).map((r) => r[4]), ["Translating"]);
+  tick();
+  assert.deepEqual(plain(progressGets(calls)[1].data), { jobIds: [70] });
+});
+
+test("recovered values with markup stay text and unknown states are dropped", async () => {
+  const hostile = recoveredPage([[10, 1, "Queued"]]);
+  hostile.items.push({ jobId: 11, contentId: 9, title: "<img src=x onerror=alert(1)>", typeId: 1003, isActive: false, state: "<script>", attemptCount: 0 });
+  hostile.items[0].title = "<img src=x onerror=alert(1)>";
+  const { elements } = page({ candidates: [candidatePage([])], recovered: [hostile] });
+  await flush();
+
+  assert.deepEqual(recoveredTexts(elements).map((r) => r[1]), ["<img src=x onerror=alert(1)>"]);
+});
+
+test("a failed recovery read shows an error in its own section and leaves candidates working", async () => {
+  const { elements, boxes, pendingTimers } = page({ candidates: [candidatePage([1])], recoveredFails: true });
+  await flush();
+
+  assert.equal(boxes().length, 1);
+  assert.match(elements.lfqRecoveredRows.text, /Translation jobs could not be loaded/);
+  assert.equal(pendingTimers().length, 0);
 });

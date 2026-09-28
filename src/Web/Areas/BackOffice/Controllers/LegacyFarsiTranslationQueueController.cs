@@ -3,7 +3,7 @@ using Application.UseCases.TranslatorServices;
 namespace Web.Areas.BackOffice.Controllers;
 
 // Legacy Farsi bulk translation queue. The whole controller is SuperAdmin-only through the named
-// policy, so every action here (candidates, bulk submit, progress) inherits it - a Content access key
+// policy, so every action here (candidates, bulk submit, progress, recovered jobs) inherits it - a Content access key
 // such as Content.ChangeActivity is not enough. The application comes solely from the selected
 // BackOffice application and the culture solely from ContentTranslation options, never from the
 // request.
@@ -15,15 +15,18 @@ public class LegacyFarsiTranslationQueueController : BaseController
     private readonly LegacyFarsiTranslationCandidates _candidates;
     private readonly LegacyFarsiTranslationBulkQueue _bulkQueue;
     private readonly LegacyFarsiTranslationProgress _progress;
+    private readonly LegacyFarsiTranslationRecoveredJobs _recoveredJobs;
     private readonly ContentTranslationOptions _options;
     private readonly ICurrentApplicationContext _currentApplicationContext;
 
     public LegacyFarsiTranslationQueueController(LegacyFarsiTranslationCandidates candidates, LegacyFarsiTranslationBulkQueue bulkQueue,
-        LegacyFarsiTranslationProgress progress, ContentTranslationOptions options, ICurrentApplicationContext currentApplicationContext)
+        LegacyFarsiTranslationProgress progress, LegacyFarsiTranslationRecoveredJobs recoveredJobs, ContentTranslationOptions options,
+        ICurrentApplicationContext currentApplicationContext)
     {
         _candidates = candidates;
         _bulkQueue = bulkQueue;
         _progress = progress;
+        _recoveredJobs = recoveredJobs;
         _options = options;
         _currentApplicationContext = currentApplicationContext;
     }
@@ -32,14 +35,16 @@ public class LegacyFarsiTranslationQueueController : BaseController
     public record QueueRequest(int[] ContentIds);
 
     // The only configuration the dashboard sees: the selectable type IDs, the per-request limit,
-    // and whether background translation is switched on (configuration, not worker health).
-    public record DashboardViewModel(IReadOnlyList<int> TypeIds, int MaxItems, bool WorkerEnabled);
+    // whether background translation is switched on (configuration, not worker health) and how long
+    // completed jobs stay in the recovered list.
+    public record DashboardViewModel(IReadOnlyList<int> TypeIds, int MaxItems, bool WorkerEnabled, int RecentJobDays);
 
     [HttpGet]
     public IActionResult Index()
     {
         ViewData["Title"] = "Legacy Farsi Translation Queue";
-        return View(new DashboardViewModel(_options.LegacyBulkCandidateTypeIds, _options.BulkRequestMaxItems, _options.WorkerEnabled));
+        return View(new DashboardViewModel(_options.LegacyBulkCandidateTypeIds, _options.BulkRequestMaxItems, _options.WorkerEnabled,
+            _options.LegacyBulkRecentJobDays));
     }
 
     // Read-only: never queues, translates or writes. Undefined Sort values fail binding.
@@ -86,6 +91,31 @@ public class LegacyFarsiTranslationQueueController : BaseController
             {
                 jobId = i.JobId, contentId = i.ContentId, state = i.State.ToString(), attemptCount = i.AttemptCount, errorCode = i.ErrorCode
             })
+        });
+    }
+
+    // Read-only: the selected application's active and recently completed jobs for the configured
+    // culture, so the dashboard can show them again after a refresh. Paging is clamped as for Candidates.
+    // Never queues, retries, fingerprints or translates.
+    [HttpGet]
+    public async Task<IActionResult> RecoveredJobs(int page = 1, int pageSize = LegacyFarsiTranslationCandidates.DefaultPageSize,
+        CancellationToken cancellationToken = default)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
+        var result = await _recoveredJobs.Find(page, pageSize, _currentApplicationContext.RequireApplicationId(), cancellationToken);
+        return Json(new
+        {
+            cultureAvailable = result.CultureAvailable,
+            items = result.Items.Select(i => new
+            {
+                jobId = i.JobId, contentId = i.ContentId, title = i.Title, typeId = i.TypeId, isActive = i.IsActive, state = i.State.ToString(),
+                attemptCount = i.AttemptCount, errorCode = i.ErrorCode, relevantAt = i.RelevantAt
+            }),
+            totalCount = result.TotalCount,
+            page = result.Page,
+            pageSize = result.PageSize
         });
     }
 }
