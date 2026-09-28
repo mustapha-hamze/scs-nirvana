@@ -63,7 +63,7 @@ public class LegacyFarsiTranslationProgressTests : IDisposable
     private static LegacyFarsiJobProgress Missing(int jobId) => new(jobId, null, NotFound, null, null);
 
     [Fact]
-    public async Task ReturnsEveryLifecycleState_WithAttempts_AndOnlyFailedErrorCodes()
+    public async Task ReturnsEveryLifecycleState_WithAttempts_AndOnlyFailedReasons()
     {
         await Seed();
         var content = await AddContent();
@@ -78,8 +78,26 @@ public class LegacyFarsiTranslationProgressTests : IDisposable
         Assert.Equal(
             [
                 new(superseded, content, Superseded, 1, null), new(queued, content, Queued, 1, null), new(processing, content, Processing, 2, null),
-                new(succeeded, content, Succeeded, 1, null), new(failed, content, Failed, 3, ContentTranslationErrorCodes.ProviderRetriesExhausted)
+                new(succeeded, content, Succeeded, 1, null), new(failed, content, Failed, 3, "Translation could not be completed after several attempts. Try again later.")
             ], items);
+        Assert.Equal(0, _saves);
+    }
+
+    [Theory]
+    [InlineData(ContentTranslationErrorCodes.ProviderTimeout)]
+    [InlineData(ContentTranslationErrorCodes.CultureUnavailable)]
+    [InlineData("secret-unknown-code")]
+    [InlineData(null)]
+    public async Task FailedJob_ExposesTheSharedMappedReason_NeverTheStoredCode(string errorCode)
+    {
+        await Seed();
+        var failed = await AddJob(await AddContent(), ContentTranslationJobState.Failed, attempts: 1, errorCode: errorCode);
+
+        var reason = (await Read([failed])).Single().FailureReason;
+
+        Assert.Equal(ContentTranslationErrorCodes.FailureReason(errorCode), reason);
+        if (errorCode != null)
+            Assert.DoesNotContain(errorCode, reason);
         Assert.Equal(0, _saves);
     }
 
@@ -125,7 +143,7 @@ public class LegacyFarsiTranslationProgressTests : IDisposable
         var items = await Read([foreign, otherCulture, deletedJob, deletedContent, 999_999, visible]);
 
         Assert.Equal(
-            [Missing(foreign), Missing(otherCulture), Missing(deletedJob), Missing(deletedContent), Missing(999_999), new(visible, mine, Failed, 2, "provider_error")],
+            [Missing(foreign), Missing(otherCulture), Missing(deletedJob), Missing(deletedContent), Missing(999_999), new(visible, mine, Failed, 2, ContentTranslationErrorCodes.FailureReason("provider_error"))],
             items);
     }
 

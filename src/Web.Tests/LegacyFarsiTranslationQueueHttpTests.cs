@@ -490,16 +490,17 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         return job.Id;
     });
 
-    // Never part of a progress item, whatever the job or translation row holds.
+    // Never part of a progress item, whatever the job or translation row holds. errorCode is the stored
+    // implementation code: the browser only gets the mapped failureReason.
     private static readonly string[] ForbiddenProgressFields =
     {
-        "sourceFingerprint", "fingerprint", "farsiContent", "localizedTextJson", "provider", "model", "prompt", "error", "errorMessage",
+        "sourceFingerprint", "fingerprint", "farsiContent", "localizedTextJson", "provider", "model", "prompt", "error", "errorCode", "errorMessage",
         "leaseOwner", "leaseExpiresAt", "nextAttemptAt", "completedAt", "createdDT", "updatedDT", "version", "applicationId", "cultureId"
     };
 
     private static string ProgressQuery(params int[] jobIds) => ProgressUrl + "?" + string.Join('&', jobIds.Select(id => $"jobIds={id}"));
 
-    private static async Task<(int JobId, int? ContentId, string State, int? AttemptCount, string? ErrorCode)[]> States(HttpResponseMessage response)
+    private static async Task<(int JobId, int? ContentId, string State, int? AttemptCount, string? FailureReason)[]> States(HttpResponseMessage response)
     {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -507,11 +508,11 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         static int? Int(JsonElement e) => e.ValueKind == JsonValueKind.Null ? null : e.GetInt32();
         return body.GetProperty("items").EnumerateArray().Select(i =>
         {
-            Assert.Equal(new[] { "jobId", "contentId", "state", "attemptCount", "errorCode" }, i.EnumerateObject().Select(p => p.Name));
+            Assert.Equal(new[] { "jobId", "contentId", "state", "attemptCount", "failureReason" }, i.EnumerateObject().Select(p => p.Name));
             foreach (var forbidden in ForbiddenProgressFields)
                 Assert.DoesNotContain(i.EnumerateObject(), p => p.Name.Equals(forbidden, StringComparison.OrdinalIgnoreCase));
             return (i.GetProperty("jobId").GetInt32(), Int(i.GetProperty("contentId")), i.GetProperty("state").GetString()!,
-                Int(i.GetProperty("attemptCount")), i.GetProperty("errorCode").GetString());
+                Int(i.GetProperty("attemptCount")), i.GetProperty("failureReason").GetString());
         }).ToArray();
     }
 
@@ -522,7 +523,8 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         var mine = await SeedContent(applicationId, "Mine");
         var queued = await SeedJob(mine, ContentTranslationJobState.Queued, attempts: 1, errorCode: "lease_expired");
         var failed = await SeedJob(mine, ContentTranslationJobState.Failed, attempts: 3, errorCode: ContentTranslationErrorCodes.ProviderError);
-        var succeeded = await SeedJob(mine, ContentTranslationJobState.Succeeded, attempts: 1);
+        var succeeded = await SeedJob(mine, ContentTranslationJobState.Succeeded, attempts: 1, errorCode: "provider_cancelled"); // stale
+        var unknown = await SeedJob(mine, ContentTranslationJobState.Failed, attempts: 1, errorCode: "secret-provider-detail {\"raw\":\"json\"}");
         var otherCulture = await SeedJob(mine, ContentTranslationJobState.Succeeded, cultureId: OtherCultureId);
         var deleted = await SeedJob(mine, ContentTranslationJobState.Processing, isDeleted: true);
         var otherApplicationId = await NewApplication();
@@ -536,17 +538,18 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         });
         var tampered = $"&applicationId={otherApplicationId}&ApplicationId={otherApplicationId}&cultureId={OtherCultureId}&activationCultureId={OtherCultureId}";
 
-        var response = await client.GetAsync(ProgressQuery(foreign, queued, failed, queued, succeeded, otherCulture, deleted, deletedContent, int.MaxValue) + tampered);
+        var response = await client.GetAsync(ProgressQuery(foreign, queued, failed, queued, succeeded, unknown, otherCulture, deleted, deletedContent, int.MaxValue) + tampered);
         var raw = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(new[]
         {
             (foreign, (int?)null, "NotFound", (int?)null, (string?)null), (queued, mine, "Queued", 1, null),
-            (failed, mine, "Failed", 3, ContentTranslationErrorCodes.ProviderError), (succeeded, mine, "Succeeded", 1, null),
-            (otherCulture, null, "NotFound", null, null), (deleted, null, "NotFound", null, null),
+            (failed, mine, "Failed", 3, "Translation provider could not complete the request. Try again later."), (succeeded, mine, "Succeeded", 1, null),
+            (unknown, mine, "Failed", 1, "Translation could not be completed. Try again later."), (otherCulture, null, "NotFound", null, null), (deleted, null, "NotFound", null, null),
             (deletedContent, null, "NotFound", null, null), (int.MaxValue, null, "NotFound", null, null)
         }, await States(response));
-        foreach (var secret in new[] { "قدیمی", "Foreign", "provider_timeout", "secret-lease-owner", "Mine", "fingerprint", "cccc" })
+        foreach (var secret in new[] { "قدیمی", "Foreign", "provider_timeout", "provider_error", "provider_cancelled", "lease_expired", "secret-provider", "raw",
+                     "errorCode", "secret-lease-owner", "Mine", "fingerprint", "cccc" })
             Assert.DoesNotContain(secret, raw);
     }
 
@@ -624,7 +627,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         Assert.Equal(body.GetProperty("totalCount").GetInt32(), Counts(body).total);
         foreach (var item in body.GetProperty("items").EnumerateArray())
         {
-            Assert.Equal(new[] { "jobId", "contentId", "title", "typeId", "isActive", "state", "attemptCount", "errorCode", "relevantAt" },
+            Assert.Equal(new[] { "jobId", "contentId", "title", "typeId", "isActive", "state", "attemptCount", "failureReason", "relevantAt" },
                 item.EnumerateObject().Select(p => p.Name));
             foreach (var forbidden in ForbiddenProgressFields.Except(new[] { "error" }))
                 Assert.DoesNotContain(item.EnumerateObject(), p => p.Name.Equals(forbidden, StringComparison.OrdinalIgnoreCase));
@@ -651,6 +654,10 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         var queued = await SeedJob(mine, ContentTranslationJobState.Queued, attempts: 1, errorCode: "lease_expired");
         var failed = await SeedJob(mine, ContentTranslationJobState.Failed, attempts: 3, errorCode: ContentTranslationErrorCodes.ProviderError);
         await SetJob(failed, DateTime.UtcNow.AddHours(-1));
+        var unknown = await SeedJob(mine, ContentTranslationJobState.Failed, attempts: 1, errorCode: "secret-provider-detail {\"raw\":\"json\"}");
+        await SetJob(unknown, DateTime.UtcNow.AddHours(-2));
+        var succeeded = await SeedJob(mine, ContentTranslationJobState.Succeeded, attempts: 1, errorCode: "provider_cancelled"); // stale
+        await SetJob(succeeded, DateTime.UtcNow.AddHours(-3));
         var old = await SeedJob(mine, ContentTranslationJobState.Succeeded);
         await SetJob(old, DateTime.UtcNow.AddDays(-8));
         await SeedJob(mine, ContentTranslationJobState.Queued, cultureId: OtherCultureId);
@@ -663,16 +670,22 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         var raw = await response.Content.ReadAsStringAsync();
         var body = await Recovered(response);
 
-        Assert.Equal(new[] { queued, failed }, RecoveredJobIds(body));
+        Assert.Equal(new[] { queued, failed, unknown, succeeded }, RecoveredJobIds(body));
         Assert.True(body.GetProperty("cultureAvailable").GetBoolean());
-        Assert.Equal(2, body.GetProperty("totalCount").GetInt32());
-        Assert.Equal((1, 0, 0, 1, 0, 1, 2), Counts(body)); // the other application's, culture's, deleted and expired jobs are not counted
+        Assert.Equal(4, body.GetProperty("totalCount").GetInt32());
+        Assert.Equal((1, 0, 1, 2, 0, 1, 4), Counts(body)); // the other application's, culture's, deleted and expired jobs are not counted
         var (first, second) = (body.GetProperty("items")[0], body.GetProperty("items")[1]);
         Assert.Equal(("Queued", mine, "Mine", TypeId, 1, JsonValueKind.Null),
             (first.GetProperty("state").GetString(), first.GetProperty("contentId").GetInt32(), first.GetProperty("title").GetString(),
-                first.GetProperty("typeId").GetInt32(), first.GetProperty("attemptCount").GetInt32(), first.GetProperty("errorCode").ValueKind));
-        Assert.Equal(("Failed", ContentTranslationErrorCodes.ProviderError), (second.GetProperty("state").GetString(), second.GetProperty("errorCode").GetString()));
-        foreach (var secret in new[] { "قدیمی", "Foreign", "provider_timeout", "lease_expired", "secret-lease-owner", "raw-translation-json", "secret-provider", "cccc", "aaaa" })
+                first.GetProperty("typeId").GetInt32(), first.GetProperty("attemptCount").GetInt32(), first.GetProperty("failureReason").ValueKind));
+        Assert.Equal(new[]
+            {
+                ("Queued", (string?)null), ("Failed", "Translation provider could not complete the request. Try again later."),
+                ("Failed", "Translation could not be completed. Try again later."), ("Succeeded", null)
+            },
+            body.GetProperty("items").EnumerateArray().Select(i => (i.GetProperty("state").GetString()!, i.GetProperty("failureReason").GetString())));
+        foreach (var secret in new[] { "قدیمی", "Foreign", "provider_timeout", "provider_error", "provider_cancelled", "lease_expired", "errorCode",
+                     "secret-lease-owner", "raw-translation-json", "secret-provider", "raw", "cccc", "aaaa" })
             Assert.DoesNotContain(secret, raw);
     }
 

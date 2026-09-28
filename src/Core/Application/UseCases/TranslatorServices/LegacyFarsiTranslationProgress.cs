@@ -16,9 +16,9 @@ public enum LegacyFarsiJobProgressState
     NotFound
 }
 
-// ContentId and AttemptCount are null for NotFound; ErrorCode (a fixed ContentTranslationErrorCodes
-// value) only for Failed.
-public record LegacyFarsiJobProgress(int JobId, int? ContentId, LegacyFarsiJobProgressState State, int? AttemptCount, string ErrorCode);
+// ContentId and AttemptCount are null for NotFound; FailureReason (ContentTranslationErrorCodes.FailureReason,
+// never the stored code) only for Failed.
+public record LegacyFarsiJobProgress(int JobId, int? ContentId, LegacyFarsiJobProgressState State, int? AttemptCount, string FailureReason);
 
 // Read-only state of translation jobs a bulk queue request returned. A job is visible only when it is
 // not deleted, is for the configured activation culture and is on the application's non-deleted
@@ -50,7 +50,7 @@ public class LegacyFarsiTranslationProgress
 
         return ids.Select(id => found.TryGetValue(id, out var job)
             ? new LegacyFarsiJobProgress(id, job.ContentId, ToState(job.State), job.AttemptCount,
-                job.State == ContentTranslationJobState.Failed ? job.ErrorCode : null)
+                ContentTranslationErrorCodes.FailureReasonFor(job.State, job.ErrorCode))
             : new LegacyFarsiJobProgress(id, null, LegacyFarsiJobProgressState.NotFound, null, null)).ToList();
     }
 

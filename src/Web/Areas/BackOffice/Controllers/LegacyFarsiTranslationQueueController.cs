@@ -75,7 +75,8 @@ public class LegacyFarsiTranslationQueueController : BaseController
 
     // Read-only state of the job IDs a Queue response returned (?jobIds=12&jobIds=13). An empty,
     // malformed, over-limit or non-positive request is rejected whole. A job outside the selected
-    // application or configured culture is NotFound. Never queues, retries or translates.
+    // application or configured culture is NotFound. failureReason is a fixed message for Failed jobs only,
+    // never the stored error code. Never queues, retries or translates.
     [HttpGet]
     public async Task<IActionResult> Progress([FromQuery] int[] jobIds, CancellationToken cancellationToken)
     {
@@ -89,13 +90,14 @@ public class LegacyFarsiTranslationQueueController : BaseController
         {
             items = items.Select(i => new
             {
-                jobId = i.JobId, contentId = i.ContentId, state = i.State.ToString(), attemptCount = i.AttemptCount, errorCode = i.ErrorCode
+                jobId = i.JobId, contentId = i.ContentId, state = i.State.ToString(), attemptCount = i.AttemptCount, failureReason = i.FailureReason
             })
         });
     }
 
     // Read-only: the selected application's active and recently completed jobs for the configured
     // culture, so the dashboard can show them again after a refresh, with per-state counts over every page.
+    // failureReason is as for Progress.
     // Paging is clamped as for Candidates.
     // Never queues, retries, fingerprints or translates.
     [HttpGet]
@@ -112,7 +114,7 @@ public class LegacyFarsiTranslationQueueController : BaseController
             items = result.Items.Select(i => new
             {
                 jobId = i.JobId, contentId = i.ContentId, title = i.Title, typeId = i.TypeId, isActive = i.IsActive, state = i.State.ToString(),
-                attemptCount = i.AttemptCount, errorCode = i.ErrorCode, relevantAt = i.RelevantAt
+                attemptCount = i.AttemptCount, failureReason = i.FailureReason, relevantAt = i.RelevantAt
             }),
             totalCount = result.TotalCount,
             page = result.Page,

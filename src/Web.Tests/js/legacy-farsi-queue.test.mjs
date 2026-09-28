@@ -20,6 +20,7 @@ function load(extra = {}) {
 
 const q = load().LegacyFarsiQueue;
 const plain = (value) => JSON.parse(JSON.stringify(value));
+const REASON = "Translation provider could not complete the request. Try again later."; // a fixed server message for provider_error
 
 // ---- Pure helpers ----
 
@@ -104,11 +105,15 @@ test("the Progress request sends only job IDs, as repeated jobIds parameters", (
 test("merging progress updates job states, keeps unknown or missing ones, and ends polling at terminal", () => {
   let batch = q.batchFromQueue([1, 2, 3, 4, 5].map((id) => ({ contentId: id, outcome: "Queued", jobId: id * 10 })));
   batch = q.mergeProgress(batch, [
-    { jobId: 10, state: "Processing" }, { jobId: 20, state: "Succeeded" }, { jobId: 30, state: "Failed", errorCode: "provider_error" },
+    { jobId: 10, state: "Processing", failureReason: "stale" }, { jobId: 20, state: "Succeeded" },
+    { jobId: 30, state: "Failed", errorCode: "provider_error", failureReason: REASON },
     { jobId: 40, state: "Superseded" }, { jobId: 50, state: "<script>" }, { jobId: 99, state: "Succeeded" },
   ]);
   assert.deepEqual(plain(batch.map((i) => i.state)), ["Processing", "Succeeded", "Failed", "Superseded", "Queued"]);
   assert.deepEqual(plain(q.pendingJobIds(batch)), [10, 50]);
+  assert.deepEqual(plain(batch.map((i) => i.failureReason ?? null)), [null, null, REASON, null, null]); // Failed only
+  assert.deepEqual(batch.map(q.batchLine), ["Content 1: Translating", "Content 2: Translated", `Content 3: Failed — ${REASON}`,
+    "Content 4: Superseded (source changed)", "Content 5: Queued"]);
   batch = q.mergeProgress(batch, [{ jobId: 10, state: "Succeeded" }, { jobId: 50, state: "NotFound" }]);
   assert.deepEqual(plain(q.pendingJobIds(batch)), []);
   assert.equal(JSON.stringify(batch).includes("provider_error"), false); // error codes are never kept for display
@@ -266,7 +271,8 @@ function recoveredPage(jobs, { totalCount = jobs.length, page = 1, counts } = {}
     cultureAvailable: true,
     items: jobs.map(([jobId, contentId, state, attemptCount = 1]) => ({
       jobId, contentId, title: `<i>Recovered ${contentId}</i>`, typeId: 1003, isActive: true, state, attemptCount,
-      errorCode: state === "Failed" ? "provider_error" : null, relevantAt: "2026-09-28T08:09:10",
+      // errorCode is no longer sent; it is kept here to prove the script ignores it.
+      errorCode: state === "Failed" ? "provider_error" : null, failureReason: state === "Failed" ? REASON : null, relevantAt: "2026-09-28T08:09:10",
     })),
     totalCount,
     page,
@@ -477,8 +483,10 @@ test("polls every 2,500 ms with one request in flight, updates in place, and sto
 
   tick();
   assert.deepEqual(plain(progressGets(calls)[1].data), { jobIds: [10, 30] }); // only pending jobs are asked for
-  await answer({ items: [{ jobId: 10, state: "Failed", errorCode: "provider_error" }, { jobId: 30, state: "Superseded" }] });
+  await answer({ items: [{ jobId: 10, state: "Failed", errorCode: "provider_error", failureReason: REASON }, { jobId: 30, state: "Superseded" }] });
 
+  assert.deepEqual(elements.lfqSummaryList.children.map((c) => c.textContent),
+    [`Content 1: Failed — ${REASON}`, "Content 2: Translated", "Content 3: Superseded (source changed)"]);
   assert.equal(pendingTimers().length, 0); // stopped
   assert.equal(progressGets(calls).length, 2);
   assert.equal(elements.lfqProgressBar.style.width, "100%");
@@ -615,10 +623,11 @@ test("a fresh page loads recovered jobs separately from candidates and says why 
 
   assert.deepEqual(plain(recoveredGets(calls)[0].data), { page: 1, pageSize: 25 });
   assert.deepEqual(recoveredTexts(elements), [
-    ["1", "<i>Recovered 1</i>", "1003", "Active", "Queued", "1", "2026-09-28 08:09"],
-    ["2", "<i>Recovered 2</i>", "1003", "Active", "Failed", "3", "2026-09-28 08:09"],
-    ["3", "<i>Recovered 3</i>", "1003", "Active", "Translated", "1", "2026-09-28 08:09"],
+    ["1", "<i>Recovered 1</i>", "1003", "Active", "Queued", "— No failure reason", "1", "2026-09-28 08:09"],
+    ["2", "<i>Recovered 2</i>", "1003", "Active", "Failed", REASON, "3", "2026-09-28 08:09"],
+    ["3", "<i>Recovered 3</i>", "1003", "Active", "Translated", "— No failure reason", "1", "2026-09-28 08:09"],
   ]);
+  assert.equal(progressGets(calls).length, 0); // the reason comes with the recovered read, no Progress needed
   assert.equal(elements.lfqRecoveredInfo.textContent, "3 jobs · page 1 of 1");
   assert.match(elements.lfqRows.text, /Content with a current translation job is not listed here; see the Recovered Jobs tab/);
   assert.doesNotMatch(elements.lfqRows.text, /No legacy Farsi content matches/);
@@ -651,10 +660,13 @@ test("an active recovered job is polled without any submission, updates in place
   assert.deepEqual(plain(progressGets(calls)[0].data), { jobIds: [10, 20] }); // only active jobs
   assert.equal(pendingTimers().length, 0); // one request at a time
   await answer({ items: [{ jobId: 10, state: "Processing", attemptCount: 1 }, { jobId: 20, state: "Processing", attemptCount: 1 }] });
-  assert.deepEqual(recoveredTexts(elements).map((r) => [r[4], r[5]]), [["Translating", "1"], ["Translating", "1"], ["Translated", "1"]]);
+  assert.deepEqual(recoveredTexts(elements).map((r) => [r[4], r[6]]), [["Translating", "1"], ["Translating", "1"], ["Translated", "1"]]);
 
   tick();
-  await answer({ items: [{ jobId: 10, state: "Succeeded", attemptCount: 1 }, { jobId: 20, state: "Failed", attemptCount: 2, errorCode: "provider_error" }] });
+  await answer({ items: [{ jobId: 10, state: "Succeeded", attemptCount: 1 },
+    { jobId: 20, state: "Failed", attemptCount: 2, errorCode: "provider_error", failureReason: REASON }] });
+  assert.deepEqual(recoveredTexts(elements).map((r) => [r[4], r[5]]),
+    [["Translated", "— No failure reason"], ["Failed", REASON], ["Translated", "— No failure reason"]]);
   await flush();
   assert.deepEqual(recoveredTexts(elements).map((r) => r[4]), ["Translated", "Failed", "Translated"]);
   assert.equal(pendingTimers().length, 0);
@@ -702,10 +714,17 @@ test("recovered values with markup stay text and unknown states are dropped", as
   const hostile = recoveredPage([[10, 1, "Queued"]]);
   hostile.items.push({ jobId: 11, contentId: 9, title: "<img src=x onerror=alert(1)>", typeId: 1003, isActive: false, state: "<script>", attemptCount: 0 });
   hostile.items[0].title = "<img src=x onerror=alert(1)>";
+  hostile.items[0].failureReason = "stale"; // a reason on a non-failed job is never shown
+  hostile.items.push({ jobId: 12, contentId: 8, title: "t", typeId: 1003, isActive: true, state: "Failed", attemptCount: 1,
+    failureReason: "<b onclick=x>Bad</b>" });
   const { elements } = page({ candidates: [candidatePage([])], recovered: [hostile] });
   await flush();
 
-  assert.deepEqual(recoveredTexts(elements).map((r) => r[1]), ["<img src=x onerror=alert(1)>"]);
+  assert.deepEqual(recoveredTexts(elements).map((r) => [r[1], r[5]]),
+    [["<img src=x onerror=alert(1)>", "— No failure reason"], ["t", "<b onclick=x>Bad</b>"]]);
+  const reasonCell = elements.lfqRecoveredRows.children[1].children[5];
+  assert.equal(reasonCell.children.length, 0); // the reason is the cell's own text, not markup
+  assert.ok(elements.lfqRecoveredRows.all(() => true).every((n) => Object.keys(n.attributes).every((a) => a === "aria-hidden")));
 });
 
 test("a failed recovery read shows an error in its own section and leaves candidates working", async () => {

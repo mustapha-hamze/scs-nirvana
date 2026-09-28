@@ -208,7 +208,7 @@ public class LegacyFarsiTranslationRecoveredJobsTests : IDisposable
     }
 
     [Fact]
-    public async Task ReturnsOnlyTheSafeFields_WithErrorCodesForFailedOnly()
+    public async Task ReturnsOnlyTheSafeFields_WithFailureReasonsForFailedOnly()
     {
         await Seed();
         var content = await AddContent("<b>Title</b>", isActive: false);
@@ -216,17 +216,20 @@ public class LegacyFarsiTranslationRecoveredJobsTests : IDisposable
             errorCode: ContentTranslationErrorCodes.ProviderRetriesExhausted);
         var queued = await AddJob(content, ContentTranslationJobState.Queued, updatedAt: Now.AddHours(-4), attempts: 1, errorCode: "provider_timeout");
         var succeeded = await AddJob(content, ContentTranslationJobState.Succeeded, completedAt: Now.AddHours(-3), errorCode: "provider_error");
+        var unknown = await AddJob(content, ContentTranslationJobState.Failed, completedAt: Now.AddHours(-5), errorCode: "secret-unknown-code");
 
         var items = (await Find()).Items;
 
         Assert.Equal(
             [
                 new(queued, content, "<b>Title</b>", TypeId, false, Queued, 1, null, Now.AddHours(-4)),
-                new(failed, content, "<b>Title</b>", TypeId, false, Failed, 5, ContentTranslationErrorCodes.ProviderRetriesExhausted, Now.AddHours(-2)),
-                new LegacyFarsiRecoveredJob(succeeded, content, "<b>Title</b>", TypeId, false, Succeeded, 1, null, Now.AddHours(-3))
+                new(failed, content, "<b>Title</b>", TypeId, false, Failed, 5, ContentTranslationErrorCodes.FailureReason(ContentTranslationErrorCodes.ProviderRetriesExhausted),
+                    Now.AddHours(-2)),
+                new LegacyFarsiRecoveredJob(succeeded, content, "<b>Title</b>", TypeId, false, Succeeded, 1, null, Now.AddHours(-3)),
+                new(unknown, content, "<b>Title</b>", TypeId, false, Failed, 1, ContentTranslationErrorCodes.GenericFailureReason, Now.AddHours(-5))
             ], items);
         Assert.Equal(
-            ["JobId", "ContentId", "Title", "TypeId", "IsActive", "State", "AttemptCount", "ErrorCode", "RelevantAt"],
+            ["JobId", "ContentId", "Title", "TypeId", "IsActive", "State", "AttemptCount", "FailureReason", "RelevantAt"],
             typeof(LegacyFarsiRecoveredJob).GetProperties().Select(p => p.Name));
     }
 

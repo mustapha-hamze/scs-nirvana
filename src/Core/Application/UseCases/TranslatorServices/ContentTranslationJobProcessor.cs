@@ -70,6 +70,27 @@ public static class ContentTranslationErrorCodes
     public const string LeaseExpired = "lease_expired";
     public const string CultureUnavailable = "culture_unavailable";
     public const string TranslationDeleted = "translation_deleted";
+
+    public const string GenericFailureReason = "Translation could not be completed. Try again later.";
+
+    // The only failure text shown to operators: a fixed message per code, the generic one for anything
+    // else (provider_rate_limited, unknown, blank or future codes) - never the stored value itself.
+    public static string FailureReason(string code) => code switch
+    {
+        ProviderRetriesExhausted => "Translation could not be completed after several attempts. Try again later.",
+        ProviderError => "Translation provider could not complete the request. Try again later.",
+        ProviderTimeout => "Translation timed out. Try again.",
+        ProviderCancelled => "Translation was interrupted. Try again.",
+        InvalidOutput => "The translation response could not be used. Try again.",
+        LeaseExpired => "Translation processing was interrupted. Try again.",
+        CultureUnavailable => "The target language is unavailable. Contact an administrator.",
+        TranslationDeleted => "The translation was removed before completion.",
+        _ => GenericFailureReason
+    };
+
+    // FailureReason for a Failed job; null for every other state, whatever code is stored.
+    public static string FailureReasonFor(ContentTranslationJobState state, string code) =>
+        state == ContentTranslationJobState.Failed ? FailureReason(code) : null;
 }
 
 // Claims and runs one background translation job per call. Never runs inside a database

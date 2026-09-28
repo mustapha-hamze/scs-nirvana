@@ -11,7 +11,8 @@
 // RecoveredJobs is paged with active jobs first, so they fill its first ceil(active / page size) pages. Besides
 // the page the user is viewing, each poll round may read one of those pages in rotation into a pool of active
 // jobs, so jobs beyond the visible page are polled too; that read never touches the visible table or pager.
-// Requests go through $.ajax so the layout's global $.ajaxSetup adds the X-CSRF-TOKEN antiforgery header. Every dynamic value is written with
+// A Failed job shows the server's fixed failureReason text (Recovered Jobs column, submitted-items list); no
+// other state keeps or shows one. Requests go through $.ajax so the layout's global $.ajaxSetup adds the X-CSRF-TOKEN antiforgery header. Every dynamic value is written with
 // textContent. The server re-checks every submitted ID; the page only reflects the candidate list it
 // was given, the outcomes Queue returned and the job states Progress reports.
 var LegacyFarsiQueue = (function () {
@@ -198,8 +199,8 @@ var LegacyFarsiQueue = (function () {
     return { ids: batch.ids.concat(recovered.ids), cursors: { batch: batch.next, recovered: recovered.next } };
   }
 
-  // Applies Progress items (state, and attempts for items that show them) by job ID to batch or
-  // recovered items. Unknown states are ignored so a job keeps its last known state.
+  // Applies Progress items (state, the failure reason of a Failed job, and attempts for items that show
+  // them) by job ID to batch or recovered items. Unknown states are ignored so a job keeps its last known state.
   function mergeProgress(items, progressItems) {
     var byJob = {};
     (progressItems || []).forEach(function (p) { if (STATE_LABELS[p.state]) byJob[p.jobId] = p; });
@@ -207,6 +208,9 @@ var LegacyFarsiQueue = (function () {
       var p = item.jobId != null ? byJob[item.jobId] : undefined;
       if (!p) return item;
       var next = Object.assign({}, item, { state: p.state });
+      delete next.failureReason;
+      var reason = failureReason(p);
+      if (reason) next.failureReason = reason;
       if ("attemptCount" in item && typeof p.attemptCount === "number") next.attemptCount = p.attemptCount;
       return next;
     });
@@ -230,8 +234,19 @@ var LegacyFarsiQueue = (function () {
     return counts;
   }
 
+  // A Failed job's server-provided reason (plain text), else null.
+  function failureReason(item) {
+    return item.state === "Failed" && typeof item.failureReason === "string" && item.failureReason.trim() ? item.failureReason : null;
+  }
+
   function batchLabel(item) {
     return item.jobId != null ? STATE_LABELS[item.state] : outcomeLabel(item.outcome);
+  }
+
+  // A submitted-items line: its label, plus the reason when its job failed.
+  function batchLine(item) {
+    var reason = item.jobId != null ? failureReason(item) : null;
+    return "Content " + item.contentId + ": " + batchLabel(item) + (reason ? " — " + reason : "");
   }
 
   function batchStatus(item) {
@@ -374,12 +389,12 @@ var LegacyFarsiQueue = (function () {
       return node;
     }
 
-    function messageRow(text, tbodyId) {
+    function messageRow(text, tbodyId, colSpan) {
       var tbody = byId(tbodyId || "lfqRows");
       tbody.replaceChildren();
       var tr = el("tr");
       var td = el("td", "scs-empty-state", text);
-      td.colSpan = 7;
+      td.colSpan = colSpan || 7;
       tr.appendChild(td);
       tbody.appendChild(tr);
     }
@@ -509,14 +524,22 @@ var LegacyFarsiQueue = (function () {
         var job = el("td");
         job.appendChild(el("span", "scs-status " + (STATE_STATUS[item.state] || ""), STATE_LABELS[item.state] || "Not found"));
         tr.appendChild(job);
+        var reason = failureReason(item);
+        var why = el("td", "text-wrap", reason);
+        if (!reason) {
+          why.appendChild(el("span", null, "—")).setAttribute("aria-hidden", "true");
+          why.appendChild(el("span", "visually-hidden", "No failure reason"));
+        }
+        tr.appendChild(why);
         tr.appendChild(el("td", null, item.attemptCount));
         tr.appendChild(el("td", null, shortTime(item.relevantAt)));
         tbody.appendChild(tr);
       });
-      if (!last) messageRow("Loading translation jobs…", "lfqRecoveredRows");
-      else if (last.failed) messageRow("Translation jobs could not be loaded. Reload the page and try again.", "lfqRecoveredRows");
+      if (!last) messageRow("Loading translation jobs…", "lfqRecoveredRows", 8);
+      else if (last.failed) messageRow("Translation jobs could not be loaded. Reload the page and try again.", "lfqRecoveredRows", 8);
       else if (shown.length === 0)
-        messageRow(state.recovered.length > 0 ? "These jobs are shown in the submitted batch on the To Translate tab." : "No current or recent translation jobs.", "lfqRecoveredRows");
+        messageRow(state.recovered.length > 0 ? "These jobs are shown in the submitted batch on the To Translate tab." : "No current or recent translation jobs.",
+          "lfqRecoveredRows", 8);
       var pages = last && !last.failed ? pageCount(last.totalCount, last.pageSize) : 1;
       byId("lfqRecoveredPrev").disabled = !last || state.recoveredPage <= 1;
       byId("lfqRecoveredNext").disabled = !last || state.recoveredPage >= pages;
@@ -552,7 +575,7 @@ var LegacyFarsiQueue = (function () {
           state.recovered = (data.items || []).filter(function (item) { return STATE_LABELS[item.state]; }).map(function (item) {
             return {
               jobId: item.jobId, contentId: item.contentId, title: item.title, typeId: item.typeId, isActive: item.isActive === true,
-              state: item.state, attemptCount: item.attemptCount, relevantAt: item.relevantAt,
+              state: item.state, attemptCount: item.attemptCount, relevantAt: item.relevantAt, failureReason: failureReason(item),
             };
           });
           // The first answer picks the initial tab once: running work first. A tab chosen by hand is never overridden.
@@ -586,7 +609,7 @@ var LegacyFarsiQueue = (function () {
       var list = byId("lfqSummaryList");
       list.replaceChildren();
       state.batch.forEach(function (item) {
-        list.appendChild(el("li", null, "Content " + item.contentId + ": " + batchLabel(item)));
+        list.appendChild(el("li", null, batchLine(item)));
       });
       byId("lfqSummary").hidden = false;
     }
@@ -834,6 +857,7 @@ var LegacyFarsiQueue = (function () {
     applyStateChanges: applyStateChanges,
     recoveredStatus: recoveredStatus,
     progressCounts: progressCounts,
+    batchLine: batchLine,
     progressRequest: progressRequest,
     POLL_INTERVAL_MS: POLL_INTERVAL_MS,
   };

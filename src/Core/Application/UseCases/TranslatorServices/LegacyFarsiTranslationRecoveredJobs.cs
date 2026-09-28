@@ -7,10 +7,10 @@ using Domains.Entities.ContentManagement;
 
 namespace Application.UseCases.TranslatorServices;
 
-// ErrorCode (a fixed ContentTranslationErrorCodes value) only for Failed. RelevantAt (UTC) is the last
+// FailureReason (ContentTranslationErrorCodes.FailureReason, never the stored code) only for Failed. RelevantAt (UTC) is the last
 // update of an active job or the completion of a terminal one.
 public record LegacyFarsiRecoveredJob(int JobId, int ContentId, string Title, int TypeId, bool IsActive, LegacyFarsiJobProgressState State,
-    int AttemptCount, string ErrorCode, DateTime RelevantAt);
+    int AttemptCount, string FailureReason, DateTime RelevantAt);
 
 // Job counts by state over every page of the recovered scope (the same predicate as its rows).
 public record LegacyFarsiRecoveredJobCounts(int Queued, int Processing, int Succeeded, int Failed, int Superseded)
@@ -61,7 +61,7 @@ public class LegacyFarsiTranslationRecoveredJobs
         var completedSince = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-_options.LegacyBulkRecentJobDays);
         var (counts, jobs) = await _repository.FindRecoveredJobs(applicationId, cultureId, typeIds, completedSince, page, pageSize, cancellationToken);
         var items = jobs.Select(j => new LegacyFarsiRecoveredJob(j.JobId, j.ContentId, j.Title, j.TypeId, j.IsActive, LegacyFarsiTranslationProgress.ToState(j.State),
-            j.AttemptCount, j.State == ContentTranslationJobState.Failed ? j.ErrorCode : null, j.RelevantAt)).ToList();
+            j.AttemptCount, ContentTranslationErrorCodes.FailureReasonFor(j.State, j.ErrorCode), j.RelevantAt)).ToList();
         return new LegacyFarsiRecoveredJobPage(true, items, counts.Total, page, pageSize, counts);
     }
 }

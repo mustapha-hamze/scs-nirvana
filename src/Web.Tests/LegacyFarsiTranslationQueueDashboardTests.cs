@@ -140,6 +140,8 @@ public sealed class LegacyFarsiTranslationQueueDashboardTests : IClassFixture<Te
             Assert.DoesNotContain($"id=\"{id}\"", candidates);
         }
         Assert.DoesNotContain("progress", recovered.Substring(0, recovered.IndexOf("<script", StringComparison.Ordinal)));
+        // The failure reason has its own column, between the job state and attempts.
+        Assert.Matches("<th scope=\"col\">Translation job</th>\\s*<th scope=\"col\">Failure reason</th>\\s*<th scope=\"col\">Attempts</th>", recovered);
         Assert.True(html.IndexOf("role=\"tablist\"", StringComparison.Ordinal) < html.IndexOf("id=\"lfqPanelCandidates\"", StringComparison.Ordinal));
     }
 

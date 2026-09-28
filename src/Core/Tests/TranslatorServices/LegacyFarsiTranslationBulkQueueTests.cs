@@ -229,7 +229,7 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
         await using var context = _factory.CreateContext();
         var options = new ContentTranslationOptions { ActivationCultureId = _cultureId, BulkRequestMaxItems = 10 };
         var items = await new LegacyFarsiTranslationProgress(new LegacyFarsiTranslationCandidateRepository(context), options).Read(jobIds, ApplicationId);
-        return items.Select(i => (i.State, i.AttemptCount, i.ErrorCode)).ToArray();
+        return items.Select(i => (i.State, i.AttemptCount, i.FailureReason)).ToArray();
     }
 
     // Runs the background processor until no job is due.
@@ -305,14 +305,14 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
             [
                 (LegacyFarsiJobProgressState.Succeeded, 1, null),
                 (LegacyFarsiJobProgressState.Queued, 1, null), // rate limited: retry scheduled, its stale code hidden
-                (LegacyFarsiJobProgressState.Failed, 1, ContentTranslationErrorCodes.InvalidOutput),
+                (LegacyFarsiJobProgressState.Failed, 1, ContentTranslationErrorCodes.FailureReason(ContentTranslationErrorCodes.InvalidOutput)),
                 (LegacyFarsiJobProgressState.Superseded, 1, null),
-                (LegacyFarsiJobProgressState.Failed, 1, ContentTranslationErrorCodes.TranslationDeleted)
+                (LegacyFarsiJobProgressState.Failed, 1, ContentTranslationErrorCodes.FailureReason(ContentTranslationErrorCodes.TranslationDeleted))
             ], await Progress(jobIds));
 
         clock.SetUtcNow(Now.AddSeconds(30));
         await RunWorker(port, clock);
-        Assert.Equal((LegacyFarsiJobProgressState.Failed, 2, ContentTranslationErrorCodes.ProviderRetriesExhausted), (await Progress(job[limited])).Single());
+        Assert.Equal((LegacyFarsiJobProgressState.Failed, 2, ContentTranslationErrorCodes.FailureReason(ContentTranslationErrorCodes.ProviderRetriesExhausted)), (await Progress(job[limited])).Single());
         Assert.Equal([ok, limited, invalid, gone, limited], port.ContentIds); // the superseded job never reached the provider
 
         // Explicit retry of a failed job and re-queue of the changed source, through Queue again.
