@@ -3,7 +3,8 @@
 // returned job IDs until every submitted item is terminal. On load it also reads GET RecoveredJobs - the
 // application's active and recently completed jobs, durable across a refresh - shows them in their own
 // section (never in the submitted batch's bar, whose denominator is unknown after a refresh) and polls the
-// active ones through the same bounded Progress chain; a job is polled once however it is known.
+// active ones through the same bounded Progress chain, rotating when there are more than one request may
+// carry; a job is polled once however it is known.
 // Requests go through $.ajax so the layout's global $.ajaxSetup adds the X-CSRF-TOKEN antiforgery header. Every dynamic value is written with
 // textContent. The server re-checks every submitted ID; the page only reflects the candidate list it
 // was given, the outcomes Queue returned and the job states Progress reports.
@@ -145,14 +146,47 @@ var LegacyFarsiQueue = (function () {
     return batch.filter(isPending).map(function (item) { return item.jobId; });
   }
 
-  // Distinct pending job IDs of the batch and the recovered jobs, at most max (the Progress limit).
-  // ponytail: the first max stay polled until terminal; rotate the window if long queues starve the rest.
-  function trackedJobIds(batch, recovered, max) {
-    var ids = [];
-    batch.concat(recovered).forEach(function (item) {
-      if (isPending(item) && ids.indexOf(item.jobId) < 0) ids.push(item.jobId);
+  // Distinct pending job IDs, ascending: the batch's, and the recovered ones not already in the batch.
+  function pendingSets(batch, recovered) {
+    var ascending = function (a, b) { return a - b; };
+    var batchIds = [];
+    batch.forEach(function (item) { if (isPending(item) && batchIds.indexOf(item.jobId) < 0) batchIds.push(item.jobId); });
+    var recoveredIds = [];
+    recovered.forEach(function (item) {
+      if (isPending(item) && batchIds.indexOf(item.jobId) < 0 && recoveredIds.indexOf(item.jobId) < 0) recoveredIds.push(item.jobId);
     });
-    return ids.slice(0, max);
+    return { batch: batchIds.sort(ascending), recovered: recoveredIds.sort(ascending) };
+  }
+
+  // Up to limit of the ascending ids, starting at the first ID above cursor (a job ID, or null for the
+  // start) and wrapping around. The cursor is a job ID rather than an index, so it stays meaningful when
+  // jobs finish, are added or the list is reloaded. Returns the window and the cursor for the next one.
+  function rotatingWindow(ids, cursor, limit) {
+    var count = Math.min(Math.max(limit, 0), ids.length);
+    var start = 0;
+    while (cursor != null && start < ids.length && ids[start] <= cursor) start++;
+    if (start === ids.length) start = 0;
+    var picked = [];
+    for (var i = 0; i < count; i++) picked.push(ids[(start + i) % ids.length]);
+    return { ids: picked, next: picked.length > 0 ? picked[picked.length - 1] : cursor };
+  }
+
+  // One Progress request's job IDs (distinct, at most limit) and the cursors to use once it succeeds.
+  // The batch submitted on this page comes first, but while recovered jobs are pending one slot is kept
+  // for them; each group rotates through its own room when it does not fit, so no pending job starves.
+  // With a limit of 1 there is no room to share, so one combined rotation covers both groups.
+  function pollWindow(sets, cursors, limit) {
+    if (limit <= 1) {
+      var all = sets.batch.concat(sets.recovered).sort(function (a, b) { return a - b; });
+      var single = rotatingWindow(all, cursors.batch, limit);
+      return { ids: single.ids, cursors: { batch: single.next, recovered: cursors.recovered } };
+    }
+    var take = function (ids, cursor, room) {
+      return room >= ids.length ? { ids: ids.slice(), next: cursor } : rotatingWindow(ids, cursor, room);
+    };
+    var batch = take(sets.batch, cursors.batch, sets.recovered.length > 0 ? limit - 1 : limit);
+    var recovered = take(sets.recovered, cursors.recovered, limit - batch.ids.length);
+    return { ids: batch.ids.concat(recovered.ids), cursors: { batch: batch.next, recovered: recovered.next } };
   }
 
   // Applies Progress items (state, and attempts for items that show them) by job ID to batch or
@@ -225,7 +259,8 @@ var LegacyFarsiQueue = (function () {
     };
     var state = { page: 1, filters: readFilters(), selected: [], batch: [], cultureAvailable: null, busy: false, last: null,
       recovered: [], recoveredLast: null, recoveredPage: 1 };
-    var poll = { timer: null, inFlight: false, stopped: false };
+    // cursors: where the next window starts (see pollWindow); retried: the current window failed once.
+    var poll = { timer: null, inFlight: false, stopped: false, cursors: { batch: null, recovered: null }, retried: false };
 
     function readFilters() {
       return {
@@ -455,22 +490,28 @@ var LegacyFarsiQueue = (function () {
     }
 
     function tracked() {
-      return trackedJobIds(state.batch, state.recovered, config.maxItems);
+      var sets = pendingSets(state.batch, state.recovered);
+      return sets.batch.concat(sets.recovered);
     }
 
     function pollOnce() {
       poll.timer = null;
-      var ids = tracked();
-      if (poll.stopped || ids.length === 0) return;
+      var slot = pollWindow(pendingSets(state.batch, state.recovered), poll.cursors, config.maxItems);
+      if (poll.stopped || slot.ids.length === 0) return;
       poll.inFlight = true;
-      $.ajax(progressRequest(ids))
+      $.ajax(progressRequest(slot.ids))
         .done(function (data) {
           state.batch = mergeProgress(state.batch, data && data.items);
           state.recovered = mergeProgress(state.recovered, data && data.items);
+          poll.cursors = slot.cursors;
+          poll.retried = false;
           setPollMessage(null);
         })
         .fail(function () {
-          // Keep the last known states; the next interval retries.
+          // Keep the last known states. The same window is retried once before the rotation moves on,
+          // so a transient failure never skips a group, and a persistent one never blocks the others.
+          if (poll.retried) poll.cursors = slot.cursors;
+          poll.retried = !poll.retried;
           setPollMessage("Progress is temporarily unavailable. Retrying…");
         })
         .always(function () {
@@ -581,7 +622,9 @@ var LegacyFarsiQueue = (function () {
     outcomeLabel: outcomeLabel,
     batchFromQueue: batchFromQueue,
     pendingJobIds: pendingJobIds,
-    trackedJobIds: trackedJobIds,
+    pendingSets: pendingSets,
+    rotatingWindow: rotatingWindow,
+    pollWindow: pollWindow,
     mergeProgress: mergeProgress,
     recoveredRequest: recoveredRequest,
     recoveredToShow: recoveredToShow,

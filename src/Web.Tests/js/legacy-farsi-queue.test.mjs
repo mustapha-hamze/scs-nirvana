@@ -588,8 +588,7 @@ test("recovery helpers: a bounded paged GET, one poll per job across batch and r
   });
   const batch = [{ contentId: 1, jobId: 10, state: "Queued" }, { contentId: 2, jobId: null, state: "Skipped" }];
   const recovered = [{ jobId: 10, state: "Queued" }, { jobId: 20, state: "Processing" }, { jobId: 30, state: "Failed" }, { jobId: 40, state: "Queued" }];
-  assert.deepEqual(plain(q.trackedJobIds(batch, recovered, 25)), [10, 20, 40]);
-  assert.deepEqual(plain(q.trackedJobIds(batch, recovered, 2)), [10, 20]); // never over the Progress limit
+  assert.deepEqual(plain(q.pendingSets(batch, recovered)), { batch: [10], recovered: [20, 40] }); // 10 once, in the batch
   assert.deepEqual(plain(q.recoveredToShow(recovered, batch).map((j) => j.jobId)), [20, 30, 40]);
 });
 
@@ -699,4 +698,167 @@ test("a failed recovery read shows an error in its own section and leaves candid
   assert.equal(boxes().length, 1);
   assert.match(elements.lfqRecoveredRows.text, /Translation jobs could not be loaded/);
   assert.equal(pendingTimers().length, 0);
+});
+
+// ---- Rotation when more jobs are pending than one Progress request may carry ----
+
+const queuedJobs = (jobIds) => recoveredPage(jobIds.map((jobId) => [jobId, jobId - 10, "Queued"]));
+
+// Runs one poll: fires the timer, checks the request is bounded, distinct and the only one in flight,
+// answers it (null = failure) and returns the job IDs it carried.
+async function pollRound(view, max, items = []) {
+  view.tick();
+  assert.equal(view.calls.progress.length, 1, "exactly one Progress request in flight");
+  assert.equal(view.pendingTimers().length, 0, "nothing scheduled while a request is in flight");
+  const ids = plain(progressGets(view.calls).at(-1).data.jobIds);
+  assert.ok(ids.length > 0 && ids.length <= max, `bounded: ${ids}`);
+  assert.equal(new Set(ids).size, ids.length, `distinct: ${ids}`);
+  await view.answer(items === null ? null : { items });
+  return ids;
+}
+
+test("pending recovered jobs beyond the cap are polled in rotation while earlier ones stay pending", async () => {
+  const view = page({ maxItems: 3, candidates: [candidatePage([])], recovered: [queuedJobs([11, 12, 13, 14, 15, 16, 17])] });
+  await flush();
+
+  const still = (ids) => ids.map((jobId) => ({ jobId, state: "Queued" }));
+  const rounds = [];
+  for (let i = 0; i < 4; i++) rounds.push(await pollRound(view, 3, still(rounds.at(-1) ?? [])));
+
+  assert.deepEqual(rounds, [[11, 12, 13], [14, 15, 16], [17, 11, 12], [13, 14, 15]]);
+  assert.equal(view.pendingTimers().length, 1); // all still pending: the chain goes on
+});
+
+test("a transient failure retries the same window once before the rotation moves on", async () => {
+  const view = page({ maxItems: 3, candidates: [candidatePage([])], recovered: [queuedJobs([11, 12, 13, 14, 15, 16, 17])] });
+  await flush();
+
+  assert.deepEqual(await pollRound(view, 3), [11, 12, 13]);
+  assert.deepEqual(await pollRound(view, 3, null), [14, 15, 16]); // fails
+  assert.match(view.elements.lfqPollStatus.textContent, /temporarily unavailable/);
+  assert.deepEqual(await pollRound(view, 3), [14, 15, 16]); // retried, succeeds
+  assert.deepEqual(await pollRound(view, 3, null), [17, 11, 12]); // fails
+  assert.deepEqual(await pollRound(view, 3, null), [17, 11, 12]); // retried once, fails again
+  assert.deepEqual(await pollRound(view, 3), [13, 14, 15]); // moves on instead of blocking the rest
+  assert.equal(view.elements.lfqPollStatus.hidden, true);
+  assert.deepEqual(recoveredTexts(view.elements).map((r) => r[4]), Array(7).fill("Queued")); // last known states kept
+});
+
+test("a terminal job leaves the rotation without stalling later pending jobs, and polling stops when all are done", async () => {
+  const view = page({ maxItems: 3, candidates: [candidatePage([])], recovered: [queuedJobs([11, 12, 13, 14, 15, 16, 17])] });
+  await flush();
+  const done = (ids, state = "Succeeded") => ids.map((jobId) => ({ jobId, state }));
+
+  assert.deepEqual(await pollRound(view, 3, done([12])), [11, 12, 13]);
+  assert.deepEqual(await pollRound(view, 3, done([15], "Failed")), [14, 15, 16]);
+  assert.deepEqual(await pollRound(view, 3, done([17, 11])), [17, 11, 13]);
+  assert.deepEqual(await pollRound(view, 3, done([13, 14, 16], "Superseded")), [13, 14, 16]); // the rest fit: ascending
+
+  assert.equal(view.pendingTimers().length, 0); // nothing pending: stopped
+  await flush();
+  assert.equal(view.calls.ajax.at(-1).url, "/BackOffice/LegacyFarsiTranslationQueue/Candidates"); // reconciled
+  assert.deepEqual(recoveredTexts(view.elements).map((r) => r[4]),
+    ["Translated", "Translated", "Superseded (source changed)", "Superseded (source changed)", "Failed", "Superseded (source changed)", "Translated"]);
+  assert.equal(view.elements.lfqSummaryTitle.textContent, ""); // no batch bar for recovered history
+});
+
+test("a new batch comes first, is sent once when also recovered, and the recovered rotation continues", async () => {
+  const view = page({
+    maxItems: 3,
+    candidates: [candidatePage([8, 9])],
+    recovered: [queuedJobs([11, 12, 13, 14, 15])],
+    queueResult: { items: [{ contentId: 8, outcome: "AlreadyQueued", jobId: 11 }, { contentId: 9, outcome: "Queued", jobId: 90 }] },
+  });
+  await flush();
+  assert.deepEqual(await pollRound(view, 3), [11, 12, 13]);
+
+  for (const box of view.boxes()) {
+    box.checked = true;
+    box.fire("change");
+  }
+  view.elements.lfqQueue.fire("click");
+  for (let i = 0; i < 3; i++) await flush();
+  assert.equal(view.pendingTimers().length, 1); // still one chain
+
+  const rounds = [];
+  for (let i = 0; i < 3; i++) rounds.push(await pollRound(view, 3));
+  // Batch jobs 11 (also recovered) and 90 every time; the recovered slot keeps rotating from 13.
+  assert.deepEqual(rounds, [[11, 90, 14], [11, 90, 15], [11, 90, 12]]);
+  assert.equal(view.elements.lfqSummaryTitle.textContent, "0 of 2 submitted items complete, checking every few seconds."); // recovered not in the bar
+});
+
+test("a batch larger than the cap rotates too, and still leaves recovered jobs a slot", async () => {
+  const view = page({
+    maxItems: 2,
+    candidates: [candidatePage([3, 4, 5])],
+    recovered: [queuedJobs([11, 12])],
+    queueResult: { items: [3, 4, 5].map((id) => ({ contentId: id, outcome: "Queued", jobId: id * 10 })) },
+  });
+  await flush();
+  // The stubbed Queue answer carries three jobs, more than the cap of two (as several submissions would).
+  view.boxes()[0].checked = true;
+  view.boxes()[0].fire("change");
+  view.elements.lfqQueue.fire("click");
+  for (let i = 0; i < 3; i++) await flush();
+
+  const rounds = [];
+  for (let i = 0; i < 4; i++) rounds.push(await pollRound(view, 2));
+  assert.deepEqual(rounds, [[30, 11], [40, 12], [50, 11], [30, 12]]);
+});
+
+test("reloading the recovered page keeps rotating instead of restarting at the first window", async () => {
+  const view = page({
+    maxItems: 2,
+    candidates: [candidatePage([])],
+    recovered: [queuedJobs([11, 12, 13, 14, 15]), queuedJobs([11, 12, 13, 14, 15, 16])],
+  });
+  await flush();
+  assert.deepEqual(await pollRound(view, 2), [11, 12]);
+  assert.deepEqual(await pollRound(view, 2), [13, 14]);
+
+  view.elements.lfqRecoveredNext.disabled = false;
+  view.elements.lfqRecoveredPrev.fire("click"); // reload (page 1 again) with one more job
+  await flush();
+  assert.equal(recoveredGets(view.calls).length, 2);
+
+  assert.deepEqual(await pollRound(view, 2), [15, 16]);
+  assert.deepEqual(await pollRound(view, 2), [11, 12]);
+});
+
+test("with a cap of one, batch and recovered jobs share one rotation", async () => {
+  const view = page({
+    maxItems: 1,
+    candidates: [candidatePage([2])],
+    recovered: [queuedJobs([11, 12])],
+    queueResult: { items: [{ contentId: 2, outcome: "Queued", jobId: 20 }] },
+  });
+  await flush();
+  view.boxes()[0].checked = true;
+  view.boxes()[0].fire("change");
+  view.elements.lfqQueue.fire("click");
+  for (let i = 0; i < 3; i++) await flush();
+
+  const rounds = [];
+  for (let i = 0; i < 4; i++) rounds.push(await pollRound(view, 1));
+  assert.deepEqual(rounds, [[11], [12], [20], [11]]);
+});
+
+test("unloading during rotation cancels the chain and ignores the in-flight answer", async () => {
+  const view = page({ maxItems: 2, candidates: [candidatePage([])], recovered: [queuedJobs([11, 12, 13])] });
+  await flush();
+  await pollRound(view, 2);
+  view.tick();
+  view.unload();
+  await view.answer({ items: [] });
+
+  assert.equal(view.pendingTimers().length, 0);
+  assert.equal(progressGets(view.calls).length, 2);
+});
+
+test("rotatingWindow wraps, never repeats an ID and survives a cursor that has left the list", () => {
+  assert.deepEqual(plain(q.rotatingWindow([1, 2, 3, 4, 5], null, 2)), { ids: [1, 2], next: 2 });
+  assert.deepEqual(plain(q.rotatingWindow([1, 2, 3, 4, 5], 4, 3)), { ids: [5, 1, 2], next: 2 });
+  assert.deepEqual(plain(q.rotatingWindow([1, 2], 1, 5)), { ids: [2, 1], next: 1 });
+  assert.deepEqual(plain(q.rotatingWindow([2, 7, 9], 5, 2)), { ids: [7, 9], next: 9 }); // 5 finished meanwhile
+  assert.deepEqual(plain(q.rotatingWindow([], 5, 2)), { ids: [], next: 5 });
 });
