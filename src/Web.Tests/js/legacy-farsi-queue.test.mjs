@@ -189,7 +189,13 @@ function page({ workerEnabled = true, maxItems = 2, candidates, recovered = [rec
 
   const calls = { ajax: [], swal: [], messages: [], timers: [], progress: [] };
   const responses = [...candidates];
-  const recoveredResponses = [...recovered];
+  // recovered may also be a function of the request's data (a fake server); it returns null for a failure.
+  const recoveredResponses = typeof recovered === "function" ? [] : [...recovered];
+  const answerRecovered = (data, ok, fail) => {
+    const response = typeof recovered === "function" ? recovered(data) : next(recoveredResponses);
+    if (recoveredFails || response == null) fail({ status: 500, responseText: "<b>raw failure</b>" });
+    else ok(plain(response));
+  };
   const next = (list) => plain(list.length > 1 ? list.shift() : list[0]);
   const $ = {
     ajax(request) {
@@ -210,7 +216,7 @@ function page({ workerEnabled = true, maxItems = 2, candidates, recovered = [rec
       }
       setImmediate(() => {
         if (request.type === "GET" && getFails) fail({ status: 500 });
-        else if (request.url.endsWith("/RecoveredJobs")) recoveredFails ? fail({ status: 500 }) : ok(next(recoveredResponses));
+        else if (request.url.endsWith("/RecoveredJobs")) answerRecovered(request.data, ok, fail);
         else if (request.type === "GET") ok(next(responses));
         else if (queueStatus === 200) ok(plain(typeof queueResult === "function" ? queueResult(JSON.parse(request.data).contentIds) : queueResult));
         else fail({ status: queueStatus, responseJSON: queueResult });
@@ -1056,4 +1062,190 @@ test("the recovered panel has clear unavailable and error states", async () => {
   assert.match(statusText(failed.elements)[0], /could not be loaded/);
   assert.equal(failed.elements.lfqRecoveredTabCount.textContent, "");
   assert.deepEqual(tabState(failed.elements), CANDIDATES_SHOWN);
+});
+
+// ---- Active recovered jobs beyond the visible page ----
+
+// A fake RecoveredJobs server over job states it owns: active first (then by job ID, as a stand-in for the
+// real order), paged by 25, with whole-scope counts. failOnce lists pages whose next read fails.
+function recoveredServer(jobIds, { failOnce = [] } = {}) {
+  const states = new Map(jobIds.map((id) => [id, "Queued"]));
+  const reads = [];
+  const fails = [...failOnce];
+  const respond = ({ page = 1, pageSize = 25 }) => {
+    reads.push(page);
+    const failAt = fails.indexOf(page);
+    if (failAt >= 0) {
+      fails.splice(failAt, 1);
+      return null;
+    }
+    const all = [...states.entries()];
+    const pending = ([, state]) => state === "Queued" || state === "Processing";
+    const ordered = all.filter(pending).concat(all.filter((j) => !pending(j)));
+    const count = (state) => all.filter(([, s]) => s === state).length;
+    return recoveredPage(ordered.slice((page - 1) * pageSize, page * pageSize).map(([id, state]) => [id, id - 100, state]), {
+      totalCount: all.length, page,
+      counts: { queued: count("Queued"), processing: count("Processing"), succeeded: count("Succeeded"), failed: count("Failed"), superseded: count("Superseded") },
+    });
+  };
+  const progress = (ids) => ids.map((jobId) => ({ jobId, state: states.get(jobId) ?? "NotFound" }));
+  return { states, reads, respond, progress };
+}
+
+const sixtyJobs = () => [...Array(60)].map((_, i) => 101 + i); // pages 1-3: 101-125, 126-150, 151-160
+
+// Runs one round against the fake server: a bounded, distinct, single Progress request answered with the
+// server's states, then the follow-up discovery read. Returns the job IDs it carried.
+async function serverRound(view, server, max) {
+  view.tick();
+  assert.equal(view.calls.progress.length, 1, "exactly one Progress request in flight");
+  assert.equal(view.pendingTimers().length, 0, "nothing scheduled while a request is in flight");
+  const ids = plain(progressGets(view.calls).at(-1).data.jobIds);
+  assert.ok(ids.length > 0 && ids.length <= max, `bounded: ${ids}`);
+  assert.equal(new Set(ids).size, ids.length, `distinct: ${ids}`);
+  await view.answer({ items: server.progress(ids) });
+  await flush();
+  return ids;
+}
+
+test("active jobs on later recovered pages are discovered in rotation and polled while page one stays pending", async () => {
+  const server = recoveredServer(sixtyJobs());
+  const view = page({ maxItems: 10, candidates: [candidatePage([])], recovered: server.respond });
+  await flush();
+  assert.deepEqual(server.reads, [1]);
+
+  const polled = new Set();
+  for (let i = 0; i < 9; i++) for (const id of await serverRound(view, server, 10)) polled.add(id);
+
+  assert.deepEqual(server.reads, [1, 2, 3, 1, 2, 3, 1, 2, 3, 1]); // one discovery read per round, every active page in turn
+  assert.deepEqual([...polled].sort((a, b) => a - b), sixtyJobs()); // every active job, not only page one's
+  assert.ok([...polled].some((id) => id > 125 && id <= 150) && [...polled].some((id) => id > 150));
+  // The visible table never moved: still page one, its rows, and the user's pager.
+  assert.equal(view.elements.lfqRecoveredInfo.textContent, "60 jobs · page 1 of 3");
+  assert.deepEqual(recoveredTexts(view.elements).map((r) => r[0]), [...Array(25)].map((_, i) => String(i + 1)));
+  assert.equal(view.elements.lfqRecoveredPrev.disabled, true);
+  assert.equal(view.elements.lfqRecoveredTabCount.textContent, " (60 active)");
+  assert.equal(view.pendingTimers().length, 1);
+});
+
+test("jobs finishing beyond the visible page update the counts and tab badge, not the visible rows", async () => {
+  const server = recoveredServer(sixtyJobs());
+  const view = page({ maxItems: 10, candidates: [candidatePage([])], recovered: server.respond });
+  await flush();
+  server.states.set(140, "Failed");
+  server.states.set(160, "Succeeded");
+  server.states.set(155, "Superseded");
+
+  for (let i = 0; i < 3; i++) await serverRound(view, server, 10);
+
+  assert.equal(view.elements.lfqRecoveredTabCount.textContent, " (57 active)");
+  assert.deepEqual(statusText(view.elements),
+    ["57 jobs active · updating every few seconds", "Queued 57 · Translating 0 · Translated recently 1 · Failed 1 · Superseded 1"]);
+  assert.deepEqual(recoveredTexts(view.elements).map((r) => r[4]), Array(25).fill("Queued")); // page one is unchanged
+  const seen = progressGets(view.calls).length;
+  for (let i = 0; i < 6; i++) await serverRound(view, server, 10);
+  const later = progressGets(view.calls).slice(seen).flatMap((r) => r.data.jobIds);
+  assert.equal(new Set(later).size, 57); // every still-active job keeps being polled...
+  assert.ok(later.every((id) => ![140, 155, 160].includes(id))); // ...and finished ones no longer are
+  assert.equal(view.elements.lfqRecoveredTabCount.textContent, " (57 active)"); // never counted twice
+  assert.doesNotMatch([...statusText(view.elements), view.elements.lfqRecoveredRows.text].join(" "), /\b1[0-6]\d\b|provider_error/);
+});
+
+test("a failed discovery read keeps the last known state, is retried once, then the rotation moves on", async () => {
+  const server = recoveredServer(sixtyJobs(), { failOnce: [2, 3, 3] });
+  const view = page({ maxItems: 10, candidates: [candidatePage([])], recovered: server.respond });
+  await flush();
+
+  for (let i = 0; i < 6; i++) await serverRound(view, server, 10);
+
+  // 2 fails then succeeds on its retry; 3 fails twice, so the rotation moves on to 1 instead of stalling.
+  assert.deepEqual(server.reads, [1, 2, 2, 3, 3, 1, 2]);
+  assert.equal(view.elements.lfqRecoveredInfo.textContent, "60 jobs · page 1 of 3");
+  assert.equal(view.elements.lfqRecoveredTabCount.textContent, " (60 active)");
+  assert.doesNotMatch(view.elements.lfqRecoveredRows.text + statusText(view.elements).join(" "), /raw failure|could not be loaded/);
+  for (let i = 0; i < 8; i++) await serverRound(view, server, 10); // the next read of page 3, then the pool's rotation reaches it
+  assert.ok(progressGets(view.calls).some((r) => r.data.jobIds.some((id) => id > 150))); // page three is still covered
+});
+
+test("pager navigation, a submission and a changed active count neither restart discovery at page one nor duplicate jobs", async () => {
+  const server = recoveredServer(sixtyJobs());
+  const view = page({
+    maxItems: 10,
+    candidates: [candidatePage([900])],
+    recovered: server.respond,
+    queueResult: { items: [{ contentId: 900, outcome: "Queued", jobId: 101 }] }, // also a recovered job
+  });
+  await flush();
+  await serverRound(view, server, 10); // discovers page 2
+
+  view.elements.lfqRecoveredNext.fire("click"); // the user views page 2
+  await flush();
+  assert.equal(view.elements.lfqRecoveredInfo.textContent, "60 jobs · page 2 of 3");
+  view.boxes()[0].checked = true;
+  view.boxes()[0].fire("change");
+  view.elements.lfqQueue.fire("click");
+  for (let i = 0; i < 4; i++) await flush();
+  for (const id of [161, 162]) server.states.set(id, "Queued"); // two more active jobs: page count unchanged
+  for (let i = 0; i < 3; i++) await serverRound(view, server, 10);
+
+  // Reads: initial 1, discovery 2, the user's 2, the submission's reload of 2, then discovery 3, 1, 2.
+  assert.deepEqual(server.reads, [1, 2, 2, 2, 3, 1, 2]);
+  assert.equal(view.elements.lfqRecoveredInfo.textContent, "60 jobs · page 2 of 3"); // the user's page and its load stay as they were
+  assert.equal(view.elements.lfqRecoveredTabCount.textContent, " (62 active)"); // discovery brought the new count
+  assert.equal(view.pendingTimers().length, 1); // one chain
+  for (const request of progressGets(view.calls)) assert.equal(new Set(request.data.jobIds).size, request.data.jobIds.length);
+  assert.ok(progressGets(view.calls).slice(1).every((r) => r.data.jobIds[0] === 101)); // the batch job first, and only once
+  assert.equal(view.elements.lfqSummaryTitle.textContent, "0 of 1 submitted item complete, checking every few seconds."); // session only
+});
+
+test("polling stops only once every active job on every page is terminal, then both lists reconcile", async () => {
+  const server = recoveredServer(sixtyJobs());
+  const view = page({ maxItems: 10, candidates: [candidatePage([]), candidatePage([])], recovered: server.respond });
+  await flush();
+  for (const id of sixtyJobs().slice(0, 25)) server.states.set(id, "Succeeded"); // the visible page finishes first
+
+  for (let i = 0; i < 3; i++) await serverRound(view, server, 10);
+  assert.deepEqual(recoveredTexts(view.elements).map((r) => r[4]).slice(0, 3), ["Translated", "Translated", "Translated"]);
+  assert.equal(view.pendingTimers().length, 1); // the visible page is done, but 35 jobs elsewhere are not
+
+  for (const id of sixtyJobs().slice(25)) server.states.set(id, "Failed");
+  let rounds = 0;
+  while (view.pendingTimers().length > 0 && rounds++ < 20) await serverRound(view, server, 10);
+  await flush();
+
+  assert.equal(view.pendingTimers().length, 0);
+  assert.equal(view.calls.progress.length, 0);
+  assert.equal(view.calls.ajax.at(-1).url, "/BackOffice/LegacyFarsiTranslationQueue/Candidates"); // reconciled
+  assert.equal(server.reads.at(-1), 1); // the viewed page, re-read
+  assert.equal(view.elements.lfqRecoveredTabCount.textContent, "");
+  assert.deepEqual(statusText(view.elements), ["No jobs active.", "Queued 0 · Translating 0 · Translated recently 25 · Failed 35 · Superseded 0"]);
+  assert.equal(view.elements.lfqSummaryTitle.textContent, ""); // no batch invented
+});
+
+test("unloading mid-round cancels discovery as well as polling", async () => {
+  const server = recoveredServer(sixtyJobs());
+  const view = page({ maxItems: 10, candidates: [candidatePage([])], recovered: server.respond });
+  await flush();
+  view.tick();
+  view.unload();
+  await view.answer({ items: [] });
+  await flush();
+
+  assert.deepEqual(server.reads, [1]); // no discovery read after unload
+  assert.equal(view.pendingTimers().length, 0);
+});
+
+test("pool and discovery helpers", () => {
+  const pool = q.mergePool([{ jobId: 1, state: "Queued" }, { jobId: 2, state: "Queued" }], [
+    { jobId: 1, state: "Succeeded" }, { jobId: 2, state: "Processing" }, { jobId: 3, state: "Queued" }, { jobId: 3, state: "Queued" },
+    { jobId: 4, state: "Failed" }, { jobId: "5", state: "Queued" }, { jobId: 6, state: "<script>" },
+  ]);
+  assert.deepEqual(plain(pool), [{ jobId: 2, state: "Processing" }, { jobId: 3, state: "Queued" }]);
+  assert.deepEqual(plain(q.mergePool(pool, [])), plain(pool)); // jobs on other pages are kept
+
+  assert.equal(q.discoveryPage(0, 25, 1, 0, null), null);
+  assert.equal(q.discoveryPage(20, 25, 1, 5, 1), null); // all on the viewed first page, already polled
+  assert.equal(q.discoveryPage(20, 25, 1, 0, 1), 1); // counted active but none known: look again
+  assert.equal(q.discoveryPage(20, 25, 2, 0, null), 1); // viewing another page
+  assert.deepEqual([null, 1, 2, 3, 7].map((cursor) => q.discoveryPage(60, 25, 1, 5, cursor)), [1, 2, 3, 1, 1]); // wraps, survives shrinkage
 });

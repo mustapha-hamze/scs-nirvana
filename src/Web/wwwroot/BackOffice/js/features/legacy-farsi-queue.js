@@ -8,6 +8,9 @@
 // Jobs") that only show or hide their panel. The Recovered Jobs tab heads its rows with live counts over the
 // whole recovered scope (RecoveredJobs counts, adjusted in place by each Progress answer and re-read after a
 // submission and once polling drains) - counts, never a percentage, since no batch survives a refresh.
+// RecoveredJobs is paged with active jobs first, so they fill its first ceil(active / page size) pages. Besides
+// the page the user is viewing, each poll round may read one of those pages in rotation into a pool of active
+// jobs, so jobs beyond the visible page are polled too; that read never touches the visible table or pager.
 // Requests go through $.ajax so the layout's global $.ajaxSetup adds the X-CSRF-TOKEN antiforgery header. Every dynamic value is written with
 // textContent. The server re-checks every submitted ID; the page only reflects the candidate list it
 // was given, the outcomes Queue returned and the job states Progress reports.
@@ -250,6 +253,32 @@ var LegacyFarsiQueue = (function () {
     return recovered.filter(function (item) { return inBatch.indexOf(item.jobId) < 0; });
   }
 
+  // The active-job poll pool after a RecoveredJobs page: the page's active jobs join once (by job ID), pooled
+  // jobs it reports finished leave, and pooled jobs not on the page are kept.
+  function mergePool(pool, items) {
+    var onPage = {};
+    (items || []).forEach(function (item) {
+      if (STATE_LABELS[item.state] && parsePositiveInt(item.jobId) === item.jobId) onPage[item.jobId] = item.state;
+    });
+    var next = pool.filter(function (job) { return !(job.jobId in onPage) || PENDING[onPage[job.jobId]] === true; })
+      .map(function (job) { return job.jobId in onPage ? { jobId: job.jobId, state: onPage[job.jobId] } : job; });
+    Object.keys(onPage).forEach(function (key) {
+      var jobId = Number(key);
+      if (PENDING[onPage[key]] && !next.some(function (job) { return job.jobId === jobId; })) next.push({ jobId: jobId, state: onPage[key] });
+    });
+    return next;
+  }
+
+  // The recovered page to read for discovery next, or null when none is needed: the page after cursor (the last
+  // page read, or null), wrapping within the pages that can hold active jobs. When active jobs fit on the viewed
+  // first page and some are already being polled, that page's load has found them all.
+  function discoveryPage(activeCount, pageSize, viewedPage, pendingCount, cursor) {
+    if (activeCount <= 0) return null;
+    var pages = Math.ceil(activeCount / pageSize);
+    if (pages === 1 && viewedPage === 1 && pendingCount > 0) return null;
+    return cursor == null || cursor >= pages ? 1 : cursor + 1;
+  }
+
   function withTotals(counts) {
     counts.active = counts.queued + counts.processing;
     counts.total = counts.active + counts.succeeded + counts.failed + counts.superseded;
@@ -306,9 +335,12 @@ var LegacyFarsiQueue = (function () {
       typeIds: (root.getAttribute("data-type-ids") || "").split(",").map(parsePositiveInt).filter(function (x) { return x !== null; }),
     };
     var state = { page: 1, filters: readFilters(), selected: [], batch: [], cultureAvailable: null, busy: false, last: null,
-      recovered: [], recoveredLast: null, recoveredPage: 1, recoveredCounts: recoveredCounts(null), recoveredSeq: 0, tabChosen: false };
+      recovered: [], recoveredLast: null, recoveredPage: 1, recoveredCounts: recoveredCounts(null), recoveredSeq: 0, tabChosen: false,
+      pool: [] };
     // cursors: where the next window starts (see pollWindow); retried: the current window failed once.
     var poll = { timer: null, inFlight: false, stopped: false, cursors: { batch: null, recovered: null }, retried: false };
+    // cursor: the last recovered page discovery read (it moves on after a success, or after a retried failure).
+    var discovery = { cursor: null, retried: false };
 
     var TABS = { candidates: ["lfqTabCandidates", "lfqPanelCandidates"], recovered: ["lfqTabRecovered", "lfqPanelRecovered"] };
 
@@ -500,7 +532,7 @@ var LegacyFarsiQueue = (function () {
       var status = { title: "Loading recovered translation activity…", detail: "" };
       if (last && last.failed) status.title = "Recovered translation activity could not be loaded. Reload the page and try again.";
       else if (last && last.cultureAvailable !== true) status.title = "The translation target culture is unavailable, so there is no translation activity to show.";
-      else if (last) status = recoveredStatus(counts, !poll.stopped && tracked().length > 0);
+      else if (last) status = recoveredStatus(counts, !poll.stopped && hasWork());
       byId("lfqRecoveredStatusTitle").textContent = status.title;
       byId("lfqRecoveredStatusCounts").textContent = status.detail;
       byId("lfqRecoveredTabCount").textContent = counts.active > 0 ? " (" + counts.active + " active)" : "";
@@ -515,6 +547,8 @@ var LegacyFarsiQueue = (function () {
           state.recoveredLast = data;
           state.recoveredCounts = recoveredCounts(data.counts);
           state.recoveredPage = data.page;
+          state.pool = mergePool(state.pool, data.items);
+          if (discovery.cursor === null) discovery.cursor = data.page;
           state.recovered = (data.items || []).filter(function (item) { return STATE_LABELS[item.state]; }).map(function (item) {
             return {
               jobId: item.jobId, contentId: item.contentId, title: item.title, typeId: item.typeId, isActive: item.isActive === true,
@@ -569,28 +603,43 @@ var LegacyFarsiQueue = (function () {
       poll.timer = null;
     }
 
-    // One request at a time: the next poll is scheduled only after the previous one has finished.
+    // One request at a time: the next round is scheduled only after the previous one (Progress, then any
+    // discovery read) has finished.
     function schedulePoll() {
-      if (poll.stopped || poll.inFlight || poll.timer !== null || tracked().length === 0) return;
+      if (poll.stopped || poll.inFlight || poll.timer !== null || !hasWork()) return;
       poll.timer = setTimeout(pollOnce, POLL_INTERVAL_MS);
     }
 
     function tracked() {
-      var sets = pendingSets(state.batch, state.recovered);
+      var sets = pendingSets(state.batch, state.pool);
       return sets.batch.concat(sets.recovered);
+    }
+
+    // A job is being polled, or the server still counts active recovered jobs not yet discovered.
+    function hasWork() {
+      return tracked().length > 0 || state.recoveredCounts.active > 0;
     }
 
     function pollOnce() {
       poll.timer = null;
-      var slot = pollWindow(pendingSets(state.batch, state.recovered), poll.cursors, config.maxItems);
-      if (poll.stopped || slot.ids.length === 0) return;
+      if (poll.stopped) return;
+      var slot = pollWindow(pendingSets(state.batch, state.pool), poll.cursors, config.maxItems);
       poll.inFlight = true;
+      if (slot.ids.length === 0) {
+        discover();
+        return;
+      }
       $.ajax(progressRequest(slot.ids))
         .done(function (data) {
+          // While discovery runs, its read right after this answer brings the server's counts; adjusting them
+          // here as well could count a change it already includes twice.
+          var discovering = nextDiscoveryPage() !== null;
           state.batch = mergeProgress(state.batch, data && data.items);
-          var before = state.recovered;
-          state.recovered = mergeProgress(before, data && data.items);
-          state.recoveredCounts = applyStateChanges(state.recoveredCounts, before, state.recovered);
+          state.recovered = mergeProgress(state.recovered, data && data.items);
+          var before = state.pool;
+          var after = mergeProgress(before, data && data.items);
+          if (!discovering) state.recoveredCounts = applyStateChanges(state.recoveredCounts, before, after);
+          state.pool = after.filter(isPending);
           poll.cursors = slot.cursors;
           poll.retried = false;
           setPollMessage(null);
@@ -603,20 +652,60 @@ var LegacyFarsiQueue = (function () {
           setPollMessage("Progress is temporarily unavailable. Retrying…");
         })
         .always(function () {
-          poll.inFlight = false;
           if (poll.stopped) return;
           if (state.batch.length > 0) renderProgress();
-          renderRecovered();
           if (state.last) renderRows(state.last.items);
           renderToolbar();
-          if (tracked().length > 0) schedulePoll();
-          else {
-            // All terminal: reconcile both lists (active jobs beyond the recovered page come up to be polled);
-            // the summary stays visible.
-            loadRecovered(state.recoveredPage);
-            load(state.page);
-          }
+          discover();
         });
+    }
+
+    // Reads the next active recovered page, if one is due, into the pool and the counts - never into the
+    // visible table's page, pager or loading state; rows already shown only take the fresher states. A failed
+    // read keeps the last known state and is retried once before the rotation moves on.
+    function nextDiscoveryPage() {
+      return discoveryPage(state.recoveredCounts.active, PAGE_SIZE, state.recoveredPage, tracked().length, discovery.cursor);
+    }
+
+    function discover() {
+      var page = nextDiscoveryPage();
+      if (page === null) {
+        finishRound();
+        return;
+      }
+      $.ajax(recoveredRequest(page))
+        .done(function (data) {
+          if (poll.stopped) return;
+          if (data.cultureAvailable === true) {
+            state.recoveredCounts = recoveredCounts(data.counts);
+            state.pool = mergePool(state.pool, data.items);
+            state.recovered = mergeProgress(state.recovered, data.items);
+          } else {
+            state.recoveredCounts = recoveredCounts(null);
+            state.pool = [];
+          }
+          discovery.cursor = page;
+          discovery.retried = false;
+        })
+        .fail(function () {
+          if (discovery.retried) discovery.cursor = page;
+          discovery.retried = !discovery.retried;
+        })
+        .always(function () {
+          if (!poll.stopped) finishRound();
+        });
+    }
+
+    function finishRound() {
+      poll.inFlight = false;
+      renderRecovered();
+      if (hasWork()) schedulePoll();
+      else {
+        // Everything known is terminal and nothing active is left to discover: reconcile both lists; the
+        // summary stays visible.
+        loadRecovered(state.recoveredPage);
+        load(state.page);
+      }
     }
 
     function confirmQueue(count) {
@@ -740,6 +829,8 @@ var LegacyFarsiQueue = (function () {
     recoveredRequest: recoveredRequest,
     recoveredToShow: recoveredToShow,
     recoveredCounts: recoveredCounts,
+    mergePool: mergePool,
+    discoveryPage: discoveryPage,
     applyStateChanges: applyStateChanges,
     recoveredStatus: recoveredStatus,
     progressCounts: progressCounts,
