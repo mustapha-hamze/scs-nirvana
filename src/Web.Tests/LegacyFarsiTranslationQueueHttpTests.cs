@@ -157,11 +157,12 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
     [InlineData(PageUrl)]
     [InlineData(CandidatesUrl)]
     [InlineData(ProgressUrl + "?jobIds=1")]
+    [InlineData(QueueUrl)]
     public async Task Anonymous_RedirectsToLogin(string url)
     {
         var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-        var response = await client.GetAsync(url);
+        var response = url == QueueUrl ? await PostQueue(client, 1) : await client.GetAsync(url);
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Contains("/Login", response.Headers.Location?.OriginalString ?? "", StringComparison.OrdinalIgnoreCase);
@@ -403,15 +404,16 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         var foreign = await SeedContent(otherApplicationId, "Foreign");
         var tampered = JsonSerializer.Serialize(new
         {
-            contentIds = new[] { foreign, mine },
+            contentIds = new[] { foreign, int.MaxValue, mine },
             applicationId = otherApplicationId, cultureId = OtherCultureId, activationCultureId = OtherCultureId,
             sourceFingerprint = new string('f', 64), state = "Succeeded", provider = "evil", eligible = true
         });
+        var url = $"{QueueUrl}?applicationId={otherApplicationId}&ApplicationId={otherApplicationId}&cultureId={OtherCultureId}&activationCultureId={OtherCultureId}";
 
-        var items = await Outcomes(await PostQueue(client, tampered));
+        var items = await Outcomes(await client.PostAsync(url, new StringContent(tampered, System.Text.Encoding.UTF8, "application/json")));
 
         var job = Assert.Single(await Jobs(mine, foreign));
-        Assert.Equal(new[] { (foreign, "NotFound", (int?)null), (mine, "Queued", (int?)job.Id) }, items);
+        Assert.Equal(new[] { (foreign, "NotFound", (int?)null), (int.MaxValue, "NotFound", null), (mine, "Queued", (int?)job.Id) }, items);
         Assert.Equal((mine, ActivationCultureId, ContentTranslationJobState.Queued), (job.ContentId, job.CultureId, job.State));
         Assert.NotEqual(new string('f', 64), job.SourceFingerprint);
     }
@@ -482,6 +484,13 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         return job.Id;
     });
 
+    // Never part of a progress item, whatever the job or translation row holds.
+    private static readonly string[] ForbiddenProgressFields =
+    {
+        "sourceFingerprint", "fingerprint", "farsiContent", "localizedTextJson", "provider", "model", "prompt", "error", "errorMessage",
+        "leaseOwner", "leaseExpiresAt", "nextAttemptAt", "completedAt", "createdDT", "updatedDT", "version", "applicationId", "cultureId"
+    };
+
     private static string ProgressQuery(params int[] jobIds) => ProgressUrl + "?" + string.Join('&', jobIds.Select(id => $"jobIds={id}"));
 
     private static async Task<(int JobId, int? ContentId, string State, int? AttemptCount, string? ErrorCode)[]> States(HttpResponseMessage response)
@@ -493,6 +502,8 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         return body.GetProperty("items").EnumerateArray().Select(i =>
         {
             Assert.Equal(new[] { "jobId", "contentId", "state", "attemptCount", "errorCode" }, i.EnumerateObject().Select(p => p.Name));
+            foreach (var forbidden in ForbiddenProgressFields)
+                Assert.DoesNotContain(i.EnumerateObject(), p => p.Name.Equals(forbidden, StringComparison.OrdinalIgnoreCase));
             return (i.GetProperty("jobId").GetInt32(), Int(i.GetProperty("contentId")), i.GetProperty("state").GetString()!,
                 Int(i.GetProperty("attemptCount")), i.GetProperty("errorCode").GetString());
         }).ToArray();
@@ -510,16 +521,24 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         var deleted = await SeedJob(mine, ContentTranslationJobState.Processing, isDeleted: true);
         var otherApplicationId = await NewApplication();
         var foreign = await SeedJob(await SeedContent(otherApplicationId, "Foreign"), ContentTranslationJobState.Failed, attempts: 2, errorCode: "provider_timeout");
+        var removed = await SeedContent(applicationId, "Removed");
+        var deletedContent = await SeedJob(removed, ContentTranslationJobState.Failed, attempts: 1, errorCode: "provider_timeout");
+        await Db(async context =>
+        {
+            (await context.Contents.SingleAsync(c => c.Id == removed)).IsDeleted = true;
+            return await context.SaveChangesAsync();
+        });
         var tampered = $"&applicationId={otherApplicationId}&ApplicationId={otherApplicationId}&cultureId={OtherCultureId}&activationCultureId={OtherCultureId}";
 
-        var response = await client.GetAsync(ProgressQuery(foreign, queued, failed, queued, succeeded, otherCulture, deleted) + tampered);
+        var response = await client.GetAsync(ProgressQuery(foreign, queued, failed, queued, succeeded, otherCulture, deleted, deletedContent, int.MaxValue) + tampered);
         var raw = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(new[]
         {
             (foreign, (int?)null, "NotFound", (int?)null, (string?)null), (queued, mine, "Queued", 1, null),
             (failed, mine, "Failed", 3, ContentTranslationErrorCodes.ProviderError), (succeeded, mine, "Succeeded", 1, null),
-            (otherCulture, null, "NotFound", null, null), (deleted, null, "NotFound", null, null)
+            (otherCulture, null, "NotFound", null, null), (deleted, null, "NotFound", null, null),
+            (deletedContent, null, "NotFound", null, null), (int.MaxValue, null, "NotFound", null, null)
         }, await States(response));
         foreach (var secret in new[] { "قدیمی", "Foreign", "provider_timeout", "secret-lease-owner", "Mine", "fingerprint", "cccc" })
             Assert.DoesNotContain(secret, raw);
@@ -568,5 +587,17 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         var after = Assert.Single(await Jobs(contentId));
         Assert.Equal((before.State, before.AttemptCount, before.Version, before.NextAttemptAt), (after.State, after.AttemptCount, after.Version, after.NextAttemptAt));
         Assert.False(await Db(context => context.ContentTranslations.AnyAsync(t => t.ContentId == contentId)));
+    }
+
+    [Fact]
+    public async Task Progress_UnavailableConfiguredCulture_IsNotFound_AndWritesNothing()
+    {
+        _factory = _factory.WithWebHostBuilder(builder => builder.UseSetting("ContentTranslation:ActivationCultureId", "7199"));
+        var (client, applicationId) = await SignIn();
+        var job = await SeedJob(await SeedContent(applicationId, "Mine"), ContentTranslationJobState.Failed, attempts: 1, errorCode: "provider_error");
+        Interlocked.Exchange(ref _saves.Count, 0);
+
+        Assert.Equal(new[] { (job, (int?)null, "NotFound", (int?)null, (string?)null) }, await States(await client.GetAsync(ProgressQuery(job))));
+        Assert.Equal(0, _saves.Count);
     }
 }

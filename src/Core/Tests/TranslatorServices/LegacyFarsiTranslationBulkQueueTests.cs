@@ -215,6 +215,129 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
         Assert.Equal(bytes, System.Text.Encoding.UTF8.GetBytes(await after.Contents.Where(c => c.Id == id).Select(c => c.FarsiContent).SingleAsync()));
     }
 
+    private async Task<int[]> CandidateIds()
+    {
+        await using var context = _factory.CreateContext();
+        var options = new ContentTranslationOptions { ActivationCultureId = _cultureId, LegacyBulkCandidateTypeIds = [1001, 1002] };
+        var page = await new LegacyFarsiTranslationCandidates(new LegacyFarsiTranslationCandidateRepository(context), options)
+            .Find(new LegacyFarsiTranslationCandidateQuery(PageSize: LegacyFarsiTranslationCandidates.MaxPageSize), ApplicationId);
+        return page.Items.Select(i => i.ContentId).ToArray();
+    }
+
+    private async Task<(LegacyFarsiJobProgressState, int?, string)[]> Progress(params int[] jobIds)
+    {
+        await using var context = _factory.CreateContext();
+        var options = new ContentTranslationOptions { ActivationCultureId = _cultureId, BulkRequestMaxItems = 10 };
+        var items = await new LegacyFarsiTranslationProgress(new LegacyFarsiTranslationCandidateRepository(context), options).Read(jobIds, ApplicationId);
+        return items.Select(i => (i.State, i.AttemptCount, i.ErrorCode)).ToArray();
+    }
+
+    // Runs the background processor until no job is due.
+    private async Task RunWorker(ITranslationPort port, TimeProvider clock)
+    {
+        var options = new ContentTranslationOptions { LeaseMinutes = 10, MaxAttempts = 2 };
+        while (true)
+        {
+            await using var context = _factory.CreateContext();
+            if (!await new ContentTranslationJobProcessor(new ContentTranslationJobRepository(context), port, options, clock).RunOnce("worker", default))
+                return;
+        }
+    }
+
+    // Exact legacy bytes and UpdatedDT of every content row.
+    private async Task<string[]> ContentSnapshot()
+    {
+        await using var context = _factory.CreateContext();
+        var rows = await context.Contents.IgnoreQueryFilters().OrderBy(c => c.Id).Select(c => new { c.Id, c.FarsiContent, c.UpdatedDT }).ToListAsync();
+        return rows.Select(r => $"{r.Id}:{Convert.ToHexString(System.Text.Encoding.UTF8.GetBytes(r.FarsiContent ?? ""))}:{r.UpdatedDT:O}").ToArray();
+    }
+
+    private sealed class RecordingPort(Func<int, TranslationRequest, TranslationResult> handler) : ITranslationPort
+    {
+        public List<int> ContentIds { get; } = [];
+
+        public Task<TranslationResult> TranslateAsync(TranslationRequest request, CancellationToken cancellationToken = default)
+        {
+            Assert.DoesNotContain("قدیمی", request.ContentJson); // legacy Farsi is never sent
+            var contentId = (int)System.Text.Json.Nodes.JsonNode.Parse(request.ContentJson)!["Id"]!;
+            ContentIds.Add(contentId);
+            return Task.FromResult(handler(contentId, request));
+        }
+    }
+
+    // Candidate read -> Queue -> Progress -> background processor (fake provider) -> Progress -> retry,
+    // over the real repositories. Only the processor reaches the provider; legacy FarsiContent bytes and
+    // content UpdatedDT never change; the only writes are job rows and the one Ready translation.
+    [Fact]
+    public async Task QueueWorkerAndProgress_ReportEveryOutcome_AndNeverTouchLegacyFarsi()
+    {
+        await SeedCulture();
+        var ok = await AddContent();
+        var limited = await AddContent();
+        var invalid = await AddContent(typeId: 1002);
+        var changed = await AddContent();
+        var gone = await AddContent();
+        var before = await ContentSnapshot();
+        var port = new RecordingPort((id, request) =>
+            id == limited ? TranslationResult.Failed("rate limited <provider text>", retryable: true)
+            : id == invalid ? TranslationResult.Ok("{\"Id\":0}", "fake", "fake-model")
+            : TranslationResult.Ok(request.ContentJson, "fake", "fake-model"));
+
+        Assert.Equal([ok, limited, invalid, changed, gone], await CandidateIds());
+        var items = (await Queue([ok, limited, invalid])).Concat(await Queue([changed, gone])).ToList();
+        Assert.All(items, i => Assert.Equal(Queued, i.Outcome));
+        var job = items.ToDictionary(i => i.ContentId, i => i.JobId!.Value);
+        int[] jobIds = [job[ok], job[limited], job[invalid], job[changed], job[gone]];
+        Assert.Empty(await CandidateIds()); // current-fingerprint active jobs hide them
+        Assert.All(await Progress(jobIds), p => Assert.Equal((LegacyFarsiJobProgressState.Queued, 0, null), p));
+
+        // After queueing: the master source changes, and a translation row for another is deleted.
+        await using (var context = _factory.CreateContext())
+            await context.Contents.Where(c => c.Id == changed).ExecuteUpdateAsync(s => s.SetProperty(c => c.Title, "Edited English"));
+        await Add(Translation(gone, TranslationStatus.Ready, isDeleted: true));
+        Assert.Equal([changed], await CandidateIds()); // an outdated job no longer hides changed content
+        Assert.Empty(port.ContentIds);
+
+        var clock = new FakeTimeProvider(Now);
+        await RunWorker(port, clock);
+
+        Assert.Equal(
+            [
+                (LegacyFarsiJobProgressState.Succeeded, 1, null),
+                (LegacyFarsiJobProgressState.Queued, 1, null), // rate limited: retry scheduled, its stale code hidden
+                (LegacyFarsiJobProgressState.Failed, 1, ContentTranslationErrorCodes.InvalidOutput),
+                (LegacyFarsiJobProgressState.Superseded, 1, null),
+                (LegacyFarsiJobProgressState.Failed, 1, ContentTranslationErrorCodes.TranslationDeleted)
+            ], await Progress(jobIds));
+
+        clock.SetUtcNow(Now.AddSeconds(30));
+        await RunWorker(port, clock);
+        Assert.Equal((LegacyFarsiJobProgressState.Failed, 2, ContentTranslationErrorCodes.ProviderRetriesExhausted), (await Progress(job[limited])).Single());
+        Assert.Equal([ok, limited, invalid, gone, limited], port.ContentIds); // the superseded job never reached the provider
+
+        // Explicit retry of a failed job and re-queue of the changed source, through Queue again.
+        var retried = await Queue([limited, changed, ok]);
+        Assert.Equal(new LegacyFarsiBulkQueueItem(limited, Queued, job[limited]), retried[0]);
+        Assert.Equal(Queued, retried[1].Outcome);
+        Assert.NotEqual(job[changed], retried[1].JobId);
+        Assert.Equal(new LegacyFarsiBulkQueueItem(ok, Skipped, null), retried[2]); // translated: no longer a candidate
+        Assert.Equal([(LegacyFarsiJobProgressState.Queued, 0, null), (LegacyFarsiJobProgressState.Queued, 0, null)],
+            await Progress(job[limited], retried[1].JobId!.Value));
+
+        await RunWorker(port, clock);
+        Assert.Equal((LegacyFarsiJobProgressState.Succeeded, 1, null), (await Progress(retried[1].JobId!.Value)).Single());
+
+        Assert.Equal(before, await ContentSnapshot());
+        Assert.Equal(6, (await Jobs()).Count);
+        await using var after = _factory.CreateContext();
+        var translations = await after.ContentTranslations.IgnoreQueryFilters().OrderBy(t => t.ContentId).ToListAsync();
+        Assert.Equal([(ok, false), (changed, false), (gone, true)], translations.Select(t => (t.ContentId, t.IsDeleted)));
+        Assert.All(translations, t => Assert.Equal(_cultureId, t.CultureId));
+        Assert.Equal(await Fingerprint(ok), translations[0].SourceFingerprint);
+        Assert.Equal(await Fingerprint(changed), translations[1].SourceFingerprint); // from the edited source, not the queued one
+        Assert.All(translations.Take(2), t => Assert.Equal(TranslationStatus.Ready, t.TranslationStatus));
+    }
+
     // Runs the race once after the bulk queue's revalidation: before Request loads its state, or
     // before its first save.
     private sealed class RacingRepository(ApplicationDbContext context, Func<Task> race, bool onSave) : IContentTranslationJobRepository

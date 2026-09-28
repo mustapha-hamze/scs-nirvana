@@ -168,7 +168,7 @@ class Node {
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
 // Builds the dashboard, answers Candidates with `pages` in order (then the last one again) and
-// Queue with `queueResult`. `confirm` is what Swal resolves to. Progress requests wait until the test
+// Queue with `queueResult` (or queueResult(contentIds)). `confirm` is what Swal resolves to. Progress requests wait until the test
 // calls answer(data), or answer(null) for a failure. Timers are fake: tick() runs the pending one.
 function page({ workerEnabled = true, maxItems = 2, candidates, queueResult, queueStatus = 200, confirm = true, getFails = false }) {
   const ids = ["lfqRows", "lfqSelectedCount", "lfqClear", "lfqQueue", "lfqCultureUnavailable", "lfqPage", "lfqPrev",
@@ -204,7 +204,7 @@ function page({ workerEnabled = true, maxItems = 2, candidates, queueResult, que
       setImmediate(() => {
         if (request.type === "GET" && getFails) fail({ status: 500 });
         else if (request.type === "GET") ok(plain(responses.length > 1 ? responses.shift() : responses[0]));
-        else if (queueStatus === 200) ok(plain(queueResult));
+        else if (queueStatus === 200) ok(plain(typeof queueResult === "function" ? queueResult(JSON.parse(request.data).contentIds) : queueResult));
         else fail({ status: queueStatus, responseJSON: queueResult });
         always && always();
       });
@@ -511,4 +511,48 @@ test("server text in progress responses is written as text, never HTML", async (
     ["Content 1: Queued", "Content 2: Translated", "Content 3: Queued"]); // unknown state ignored
   assert.match(elements.lfqRows.text, /<b>Title 1<\/b>/); // candidate titles remain plain text
   assert.ok(elements.lfqSummaryList.children.every((c) => c.tagName === "li" && c.children.length === 0)); // text-only items
+});
+
+test("a second submission keeps the first batch's running items, and both batches count toward one bar", async () => {
+  const jobsFor = (ids) => ({ items: ids.map((id) => ({ contentId: id, outcome: id === 4 ? "NotFound" : "Queued", jobId: id === 4 ? null : id * 10 })) });
+  const view = page({ maxItems: 5, candidates: [candidatePage([1, 2, 3, 4])], queueResult: jobsFor });
+  const { elements, calls, boxes, tick, answer, pendingTimers } = view;
+  await flush();
+  const select = async (ids) => {
+    for (const box of boxes().filter((b) => ids.some((id) => b.getAttribute("aria-label") === `Select content ${id}`))) {
+      box.checked = true;
+      box.fire("change");
+    }
+    elements.lfqQueue.fire("click");
+    for (let i = 0; i < 3; i++) await flush();
+  };
+
+  await select([1, 2]);
+  tick();
+  await answer({ items: [{ jobId: 10, state: "Succeeded" }, { jobId: 20, state: "Processing" }] });
+  assert.equal(elements.lfqProgressBar.style.width, "50%");
+
+  await select([3, 4]); // 1 and 2 are locked while known; 4 comes back NotFound with no job
+  assert.deepEqual(plain(JSON.parse(calls.ajax.filter((r) => r.type === "POST").at(-1).data)), { contentIds: [3, 4] });
+  assert.equal(pendingTimers().length, 1); // still one poll chain
+  assert.deepEqual(elements.lfqSummaryList.children.map((c) => c.textContent),
+    ["Content 1: Translated", "Content 2: Translating", "Content 3: Queued", "Content 4: Not found"]);
+  assert.equal(elements.lfqProgressBar.style.width, "50%"); // 2 of 4 complete
+
+  tick();
+  assert.deepEqual(plain(progressGets(calls).at(-1).data), { jobIds: [20, 30] });
+  await answer({ items: [{ jobId: 20, state: "Succeeded" }, { jobId: 30, state: "Processing" }] });
+  assert.equal(elements.lfqProgressBar.style.width, "75%");
+  assert.equal(calls.ajax.filter((r) => r.url.endsWith("/Candidates")).length, 1); // no reconciliation while one is running
+
+  tick();
+  await answer({ items: [{ jobId: 30, state: "Failed", errorCode: "provider_error" }] });
+  await flush();
+  assert.equal(pendingTimers().length, 0);
+  assert.equal(elements.lfqProgressBar.style.width, "100%");
+  assert.equal(elements.lfqSummaryTitle.textContent, "4 of 4 submitted items complete.");
+  assert.equal(calls.ajax.at(-1).url, "/BackOffice/LegacyFarsiTranslationQueue/Candidates"); // reconciled once all are terminal
+  assert.equal(elements.lfqSummary.hidden, false);
+  assert.equal(elements.lfqSummaryList.children.length, 4); // the reload leaves the summary as it was
+  assert.doesNotMatch(elements.lfqSummary.text, /provider_error/);
 });

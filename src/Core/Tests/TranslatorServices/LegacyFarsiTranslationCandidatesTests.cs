@@ -5,7 +5,9 @@ using Domains.Entities.ContentManagement;
 using Domains.Entities;
 using Domains.Entities.General;
 using Infrastructure.CMSRepository;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -66,11 +68,28 @@ public class LegacyFarsiTranslationCandidatesTests : IDisposable
     private async Task<LegacyFarsiTranslationCandidatePage> Find(LegacyFarsiTranslationCandidateQuery query = null, ContentTranslationOptions options = null,
         int applicationId = ApplicationId)
     {
-        await using var context = _factory.CreateContext();
+        var commands = new SelectListRecorder();
+        await using var context = _factory.CreateContext(interceptors: commands);
         var sut = new LegacyFarsiTranslationCandidates(new LegacyFarsiTranslationCandidateRepository(context), options ?? Options());
         var page = await sut.Find(query ?? new LegacyFarsiTranslationCandidateQuery(), applicationId);
         Assert.Empty(context.ChangeTracker.Entries());
+        // FarsiContent may be filtered on in WHERE but is never selected (so never loaded or returned).
+        Assert.All(commands.SelectLists, select => Assert.DoesNotContain("FarsiContent", select));
         return page;
+    }
+
+    // Records each query's select list: the command text before its first FROM.
+    private sealed class SelectListRecorder : DbCommandInterceptor
+    {
+        public List<string> SelectLists { get; } = [];
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData,
+            InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            var from = command.CommandText.IndexOf("FROM", StringComparison.Ordinal);
+            SelectLists.Add(from < 0 ? command.CommandText : command.CommandText[..from]);
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
     }
 
     private async Task<int[]> Ids(LegacyFarsiTranslationCandidateQuery query = null) =>
