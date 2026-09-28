@@ -3,7 +3,7 @@ using Application.UseCases.TranslatorServices;
 namespace Web.Areas.BackOffice.Controllers;
 
 // Legacy Farsi bulk translation queue. The whole controller is SuperAdmin-only through the named
-// policy, so every later action here (bulk submit, progress) inherits it - a Content access key
+// policy, so every action here (candidates, bulk submit, progress) inherits it - a Content access key
 // such as Content.ChangeActivity is not enough. The application comes solely from the selected
 // BackOffice application and the culture solely from ContentTranslation options, never from the
 // request.
@@ -14,14 +14,16 @@ public class LegacyFarsiTranslationQueueController : BaseController
 {
     private readonly LegacyFarsiTranslationCandidates _candidates;
     private readonly LegacyFarsiTranslationBulkQueue _bulkQueue;
+    private readonly LegacyFarsiTranslationProgress _progress;
     private readonly ContentTranslationOptions _options;
     private readonly ICurrentApplicationContext _currentApplicationContext;
 
     public LegacyFarsiTranslationQueueController(LegacyFarsiTranslationCandidates candidates, LegacyFarsiTranslationBulkQueue bulkQueue,
-        ContentTranslationOptions options, ICurrentApplicationContext currentApplicationContext)
+        LegacyFarsiTranslationProgress progress, ContentTranslationOptions options, ICurrentApplicationContext currentApplicationContext)
     {
         _candidates = candidates;
         _bulkQueue = bulkQueue;
+        _progress = progress;
         _options = options;
         _currentApplicationContext = currentApplicationContext;
     }
@@ -64,5 +66,26 @@ public class LegacyFarsiTranslationQueueController : BaseController
             return BadRequest(new { error = $"Select 1 to {_options.BulkRequestMaxItems} content items with positive IDs." });
 
         return Json(new { items = items.Select(i => new { contentId = i.ContentId, outcome = i.Outcome.ToString(), jobId = i.JobId }) });
+    }
+
+    // Read-only state of the job IDs a Queue response returned (?jobIds=12&jobIds=13). An empty,
+    // malformed, over-limit or non-positive request is rejected whole. A job outside the selected
+    // application or configured culture is NotFound. Never queues, retries or translates.
+    [HttpGet]
+    public async Task<IActionResult> Progress([FromQuery] int[] jobIds, CancellationToken cancellationToken)
+    {
+        var items = ModelState.IsValid && jobIds != null
+            ? await _progress.Read(jobIds, _currentApplicationContext.RequireApplicationId(), cancellationToken)
+            : null;
+        if (items == null)
+            return BadRequest(new { error = $"Request 1 to {_options.BulkRequestMaxItems} positive job IDs." });
+
+        return Json(new
+        {
+            items = items.Select(i => new
+            {
+                jobId = i.JobId, contentId = i.ContentId, state = i.State.ToString(), attemptCount = i.AttemptCount, errorCode = i.ErrorCode
+            })
+        });
     }
 }

@@ -12,6 +12,8 @@ public record LegacyFarsiCandidateFilter(int ApplicationId, int CultureId, IRead
 
 public record ActiveTranslationJob(int ContentId, string SourceFingerprint);
 
+public record TranslationJobSnapshot(int JobId, int ContentId, ContentTranslationJobState State, int AttemptCount, string ErrorCode);
+
 // Read-only persistence port for the legacy-Farsi translation candidate list. Every method is
 // untracked and never loads FarsiContent.
 public interface ILegacyFarsiTranslationCandidateRepository
@@ -28,6 +30,10 @@ public interface ILegacyFarsiTranslationCandidateRepository
     // Of contentIds, the filter application's non-deleted content, each mapped to whether it matches
     // the filter (Title and ContentId are ignored). Missing, deleted and foreign IDs are absent.
     Task<Dictionary<int, bool>> ClassifyOwned(LegacyFarsiCandidateFilter filter, IReadOnlyCollection<int> contentIds,
+        CancellationToken cancellationToken = default);
+
+    // Of jobIds, the non-deleted jobs for cultureId on the application's non-deleted content. Others are absent.
+    Task<List<TranslationJobSnapshot>> FindJobs(int applicationId, int cultureId, IReadOnlyCollection<int> jobIds,
         CancellationToken cancellationToken = default);
 
     // Total and one page of the filter's content minus excludedContentIds, ordered by sort then Id.

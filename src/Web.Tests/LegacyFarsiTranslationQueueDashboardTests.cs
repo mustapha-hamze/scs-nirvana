@@ -146,16 +146,16 @@ public sealed class LegacyFarsiTranslationQueueDashboardTests : IClassFixture<Te
     }
 
     [Fact]
-    public async Task Script_IsServed_AndOnlyCallsTheCandidatesAndQueueEndpoints()
+    public async Task Script_IsServed_AndOnlyCallsTheCandidatesQueueAndProgressEndpoints()
     {
         var host = Host(workerEnabled: true);
         var script = await host.CreateClient().GetStringAsync(ScriptPath);
 
-        Assert.Equal(new[] { "/BackOffice/LegacyFarsiTranslationQueue/Candidates", "/BackOffice/LegacyFarsiTranslationQueue/Queue" },
+        Assert.Equal(new[] { "/BackOffice/LegacyFarsiTranslationQueue/Candidates", "/BackOffice/LegacyFarsiTranslationQueue/Queue", "/BackOffice/LegacyFarsiTranslationQueue/Progress" },
             Regex.Matches(script, "\"(/BackOffice/[^\"]*)\"").Select(m => m.Groups[1].Value).Distinct());
         Assert.Contains("contentType: \"application/json\"", script);
         Assert.Contains("$.ajax(", script);
-        foreach (var banned in new[] { "setInterval", "setTimeout", "EventSource", "WebSocket", "signalR", "signalr", "Progress", "innerHTML", ".html(", "fetch(", "applicationId", "cultureId" })
+        foreach (var banned in new[] { "setInterval", "EventSource", "WebSocket", "signalR", "signalr", "innerHTML", ".html(", "fetch(", "applicationId", "cultureId", "errorCode" })
             Assert.DoesNotContain(banned, script, StringComparison.Ordinal);
 
         var client = await SignIn(host);

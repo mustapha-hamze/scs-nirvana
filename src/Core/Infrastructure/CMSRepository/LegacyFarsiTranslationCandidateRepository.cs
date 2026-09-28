@@ -66,6 +66,16 @@ public class LegacyFarsiTranslationCandidateRepository : ILegacyFarsiTranslation
             .ToDictionaryAsync(id => id, id => candidates.Contains(id), cancellationToken);
     }
 
+    public Task<List<TranslationJobSnapshot>> FindJobs(int applicationId, int cultureId, IReadOnlyCollection<int> jobIds,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.ContentTranslationJobs.AsNoTracking()
+            .Where(j => jobIds.Contains(j.Id) && !j.IsDeleted && j.CultureId == cultureId
+                && _dbContext.Contents.Any(c => c.Id == j.ContentId && !c.IsDeleted && c.ApplicationId == applicationId))
+            .Select(j => new TranslationJobSnapshot(j.Id, j.ContentId, j.State, j.AttemptCount, j.ErrorCode))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<(int Total, List<LegacyFarsiTranslationCandidate> Items)> FindPage(LegacyFarsiCandidateFilter filter,
         IReadOnlyCollection<int> excludedContentIds, LegacyFarsiCandidateSort sort, bool descending, int page, int pageSize,
         CancellationToken cancellationToken = default)

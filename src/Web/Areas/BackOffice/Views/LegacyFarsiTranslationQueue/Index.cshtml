@@ -2,8 +2,8 @@
 
 @section PageHelper { Queue background translation of content that only has legacy Farsi. }
 
-@* Everything dynamic (rows, availability, summary) is filled by js/features/legacy-farsi-queue.js
-   from the Candidates and Queue endpoints. The data-* attributes are the page's only configuration. *@
+@* Everything dynamic (rows, availability, batch progress) is filled by js/features/legacy-farsi-queue.js
+   from the Candidates, Queue and Progress endpoints. The data-* attributes are the page's only configuration. *@
 <div id="lfqDashboard" data-worker-enabled="@(Model.WorkerEnabled ? "true" : "false")" data-max-items="@Model.MaxItems"
     data-type-ids="@string.Join(",", Model.TypeIds)">
 
@@ -76,8 +76,15 @@
                 </button>
             </div>
 
-            <div id="lfqSummary" class="alert alert-info" role="status" hidden>
-                <p class="mb-1 fw-semibold" id="lfqSummaryTitle"></p>
+            @* Submitted batch: the bar measures completed content items out of those submitted. *@
+            <div id="lfqSummary" class="alert alert-info" hidden>
+                <p class="mb-1 fw-semibold" id="lfqSummaryTitle" role="status"></p>
+                <div class="progress mb-2">
+                    <div class="progress-bar" id="lfqProgressBar" role="progressbar" aria-label="Completed content items"
+                        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width: 0%">0%</div>
+                </div>
+                <p class="mb-1 small" id="lfqProgressCounts"></p>
+                <p class="mb-1 small text-warning" id="lfqPollStatus" role="alert" hidden></p>
                 <ul class="mb-0 ps-3" id="lfqSummaryList"></ul>
             </div>
 

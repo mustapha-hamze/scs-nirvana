@@ -25,7 +25,9 @@ namespace Web.Tests;
 // content for the configured culture whatever the request says, return only the safe candidate
 // page contract, and never queue, translate, or write. Phase 3: the bulk queue POST is SuperAdmin-only
 // and antiforgery-protected, accepts only content IDs, re-checks each one server-side, and returns
-// only a safe per-item outcome. The worker is off, so the provider can only be reached inline.
+// only a safe per-item outcome. Phase 5: the progress GET is SuperAdmin-only, reads only the selected
+// application's jobs for the configured culture, and returns only a safe per-job state. The worker is
+// off, so the provider can only be reached inline.
 public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWebApplicationFactory>
 {
     private const int ActivationCultureId = 7101;
@@ -37,6 +39,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
     private const string CandidatesUrl = "/BackOffice/LegacyFarsiTranslationQueue/Candidates";
 
     private const string QueueUrl = "/BackOffice/LegacyFarsiTranslationQueue/Queue";
+    private const string ProgressUrl = "/BackOffice/LegacyFarsiTranslationQueue/Progress";
 
     private WebApplicationFactory<Program> _factory;
     private readonly SaveCounter _saves = new();
@@ -153,6 +156,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
     [Theory]
     [InlineData(PageUrl)]
     [InlineData(CandidatesUrl)]
+    [InlineData(ProgressUrl + "?jobIds=1")]
     public async Task Anonymous_RedirectsToLogin(string url)
     {
         var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -168,6 +172,8 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
     [InlineData(CandidatesUrl, null)]
     [InlineData(PageUrl, "content-keys")]
     [InlineData(CandidatesUrl, "content-keys")]
+    [InlineData(ProgressUrl + "?jobIds=1", null)]
+    [InlineData(ProgressUrl + "?jobIds=1", "content-keys")]
     public async Task NonSuperAdmin_EvenWithChangeActivity_IsDenied(string url, string? keys)
     {
         var grant = keys == null ? null : string.Join(',', Web.Authorization.AccessKeys.Content.Module, Web.Authorization.AccessKeys.Content.ChangeActivity);
@@ -461,5 +467,106 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         Assert.Equal(new[] { (contentId, "CultureUnavailable", (int?)null) }, items);
         Assert.Equal(0, _saves.Count);
         Assert.Empty(await Jobs(contentId));
+    }
+
+    private Task<int> SeedJob(int contentId, ContentTranslationJobState state, int cultureId = ActivationCultureId, int attempts = 0,
+        string? errorCode = null, bool isDeleted = false) => Db(async context =>
+    {
+        var job = new ContentTranslationJob
+        {
+            ContentId = contentId, CultureId = cultureId, SourceFingerprint = Guid.NewGuid().ToString("N").PadRight(64, 'c'), State = state,
+            AttemptCount = attempts, ErrorCode = errorCode, NextAttemptAt = DateTime.UtcNow, LeaseOwner = "secret-lease-owner", IsDeleted = isDeleted
+        };
+        context.ContentTranslationJobs.Add(job);
+        await context.SaveChangesAsync();
+        return job.Id;
+    });
+
+    private static string ProgressQuery(params int[] jobIds) => ProgressUrl + "?" + string.Join('&', jobIds.Select(id => $"jobIds={id}"));
+
+    private static async Task<(int JobId, int? ContentId, string State, int? AttemptCount, string? ErrorCode)[]> States(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(new[] { "items" }, body.EnumerateObject().Select(p => p.Name));
+        static int? Int(JsonElement e) => e.ValueKind == JsonValueKind.Null ? null : e.GetInt32();
+        return body.GetProperty("items").EnumerateArray().Select(i =>
+        {
+            Assert.Equal(new[] { "jobId", "contentId", "state", "attemptCount", "errorCode" }, i.EnumerateObject().Select(p => p.Name));
+            return (i.GetProperty("jobId").GetInt32(), Int(i.GetProperty("contentId")), i.GetProperty("state").GetString()!,
+                Int(i.GetProperty("attemptCount")), i.GetProperty("errorCode").GetString());
+        }).ToArray();
+    }
+
+    [Fact]
+    public async Task Progress_SuperAdmin_GetsOnlySelectedApplicationsJobs_InSafeShape_WhateverTheRequestSays()
+    {
+        var (client, applicationId) = await SignIn();
+        var mine = await SeedContent(applicationId, "Mine");
+        var queued = await SeedJob(mine, ContentTranslationJobState.Queued, attempts: 1, errorCode: "lease_expired");
+        var failed = await SeedJob(mine, ContentTranslationJobState.Failed, attempts: 3, errorCode: ContentTranslationErrorCodes.ProviderError);
+        var succeeded = await SeedJob(mine, ContentTranslationJobState.Succeeded, attempts: 1);
+        var otherCulture = await SeedJob(mine, ContentTranslationJobState.Succeeded, cultureId: OtherCultureId);
+        var deleted = await SeedJob(mine, ContentTranslationJobState.Processing, isDeleted: true);
+        var otherApplicationId = await NewApplication();
+        var foreign = await SeedJob(await SeedContent(otherApplicationId, "Foreign"), ContentTranslationJobState.Failed, attempts: 2, errorCode: "provider_timeout");
+        var tampered = $"&applicationId={otherApplicationId}&ApplicationId={otherApplicationId}&cultureId={OtherCultureId}&activationCultureId={OtherCultureId}";
+
+        var response = await client.GetAsync(ProgressQuery(foreign, queued, failed, queued, succeeded, otherCulture, deleted) + tampered);
+        var raw = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(new[]
+        {
+            (foreign, (int?)null, "NotFound", (int?)null, (string?)null), (queued, mine, "Queued", 1, null),
+            (failed, mine, "Failed", 3, ContentTranslationErrorCodes.ProviderError), (succeeded, mine, "Succeeded", 1, null),
+            (otherCulture, null, "NotFound", null, null), (deleted, null, "NotFound", null, null)
+        }, await States(response));
+        foreach (var secret in new[] { "قدیمی", "Foreign", "provider_timeout", "secret-lease-owner", "Mine", "fingerprint", "cccc" })
+            Assert.DoesNotContain(secret, raw);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("?jobIds=")]
+    [InlineData("?jobIds=0")]
+    [InlineData("?jobIds=1&jobIds=-5")]
+    [InlineData("?jobIds=x")]
+    [InlineData("?jobIds=1.5")]
+    [InlineData("?jobIds=99999999999")]
+    [InlineData("over-limit")]
+    [InlineData("over-limit-duplicates")]
+    public async Task Progress_InvalidRequest_Is400(string query)
+    {
+        var (client, applicationId) = await SignIn();
+        var job = await SeedJob(await SeedContent(applicationId, "Mine"), ContentTranslationJobState.Queued);
+        var limit = new ContentTranslationOptions().BulkRequestMaxItems;
+        var url = query switch
+        {
+            "over-limit" => ProgressQuery(Enumerable.Range(job, limit + 1).ToArray()),
+            "over-limit-duplicates" => ProgressQuery(Enumerable.Repeat(job, limit + 1).ToArray()),
+            _ => ProgressUrl + query
+        };
+
+        var response = await client.GetAsync(url);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.DoesNotContain("items", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Progress_QueuesNothing_CallsNoProvider_AndWritesNothing()
+    {
+        var (client, applicationId) = await SignIn();
+        var contentId = await SeedContent(applicationId, "Mine");
+        var job = await SeedJob(contentId, ContentTranslationJobState.Queued);
+        var before = (await Jobs(contentId)).Single();
+        Interlocked.Exchange(ref _saves.Count, 0);
+
+        Assert.Equal(new[] { (job, (int?)contentId, "Queued", (int?)0, (string?)null) }, await States(await client.GetAsync(ProgressQuery(job, job))));
+
+        Assert.Equal(0, _saves.Count);
+        var after = Assert.Single(await Jobs(contentId));
+        Assert.Equal((before.State, before.AttemptCount, before.Version, before.NextAttemptAt), (after.State, after.AttemptCount, after.Version, after.NextAttemptAt));
+        Assert.False(await Db(context => context.ContentTranslations.AnyAsync(t => t.ContentId == contentId)));
     }
 }

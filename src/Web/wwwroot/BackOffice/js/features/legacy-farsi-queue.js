@@ -1,11 +1,14 @@
 // Legacy Farsi Translation Queue dashboard (Areas/BackOffice/Views/LegacyFarsiTranslationQueue/Index.cshtml).
-// Reads GET Candidates and posts only selected content IDs to POST Queue. Requests go through $.ajax so
-// the layout's global $.ajaxSetup adds the X-CSRF-TOKEN antiforgery header. Every dynamic value is
-// written with textContent. The server re-checks every submitted ID; the page only reflects the
-// candidate list it was given and the outcomes Queue returned. No polling or progress requests.
+// Reads GET Candidates, posts only selected content IDs to POST Queue, then polls GET Progress with the
+// returned job IDs until every submitted item is terminal. Requests go through $.ajax so the layout's
+// global $.ajaxSetup adds the X-CSRF-TOKEN antiforgery header. Every dynamic value is written with
+// textContent. The server re-checks every submitted ID; the page only reflects the candidate list it
+// was given, the outcomes Queue returned and the job states Progress reports.
 var LegacyFarsiQueue = (function () {
   var CANDIDATES_URL = "/BackOffice/LegacyFarsiTranslationQueue/Candidates";
   var QUEUE_URL = "/BackOffice/LegacyFarsiTranslationQueue/Queue";
+  var PROGRESS_URL = "/BackOffice/LegacyFarsiTranslationQueue/Progress";
+  var POLL_INTERVAL_MS = 2500;
   var SORTS = ["Id", "Title", "TypeId", "UpdatedAt"];
   var PAGE_SIZE = 25;
 
@@ -25,8 +28,27 @@ var LegacyFarsiQueue = (function () {
     CultureUnavailable: "scs-status--danger",
     NotFound: "scs-status--danger",
   };
-  // A job exists (or the item is done) for these: never offer them for selection again this session.
-  var LOCKED = { Queued: true, AlreadyQueued: true, AlreadyReady: true };
+  // Job states Progress reports, labelled for the batch panel and candidate rows.
+  var STATE_LABELS = {
+    Queued: "Queued",
+    Processing: "Translating",
+    Succeeded: "Translated",
+    Failed: "Failed",
+    Superseded: "Superseded (source changed)",
+    NotFound: "Not found",
+  };
+  var STATE_STATUS = {
+    Queued: "scs-status--info",
+    Processing: "scs-status--info",
+    Succeeded: "scs-status--success",
+    Failed: "scs-status--danger",
+    Superseded: "scs-status--warning",
+    NotFound: "scs-status--danger",
+  };
+  var PENDING = { Queued: true, Processing: true };
+  // An active job or a translation exists for these: not offered for selection again this session.
+  // Failed and Superseded jobs may be queued again.
+  var LOCKED = { Queued: true, Processing: true, Succeeded: true, AlreadyReady: true };
 
   // ---- Pure helpers (covered by Web.Tests/js/legacy-farsi-queue.test.mjs) ----
 
@@ -98,15 +120,67 @@ var LegacyFarsiQueue = (function () {
     return { url: CANDIDATES_URL, type: "GET", dataType: "json", data: query };
   }
 
-  // Counts per outcome, in the order the server returned them.
-  function summarize(items) {
-    var counts = {};
-    items.forEach(function (item) { counts[item.outcome] = (counts[item.outcome] || 0) + 1; });
-    return { total: items.length, counts: counts };
-  }
-
   function outcomeLabel(outcome) {
     return OUTCOME_LABELS[outcome] || "Skipped";
+  }
+
+  // Batch items from a Queue response. Queued/AlreadyQueued with a job start as Queued and are polled;
+  // every other outcome has no job and is terminal as submitted (state = outcome).
+  function batchFromQueue(items) {
+    return items.map(function (item) {
+      var polled = (item.outcome === "Queued" || item.outcome === "AlreadyQueued") && item.jobId != null;
+      return { contentId: item.contentId, outcome: item.outcome, jobId: polled ? item.jobId : null, state: polled ? "Queued" : item.outcome };
+    });
+  }
+
+  function isPending(item) {
+    return item.jobId != null && PENDING[item.state] === true;
+  }
+
+  function pendingJobIds(batch) {
+    return batch.filter(isPending).map(function (item) { return item.jobId; });
+  }
+
+  // Applies Progress items by job ID. Unknown states are ignored so a job keeps its last known state.
+  function mergeProgress(batch, progressItems) {
+    var byJob = {};
+    (progressItems || []).forEach(function (p) { if (STATE_LABELS[p.state]) byJob[p.jobId] = p.state; });
+    return batch.map(function (item) {
+      var state = item.jobId != null ? byJob[item.jobId] : undefined;
+      if (!state) return item;
+      return { contentId: item.contentId, outcome: item.outcome, jobId: item.jobId, state: state };
+    });
+  }
+
+  // Aggregate counts over submitted content items. "skipped" is every terminal item without a finished
+  // job: Skipped, AlreadyReady, CultureUnavailable and NotFound (at submission or later). percent is
+  // terminal content items / submitted content items, never an estimate of the provider call.
+  function progressCounts(batch) {
+    var counts = { total: batch.length, queued: 0, processing: 0, succeeded: 0, failed: 0, superseded: 0, skipped: 0 };
+    batch.forEach(function (item) {
+      if (item.jobId != null && item.state === "Queued") counts.queued++;
+      else if (item.jobId != null && item.state === "Processing") counts.processing++;
+      else if (item.jobId != null && item.state === "Succeeded") counts.succeeded++;
+      else if (item.jobId != null && item.state === "Failed") counts.failed++;
+      else if (item.jobId != null && item.state === "Superseded") counts.superseded++;
+      else counts.skipped++;
+    });
+    counts.terminal = counts.succeeded + counts.failed + counts.superseded + counts.skipped;
+    counts.percent = counts.total === 0 ? 100 : Math.floor((counts.terminal / counts.total) * 100);
+    return counts;
+  }
+
+  function batchLabel(item) {
+    return item.jobId != null ? STATE_LABELS[item.state] : outcomeLabel(item.outcome);
+  }
+
+  function batchStatus(item) {
+    return item.jobId != null ? STATE_STATUS[item.state] : OUTCOME_STATUS[item.outcome];
+  }
+
+  // traditional: jobIds=1&jobIds=2, the form the endpoint binds (not jobIds[]=1).
+  function progressRequest(jobIds) {
+    return { url: PROGRESS_URL, type: "GET", dataType: "json", traditional: true, data: { jobIds: jobIds.slice() } };
   }
 
   // ---- Page ----
@@ -118,7 +192,8 @@ var LegacyFarsiQueue = (function () {
       maxItems: parsePositiveInt(root.getAttribute("data-max-items")) || 1,
       typeIds: (root.getAttribute("data-type-ids") || "").split(",").map(parsePositiveInt).filter(function (x) { return x !== null; }),
     };
-    var state = { page: 1, filters: readFilters(), selected: [], outcomes: {}, cultureAvailable: null, busy: false, last: null };
+    var state = { page: 1, filters: readFilters(), selected: [], batch: [], cultureAvailable: null, busy: false, last: null };
+    var poll = { timer: null, inFlight: false, stopped: false };
 
     function readFilters() {
       return {
@@ -147,8 +222,14 @@ var LegacyFarsiQueue = (function () {
       tbody.appendChild(tr);
     }
 
+    function batchItem(contentId) {
+      for (var i = 0; i < state.batch.length; i++) if (state.batch[i].contentId === contentId) return state.batch[i];
+      return null;
+    }
+
     function isSelectable(item) {
-      return unavailableReason(config.workerEnabled, state.cultureAvailable) === null && !LOCKED[state.outcomes[item.contentId]];
+      var known = batchItem(item.contentId);
+      return unavailableReason(config.workerEnabled, state.cultureAvailable) === null && !(known && LOCKED[known.state]);
     }
 
     function renderRows(items) {
@@ -187,9 +268,9 @@ var LegacyFarsiQueue = (function () {
         tr.appendChild(active);
         tr.appendChild(el("td", null, String(item.updatedAt || "").slice(0, 16).replace("T", " ")));
         var outcome = el("td");
-        var known = state.outcomes[id];
+        var known = batchItem(id);
         outcome.appendChild(known
-          ? el("span", "scs-status " + (OUTCOME_STATUS[known] || ""), outcomeLabel(known))
+          ? el("span", "scs-status " + (batchStatus(known) || ""), batchLabel(known))
           : el("span", "text-muted", "Eligible"));
         tr.appendChild(outcome);
         tbody.appendChild(tr);
@@ -247,16 +328,67 @@ var LegacyFarsiQueue = (function () {
         });
     }
 
-    function renderSummary(items) {
-      var summary = summarize(items);
-      byId("lfqSummaryTitle").textContent = "Submitted " + summary.total + " item" + (summary.total === 1 ? "" : "s") + ": " +
-        Object.keys(summary.counts).map(function (k) { return outcomeLabel(k) + " " + summary.counts[k]; }).join(", ") + ".";
+    function renderProgress() {
+      var counts = progressCounts(state.batch);
+      byId("lfqSummaryTitle").textContent = counts.terminal + " of " + counts.total + " submitted item" + (counts.total === 1 ? "" : "s") +
+        " complete" + (counts.terminal === counts.total ? "." : ", checking every few seconds.");
+      byId("lfqProgressCounts").textContent = "Submitted " + counts.total + " · Queued " + counts.queued + " · Translating " + counts.processing +
+        " · Translated " + counts.succeeded + " · Failed " + counts.failed + " · Superseded " + counts.superseded +
+        " · Skipped or not queued " + counts.skipped;
+      var bar = byId("lfqProgressBar");
+      bar.style.width = counts.percent + "%";
+      bar.setAttribute("aria-valuenow", counts.percent);
+      bar.setAttribute("aria-valuetext", counts.terminal + " of " + counts.total + " content items complete");
+      bar.textContent = counts.percent + "%";
       var list = byId("lfqSummaryList");
       list.replaceChildren();
-      items.forEach(function (item) {
-        list.appendChild(el("li", null, "Content " + item.contentId + ": " + outcomeLabel(item.outcome)));
+      state.batch.forEach(function (item) {
+        list.appendChild(el("li", null, "Content " + item.contentId + ": " + batchLabel(item)));
       });
       byId("lfqSummary").hidden = false;
+    }
+
+    function setPollMessage(text) {
+      var node = byId("lfqPollStatus");
+      node.textContent = text || "";
+      node.hidden = !text;
+    }
+
+    function stopPolling() {
+      poll.stopped = true;
+      if (poll.timer !== null) clearTimeout(poll.timer);
+      poll.timer = null;
+    }
+
+    // One request at a time: the next poll is scheduled only after the previous one has finished.
+    function schedulePoll() {
+      if (poll.stopped || poll.inFlight || poll.timer !== null || pendingJobIds(state.batch).length === 0) return;
+      poll.timer = setTimeout(pollOnce, POLL_INTERVAL_MS);
+    }
+
+    function pollOnce() {
+      poll.timer = null;
+      var ids = pendingJobIds(state.batch);
+      if (poll.stopped || ids.length === 0) return;
+      poll.inFlight = true;
+      $.ajax(progressRequest(ids))
+        .done(function (data) {
+          state.batch = mergeProgress(state.batch, data && data.items);
+          setPollMessage(null);
+        })
+        .fail(function () {
+          // Keep the last known states; the next interval retries.
+          setPollMessage("Progress is temporarily unavailable. Retrying…");
+        })
+        .always(function () {
+          poll.inFlight = false;
+          if (poll.stopped) return;
+          renderProgress();
+          if (state.last) renderRows(state.last.items);
+          renderToolbar();
+          if (pendingJobIds(state.batch).length > 0) schedulePoll();
+          else load(state.page); // all terminal: reconcile the list; the summary stays visible
+        });
     }
 
     function confirmQueue(count) {
@@ -282,9 +414,11 @@ var LegacyFarsiQueue = (function () {
         renderPager();
         $.ajax(queueRequest(ids))
           .done(function (data) {
-            data.items.forEach(function (item) { state.outcomes[item.contentId] = item.outcome; });
+            var submitted = batchFromQueue(data.items);
+            var ids = submitted.map(function (item) { return item.contentId; });
+            state.batch = state.batch.filter(function (item) { return ids.indexOf(item.contentId) < 0; }).concat(submitted);
             state.selected = [];
-            renderSummary(data.items);
+            renderProgress();
           })
           .fail(function (xhr) {
             // A 400 carries the server's fixed validation message only.
@@ -295,7 +429,15 @@ var LegacyFarsiQueue = (function () {
           })
           .always(function () {
             state.busy = false;
-            load(state.page); // reconcile: queued or no-longer-eligible items drop out of the list
+            if (pendingJobIds(state.batch).length > 0) {
+              // Keep the list and the batch visible; rows update in place while polling.
+              if (state.last) renderRows(state.last.items);
+              renderToolbar();
+              renderPager();
+              schedulePoll();
+            } else {
+              load(state.page); // reconcile: nothing to wait for
+            }
           });
       });
     }
@@ -319,6 +461,8 @@ var LegacyFarsiQueue = (function () {
       renderToolbar();
     });
     byId("lfqQueue").addEventListener("click", queueSelected);
+    window.addEventListener("pagehide", stopPolling);
+    window.addEventListener("beforeunload", stopPolling);
 
     renderToolbar();
     load(1);
@@ -335,7 +479,12 @@ var LegacyFarsiQueue = (function () {
     confirmText: confirmText,
     queueRequest: queueRequest,
     candidatesRequest: candidatesRequest,
-    summarize: summarize,
     outcomeLabel: outcomeLabel,
+    batchFromQueue: batchFromQueue,
+    pendingJobIds: pendingJobIds,
+    mergeProgress: mergeProgress,
+    progressCounts: progressCounts,
+    progressRequest: progressRequest,
+    POLL_INTERVAL_MS: POLL_INTERVAL_MS,
   };
 })();
