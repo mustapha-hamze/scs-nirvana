@@ -189,4 +189,79 @@ public class OpenAiTranslationPortTests
 
         Assert.Equal(ContentTranslationErrorCodes.EmptyResponse, result.FailureCode);
     }
+
+    // ---- Text-slot requests (background jobs). ----
+
+    private static readonly string[] Texts = ["English title", "English <b>not markup</b> & more"];
+
+    private async Task<(TranslationResult Result, FakeHandler Handler)> TranslateTexts(string content)
+    {
+        var handler = new FakeHandler((_, _) => Completion(content));
+        var result = await Port(handler).TranslateAsync(TranslationRequest.ForTexts(Texts, "Farsi"));
+        return (result, handler);
+    }
+
+    [Fact]
+    public async Task Texts_SendOnlyTheEnvelope_WithStrictSchema_AndReturnTheOrderedValues()
+    {
+        var (result, handler) = await TranslateTexts("{\"translations\":[\"فارسی ۱\",\"فارسی ۲\"]}");
+
+        Assert.True(result.Success);
+        Assert.Equal(new[] { "فارسی ۱", "فارسی ۲" }, result.TranslatedTexts);
+        Assert.Equal((OpenAiTranslationPort.ProviderName, "test-model-2026", null), (result.Provider, result.Model, result.TranslatedJson));
+
+        var body = JsonNode.Parse(Assert.Single(handler.Bodies))!;
+        var format = body["response_format"]!;
+        Assert.Equal(("json_schema", true), ((string)format["type"]!, (bool)format["json_schema"]!["strict"]!));
+        var schema = format["json_schema"]!["schema"]!;
+        Assert.Equal(("object", false), ((string)schema["type"]!, (bool)schema["additionalProperties"]!));
+        Assert.Equal("string", (string)schema["properties"]!["translations"]!["items"]!["type"]!);
+
+        var messages = body["messages"]!.AsArray();
+        Assert.Equal(new[] { "system", "user" }, messages.Select(m => (string)m!["role"]!));
+        Assert.DoesNotContain("English", (string)messages[0]!["content"]!); // instructions carry no source text
+        var envelope = JsonNode.Parse((string)messages[1]!["content"]!)!.AsObject();
+        Assert.Equal(new[] { "targetLanguage", "texts" }, envelope.Select(p => p.Key));
+        Assert.Equal("Farsi", (string)envelope["targetLanguage"]!);
+        Assert.Equal(Texts, envelope["texts"]!.AsArray().Select(t => (string)t!));
+    }
+
+    public static TheoryData<string, string> BadTexts => new()
+    {
+        { "", ContentTranslationErrorCodes.EmptyResponse },
+        { "{not json", ContentTranslationErrorCodes.InvalidJson },
+        { "[\"a\",\"b\"]", ContentTranslationErrorCodes.InvalidResponse },
+        { "{}", ContentTranslationErrorCodes.InvalidResponse },
+        { "{\"translations\":[\"a\",\"b\"],\"extra\":1}", ContentTranslationErrorCodes.InvalidResponse },
+        { "{\"translations\":[\"a\"],\"translations\":[\"b\"]}", ContentTranslationErrorCodes.InvalidResponse },
+        { "{\"translations\":\"a\"}", ContentTranslationErrorCodes.InvalidResponse },
+        { "{\"translations\":[\"a\"]}", ContentTranslationErrorCodes.InvalidResponse },
+        { "{\"translations\":[\"a\",\"b\",\"c\"]}", ContentTranslationErrorCodes.InvalidResponse },
+        { "{\"translations\":[\"a\",null]}", ContentTranslationErrorCodes.InvalidResponse },
+        { "{\"translations\":[\"a\",2]}", ContentTranslationErrorCodes.InvalidResponse },
+        { "{\"translations\":[\"a\",\"  \"]}", ContentTranslationErrorCodes.InvalidResponse },
+        { Translated, ContentTranslationErrorCodes.InvalidResponse }
+    };
+
+    [Theory]
+    [MemberData(nameof(BadTexts))]
+    public async Task Texts_UnusableContent_IsClassified_AndLoggedWithoutContent(string content, string code)
+    {
+        var (result, _) = await TranslateTexts(content);
+
+        Assert.Equal((false, code, null), (result.Success, result.FailureCode, result.TranslatedTexts));
+        Assert.Equal(code, result.Error);
+        AssertLogsAreSafe();
+    }
+
+    [Fact]
+    public async Task Texts_HttpFailure_IsClassifiedLikeDocuments()
+    {
+        var handler = new FakeHandler((_, _) => Respond(HttpStatusCode.TooManyRequests, retryAfter: "7"));
+
+        var result = await Port(handler).TranslateAsync(TranslationRequest.ForTexts(Texts, "Farsi"));
+
+        Assert.Equal((ContentTranslationErrorCodes.ProviderRateLimited, 429, TimeSpan.FromSeconds(7)), (result.FailureCode, result.HttpStatus, result.RetryAfter));
+        AssertLogsAreSafe();
+    }
 }

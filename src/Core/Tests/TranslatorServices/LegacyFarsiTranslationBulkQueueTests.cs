@@ -35,8 +35,14 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
     private async Task SeedCulture(bool isActive = true) =>
         _cultureId = await Add(new Culture { ApplicationId = ApplicationId, Title = "Farsi", Key = "fa-IR", IsActive = isActive });
 
-    private Task<int> AddContent(int typeId = 1001, string farsi = LegacyFarsi, int applicationId = ApplicationId, bool isDeleted = false) =>
-        Add(new Content { ApplicationId = applicationId, TypeId = typeId, Title = "English", FarsiContent = farsi, IsDeleted = isDeleted, UpdatedDT = Now });
+    // Content id by its (unique) title: the provider only ever sees text.
+    private readonly Dictionary<string, int> _titles = new();
+
+    private async Task<int> AddContent(int typeId = 1001, string farsi = LegacyFarsi, int applicationId = ApplicationId, bool isDeleted = false)
+    {
+        var title = $"English {_titles.Count}";
+        return _titles[title] = await Add(new Content { ApplicationId = applicationId, TypeId = typeId, Title = title, FarsiContent = farsi, IsDeleted = isDeleted, UpdatedDT = Now });
+    }
 
     private async Task<string> Fingerprint(int contentId)
     {
@@ -253,14 +259,14 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
         return rows.Select(r => $"{r.Id}:{Convert.ToHexString(System.Text.Encoding.UTF8.GetBytes(r.FarsiContent ?? ""))}:{r.UpdatedDT:O}").ToArray();
     }
 
-    private sealed class RecordingPort(Func<int, TranslationRequest, TranslationResult> handler) : ITranslationPort
+    private sealed class RecordingPort(Dictionary<string, int> titles, Func<int, TranslationRequest, TranslationResult> handler) : ITranslationPort
     {
         public List<int> ContentIds { get; } = [];
 
         public Task<TranslationResult> TranslateAsync(TranslationRequest request, CancellationToken cancellationToken = default)
         {
-            Assert.DoesNotContain("قدیمی", request.ContentJson); // legacy Farsi is never sent
-            var contentId = (int)System.Text.Json.Nodes.JsonNode.Parse(request.ContentJson)!["Id"]!;
+            Assert.DoesNotContain(request.Texts, t => t.Contains("قدیمی")); // legacy Farsi is never sent
+            var contentId = titles[request.Texts[0]];
             ContentIds.Add(contentId);
             return Task.FromResult(handler(contentId, request));
         }
@@ -279,10 +285,10 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
         var changed = await AddContent();
         var gone = await AddContent();
         var before = await ContentSnapshot();
-        var port = new RecordingPort((id, request) =>
+        var port = new RecordingPort(_titles, (id, request) =>
             id == limited ? TranslationResult.Failed(ContentTranslationErrorCodes.ProviderRateLimited, "<provider text>")
-            : id == invalid ? TranslationResult.Ok("{\"Id\":0}", "fake", "fake-model")
-            : TranslationResult.Ok(request.ContentJson, "fake", "fake-model"));
+            : id == invalid ? TranslationResult.OkTexts([], "fake", "fake-model")
+            : TranslationResult.OkTexts(request.Texts, "fake", "fake-model"));
 
         Assert.Equal([ok, limited, invalid, changed, gone], await CandidateIds());
         var items = (await Queue([ok, limited, invalid])).Concat(await Queue([changed, gone])).ToList();
@@ -295,6 +301,7 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
         // After queueing: the master source changes, and a translation row for another is deleted.
         await using (var context = _factory.CreateContext())
             await context.Contents.Where(c => c.Id == changed).ExecuteUpdateAsync(s => s.SetProperty(c => c.Title, "Edited English"));
+        _titles["Edited English"] = changed;
         await Add(Translation(gone, TranslationStatus.Ready, isDeleted: true));
         Assert.Equal([changed], await CandidateIds()); // an outdated job no longer hides changed content
         Assert.Empty(port.ContentIds);

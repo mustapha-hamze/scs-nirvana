@@ -19,6 +19,7 @@ public class ContentTranslationErrorCodesTests
         { ContentTranslationErrorCodes.EmptyResponse, "The translation service returned no text. Try again." },
         { ContentTranslationErrorCodes.InvalidJson, "The translation response was not valid JSON. Try again." },
         { ContentTranslationErrorCodes.InvalidStructure, "The translation response changed required content structure. Try again." },
+        { ContentTranslationErrorCodes.InvalidResponse, "The translation response did not match the requested text. Try again." },
         { ContentTranslationErrorCodes.ProviderTransient, Generic }, // only ever stored on Queued jobs
         { ContentTranslationErrorCodes.ProviderTimeout, "Translation timed out. Try again." },
         { ContentTranslationErrorCodes.ProviderCancelled, "Translation was interrupted. Try again." },

@@ -77,8 +77,11 @@ public static class ContentTranslationErrorCodes
     public const string ProviderCancelled = "provider_cancelled";
     public const string EmptyResponse = "empty_response";
     public const string InvalidJson = "invalid_json";
-    // JSON that breaks the protected-field/hierarchy/type/HTML contract.
+    // JSON that breaks the protected-field/hierarchy/type/HTML contract (legacy full-document
+    // responses and historical rows; background jobs no longer send structure).
     public const string InvalidStructure = "invalid_structure";
+    // A text-slot response of the wrong shape: not {"translations": [...]}, wrong count, non-string/blank values.
+    public const string InvalidResponse = "invalid_response";
     // The processor's own post-port check (and historical rows).
     public const string InvalidOutput = "invalid_output";
     public const string LeaseExpired = "lease_expired";
@@ -106,6 +109,7 @@ public static class ContentTranslationErrorCodes
         EmptyResponse => "The translation service returned no text. Try again.",
         InvalidJson => "The translation response was not valid JSON. Try again.",
         InvalidStructure => "The translation response changed required content structure. Try again.",
+        InvalidResponse => "The translation response did not match the requested text. Try again.",
         InvalidOutput => "The translation response could not be used. Try again.",
         LeaseExpired => "Translation processing was interrupted. Try again.",
         CultureUnavailable => "The target language is unavailable. Contact an administrator.",
@@ -136,7 +140,8 @@ public class ContentTranslationJobProcessor
         ContentTranslationErrorCodes.ProviderRejected, ContentTranslationErrorCodes.ProviderNetwork,
         ContentTranslationErrorCodes.ProviderError, ContentTranslationErrorCodes.ProviderTimeout,
         ContentTranslationErrorCodes.ProviderCancelled, ContentTranslationErrorCodes.EmptyResponse,
-        ContentTranslationErrorCodes.InvalidJson, ContentTranslationErrorCodes.InvalidStructure
+        ContentTranslationErrorCodes.InvalidJson, ContentTranslationErrorCodes.InvalidStructure,
+        ContentTranslationErrorCodes.InvalidResponse
     ];
 
     public ContentTranslationJobProcessor(IContentTranslationJobRepository repository, ITranslationPort translationPort,
@@ -214,15 +219,25 @@ public class ContentTranslationJobProcessor
             return;
         }
 
-        var document = TranslationSourceDocument.Serialize(source);
+        // Only the ordered text values reach the provider; IDs, hierarchy and markup stay here.
+        var slots = TranslationTextSlots.Build(source);
+        if (slots == null)
+        {
+            // The source can't be rebuilt from its own text (malformed markup): no provider call.
+            LogFailure(job, ContentTranslationErrorCodes.InvalidOutput);
+            await Complete(job, ContentTranslationJobState.Failed, ContentTranslationErrorCodes.InvalidOutput, stoppingToken);
+            return;
+        }
+
         TranslationResult result;
         using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken))
         {
             timeout.CancelAfter(TimeSpan.FromMinutes(_options.LeaseMinutes / 2.0));
             try
             {
-                result = await _translationPort.TranslateAsync(
-                    new TranslationRequest(document, TranslationSourceDocument.TranslatableFields, culture.Title), timeout.Token);
+                result = slots.Texts.Count == 0
+                    ? TranslationResult.OkTexts([])
+                    : await _translationPort.TranslateAsync(TranslationRequest.ForTexts(slots.Texts, culture.Title), timeout.Token);
             }
             catch (OperationCanceledException ex)
             {
@@ -249,7 +264,8 @@ public class ContentTranslationJobProcessor
             return;
         }
 
-        var localizedTextJson = TranslationSourceDocument.ToLocalizedTextJson(document, result.TranslatedJson);
+        // Final invariant: the rebuilt document must still pass TranslationOutputValidator.
+        var localizedTextJson = slots.ToLocalizedTextJson(result.TranslatedTexts);
         if (localizedTextJson == null)
         {
             LogFailure(job, ContentTranslationErrorCodes.InvalidOutput);

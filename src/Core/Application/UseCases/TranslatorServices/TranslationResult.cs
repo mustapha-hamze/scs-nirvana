@@ -7,6 +7,9 @@ public class TranslationResult
     public bool Success { get; }
     public string TranslatedJson { get; }
 
+    // Text-slot requests: the translated values, in request order.
+    public IReadOnlyList<string> TranslatedTexts { get; }
+
     // Fixed ContentTranslationErrorCodes value; whether it is retried is decided by
     // ContentTranslationErrorCodes.IsRetryable, never by the port.
     public string FailureCode { get; }
@@ -24,10 +27,11 @@ public class TranslationResult
     public string Model { get; }
 
     private TranslationResult(bool success, string translatedJson, string failureCode, string error, TimeSpan? retryAfter,
-        int? httpStatus, string exceptionType, string provider, string model)
+        int? httpStatus, string exceptionType, string provider, string model, IReadOnlyList<string> translatedTexts = null)
     {
         Success = success;
         TranslatedJson = translatedJson;
+        TranslatedTexts = translatedTexts;
         FailureCode = failureCode;
         Error = error ?? failureCode;
         RetryAfter = retryAfter;
@@ -39,6 +43,9 @@ public class TranslationResult
 
     public static TranslationResult Ok(string translatedJson, string provider = null, string model = null) =>
         new(true, translatedJson, null, null, null, null, null, provider, model);
+
+    public static TranslationResult OkTexts(IReadOnlyList<string> translatedTexts, string provider = null, string model = null) =>
+        new(true, null, null, null, null, null, null, provider, model, translatedTexts);
 
     public static TranslationResult Failed(string failureCode, string error = null, TimeSpan? retryAfter = null, int? httpStatus = null,
         string exceptionType = null) =>

@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using Application.UseCases.TranslatorServices;
 using Microsoft.Extensions.Logging;
@@ -44,14 +47,47 @@ public class OpenAiTranslationPort : ITranslationPort
         _logger = logger;
     }
 
+    // Strict structured output for text-slot requests: a JSON object with exactly one array of strings.
+    // The count can't be pinned by the schema; TranslationTextSlots.ParseResponse enforces it.
+    private static readonly BinaryData TextsSchema = BinaryData.FromString($$"""
+        {
+          "type": "object",
+          "properties": { "{{TranslationTextSlots.ResponseProperty}}": { "type": "array", "items": { "type": "string" } } },
+          "required": ["{{TranslationTextSlots.ResponseProperty}}"],
+          "additionalProperties": false
+        }
+        """);
+
+    private static readonly JsonSerializerOptions EnvelopeOptions = new() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) };
+
     public async Task<TranslationResult> TranslateAsync(TranslationRequest request, CancellationToken cancellationToken = default)
     {
-        var messages = new List<ChatMessage> { new SystemChatMessage(BuildPrompt(request)) };
-        // Arbitrary content graphs can't be expressed as a strict JSON schema that also pins protected
-        // values (IDs, per-index array items), and the legacy full-document path sends a different shape,
-        // so the request only forces a JSON object; TranslationOutputValidator enforces the exact contract.
+        var isTexts = request.Texts != null;
+        List<ChatMessage> messages;
+        ChatCompletionOptions completionOptions;
         // Per call: the SDK writes the messages/model into the options instance.
-        var completionOptions = new ChatCompletionOptions { ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat() };
+        if (isTexts)
+        {
+            // Only the target language and the ordered values: no IDs, structure or markup.
+            var language = request.TargetLanguage ?? "Persian (Farsi)";
+            messages =
+            [
+                new SystemChatMessage(BuildTextsPrompt(language)),
+                new UserChatMessage(JsonSerializer.Serialize(new { targetLanguage = language, texts = request.Texts }, EnvelopeOptions))
+            ];
+            completionOptions = new ChatCompletionOptions
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("translations", TextsSchema, jsonSchemaIsStrict: true)
+            };
+        }
+        else
+        {
+            // Arbitrary content graphs can't be expressed as a strict JSON schema that also pins protected
+            // values (IDs, per-index array items), so the legacy full-document request only forces a JSON
+            // object; TranslationOutputValidator enforces the exact contract.
+            messages = [new SystemChatMessage(BuildPrompt(request))];
+            completionOptions = new ChatCompletionOptions { ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat() };
+        }
 
         ChatCompletion response;
         try
@@ -80,6 +116,17 @@ public class OpenAiTranslationPort : ITranslationPort
         var translatedText = FirstText(response);
         if (string.IsNullOrWhiteSpace(translatedText))
             return Fail(ContentTranslationErrorCodes.EmptyResponse, null, null);
+
+        if (isTexts)
+        {
+            var slotError = TranslationTextSlots.ParseResponse(translatedText, request.Texts.Count, out var translations);
+            if (slotError != null)
+            {
+                _logger.LogWarning("Translation failed with {FailureKind}", slotError);
+                return TranslationResult.Failed(slotError);
+            }
+            return TranslationResult.OkTexts(translations, ProviderName, response.Model ?? _model);
+        }
 
         // Structural validation against the submitted document - not just "is this valid JSON?"
         // but "did the model actually follow the prompt's own contract?" (no added/missing/
@@ -144,6 +191,17 @@ public class OpenAiTranslationPort : ITranslationPort
         _logger.LogWarning("Translation failed with {FailureKind} (HTTP {HttpStatus}, {ExceptionType})", code, status, ex?.GetType().Name);
         return TranslationResult.Failed(code, retryAfter: retryAfter, httpStatus: status, exceptionType: ex?.GetType().Name);
     }
+
+    private static string BuildTextsPrompt(string language) => $"""
+        You are a professional {language} translator for a luxury international magazine on fashion, design, art, architecture,
+        culture and lifestyle. Translate with precision, cultural nuance and natural, fluent {language}.
+
+        The user message is a JSON object with "targetLanguage" and "texts", an ordered array of text values.
+        Translate every value in "texts" into {language}, even if it looks like sample, draft or placeholder text.
+        Keep technical tokens (such as H1-H6), numbers and proper brand names as they are.
+        Respond with only a JSON object of the form {"{"}"{TranslationTextSlots.ResponseProperty}": [...]{"}"}: one translated
+        string per input value, in the same order, with the same number of values. No commentary, no markdown.
+        """;
 
     private static string BuildPrompt(TranslationRequest request)
     {

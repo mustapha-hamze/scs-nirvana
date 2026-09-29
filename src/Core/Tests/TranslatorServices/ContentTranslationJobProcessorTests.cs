@@ -48,35 +48,11 @@ public class ContentTranslationJobProcessorTests : IDisposable
         }
     }
 
-    // Structure-preserving fake translation: rewrites the word "English" in every string value.
-    private static string FakeTranslate(string json)
-    {
-        var node = JsonNode.Parse(json);
-        Walk(node);
-        return node.ToJsonString();
+    // Fake translation of every slot value: rewrites the word "English".
+    private static TranslationResult FakeTranslate(TranslationRequest request) =>
+        TranslationResult.OkTexts(request.Texts.Select(t => t.Replace("English", "فارسی")).ToList(), "fake", "fake-model");
 
-        static void Walk(JsonNode node)
-        {
-            if (node is JsonObject obj)
-            {
-                foreach (var (key, value) in obj.ToList())
-                {
-                    if (value is JsonValue v && v.TryGetValue<string>(out var text))
-                        obj[key] = text.Replace("English", "فارسی");
-                    else if (value != null)
-                        Walk(value);
-                }
-            }
-            else if (node is JsonArray array)
-            {
-                foreach (var item in array.Where(i => i != null))
-                    Walk(item);
-            }
-        }
-    }
-
-    private static FakePort Translating() =>
-        new((request, _) => Task.FromResult(TranslationResult.Ok(FakeTranslate(request.ContentJson), "fake", "fake-model")));
+    private static FakePort Translating() => new((request, _) => Task.FromResult(FakeTranslate(request)));
 
     private async Task<(int ContentId, int CultureId)> Seed()
     {
@@ -153,7 +129,7 @@ public class ContentTranslationJobProcessorTests : IDisposable
     }
 
     [Fact]
-    public async Task Success_SendsTextOnlyDocument_StoresReadyRow_AndLeavesLegacyUntouched()
+    public async Task Success_SendsOnlyOrderedTextSlots_StoresReadyRow_AndLeavesLegacyUntouched()
     {
         var (contentId, cultureId) = await Seed();
         var fingerprint = await Fingerprint(contentId);
@@ -163,16 +139,10 @@ public class ContentTranslationJobProcessorTests : IDisposable
         Assert.True(await RunOnce(port));
 
         var request = Assert.Single(port.Requests);
-        Assert.Equal("Farsi", request.TargetLanguage);
-        Assert.Equal(TranslationSourceDocument.TranslatableFields, request.TranslatableFields);
-        var document = JsonNode.Parse(request.ContentJson).AsObject();
-        Assert.Equal(new[] { "Id", "Title", "HeadLine", "Abstract", "Description", "Metadata", "Sections" }, document.Select(p => p.Key));
-        Assert.Equal(contentId, (int)document["Id"]);
-        Assert.Equal(new[] { "Id", "Title", "Author", "Keywords", "Description" }, document["Metadata"].AsObject().Select(p => p.Key));
-        var element = document["Sections"][0]["Elements"][0].AsObject();
-        Assert.Equal(new[] { "Id", "TinyText", "EditorText" }, element.Select(p => p.Key));
-        foreach (var excluded in new[] { "secret", "FarsiContent", "legacy", "Categories", "Images", "Priority", "IsActive", "UpdatedDT", "ElementTitle", "ApplicationId" })
-            Assert.DoesNotContain(excluded, request.ContentJson, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(("Farsi", null, null), (request.TargetLanguage, request.ContentJson, request.TranslatableFields));
+        Assert.Equal(new[] { "English title", "English head", "English", "desc", "English meta", "English author", "English keys", "English tiny", "English" },
+            request.Texts);
+        var elementId = await Read(c => c.SectionElements.Select(e => e.Id).SingleAsync());
 
         var job = await Job(jobId);
         Assert.Equal((ContentTranslationJobState.Succeeded, 1, null, null, null, Now), (job.State, job.AttemptCount, job.ErrorCode, job.LeaseOwner, job.LeaseExpiresAt, job.CompletedAt));
@@ -183,7 +153,7 @@ public class ContentTranslationJobProcessorTests : IDisposable
         var text = LegacyFarsiContentParser.Deserialize(row.LocalizedTextJson);
         Assert.Equal(("فارسی title", "فارسی head", null, "<p>فارسی <strong>desc</strong></p>"), (text.Title, text.HeadLine, text.Abstract, text.Description));
         Assert.Equal(("فارسی author", "فارسی keys"), (text.Metadata.Author, text.Metadata.Keywords));
-        Assert.Equal(new LocalizedElementText(element["Id"].GetValue<int>(), "فارسی tiny", "<p>فارسی<br></p>"), text.Sections.Single().Elements.Single());
+        Assert.Equal(new LocalizedElementText(elementId, "فارسی tiny", "<p>فارسی<br></p>"), text.Sections.Single().Elements.Single());
 
         Assert.Equal(LegacyFarsi, await Legacy(contentId));
         Assert.False(await RunOnce(port));
@@ -238,7 +208,7 @@ public class ContentTranslationJobProcessorTests : IDisposable
         {
             await using var context = _factory.CreateContext();
             await context.Contents.Where(c => c.Id == contentId).ExecuteUpdateAsync(s => s.SetProperty(c => c.Title, "Edited English"));
-            return TranslationResult.Ok(FakeTranslate(request.ContentJson), "fake", "fake-model");
+            return FakeTranslate(request);
         });
 
         await RunOnce(port);
@@ -262,36 +232,242 @@ public class ContentTranslationJobProcessorTests : IDisposable
         Assert.Equal(ContentTranslationJobState.Superseded, (await Job(jobId)).State);
     }
 
-    public static TheoryData<string, Func<string, string>> InvalidOutputs => new()
+    // Slot values the processor can't rebuild into a valid document (the real port rejects most of
+    // these earlier as invalid_response; see the OpenAI-port cases below).
+    public static TheoryData<string, Func<IReadOnlyList<string>, IReadOnlyList<string>>> InvalidOutputs => new()
     {
-        { "not json", _ => "{not json" },
-        { "wrapped in markdown", json => "```json\n" + json + "\n```" },
-        { "extra field", json => AddField(json, "Extra", "x") },
-        { "missing field", json => RemoveField(json, "HeadLine") },
-        { "id changed", json => json.Replace("\"Id\":", "\"Id\":9") },
-        { "null became text", json => FakeTranslate(json).Replace("\"Abstract\":null", "\"Abstract\":\"x\"") },
-        { "text became number", json => ReplaceField(json, "Title", 5) },
-        { "html tag changed", json => FakeTranslate(json).Replace("strong", "em") },
-        { "section dropped", json => ReplaceField(json, "Sections", new JsonArray()) },
+        { "no texts", _ => null },
+        { "too few", texts => texts.Skip(1).ToList() },
+        { "too many", texts => texts.Append("x").ToList() },
+        { "null value", texts => texts.Select((t, i) => i == 0 ? null : t).ToList() },
+        { "blank value", texts => texts.Select((t, i) => i == 0 ? " " : t).ToList() },
+        { "markup in plain text", texts => texts.Select((t, i) => i == 0 ? "<b>x</b>" : t).ToList() },
     };
-
-    private static string AddField(string json, string name, JsonNode value) { var o = JsonNode.Parse(json).AsObject(); o[name] = value; return o.ToJsonString(); }
-    private static string RemoveField(string json, string name) { var o = JsonNode.Parse(json).AsObject(); o.Remove(name); return o.ToJsonString(); }
-    private static string ReplaceField(string json, string name, JsonNode value) { var o = JsonNode.Parse(json).AsObject(); o[name] = value; return o.ToJsonString(); }
 
     [Theory]
     [MemberData(nameof(InvalidOutputs))]
-    public async Task InvalidOutput_FailsJobOnly(string _, Func<string, string> corrupt)
+    public async Task InvalidOutput_FailsJobOnly(string _, Func<IReadOnlyList<string>, IReadOnlyList<string>> corrupt)
     {
         var (contentId, cultureId) = await Seed();
         var jobId = await SeedJob(contentId, cultureId);
-        var port = new FakePort((request, _) => Task.FromResult(TranslationResult.Ok(corrupt(request.ContentJson), "fake", "fake-model")));
+        var port = new FakePort((request, _) => Task.FromResult(TranslationResult.OkTexts(corrupt(request.Texts), "fake", "fake-model")));
 
         await RunOnce(port);
 
         var job = await Job(jobId);
         Assert.Equal((ContentTranslationJobState.Failed, ContentTranslationErrorCodes.InvalidOutput), (job.State, job.ErrorCode));
         await AssertNoTranslationWrittenAndLegacyIntact(contentId);
+    }
+
+    // A full-document result (the old port shape) carries no slot values: never stored.
+    [Fact]
+    public async Task DocumentResult_IsNotAcceptedAsSlots()
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId);
+
+        await RunOnce(new FakePort((_, _) => Task.FromResult(TranslationResult.Ok("{\"Title\":\"x\"}", "fake", "fake-model"))));
+
+        Assert.Equal(ContentTranslationErrorCodes.InvalidOutput, (await Job(jobId)).ErrorCode);
+        await AssertNoTranslationWrittenAndLegacyIntact(contentId);
+    }
+
+    [Fact]
+    public async Task MalformedSourceMarkup_FailsWithoutCallingProvider()
+    {
+        var (contentId, cultureId) = await Seed();
+        await using (var context = _factory.CreateContext())
+            await context.SectionElements.ExecuteUpdateAsync(s => s.SetProperty(e => e.EditorText, "<p>English</b></p>"));
+        var jobId = await SeedJob(contentId, cultureId);
+        var port = Translating();
+
+        await RunOnce(port);
+
+        Assert.Empty(port.Requests);
+        var job = await Job(jobId);
+        Assert.Equal((ContentTranslationJobState.Failed, ContentTranslationErrorCodes.InvalidOutput), (job.State, job.ErrorCode));
+        await AssertNoTranslationWrittenAndLegacyIntact(contentId);
+    }
+
+    [Fact]
+    public async Task NoTranslatableText_SucceedsWithoutCallingProvider_KeepingNullsAndEmpties()
+    {
+        int contentId, cultureId;
+        await using (var context = _factory.CreateContext())
+        {
+            var culture = new Culture { ApplicationId = 1, Title = "Farsi", Key = "fa-IR" };
+            var content = new Content
+            {
+                ApplicationId = 1, TypeId = 1000, Title = "", HeadLine = null, Description = "  ", FarsiContent = LegacyFarsi,
+                Sections = [new() { Elements = [new() { ElementType = 1000, TinyText = "", EditorText = "<p><br></p>" }] }]
+            };
+            context.AddRange(culture, content);
+            await context.SaveChangesAsync();
+            (contentId, cultureId) = (content.Id, culture.Id);
+        }
+        var jobId = await SeedJob(contentId, cultureId);
+        var port = Translating();
+
+        await RunOnce(port);
+
+        Assert.Empty(port.Requests);
+        Assert.Equal(ContentTranslationJobState.Succeeded, (await Job(jobId)).State);
+        var text = LegacyFarsiContentParser.Deserialize((await Row()).LocalizedTextJson);
+        Assert.Equal(("", null, null, "  "), (text.Title, text.HeadLine, text.Abstract, text.Description));
+        Assert.Equal(new LocalizedElementText(text.Sections.Single().Elements.Single().Id, "", "<p><br></p>"), text.Sections.Single().Elements.Single());
+        Assert.Equal(LegacyFarsi, await Legacy(contentId));
+    }
+
+    // ---- Through the real OpenAI port over a fake HTTP transport (no network, no key). ----
+
+    private sealed class FakeHandler(Func<string, string> content) : HttpMessageHandler
+    {
+        public List<string> Bodies { get; } = new();
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+            Bodies.Add(body);
+            var completion = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                id = "chatcmpl-test", @object = "chat.completion", created = 0, model = "test-model-2026",
+                choices = new[] { new { index = 0, finish_reason = "stop", message = new { role = "assistant", content = content(body) } } }
+            });
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(completion, System.Text.Encoding.UTF8, "application/json")
+            };
+        }
+    }
+
+    private static Infrastructure.TranslatorServices.OpenAiTranslationPort OpenAiPort(FakeHandler handler) =>
+        new(Microsoft.Extensions.Options.Options.Create(new Infrastructure.TranslatorServices.OpenAiTranslationOptions { ApiKey = "test-secret-key", Model = "test-model" }),
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<Infrastructure.TranslatorServices.OpenAiTranslationPort>.Instance,
+            new System.ClientModel.Primitives.HttpClientPipelineTransport(new HttpClient(handler)));
+
+    // The texts array of the request's user message.
+    private static List<string> SentTexts(string body)
+    {
+        var envelope = JsonNode.Parse((string)JsonNode.Parse(body)!["messages"]![1]!["content"]!)!.AsObject();
+        Assert.Equal(new[] { "targetLanguage", "texts" }, envelope.Select(p => p.Key));
+        return envelope["texts"]!.AsArray().Select(t => (string)t!).ToList();
+    }
+
+    private static string Respond(IEnumerable<string> translations) =>
+        new JsonObject { [TranslationTextSlots.ResponseProperty] = new JsonArray(translations.Select(t => (JsonNode)t).ToArray()) }.ToJsonString();
+
+    private const string RichHtml =
+        "<p class=\"lead\" data-x='English'>English <a href=\"https://example.test/English\" target=\"_blank\" rel=\"noopener\">read   more</a>&nbsp;now</p>"
+        + "<!-- English editor note --><p><br></p><img src=\"English.jpg\" alt=\"English alt\">"
+        + "<script>var English = \"<p>English</p>\";</script><style>.English { color: red; }</style>\n<ul><li> English item </li></ul>";
+
+    // Sections/elements are inserted out of order; slots follow Priority, then Id.
+    private async Task<(int ContentId, int CultureId)> SeedComplex()
+    {
+        await using var context = _factory.CreateContext();
+        var culture = new Culture { ApplicationId = 1, Title = "Farsi", Key = "fa-IR" };
+        SectionElement Element(int id, string tiny, string editor) => new()
+        {
+            Id = id, ElementType = 1000, TinyText = tiny, EditorText = editor, FileNameText = "secret-file.pdf", GalleryImages = "secret-gallery",
+            ElementTitle = "secret-element-title", Size = 3
+        };
+        var content = new Content
+        {
+            ApplicationId = 1, TypeId = 1000, Title = "English title", HeadLine = null, Abstract = "", Description = "English & <b>bold</b>",
+            FarsiContent = LegacyFarsi, Categories = "secret-cat", Tags = "secret-tag", Cultures = "secret-culture",
+            Metadata = new ContentMetadata { Title = "English meta", Author = null, Keywords = "English keys", Description = "" },
+            Images = [new() { ImageFileName = "secret-image.jpg" }],
+            Sections =
+            [
+                new() { Id = 50, Priority = 2, Elements = [Element(501, "Last tiny", null)] },
+                new() { Id = 70, Priority = 1, Elements = [Element(702, "Second of 70", "<p>Plain <em>emphasis</em></p>"), Element(701, "First of 70", "")] },
+                new() { Id = 60, Priority = 1, Elements = [Element(601, null, RichHtml)] }
+            ]
+        };
+        context.AddRange(culture, content);
+        await context.SaveChangesAsync();
+        return (content.Id, culture.Id);
+    }
+
+    private static readonly string[] ComplexTexts =
+    [
+        "English title", "English & ", "bold", // Description: markup, so text nodes (decoded, trimmed)
+        "English meta", "English keys",
+        "English", "read   more", " now", "English item", // section 60 / element 601 (visible text only)
+        "First of 70", "Second of 70", "Plain", "emphasis", // section 70: elements 701, 702
+        "Last tiny" // section 50
+    ];
+
+    [Fact]
+    public async Task TextSlots_SendOnlyVisibleText_AndRebuildTheCanonicalDocumentAroundTheTranslations()
+    {
+        var (contentId, cultureId) = await SeedComplex();
+        var fingerprint = await Fingerprint(contentId);
+        var jobId = await SeedJob(contentId, cultureId);
+        // Each value becomes "ف" + value; one returns markup-like text, which must stay text.
+        var handler = new FakeHandler(body => Respond(SentTexts(body).Select(t => t == "bold" ? "<i onclick=\"x\">a</i> & b" : "ف" + t)));
+
+        await RunOnce(OpenAiPort(handler));
+
+        var body = Assert.Single(handler.Bodies);
+        Assert.Equal(ComplexTexts.Select(t => t.Trim(' ')), SentTexts(body));
+        foreach (var excluded in new[] { "secret", "legacy", "\"Id\"", "Sections", "Metadata", "href", "example.test", "noopener", "class", "lead",
+                     "editor note", "var English", "color: red", "English.jpg", "English alt", "<p", "\\u003Cp" })
+            Assert.DoesNotContain(excluded, body, StringComparison.OrdinalIgnoreCase);
+
+        var job = await Job(jobId);
+        Assert.Equal((ContentTranslationJobState.Succeeded, null), (job.State, job.ErrorCode));
+        var row = await Row();
+        Assert.Equal((TranslationStatus.Ready, fingerprint, OpenAiTranslationPortName, "test-model-2026"), (row.TranslationStatus, row.SourceFingerprint, row.Provider, row.Model));
+
+        var metadataId = await Read(c => c.ContentMetadatas.Select(m => m.Id).SingleAsync());
+        var expected = new LocalizedContentText("فEnglish title", null, "", "فEnglish &amp; <b>&lt;i onclick=\"x\"&gt;a&lt;/i&gt; &amp; b</b>",
+            new LocalizedMetadataText(metadataId, "فEnglish meta", null, "فEnglish keys", ""),
+            [
+                new(60, [new(601, null,
+                    "<p class=\"lead\" data-x='English'>فEnglish <a href=\"https://example.test/English\" target=\"_blank\" rel=\"noopener\">فread   more</a>ف\u00A0now</p>"
+                    + "<!-- English editor note --><p><br></p><img src=\"English.jpg\" alt=\"English alt\">"
+                    + "<script>var English = \"<p>English</p>\";</script><style>.English { color: red; }</style>\n<ul><li> فEnglish item </li></ul>")]),
+                new(70, [new(701, "فFirst of 70", ""), new(702, "فSecond of 70", "<p>فPlain <em>فemphasis</em></p>")]),
+                new(50, [new(501, "فLast tiny", null)])
+            ]);
+        Assert.Equal(LegacyFarsiContentParser.Serialize(expected), row.LocalizedTextJson);
+        Assert.Equal(LegacyFarsi, await Legacy(contentId));
+    }
+
+    private const string OpenAiTranslationPortName = Infrastructure.TranslatorServices.OpenAiTranslationPort.ProviderName;
+
+    // Seed() has 9 slots.
+    public static TheoryData<string, string, string> BadSlotResponses => new()
+    {
+        { "invalid json", "{not json", ContentTranslationErrorCodes.InvalidJson },
+        { "missing array", "{}", ContentTranslationErrorCodes.InvalidResponse },
+        { "renamed array", Respond(Enumerable.Repeat("ت", 9)).Replace(TranslationTextSlots.ResponseProperty, "texts"), ContentTranslationErrorCodes.InvalidResponse },
+        { "extra property", Respond(Enumerable.Repeat("ت", 9)).TrimEnd('}') + ",\"note\":\"x\"}", ContentTranslationErrorCodes.InvalidResponse },
+        { "not an array", "{\"" + TranslationTextSlots.ResponseProperty + "\":\"ت\"}", ContentTranslationErrorCodes.InvalidResponse },
+        { "too few", Respond(Enumerable.Repeat("ت", 8)), ContentTranslationErrorCodes.InvalidResponse },
+        { "too many", Respond(Enumerable.Repeat("ت", 10)), ContentTranslationErrorCodes.InvalidResponse },
+        { "null value", Respond(Enumerable.Repeat("ت", 8)).Replace("[", "[null,"), ContentTranslationErrorCodes.InvalidResponse },
+        { "number value", Respond(Enumerable.Repeat("ت", 8)).Replace("[", "[5,"), ContentTranslationErrorCodes.InvalidResponse },
+        { "blank value", Respond(Enumerable.Repeat("ت", 8).Append(" ")), ContentTranslationErrorCodes.InvalidResponse },
+        // Regression: the old full-document reply (here with a changed ID) is simply not a slot reply.
+        { "full document", "{\"Id\":9,\"Title\":\"ت\",\"Sections\":[]}", ContentTranslationErrorCodes.InvalidResponse },
+    };
+
+    [Theory]
+    [MemberData(nameof(BadSlotResponses))]
+    public async Task BadSlotResponse_FailsWithAFixedCode_WithoutWritingOrTouchingLegacy(string _, string response, string code)
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId);
+
+        await RunOnce(OpenAiPort(new FakeHandler(_ => response)));
+
+        var job = await Job(jobId);
+        Assert.Equal((ContentTranslationJobState.Failed, code), (job.State, job.ErrorCode));
+        Assert.NotNull(ContentTranslationErrorCodes.FailureReasonFor(job.State, job.ErrorCode));
+        await AssertNoTranslationWrittenAndLegacyIntact(contentId);
+        Assert.DoesNotContain(_logger.Entries, e => e.Message.Contains("ت") || e.Message.Contains("English"));
     }
 
     // Every terminal port classification is stored as its own safe code, never resent, and never
@@ -303,6 +479,7 @@ public class ContentTranslationJobProcessorTests : IDisposable
     [InlineData(ContentTranslationErrorCodes.EmptyResponse)]
     [InlineData(ContentTranslationErrorCodes.InvalidJson)]
     [InlineData(ContentTranslationErrorCodes.InvalidStructure)]
+    [InlineData(ContentTranslationErrorCodes.InvalidResponse)]
     public async Task TerminalPortFailure_FailsWithItsOwnCode_WithoutResend(string code)
     {
         var (contentId, cultureId) = await Seed();
@@ -491,7 +668,7 @@ public class ContentTranslationJobProcessorTests : IDisposable
         var port = new FakePort(async (request, _) =>
         {
             during = await Job(jobId);
-            return TranslationResult.Ok(FakeTranslate(request.ContentJson), "fake", "fake-model");
+            return FakeTranslate(request);
         });
 
         await RunOnce(port);
@@ -516,7 +693,7 @@ public class ContentTranslationJobProcessorTests : IDisposable
                 LocalizedTextJson = "{\"title\":\"manual\"}", Provider = "manual", IsActive = true
             });
             await context.SaveChangesAsync();
-            return TranslationResult.Ok(FakeTranslate(request.ContentJson), "fake", "fake-model");
+            return FakeTranslate(request);
         });
 
         await RunOnce(port);
