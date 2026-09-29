@@ -404,8 +404,27 @@ public class AccountController : BaseController
     public async Task<IActionResult> EntityAccesses(int id)
     {
         var entityAccesses = await _entityAccessServices.GetEntityAccesses(id);
+
+        // Existing Content entities only define the action keys, so the base module key that
+        // ContentController.Index and the sidebar require (exact-token) could never be granted from
+        // this screen. Offer it on the Content entity - recognised by an exact Content-only action
+        // key, never a prefix - so a SuperAdmin grants it explicitly; it is never inferred.
+        var isContentEntity = entityAccesses.Any(a => ContentOnlyActionKeys.Contains(a.Access));
+        if (isContentEntity && entityAccesses.All(a => a.Access != AccessKeys.Content.Module))
+            entityAccesses.Insert(0, new EntityAccessDto { EntityId = id, Access = AccessKeys.Content.Module });
+
         return PartialView("_EntityAccessCheckboxesPartial", entityAccesses);
     }
+
+    // AccessKeys.Content.Add is excluded: Slider's Add gate reuses that exact key.
+    private static readonly HashSet<string> ContentOnlyActionKeys =
+    [
+        AccessKeys.Content.Save, AccessKeys.Content.Update, AccessKeys.Content.Edit, AccessKeys.Content.Delete,
+        AccessKeys.Content.ChangeActivity, AccessKeys.Content.EditFarsi, AccessKeys.Content.PreviewBody,
+        AccessKeys.Content.SaveBody, AccessKeys.Content.PreviewImages, AccessKeys.Content.UploadImages,
+        AccessKeys.Content.PreviewAttachments, AccessKeys.Content.PreviewRelations, AccessKeys.Content.SaveRelations,
+        AccessKeys.Content.PreviewMetadata, AccessKeys.Content.SaveMetadata,
+    ];
 
     // Only ever a shell for the UserAttachmentController workflow (UserAttachmentsList/
     // UserAttachmentForm), which is entirely SuperAdmin-only - classified the same way rather

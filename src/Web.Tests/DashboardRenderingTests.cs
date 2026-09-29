@@ -6,7 +6,7 @@ using Xunit;
 namespace Web.Tests;
 
 // Rendered-page coverage for the BackOffice Dashboard (Views/Home/Index.cshtml): module cards and
-// quick actions follow the view's own CMS/SCM/SuperAdmin display flags, icons come from the
+// quick actions follow the exact access keys their destinations require, icons come from the
 // shipped unicons font, and Recent activity stays an honest empty state.
 public sealed class DashboardRenderingTests : IClassFixture<TestWebApplicationFactory>
 {
@@ -18,7 +18,7 @@ public sealed class DashboardRenderingTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
-    public async Task CmsMember_SeesCmsModulesWithContentAsPrimaryAction()
+    public async Task CategoryMember_SeesOnlyTheCategoriesModule()
     {
         var email = $"dash-cms-{Guid.NewGuid():N}@test.local";
         var user = await AccountFlowHelper.SeedAdminUserAsync(_factory, email, "CorrectHorseBattery12");
@@ -28,9 +28,10 @@ public sealed class DashboardRenderingTests : IClassFixture<TestWebApplicationFa
 
         var body = await GetDashboardAsync(client);
 
-        Assert.Contains(">Content</h3>", body);
+        // Each card follows its destination's exact key: a Category key alone never shows Content/Schemas.
+        Assert.DoesNotContain(">Content</h3>", body);
         Assert.Contains(">Categories</h3>", body);
-        Assert.Contains(">Schemas</h3>", body);
+        Assert.DoesNotContain(">Schemas</h3>", body);
         Assert.DoesNotContain(">Sliders</h3>", body);
         Assert.DoesNotContain(">Users &amp; roles</h3>", body);
         Assert.Contains("href=\"/BackOffice/Category/Index\" class=\"btn btn-primary", body);

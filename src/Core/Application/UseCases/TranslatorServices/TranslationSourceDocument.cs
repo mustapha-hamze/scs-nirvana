@@ -7,8 +7,10 @@ using Domains.Entities.ContentManagement;
 
 namespace Application.UseCases.TranslatorServices;
 
-// The text-only document a background translation job sends to the provider: the content Id plus
-// exactly the LocalizedContentText shape (stable metadata/section/element IDs and their text).
+// The text-only source document of a background translation job: the content Id plus exactly the
+// LocalizedContentText shape (stable metadata/section/element IDs and their text). It stays on the
+// server - TranslationTextSlots sends only its text values - and is the reference the rebuilt
+// translation is validated against.
 // Images, files, galleries, ElementTitle, relations, audit/state fields and FarsiContent are never
 // part of it. Property names are PascalCase to match TranslationOutputValidator's field names.
 public static class TranslationSourceDocument

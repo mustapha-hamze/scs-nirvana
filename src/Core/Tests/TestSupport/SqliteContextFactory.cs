@@ -1,6 +1,7 @@
 using Infrastructure.Data;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Core.Tests.TestSupport;
 
@@ -30,10 +31,11 @@ public sealed class SqliteContextFactory : IDisposable
 
     // timeProvider defaults to the real clock; pass a fake (e.g. Core.Tests.TestSupport.FakeTimeProvider)
     // to assert on the exact CreatedDT/UpdatedDT ApplicationDbContext stamps at SaveChanges time.
-    public ApplicationDbContext CreateContext(TimeProvider timeProvider = null)
+    public ApplicationDbContext CreateContext(TimeProvider timeProvider = null, params IInterceptor[] interceptors)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseSqlite(_connection)
+            .AddInterceptors(interceptors)
             .Options;
 
         return new ApplicationDbContext(options, timeProvider ?? TimeProvider.System);

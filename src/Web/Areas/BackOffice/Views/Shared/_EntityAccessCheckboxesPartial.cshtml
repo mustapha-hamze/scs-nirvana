@@ -14,7 +14,13 @@ else
         {
             <div class="form-check scs-permission-item">
                 <input type="checkbox" onchange="setEntityAccessHideInput('@item.Access')" id="@item.Access" access="@item.Access" class="form-check-input" />
-                <label class="form-check-label" for="@item.Access"><code class="scs-code">@item.Access</code></label>
+                <label class="form-check-label" for="@item.Access">
+                    @if (item.Access == Web.Authorization.AccessKeys.Content.Module)
+                    {
+                        <strong>Content module: browse content types and lists</strong>
+                    }
+                    <code class="scs-code">@item.Access</code>
+                </label>
             </div>
         }
     </fieldset>

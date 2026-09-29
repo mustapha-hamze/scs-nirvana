@@ -1,27 +1,34 @@
-@inject Application.UseCases.GeneralServices.IApplicationServices applicationServices
+@using Web.Authorization
 @inject Application.UseCases.UserManagementServices.IUserManagementServices userManagementServices
-@inject Application.Contracts.Tenancy.ICurrentApplicationContext currentApplicationContext
+@inject Web.Areas.BackOffice.Presentation.Shell.IBackOfficeShellContext ShellContext
 
 @{
     ViewData["Title"] = "Dashboard";
     var user = await userManagementServices.GetUserByEmailAddress(User.Identity.Name);
-    var app = await applicationServices.GetById(currentApplicationContext.RequireApplicationId());
-    var accesses = await userManagementServices.GetUserAccesses(User.Identity.Name, currentApplicationContext.RequireApplicationId());
-    if (accesses == string.Empty)
-        accesses = "NULL";
-    bool isSuperAdmin = User.IsInRole("SuperAdmin");
-    bool canCMS = isSuperAdmin || accesses.Contains("CMS1000_");
-    bool canSCM = isSuperAdmin || accesses.Contains("SCM3000_");
+    var shell = await ShellContext.GetSnapshotAsync();
+    var access = shell.Access;
+    bool isSuperAdmin = access.IsSuperAdmin;
+
+    // Each card is gated by the exact key its destination's [RequireAccess] demands (the same
+    // snapshot the sidebar reads), never a module-family prefix. ContentController.Index needs a
+    // real type id, so the Content card only renders when the workspace has a content type.
+    var firstContentType = shell.ContentTypes.FirstOrDefault();
 
     // Ordered by priority: the first module is the dashboard's primary forward action.
     var modules = new List<(string Name, string Purpose, string Icon, string Tone, string Href, string Action)>();
-    if (canCMS)
+    if (firstContentType is not null && access.CanAccess(AccessKeys.Content.Module))
     {
-        modules.Add(("Content", "Write, edit and publish entries for each content type.", "uil-document-layout-right", "primary", "/BackOffice/Category/Index", "Manage content"));
+        modules.Add(("Content", "Write, edit and publish entries for each content type.", "uil-document-layout-right", "primary", $"/BackOffice/Content/Index/{firstContentType.Id}", "Manage content"));
+    }
+    if (access.CanAccess(AccessKeys.Category.Module))
+    {
         modules.Add(("Categories", "Group content into categories and nested hierarchies.", "uil-folder", "success", "/BackOffice/Category/Index", "Manage categories"));
+    }
+    if (access.CanAccess(AccessKeys.Schema.Module))
+    {
         modules.Add(("Schemas", "Define the reusable field structures content sections are built from.", "uil-sitemap", "warning", "/BackOffice/Schema/Index", "Manage schemas"));
     }
-    if (canSCM)
+    if (access.CanAccess(AccessKeys.Slider.Module))
     {
         modules.Add(("Sliders", "Curate the image sliders shown on the site.", "uil-images", "accent", "/BackOffice/Slider/Index", "Manage sliders"));
     }
@@ -44,7 +51,7 @@
 
 @section PageHeading { Welcome back, @user.FirstName }
 
-@section PageHelper { You're working in <strong>@app.Title</strong>. Choose a module to start, or use a quick action. }
+@section PageHelper { You're working in <strong>@shell.ApplicationTitle</strong>. Choose a module to start, or use a quick action. }
 
 @if (primary.Name is null)
 {
@@ -52,7 +59,7 @@
         <div class="card-body scs-empty-state">
             <i class="uil uil-lock-alt" aria-hidden="true"></i>
             <h2 class="card-title mb-1">No modules assigned yet</h2>
-            <p class="mb-0">Your account has no module access in @app.Title. Ask a workspace administrator to grant the access you need.</p>
+            <p class="mb-0">Your account has no module access in @shell.ApplicationTitle. Ask a workspace administrator to grant the access you need.</p>
         </div>
     </div>
 }

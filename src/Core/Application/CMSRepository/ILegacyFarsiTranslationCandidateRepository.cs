@@ -1,0 +1,54 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Application.UseCases.TranslatorServices;
+using Domains.Entities.ContentManagement;
+
+namespace Application.CMSRepository;
+
+// Candidate filter the repository applies server-side: the application's non-deleted content of
+// one of TypeIds with non-blank legacy FarsiContent and no ContentTranslation row (deleted or not)
+// for CultureId. Title and ContentId are optional.
+public record LegacyFarsiCandidateFilter(int ApplicationId, int CultureId, IReadOnlyCollection<int> TypeIds, string Title, int? ContentId);
+
+public record ActiveTranslationJob(int ContentId, string SourceFingerprint);
+
+public record TranslationJobSnapshot(int JobId, int ContentId, ContentTranslationJobState State, int AttemptCount, string ErrorCode);
+
+// A job with its content's display fields. RelevantAt is UpdatedDT for Queued/Processing, CompletedAt otherwise.
+public record RecoveredTranslationJob(int JobId, int ContentId, string Title, int TypeId, bool IsActive, ContentTranslationJobState State,
+    int AttemptCount, string ErrorCode, DateTime RelevantAt);
+
+// Read-only persistence port for the legacy-Farsi translation candidate list. Every method is
+// untracked and never loads FarsiContent.
+public interface ILegacyFarsiTranslationCandidateRepository
+{
+    // Non-deleted, active culture.
+    Task<bool> IsCultureAvailable(int cultureId, CancellationToken cancellationToken = default);
+
+    // Queued or Processing jobs for the filter's culture on content matching the filter.
+    Task<List<ActiveTranslationJob>> FindActiveJobs(LegacyFarsiCandidateFilter filter, CancellationToken cancellationToken = default);
+
+    // The fingerprinted source fields only (ContentSourceFingerprint input), without FarsiContent.
+    Task<List<Content>> FindSources(IReadOnlyCollection<int> contentIds, CancellationToken cancellationToken = default);
+
+    // Of contentIds, the filter application's non-deleted content, each mapped to whether it matches
+    // the filter (Title and ContentId are ignored). Missing, deleted and foreign IDs are absent.
+    Task<Dictionary<int, bool>> ClassifyOwned(LegacyFarsiCandidateFilter filter, IReadOnlyCollection<int> contentIds,
+        CancellationToken cancellationToken = default);
+
+    // Of jobIds, the non-deleted jobs for cultureId on the application's non-deleted content. Others are absent.
+    Task<List<TranslationJobSnapshot>> FindJobs(int applicationId, int cultureId, IReadOnlyCollection<int> jobIds,
+        CancellationToken cancellationToken = default);
+
+    // Per-state counts of, and one page of, the non-deleted jobs for cultureId on the application's non-deleted
+    // content of typeIds that are Queued/Processing, or terminal with CompletedAt >= completedSince. Active first,
+    // then RelevantAt descending, then Id descending. No candidate eligibility rule is applied.
+    Task<(LegacyFarsiRecoveredJobCounts Counts, List<RecoveredTranslationJob> Items)> FindRecoveredJobs(int applicationId, int cultureId, IReadOnlyCollection<int> typeIds,
+        DateTime completedSince, int page, int pageSize, CancellationToken cancellationToken = default);
+
+    // Total and one page of the filter's content minus excludedContentIds, ordered by sort then Id.
+    Task<(int Total, List<LegacyFarsiTranslationCandidate> Items)> FindPage(LegacyFarsiCandidateFilter filter,
+        IReadOnlyCollection<int> excludedContentIds, LegacyFarsiCandidateSort sort, bool descending, int page, int pageSize,
+        CancellationToken cancellationToken = default);
+}

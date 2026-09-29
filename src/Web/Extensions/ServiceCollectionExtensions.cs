@@ -52,6 +52,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IContentTranslationRepository, ContentTranslationRepository>();
         services.AddScoped<IContentTranslationBackfillRepository, ContentTranslationBackfillRepository>();
         services.AddScoped<IContentTranslationJobRepository, ContentTranslationJobRepository>();
+        services.AddScoped<ILegacyFarsiTranslationCandidateRepository, LegacyFarsiTranslationCandidateRepository>();
         services.AddScoped<ILocalizedContentReadRepository, LocalizedContentReadRepository>();
         services.AddScoped<IContentsInCategoryQueryAdapter, ContentsInCategoryQueryAdapter>();
         services.AddScoped<ISliderRepository, SliderRepository>();
@@ -108,10 +109,16 @@ public static class ServiceCollectionExtensions
             .BindConfiguration(ContentTranslationOptions.SectionName)
             .Validate(o => o.PollIntervalSeconds >= 1 && o.LeaseMinutes >= 2 && o.MaxAttempts is >= 1 and <= 10 && o.ActivationCultureId >= 0 && o.LegacyFarsiCultureId >= 0,
                 "ContentTranslation options are out of range.")
+            .Validate(o => o.HasValidLegacyBulkSettings(),
+                "ContentTranslation legacy bulk settings are invalid: type IDs must be distinct and positive, BulkRequestMaxItems must be 1-100, and LegacyBulkRecentJobDays must be 1-30.")
             .ValidateOnStart();
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<ContentTranslationOptions>>().Value);
         services.AddScoped<ContentTranslationJobProcessor>();
         services.AddScoped<ContentTranslationRequests>();
+        services.AddScoped<LegacyFarsiTranslationCandidates>();
+        services.AddScoped<LegacyFarsiTranslationBulkQueue>();
+        services.AddScoped<LegacyFarsiTranslationProgress>();
+        services.AddScoped<LegacyFarsiTranslationRecoveredJobs>();
         services.AddScoped<ManualContentTranslation>();
         services.AddScoped<LocalizedContentReader>();
         services.AddHostedService<Web.Services.Translation.ContentTranslationWorker>();

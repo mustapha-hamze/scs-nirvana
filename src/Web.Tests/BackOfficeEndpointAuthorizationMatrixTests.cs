@@ -185,6 +185,13 @@ public sealed class BackOfficeEndpointAuthorizationMatrixTests
         new(typeof(HomeController), nameof(HomeController.Index), P(), V("GET"), Auth.Authenticated),
         new(typeof(HomeController), nameof(HomeController.Error), P(), V(), Auth.Authenticated), // verb-unconstrained: exception re-execution must support the original verb
 
+        // ---- LegacyFarsiTranslationQueueController (whole controller is SuperAdmin) ----
+        new(typeof(LegacyFarsiTranslationQueueController), nameof(LegacyFarsiTranslationQueueController.Index), P(), V("GET"), Auth.SuperAdminPolicy),
+        new(typeof(LegacyFarsiTranslationQueueController), nameof(LegacyFarsiTranslationQueueController.Candidates), P(typeof(Application.UseCases.TranslatorServices.LegacyFarsiTranslationCandidateQuery), typeof(CancellationToken)), V("GET"), Auth.SuperAdminPolicy),
+        new(typeof(LegacyFarsiTranslationQueueController), nameof(LegacyFarsiTranslationQueueController.Queue), P(typeof(LegacyFarsiTranslationQueueController.QueueRequest), typeof(CancellationToken)), V("POST"), Auth.SuperAdminPolicy),
+        new(typeof(LegacyFarsiTranslationQueueController), nameof(LegacyFarsiTranslationQueueController.Progress), P(typeof(int[]), typeof(CancellationToken)), V("GET"), Auth.SuperAdminPolicy),
+        new(typeof(LegacyFarsiTranslationQueueController), nameof(LegacyFarsiTranslationQueueController.RecoveredJobs), P(typeof(int), typeof(int), typeof(CancellationToken)), V("GET"), Auth.SuperAdminPolicy),
+
         // ---- ContentController (per-action keys; ContentForm/SaveContentForm excluded - see class doc) ----
         new(typeof(ContentController), nameof(ContentController.Index), P(typeof(int)), V("GET"), Auth.AccessKey, K(AccessKeys.Content.Module)),
         new(typeof(ContentController), nameof(ContentController.ContentList), P(typeof(int)), V("GET"), Auth.AccessKey, K(AccessKeys.Content.Module)),

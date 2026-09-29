@@ -42,8 +42,9 @@ public sealed class ContentTranslationWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                // Exception type only: provider/database messages can echo payload text.
-                _logger.LogError("Content translation job iteration failed with {ExceptionType}", ex.GetType().Name);
+                // Exception type only: provider/database messages can echo payload text. The processor
+                // has already logged the job ID when a claimed job was being processed.
+                _logger.LogError("Content translation job iteration failed with {FailureKind} {ExceptionType}", "worker_iteration_failed", ex.GetType().Name);
             }
 
             if (!claimed)

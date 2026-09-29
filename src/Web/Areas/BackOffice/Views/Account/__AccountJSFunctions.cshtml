@@ -418,16 +418,17 @@
                 (unsaved ? " Unsaved changes." : ""));
     }
 
+    // Toggles one exact key: a substring match would treat CMS1000_1001 as already present
+    // whenever any CMS1000_1001_* action key is selected.
     function setEntityAccessHideInput(value) {
-
-        if ($("#Accesses").val().search(value) == -1) {
-            $("#Accesses").val($("#Accesses").val() + value + ",");
+        var keys = ($("#Accesses").val() || "").split(",").filter(function (key) { return key !== ""; });
+        var index = keys.indexOf(value);
+        if (index === -1) {
+            keys.push(value);
+        } else {
+            keys.splice(index, 1);
         }
-        else {
-            var accesses = $("#Accesses").val();
-            accesses = accesses.replace(value + ",", '');
-            $("#Accesses").val(accesses);
-        }
+        $("#Accesses").val(keys.length ? keys.join(",") + "," : "");
         updateAccessSummary();
     }
 
