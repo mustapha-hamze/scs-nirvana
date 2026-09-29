@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -9,9 +10,10 @@ using HtmlAgilityPack;
 namespace Application.UseCases.TranslatorServices;
 
 // The text-slot contract of a background translation job: the provider only ever sees an ordered
-// list of plain text values and returns the same number of values in the same order. The server
-// owns everything else - IDs, hierarchy, order, protected fields and HTML markup - and rebuilds
-// LocalizedTextJson from the source document plus the returned values, bound by position alone.
+// list of plain text values and returns one object property per value, keyed by an opaque positional
+// SlotKey ("v0", "v1", ...). The server owns everything else - IDs, hierarchy, order, protected fields
+// and HTML markup - and rebuilds LocalizedTextJson from the source document plus the returned values,
+// bound by position alone.
 //
 // Slots follow TranslationSourceDocument's order (content Title/HeadLine/Abstract/Description,
 // metadata, sections by Priority then Id, elements by Id). Null, empty and whitespace-only values
@@ -21,8 +23,8 @@ namespace Application.UseCases.TranslatorServices;
 // other byte (tags, attributes, comments, script/style, whitespace around the text) is untouched.
 public sealed class TranslationTextSlots
 {
-    // The single property of the provider's JSON response.
-    public const string ResponseProperty = "translations";
+    // The response property carrying the translation of value `index`: a transport key only, never business data.
+    public static string SlotKey(int index) => "v" + index.ToString(CultureInfo.InvariantCulture);
 
     private static readonly HashSet<string> RawTextElements = new(StringComparer.OrdinalIgnoreCase) { "script", "style" };
 
@@ -132,12 +134,15 @@ public sealed class TranslationTextSlots
         return TranslationSourceDocument.ToLocalizedTextJson(_document, rebuilt.ToJsonString());
     }
 
-    // Parses the provider's {"translations": [...]} response. Returns null and the translated values,
-    // or a fixed error code: invalid_json for unparseable text, invalid_response for any other shape
-    // (not an object, another or an extra property, not an array, wrong count, a non-string or blank item).
-    public static string ParseResponse(string json, int expectedCount, out IReadOnlyList<string> translations)
+    // Parses the provider's {"v0": "...", "v1": "...", ...} response. Returns null and the translated
+    // values in slot order, or a fixed error code: invalid_json for unparseable text, invalid_response
+    // (with a safe shape diagnostic) for anything but exactly SlotKey(0..expectedCount-1), each once,
+    // each a non-blank string.
+    public static string ParseResponse(string json, int expectedCount, out IReadOnlyList<string> translations,
+        out TranslationResponseShape shape)
     {
         translations = null;
+        shape = null;
         JsonDocument parsed;
         try
         {
@@ -151,14 +156,58 @@ public sealed class TranslationTextSlots
         using (parsed)
         {
             var root = parsed.RootElement;
-            if (root.ValueKind != JsonValueKind.Object || root.EnumerateObject().Count() != 1
-                || !root.TryGetProperty(ResponseProperty, out var array) || array.ValueKind != JsonValueKind.Array
-                || array.GetArrayLength() != expectedCount
-                || array.EnumerateArray().Any(e => e.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(e.GetString())))
+            if (root.ValueKind != JsonValueKind.Object)
+            {
+                shape = new(TranslationResponseShape.WrongValueType, expectedCount, null);
                 return ContentTranslationErrorCodes.InvalidResponse;
+            }
 
-            translations = array.EnumerateArray().Select(e => e.GetString()).ToList();
+            var values = new string[expectedCount];
+            var actual = 0;
+            string reason = null;
+            foreach (var property in root.EnumerateObject())
+            {
+                actual++;
+                var index = SlotIndex(property.Name, expectedCount);
+                reason ??= index < 0 ? TranslationResponseShape.UnexpectedProperty
+                    : values[index] != null ? TranslationResponseShape.DuplicateProperty
+                    : property.Value.ValueKind != JsonValueKind.String ? TranslationResponseShape.WrongValueType
+                    : string.IsNullOrWhiteSpace(property.Value.GetString()) ? TranslationResponseShape.BlankValue
+                    : null;
+                if (reason == null)
+                    values[index] = property.Value.GetString();
+            }
+            reason ??= values.Contains(null) ? TranslationResponseShape.MissingProperty : null;
+
+            if (reason != null)
+            {
+                shape = new(reason, expectedCount, actual);
+                return ContentTranslationErrorCodes.InvalidResponse;
+            }
+            translations = values;
             return null;
         }
     }
+
+    // The slot a property name is the canonical SlotKey of, or -1 ("v01", "V1", "v-1" and out-of-range keys are not).
+    private static int SlotIndex(string name, int expectedCount) =>
+        name.Length > 1 && name[0] == 'v' && int.TryParse(name.AsSpan(1), NumberStyles.None, CultureInfo.InvariantCulture, out var index)
+            && index < expectedCount && SlotKey(index) == name
+            ? index
+            : -1;
+}
+
+// Why a text-slot response was rejected, for server logs only: a fixed reason and slot counts, never
+// keys, values, paths or provider text. ActualCount: the number of response properties (null when the
+// response wasn't an object).
+public sealed record TranslationResponseShape(string Reason, int ExpectedCount, int? ActualCount)
+{
+    public const string MissingProperty = "missing_property";
+    public const string UnexpectedProperty = "unexpected_property";
+    public const string DuplicateProperty = "duplicate_property";
+    public const string WrongValueType = "wrong_value_type";
+    public const string BlankValue = "blank_value";
+
+    public static readonly IReadOnlySet<string> Reasons =
+        new HashSet<string> { MissingProperty, UnexpectedProperty, DuplicateProperty, WrongValueType, BlankValue };
 }

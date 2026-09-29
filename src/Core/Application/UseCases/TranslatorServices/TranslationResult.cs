@@ -23,11 +23,14 @@ public class TranslationResult
     public int? HttpStatus { get; }
     public string ExceptionType { get; }
 
+    // invalid_response only: which safe shape rule the text-slot response broke (server logs only).
+    public TranslationResponseShape ResponseShape { get; }
+
     public string Provider { get; }
     public string Model { get; }
 
     private TranslationResult(bool success, string translatedJson, string failureCode, string error, TimeSpan? retryAfter,
-        int? httpStatus, string exceptionType, string provider, string model, IReadOnlyList<string> translatedTexts = null)
+        int? httpStatus, string exceptionType, string provider, string model, IReadOnlyList<string> translatedTexts = null, TranslationResponseShape responseShape = null)
     {
         Success = success;
         TranslatedJson = translatedJson;
@@ -37,6 +40,7 @@ public class TranslationResult
         RetryAfter = retryAfter;
         HttpStatus = httpStatus;
         ExceptionType = exceptionType;
+        ResponseShape = responseShape;
         Provider = provider;
         Model = model;
     }
@@ -48,6 +52,6 @@ public class TranslationResult
         new(true, null, null, null, null, null, null, provider, model, translatedTexts);
 
     public static TranslationResult Failed(string failureCode, string error = null, TimeSpan? retryAfter = null, int? httpStatus = null,
-        string exceptionType = null) =>
-        new(false, null, failureCode, error, retryAfter, httpStatus, exceptionType, null, null);
+        string exceptionType = null, TranslationResponseShape responseShape = null) =>
+        new(false, null, failureCode, error, retryAfter, httpStatus, exceptionType, null, null, responseShape: responseShape);
 }

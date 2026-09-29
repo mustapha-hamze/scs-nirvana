@@ -80,7 +80,7 @@ public static class ContentTranslationErrorCodes
     // JSON that breaks the protected-field/hierarchy/type/HTML contract (legacy full-document
     // responses and historical rows; background jobs no longer send structure).
     public const string InvalidStructure = "invalid_structure";
-    // A text-slot response of the wrong shape: not {"translations": [...]}, wrong count, non-string/blank values.
+    // A text-slot response of the wrong shape: missing, extra or duplicate slot properties, non-string/blank values.
     public const string InvalidResponse = "invalid_response";
     // The processor's own post-port check (and historical rows).
     public const string InvalidOutput = "invalid_output";
@@ -203,6 +203,12 @@ public class ContentTranslationJobProcessor
         _logger.LogWarning("Content translation job {JobId} (content {ContentId}, attempt {Attempt}) failed with {FailureKind} (HTTP {HttpStatus}, {ExceptionType})",
             job.Id, job.ContentId, job.AttemptCount, code, httpStatus, exceptionType);
 
+    // invalid_response: also which fixed shape rule broke and the slot counts - never keys or values.
+    private void LogResponseShape(ContentTranslationJob job, TranslationResponseShape shape) =>
+        _logger.LogWarning("Content translation job {JobId} (content {ContentId}, attempt {Attempt}) failed with {FailureKind}: {ResponseShapeReason} (expected {ExpectedSlots} slots, got {ActualSlots})",
+            job.Id, job.ContentId, job.AttemptCount, ContentTranslationErrorCodes.InvalidResponse,
+            TranslationResponseShape.Reasons.Contains(shape.Reason ?? "") ? shape.Reason : "unknown", shape.ExpectedCount, shape.ActualCount);
+
     private async Task Process(ContentTranslationJob job, CancellationToken stoppingToken)
     {
         var source = await _repository.FindSourceGraph(job.ContentId, stoppingToken);
@@ -254,7 +260,10 @@ public class ContentTranslationJobProcessor
         if (!result.Success)
         {
             var code = PortFailureCodes.Contains(result.FailureCode ?? "") ? result.FailureCode : ContentTranslationErrorCodes.ProviderError;
-            LogFailure(job, code, result.HttpStatus, result.ExceptionType);
+            if (code == ContentTranslationErrorCodes.InvalidResponse && result.ResponseShape != null)
+                LogResponseShape(job, result.ResponseShape);
+            else
+                LogFailure(job, code, result.HttpStatus, result.ExceptionType);
             if (!ContentTranslationErrorCodes.IsRetryable(code))
                 await Complete(job, ContentTranslationJobState.Failed, code, CancellationToken.None);
             else if (job.AttemptCount >= _options.MaxAttempts)

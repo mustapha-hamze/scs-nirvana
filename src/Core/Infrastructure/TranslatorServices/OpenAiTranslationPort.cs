@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Unicode;
 using System.Threading.Tasks;
 using Application.UseCases.TranslatorServices;
@@ -47,86 +48,46 @@ public class OpenAiTranslationPort : ITranslationPort
         _logger = logger;
     }
 
-    // Strict structured output for text-slot requests: a JSON object with exactly one array of strings.
-    // The count can't be pinned by the schema; TranslationTextSlots.ParseResponse enforces it.
-    private static readonly BinaryData TextsSchema = BinaryData.FromString($$"""
+    // Most text slots per provider call. Each call's strict schema has one required property per slot;
+    // ponytail: 100 stays inside every published Structured Outputs object-property limit (100, later 5000);
+    // raise it only against the current documented limit. Larger documents go in consecutive chunks.
+    public const int MaxSlotsPerRequest = 100;
+
+    // Strict structured output for text-slot requests: exactly the properties SlotKey(0..count-1), all
+    // required, each a (non-null) string, nothing else. TranslationTextSlots.ParseResponse re-checks it.
+    private static BinaryData TextsSchema(int count)
+    {
+        var properties = new JsonObject();
+        var required = new JsonArray();
+        for (var i = 0; i < count; i++)
         {
-          "type": "object",
-          "properties": { "{{TranslationTextSlots.ResponseProperty}}": { "type": "array", "items": { "type": "string" } } },
-          "required": ["{{TranslationTextSlots.ResponseProperty}}"],
-          "additionalProperties": false
+            properties[TranslationTextSlots.SlotKey(i)] = new JsonObject { ["type"] = "string" };
+            required.Add(TranslationTextSlots.SlotKey(i));
         }
-        """);
+        return BinaryData.FromString(new JsonObject
+        {
+            ["type"] = "object", ["properties"] = properties, ["required"] = required, ["additionalProperties"] = false
+        }.ToJsonString());
+    }
 
     private static readonly JsonSerializerOptions EnvelopeOptions = new() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) };
 
     public async Task<TranslationResult> TranslateAsync(TranslationRequest request, CancellationToken cancellationToken = default)
     {
-        var isTexts = request.Texts != null;
-        List<ChatMessage> messages;
-        ChatCompletionOptions completionOptions;
-        // Per call: the SDK writes the messages/model into the options instance.
-        if (isTexts)
-        {
-            // Only the target language and the ordered values: no IDs, structure or markup.
-            var language = request.TargetLanguage ?? "Persian (Farsi)";
-            messages =
-            [
-                new SystemChatMessage(BuildTextsPrompt(language)),
-                new UserChatMessage(JsonSerializer.Serialize(new { targetLanguage = language, texts = request.Texts }, EnvelopeOptions))
-            ];
-            completionOptions = new ChatCompletionOptions
-            {
-                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("translations", TextsSchema, jsonSchemaIsStrict: true)
-            };
-        }
-        else
-        {
-            // Arbitrary content graphs can't be expressed as a strict JSON schema that also pins protected
-            // values (IDs, per-index array items), so the legacy full-document request only forces a JSON
-            // object; TranslationOutputValidator enforces the exact contract.
-            messages = [new SystemChatMessage(BuildPrompt(request))];
-            completionOptions = new ChatCompletionOptions { ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat() };
-        }
+        if (request.Texts != null)
+            return await TranslateTexts(request, cancellationToken);
 
-        ChatCompletion response;
-        try
-        {
-            response = await _client.CompleteChatAsync(messages, completionOptions, cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // Shutdown or NetworkTimeout: ambiguous, the caller records it without resending.
-            throw;
-        }
-        catch (ClientResultException ex) when (ex.Status != 0)
-        {
-            return Fail(ClassifyStatus(ex.Status), ex.Status, ex, ex.Status is 429 or 503 ? RetryAfter(ex) : null);
-        }
-        catch (Exception ex)
-        {
-            // Only a failure to connect proves no response was received; it still stays terminal
-            // since the request may have been partly sent. Anything else is unknown.
-            var code = IsConnectFailure(ex) || IsConnectFailure(ex.InnerException)
-                ? ContentTranslationErrorCodes.ProviderNetwork
-                : ContentTranslationErrorCodes.ProviderError;
-            return Fail(code, null, ex);
-        }
+        // Arbitrary content graphs can't be expressed as a strict JSON schema that also pins protected
+        // values (IDs, per-index array items), so the legacy full-document request only forces a JSON
+        // object; TranslationOutputValidator enforces the exact contract.
+        var (response, failure) = await Complete([new SystemChatMessage(BuildPrompt(request))],
+            new ChatCompletionOptions { ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat() }, cancellationToken);
+        if (failure != null)
+            return failure;
 
         var translatedText = FirstText(response);
         if (string.IsNullOrWhiteSpace(translatedText))
             return Fail(ContentTranslationErrorCodes.EmptyResponse, null, null);
-
-        if (isTexts)
-        {
-            var slotError = TranslationTextSlots.ParseResponse(translatedText, request.Texts.Count, out var translations);
-            if (slotError != null)
-            {
-                _logger.LogWarning("Translation failed with {FailureKind}", slotError);
-                return TranslationResult.Failed(slotError);
-            }
-            return TranslationResult.OkTexts(translations, ProviderName, response.Model ?? _model);
-        }
 
         // Structural validation against the submitted document - not just "is this valid JSON?"
         // but "did the model actually follow the prompt's own contract?" (no added/missing/
@@ -143,6 +104,73 @@ public class OpenAiTranslationPort : ITranslationPort
         }
 
         return TranslationResult.Ok(translatedText, ProviderName, response.Model ?? _model);
+    }
+
+    // Only the target language and the ordered values: no IDs, structure or markup. Chunks go one after
+    // another; the first failed chunk fails the whole request (nothing partial is returned or resent).
+    private async Task<TranslationResult> TranslateTexts(TranslationRequest request, CancellationToken cancellationToken)
+    {
+        var language = request.TargetLanguage ?? "Persian (Farsi)";
+        var translations = new List<string>(request.Texts.Count);
+        string model = null;
+        foreach (var chunk in request.Texts.Chunk(MaxSlotsPerRequest))
+        {
+            // Per call: the SDK writes the messages/model into the options instance.
+            var (response, failure) = await Complete(
+                [
+                    new SystemChatMessage(BuildTextsPrompt(language)),
+                    new UserChatMessage(JsonSerializer.Serialize(new { targetLanguage = language, texts = chunk }, EnvelopeOptions))
+                ],
+                new ChatCompletionOptions
+                {
+                    ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("translations", TextsSchema(chunk.Length), jsonSchemaIsStrict: true)
+                },
+                cancellationToken);
+            if (failure != null)
+                return failure;
+
+            var translatedText = FirstText(response);
+            if (string.IsNullOrWhiteSpace(translatedText))
+                return Fail(ContentTranslationErrorCodes.EmptyResponse, null, null);
+
+            var slotError = TranslationTextSlots.ParseResponse(translatedText, chunk.Length, out var values, out var shape);
+            if (slotError != null)
+            {
+                _logger.LogWarning("Translation failed with {FailureKind}", slotError);
+                return TranslationResult.Failed(slotError, responseShape: shape);
+            }
+            translations.AddRange(values);
+            model = response.Model ?? _model;
+        }
+        return TranslationResult.OkTexts(translations, ProviderName, model);
+    }
+
+    // One provider call, never resent: the completion, or a classified failure.
+    private async Task<(ChatCompletion Response, TranslationResult Failure)> Complete(List<ChatMessage> messages, ChatCompletionOptions options,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return (await _client.CompleteChatAsync(messages, options, cancellationToken), null);
+        }
+        catch (OperationCanceledException)
+        {
+            // Shutdown or NetworkTimeout: ambiguous, the caller records it without resending.
+            throw;
+        }
+        catch (ClientResultException ex) when (ex.Status != 0)
+        {
+            return (null, Fail(ClassifyStatus(ex.Status), ex.Status, ex, ex.Status is 429 or 503 ? RetryAfter(ex) : null));
+        }
+        catch (Exception ex)
+        {
+            // Only a failure to connect proves no response was received; it still stays terminal
+            // since the request may have been partly sent. Anything else is unknown.
+            var code = IsConnectFailure(ex) || IsConnectFailure(ex.InnerException)
+                ? ContentTranslationErrorCodes.ProviderNetwork
+                : ContentTranslationErrorCodes.ProviderError;
+            return (null, Fail(code, null, ex));
+        }
     }
 
     // The completion can come back with no choices or no content parts (e.g. a refusal); the SDK's
@@ -199,8 +227,9 @@ public class OpenAiTranslationPort : ITranslationPort
         The user message is a JSON object with "targetLanguage" and "texts", an ordered array of text values.
         Translate every value in "texts" into {language}, even if it looks like sample, draft or placeholder text.
         Keep technical tokens (such as H1-H6), numbers and proper brand names as they are.
-        Respond with only a JSON object of the form {"{"}"{TranslationTextSlots.ResponseProperty}": [...]{"}"}: one translated
-        string per input value, in the same order, with the same number of values. No commentary, no markdown.
+        Respond with only a JSON object with one required property per input value: "v0" is the translation of the
+        first value, "v1" of the second, and so on. Return every property, each a non-empty translated string.
+        No other properties, no markdown, no commentary.
         """;
 
     private static string BuildPrompt(TranslationRequest request)

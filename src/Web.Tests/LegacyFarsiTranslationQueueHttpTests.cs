@@ -650,6 +650,7 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
     [InlineData(ContentTranslationErrorCodes.EmptyResponse, "The translation service returned no text. Try again.")]
     [InlineData(ContentTranslationErrorCodes.InvalidJson, "The translation response was not valid JSON. Try again.")]
     [InlineData(ContentTranslationErrorCodes.InvalidStructure, "The translation response changed required content structure. Try again.")]
+    [InlineData(ContentTranslationErrorCodes.InvalidResponse, "The translation response did not match the requested text. Try again.")]
     public async Task ClassifiedFailure_ReachesProgressAndRecoveredJobs_OnlyAsItsFixedReason(string code, string reason)
     {
         var (client, applicationId) = await SignIn();
@@ -668,7 +669,8 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
             (await Recovered(recovered)).GetProperty("items").EnumerateArray().Select(i => (i.GetProperty("state").GetString()!, i.GetProperty("failureReason").GetString())));
 
         foreach (var raw in new[] { progressRaw, recoveredRaw })
-            foreach (var secret in new[] { code, ContentTranslationErrorCodes.ProviderTransient, "errorCode", "busy", "Exception", "secret-lease-owner" })
+            foreach (var secret in new[] { code, ContentTranslationErrorCodes.ProviderTransient, "errorCode", "busy", "Exception", "secret-lease-owner",
+                         "responseShape", "missing_property", "expected", "slots", "\"v0\"" })
                 Assert.DoesNotContain(secret, raw);
     }
 

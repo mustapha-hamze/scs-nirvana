@@ -72,7 +72,7 @@ public class OpenAiTranslationPortTests
     private void AssertLogsAreSafe()
     {
         foreach (var message in _logger.Messages)
-            foreach (var secret in new[] { "secret", "English", "فارسی", "test-secret-key", "{" })
+            foreach (var secret in new[] { "secret", "English", "فارسی", "test-secret-key", "{", "\"v", "v0", "v1", "missing_property" })
                 Assert.DoesNotContain(secret, message);
     }
 
@@ -192,66 +192,120 @@ public class OpenAiTranslationPortTests
 
     // ---- Text-slot requests (background jobs). ----
 
-    private static readonly string[] Texts = ["English title", "English <b>not markup</b> & more"];
+    private static readonly string[] Texts = ["English title", "English <b>not markup</b> & more", "English third"];
 
-    private async Task<(TranslationResult Result, FakeHandler Handler)> TranslateTexts(string content)
+    private static string Slots(params string[] values) =>
+        new JsonObject(values.Select((v, i) => KeyValuePair.Create(TranslationTextSlots.SlotKey(i), (JsonNode)v))).ToJsonString();
+
+    private async Task<(TranslationResult Result, FakeHandler Handler)> TranslateTexts(string content, IReadOnlyList<string> texts = null)
     {
         var handler = new FakeHandler((_, _) => Completion(content));
-        var result = await Port(handler).TranslateAsync(TranslationRequest.ForTexts(Texts, "Farsi"));
+        var result = await Port(handler).TranslateAsync(TranslationRequest.ForTexts(texts ?? Texts, "Farsi"));
         return (result, handler);
     }
 
     [Fact]
-    public async Task Texts_SendOnlyTheEnvelope_WithStrictSchema_AndReturnTheOrderedValues()
+    public async Task Texts_SendOnlyTheEnvelope_WithAnExactStrictSchema_AndReturnTheOrderedValues()
     {
-        var (result, handler) = await TranslateTexts("{\"translations\":[\"فارسی ۱\",\"فارسی ۲\"]}");
+        var (result, handler) = await TranslateTexts("{\"v2\":\"فارسی ۳\",\"v0\":\"فارسی ۱\",\"v1\":\"فارسی ۲\"}");
 
         Assert.True(result.Success);
-        Assert.Equal(new[] { "فارسی ۱", "فارسی ۲" }, result.TranslatedTexts);
+        Assert.Equal(new[] { "فارسی ۱", "فارسی ۲", "فارسی ۳" }, result.TranslatedTexts); // bound by key, not response order
         Assert.Equal((OpenAiTranslationPort.ProviderName, "test-model-2026", null), (result.Provider, result.Model, result.TranslatedJson));
 
         var body = JsonNode.Parse(Assert.Single(handler.Bodies))!;
         var format = body["response_format"]!;
         Assert.Equal(("json_schema", true), ((string)format["type"]!, (bool)format["json_schema"]!["strict"]!));
-        var schema = format["json_schema"]!["schema"]!;
-        Assert.Equal(("object", false), ((string)schema["type"]!, (bool)schema["additionalProperties"]!));
-        Assert.Equal("string", (string)schema["properties"]!["translations"]!["items"]!["type"]!);
+        // Exactly one required, non-null string per slot, nothing else: the provider can't omit or add a value.
+        Assert.Equal("""
+            {"type":"object","properties":{"v0":{"type":"string"},"v1":{"type":"string"},"v2":{"type":"string"}},"required":["v0","v1","v2"],"additionalProperties":false}
+            """, format["json_schema"]!["schema"]!.ToJsonString());
 
         var messages = body["messages"]!.AsArray();
         Assert.Equal(new[] { "system", "user" }, messages.Select(m => (string)m!["role"]!));
-        Assert.DoesNotContain("English", (string)messages[0]!["content"]!); // instructions carry no source text
+        var prompt = (string)messages[0]!["content"]!;
+        Assert.DoesNotContain("English", prompt); // instructions carry no source text
+        foreach (var rule in new[] { "\"v0\"", "every property", "non-empty", "No other properties", "no markdown", "no commentary" })
+            Assert.Contains(rule, prompt);
         var envelope = JsonNode.Parse((string)messages[1]!["content"]!)!.AsObject();
         Assert.Equal(new[] { "targetLanguage", "texts" }, envelope.Select(p => p.Key));
         Assert.Equal("Farsi", (string)envelope["targetLanguage"]!);
         Assert.Equal(Texts, envelope["texts"]!.AsArray().Select(t => (string)t!));
     }
 
-    public static TheoryData<string, string> BadTexts => new()
+    // Every malformed shape of a 3-slot reply: one provider call, invalid_response with a fixed reason
+    // and counts only (invalid_json/empty_response keep their own codes).
+    public static TheoryData<string, string, string, int?> BadTexts => new()
     {
-        { "", ContentTranslationErrorCodes.EmptyResponse },
-        { "{not json", ContentTranslationErrorCodes.InvalidJson },
-        { "[\"a\",\"b\"]", ContentTranslationErrorCodes.InvalidResponse },
-        { "{}", ContentTranslationErrorCodes.InvalidResponse },
-        { "{\"translations\":[\"a\",\"b\"],\"extra\":1}", ContentTranslationErrorCodes.InvalidResponse },
-        { "{\"translations\":[\"a\"],\"translations\":[\"b\"]}", ContentTranslationErrorCodes.InvalidResponse },
-        { "{\"translations\":\"a\"}", ContentTranslationErrorCodes.InvalidResponse },
-        { "{\"translations\":[\"a\"]}", ContentTranslationErrorCodes.InvalidResponse },
-        { "{\"translations\":[\"a\",\"b\",\"c\"]}", ContentTranslationErrorCodes.InvalidResponse },
-        { "{\"translations\":[\"a\",null]}", ContentTranslationErrorCodes.InvalidResponse },
-        { "{\"translations\":[\"a\",2]}", ContentTranslationErrorCodes.InvalidResponse },
-        { "{\"translations\":[\"a\",\"  \"]}", ContentTranslationErrorCodes.InvalidResponse },
-        { Translated, ContentTranslationErrorCodes.InvalidResponse }
+        { "", ContentTranslationErrorCodes.EmptyResponse, null, null },
+        { "{not json", ContentTranslationErrorCodes.InvalidJson, null, null },
+        { "```json\n" + Slots("a", "b", "c") + "\n```", ContentTranslationErrorCodes.InvalidJson, null, null },
+        { "[\"a\",\"b\",\"c\"]", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.WrongValueType, null },
+        { "{}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.MissingProperty, 0 },
+        { Slots("a", "b"), ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.MissingProperty, 2 },
+        { "{\"v0\":\"a\",\"v2\":\"c\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.MissingProperty, 2 },
+        { Slots("a", "b", "c", "d"), ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 4 },
+        { Slots("a", "b", "c").TrimEnd('}') + ",\"note\":\"x\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 4 },
+        { "{\"v0\":\"a\",\"v01\":\"b\",\"v2\":\"c\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 3 },
+        { "{\"v0\":\"a\",\"V1\":\"b\",\"v2\":\"c\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 3 },
+        { "{\"v0\":\"a\",\"v1\":\"b\",\"v1\":\"x\",\"v2\":\"c\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.DuplicateProperty, 4 },
+        { "{\"v0\":\"a\",\"v1\":null,\"v2\":\"c\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.WrongValueType, 3 },
+        { "{\"v0\":\"a\",\"v1\":2,\"v2\":\"c\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.WrongValueType, 3 },
+        { "{\"v0\":\"a\",\"v1\":{\"t\":\"b\"},\"v2\":\"c\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.WrongValueType, 3 },
+        { "{\"v0\":\"a\",\"v1\":[\"b\"],\"v2\":\"c\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.WrongValueType, 3 },
+        { Slots("a", "  ", "c"), ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.BlankValue, 3 },
+        // The pre-hardening array reply, even with the right count, is no longer accepted.
+        { "{\"translations\":[\"a\",\"b\",\"c\"]}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 1 },
+        { Translated, ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 3 }
     };
 
     [Theory]
     [MemberData(nameof(BadTexts))]
-    public async Task Texts_UnusableContent_IsClassified_AndLoggedWithoutContent(string content, string code)
+    public async Task Texts_UnusableContent_IsClassified_WithASafeShape_AndLoggedWithoutContent(string content, string code, string reason, int? actual)
     {
-        var (result, _) = await TranslateTexts(content);
+        var (result, handler) = await TranslateTexts(content);
 
         Assert.Equal((false, code, null), (result.Success, result.FailureCode, result.TranslatedTexts));
         Assert.Equal(code, result.Error);
+        Assert.Equal(reason == null ? null : new TranslationResponseShape(reason, 3, actual), result.ResponseShape);
+        Assert.Single(handler.Bodies);
+        Assert.Equal($"Translation failed with {code}", Assert.Single(_logger.Messages).Split(" (HTTP")[0]);
         AssertLogsAreSafe();
+    }
+
+    // Above MaxSlotsPerRequest, consecutive chunks each get their own exact schema; values come back in order.
+    [Fact]
+    public async Task Texts_OverTheSchemaLimit_GoInOrderedChunks_EachWithItsOwnExactSchema()
+    {
+        var texts = Enumerable.Range(0, 2 * OpenAiTranslationPort.MaxSlotsPerRequest + 5).Select(i => $"English {i}").ToList();
+        var handler = new FakeHandler(async (request, ct) =>
+        {
+            var sent = JsonNode.Parse((string)JsonNode.Parse(await request.Content!.ReadAsStringAsync(ct))!["messages"]![1]!["content"]!)!["texts"]!.AsArray();
+            return await Completion(Slots(sent.Select(t => ((string)t!).Replace("English", "فارسی")).ToArray()));
+        });
+
+        var result = await Port(handler).TranslateAsync(TranslationRequest.ForTexts(texts, "Farsi"));
+
+        Assert.True(result.Success);
+        Assert.Equal(texts.Select(t => t.Replace("English", "فارسی")), result.TranslatedTexts);
+        Assert.Equal(new[] { 100, 100, 5 }, handler.Bodies.Select(b => JsonNode.Parse(b)!["response_format"]!["json_schema"]!["schema"]!["required"]!.AsArray().Count));
+        Assert.All(handler.Bodies, b => Assert.Equal(false, (bool)JsonNode.Parse(b)!["response_format"]!["json_schema"]!["schema"]!["additionalProperties"]!));
+    }
+
+    [Fact]
+    public async Task Texts_AFailedChunk_FailsTheWholeRequest_WithoutFurtherCalls()
+    {
+        var texts = Enumerable.Range(0, 3 * OpenAiTranslationPort.MaxSlotsPerRequest).Select(i => $"English {i}").ToList();
+        var calls = 0;
+        var handler = new FakeHandler((_, _) => Completion(++calls == 2
+            ? Slots(Enumerable.Repeat("ف", OpenAiTranslationPort.MaxSlotsPerRequest - 1).ToArray())
+            : Slots(Enumerable.Repeat("ف", OpenAiTranslationPort.MaxSlotsPerRequest).ToArray())));
+
+        var result = await Port(handler).TranslateAsync(TranslationRequest.ForTexts(texts, "Farsi"));
+
+        Assert.Equal((false, ContentTranslationErrorCodes.InvalidResponse, null), (result.Success, result.FailureCode, result.TranslatedTexts));
+        Assert.Equal(new TranslationResponseShape(TranslationResponseShape.MissingProperty, 100, 99), result.ResponseShape);
+        Assert.Equal(2, handler.Bodies.Count);
     }
 
     [Fact]

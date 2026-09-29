@@ -354,7 +354,7 @@ public class ContentTranslationJobProcessorTests : IDisposable
     }
 
     private static string Respond(IEnumerable<string> translations) =>
-        new JsonObject { [TranslationTextSlots.ResponseProperty] = new JsonArray(translations.Select(t => (JsonNode)t).ToArray()) }.ToJsonString();
+        new JsonObject(translations.Select((t, i) => KeyValuePair.Create(TranslationTextSlots.SlotKey(i), (JsonNode)t))).ToJsonString();
 
     private const string RichHtml =
         "<p class=\"lead\" data-x='English'>English <a href=\"https://example.test/English\" target=\"_blank\" rel=\"noopener\">read   more</a>&nbsp;now</p>"
@@ -437,37 +437,102 @@ public class ContentTranslationJobProcessorTests : IDisposable
 
     private const string OpenAiTranslationPortName = Infrastructure.TranslatorServices.OpenAiTranslationPort.ProviderName;
 
-    // Seed() has 9 slots.
-    public static TheoryData<string, string, string> BadSlotResponses => new()
+    // Seed() has 9 slots. reason/actual: the fixed shape diagnostic the processor logs (null: invalid_json).
+    public static TheoryData<string, string, string, string, int?> BadSlotResponses => new()
     {
-        { "invalid json", "{not json", ContentTranslationErrorCodes.InvalidJson },
-        { "missing array", "{}", ContentTranslationErrorCodes.InvalidResponse },
-        { "renamed array", Respond(Enumerable.Repeat("ت", 9)).Replace(TranslationTextSlots.ResponseProperty, "texts"), ContentTranslationErrorCodes.InvalidResponse },
-        { "extra property", Respond(Enumerable.Repeat("ت", 9)).TrimEnd('}') + ",\"note\":\"x\"}", ContentTranslationErrorCodes.InvalidResponse },
-        { "not an array", "{\"" + TranslationTextSlots.ResponseProperty + "\":\"ت\"}", ContentTranslationErrorCodes.InvalidResponse },
-        { "too few", Respond(Enumerable.Repeat("ت", 8)), ContentTranslationErrorCodes.InvalidResponse },
-        { "too many", Respond(Enumerable.Repeat("ت", 10)), ContentTranslationErrorCodes.InvalidResponse },
-        { "null value", Respond(Enumerable.Repeat("ت", 8)).Replace("[", "[null,"), ContentTranslationErrorCodes.InvalidResponse },
-        { "number value", Respond(Enumerable.Repeat("ت", 8)).Replace("[", "[5,"), ContentTranslationErrorCodes.InvalidResponse },
-        { "blank value", Respond(Enumerable.Repeat("ت", 8).Append(" ")), ContentTranslationErrorCodes.InvalidResponse },
+        { "invalid json", "{not json", ContentTranslationErrorCodes.InvalidJson, null, null },
+        { "not an object", "[\"ت\"]", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.WrongValueType, null },
+        { "empty object", "{}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.MissingProperty, 0 },
+        { "extra slot", Respond(Enumerable.Repeat("ت", 10)), ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 10 },
+        { "extra property", Respond(Enumerable.Repeat("ت", 9)).TrimEnd('}') + ",\"note\":\"x\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 10 },
+        { "duplicate property", Respond(Enumerable.Repeat("ت", 9)).TrimEnd('}') + ",\"v4\":\"ت\"}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.DuplicateProperty, 10 },
+        { "null value", Respond(Enumerable.Repeat("x", 9)).Replace("\"v3\":\"x\"", "\"v3\":null"), ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.WrongValueType, 9 },
+        { "number value", Respond(Enumerable.Repeat("x", 9)).Replace("\"v3\":\"x\"", "\"v3\":5"), ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.WrongValueType, 9 },
+        { "blank value", Respond(Enumerable.Repeat("ت", 8).Append(" ")), ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.BlankValue, 9 },
+        // The pre-hardening array reply, even with the right count, is no longer a slot reply.
+        { "old array shape", "{\"translations\":[" + string.Join(",", Enumerable.Repeat("\"ت\"", 9)) + "]}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 1 },
         // Regression: the old full-document reply (here with a changed ID) is simply not a slot reply.
-        { "full document", "{\"Id\":9,\"Title\":\"ت\",\"Sections\":[]}", ContentTranslationErrorCodes.InvalidResponse },
+        { "full document", "{\"Id\":9,\"Title\":\"ت\",\"Sections\":[]}", ContentTranslationErrorCodes.InvalidResponse, TranslationResponseShape.UnexpectedProperty, 3 },
     };
 
     [Theory]
     [MemberData(nameof(BadSlotResponses))]
-    public async Task BadSlotResponse_FailsWithAFixedCode_WithoutWritingOrTouchingLegacy(string _, string response, string code)
+    public async Task BadSlotResponse_FailsWithAFixedCode_WithoutWritingOrTouchingLegacy_AndLogsOnlyTheSafeShape(string _, string response, string code,
+        string reason, int? actual)
     {
         var (contentId, cultureId) = await Seed();
         var jobId = await SeedJob(contentId, cultureId);
+        var handler = new FakeHandler(_ => response);
 
-        await RunOnce(OpenAiPort(new FakeHandler(_ => response)));
+        await RunOnce(OpenAiPort(handler));
 
         var job = await Job(jobId);
         Assert.Equal((ContentTranslationJobState.Failed, code), (job.State, job.ErrorCode));
         Assert.NotNull(ContentTranslationErrorCodes.FailureReasonFor(job.State, job.ErrorCode));
         await AssertNoTranslationWrittenAndLegacyIntact(contentId);
-        Assert.DoesNotContain(_logger.Entries, e => e.Message.Contains("ت") || e.Message.Contains("English"));
+        Assert.Single(handler.Bodies);
+        _clock.SetUtcNow(Now.AddDays(1));
+        Assert.False(await RunOnce(OpenAiPort(handler)));
+        Assert.Single(handler.Bodies); // never resent
+
+        var (level, message, exception) = Assert.Single(_logger.Entries);
+        Assert.Equal((LogLevel.Warning, null), (level, exception));
+        Assert.Equal(reason == null
+            ? $"Content translation job {jobId} (content {contentId}, attempt 1) failed with {code} (HTTP (null), (null))"
+            : $"Content translation job {jobId} (content {contentId}, attempt 1) failed with invalid_response: {reason} (expected 9 slots, got {actual?.ToString() ?? "(null)"})",
+            message);
+        AssertSafeLog(message);
+    }
+
+    // No source/translated text, raw JSON, opaque slot keys, provider text, key or headers.
+    private static void AssertSafeLog(string message)
+    {
+        foreach (var secret in new[] { "ت", "English", "{", "\"", "note", "translations", "test-secret-key", "Bearer", "Authorization", "secret" })
+            Assert.DoesNotContain(secret, message);
+        Assert.DoesNotMatch(@"\bv\d", message);
+    }
+
+    // The observed failure: several values requested, one omitted. The provider schema already requires
+    // every slot; a reply that still omits one is rejected server-side with the exact diagnostic.
+    [Fact]
+    public async Task Regression_OmittedSlot_IsSchemaRequired_AndStillRejectedWithAnExactDiagnostic()
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId);
+        var handler = new FakeHandler(body =>
+        {
+            var reply = JsonNode.Parse(Respond(SentTexts(body).Select(t => "ف" + t)))!.AsObject();
+            reply.Remove(TranslationTextSlots.SlotKey(5));
+            return reply.ToJsonString();
+        });
+
+        await RunOnce(OpenAiPort(handler));
+
+        var schema = JsonNode.Parse(Assert.Single(handler.Bodies))!["response_format"]!["json_schema"]!;
+        Assert.True((bool)schema["strict"]!);
+        Assert.Equal(Enumerable.Range(0, 9).Select(TranslationTextSlots.SlotKey), schema["schema"]!["required"]!.AsArray().Select(k => (string)k!));
+        Assert.False((bool)schema["schema"]!["additionalProperties"]!);
+
+        Assert.Equal((ContentTranslationJobState.Failed, ContentTranslationErrorCodes.InvalidResponse), ((await Job(jobId)).State, (await Job(jobId)).ErrorCode));
+        await AssertNoTranslationWrittenAndLegacyIntact(contentId);
+        var message = Assert.Single(_logger.Entries).Message;
+        Assert.Equal($"Content translation job {jobId} (content {contentId}, attempt 1) failed with invalid_response: missing_property (expected 9 slots, got 8)", message);
+        AssertSafeLog(message);
+    }
+
+    // A port reporting an unknown shape reason: logged as "unknown", never as the port's text.
+    [Fact]
+    public async Task UnknownResponseShapeReason_IsLoggedAsUnknown()
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId);
+        var port = new FakePort((_, _) => Task.FromResult(TranslationResult.Failed(ContentTranslationErrorCodes.InvalidResponse,
+            responseShape: new TranslationResponseShape("secret \"v1\": English", 9, 8))));
+
+        await RunOnce(port);
+
+        Assert.Equal($"Content translation job {jobId} (content {contentId}, attempt 1) failed with invalid_response: unknown (expected 9 slots, got 8)",
+            Assert.Single(_logger.Entries).Message);
     }
 
     // Every terminal port classification is stored as its own safe code, never resent, and never
