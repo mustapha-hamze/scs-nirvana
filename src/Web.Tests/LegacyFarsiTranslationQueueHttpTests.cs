@@ -642,6 +642,36 @@ public sealed class LegacyFarsiTranslationQueueHttpTests : IClassFixture<TestWeb
         return (Get("queued"), Get("processing"), Get("succeeded"), Get("failed"), Get("superseded"), Get("active"), Get("total"));
     }
 
+    // Each classified failure reaches both dashboard endpoints only as its fixed reason; a job waiting
+    // on an automatic retry shows none.
+    [Theory]
+    [InlineData(ContentTranslationErrorCodes.ProviderRejected, "The translation service rejected this request. Check the server logs.")]
+    [InlineData(ContentTranslationErrorCodes.ProviderNetwork, "The server could not reach the translation service. Try again later.")]
+    [InlineData(ContentTranslationErrorCodes.EmptyResponse, "The translation service returned no text. Try again.")]
+    [InlineData(ContentTranslationErrorCodes.InvalidJson, "The translation response was not valid JSON. Try again.")]
+    [InlineData(ContentTranslationErrorCodes.InvalidStructure, "The translation response changed required content structure. Try again.")]
+    public async Task ClassifiedFailure_ReachesProgressAndRecoveredJobs_OnlyAsItsFixedReason(string code, string reason)
+    {
+        var (client, applicationId) = await SignIn();
+        var mine = await SeedContent(applicationId, "Mine");
+        var failed = await SeedJob(mine, ContentTranslationJobState.Failed, attempts: 1, errorCode: code);
+        await SetJob(failed, DateTime.UtcNow.AddHours(-1));
+        var retrying = await SeedJob(mine, ContentTranslationJobState.Queued, attempts: 1, errorCode: ContentTranslationErrorCodes.ProviderTransient);
+
+        var progress = await client.GetAsync(ProgressQuery(failed, retrying));
+        var progressRaw = await progress.Content.ReadAsStringAsync();
+        Assert.Equal(new[] { (failed, (int?)mine, "Failed", (int?)1, (string?)reason), (retrying, mine, "Queued", 1, null) }, await States(progress));
+
+        var recovered = await client.GetAsync(RecoveredUrl);
+        var recoveredRaw = await recovered.Content.ReadAsStringAsync();
+        Assert.Equal(new[] { ("Queued", (string?)null), ("Failed", reason) },
+            (await Recovered(recovered)).GetProperty("items").EnumerateArray().Select(i => (i.GetProperty("state").GetString()!, i.GetProperty("failureReason").GetString())));
+
+        foreach (var raw in new[] { progressRaw, recoveredRaw })
+            foreach (var secret in new[] { code, ContentTranslationErrorCodes.ProviderTransient, "errorCode", "busy", "Exception", "secret-lease-owner" })
+                Assert.DoesNotContain(secret, raw);
+    }
+
     private static int[] RecoveredJobIds(JsonElement body) =>
         body.GetProperty("items").EnumerateArray().Select(i => i.GetProperty("jobId").GetInt32()).ToArray();
 

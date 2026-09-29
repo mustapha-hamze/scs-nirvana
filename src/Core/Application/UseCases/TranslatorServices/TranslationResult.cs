@@ -6,27 +6,41 @@ public class TranslationResult
 {
     public bool Success { get; }
     public string TranslatedJson { get; }
+
+    // Fixed ContentTranslationErrorCodes value; whether it is retried is decided by
+    // ContentTranslationErrorCodes.IsRetryable, never by the port.
+    public string FailureCode { get; }
+
+    // Secret-safe detail (field names/paths only) for synchronous callers; defaults to FailureCode.
+    // Never stored on a job or shown on the dashboard.
     public string Error { get; }
 
-    // True only when the provider definitively rejected the request without processing it
-    // (e.g. rate limited), so resending can't produce a duplicate charge.
-    public bool Retryable { get; }
+    // Server-log diagnostics only: provider Retry-After, HTTP status and exception type name.
+    public TimeSpan? RetryAfter { get; }
+    public int? HttpStatus { get; }
+    public string ExceptionType { get; }
 
     public string Provider { get; }
     public string Model { get; }
 
-    private TranslationResult(bool success, string translatedJson, string error, bool retryable, string provider, string model)
+    private TranslationResult(bool success, string translatedJson, string failureCode, string error, TimeSpan? retryAfter,
+        int? httpStatus, string exceptionType, string provider, string model)
     {
         Success = success;
         TranslatedJson = translatedJson;
-        Error = error;
-        Retryable = retryable;
+        FailureCode = failureCode;
+        Error = error ?? failureCode;
+        RetryAfter = retryAfter;
+        HttpStatus = httpStatus;
+        ExceptionType = exceptionType;
         Provider = provider;
         Model = model;
     }
 
     public static TranslationResult Ok(string translatedJson, string provider = null, string model = null) =>
-        new(true, translatedJson, null, false, provider, model);
+        new(true, translatedJson, null, null, null, null, null, provider, model);
 
-    public static TranslationResult Failed(string error, bool retryable = false) => new(false, null, error, retryable, null, null);
+    public static TranslationResult Failed(string failureCode, string error = null, TimeSpan? retryAfter = null, int? httpStatus = null,
+        string exceptionType = null) =>
+        new(false, null, failureCode, error, retryAfter, httpStatus, exceptionType, null, null);
 }

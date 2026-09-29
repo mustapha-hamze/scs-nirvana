@@ -239,7 +239,8 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
         while (true)
         {
             await using var context = _factory.CreateContext();
-            if (!await new ContentTranslationJobProcessor(new ContentTranslationJobRepository(context), port, options, clock).RunOnce("worker", default))
+            if (!await new ContentTranslationJobProcessor(new ContentTranslationJobRepository(context), port, options, clock,
+                    Microsoft.Extensions.Logging.Abstractions.NullLogger<ContentTranslationJobProcessor>.Instance).RunOnce("worker", default))
                 return;
         }
     }
@@ -279,7 +280,7 @@ public class LegacyFarsiTranslationBulkQueueTests : IDisposable
         var gone = await AddContent();
         var before = await ContentSnapshot();
         var port = new RecordingPort((id, request) =>
-            id == limited ? TranslationResult.Failed("rate limited <provider text>", retryable: true)
+            id == limited ? TranslationResult.Failed(ContentTranslationErrorCodes.ProviderRateLimited, "<provider text>")
             : id == invalid ? TranslationResult.Ok("{\"Id\":0}", "fake", "fake-model")
             : TranslationResult.Ok(request.ContentJson, "fake", "fake-model"));
 

@@ -7,6 +7,7 @@ using Domains.Entities.General;
 using Infrastructure.CMSRepository;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Core.Tests.TranslatorServices;
@@ -22,7 +23,19 @@ public class ContentTranslationJobProcessorTests : IDisposable
     private readonly FakeTimeProvider _clock = new(Now);
     private readonly ContentTranslationOptions _options = new() { LeaseMinutes = 10, MaxAttempts = 2 };
 
+    private readonly ListLogger _logger = new();
+
     public void Dispose() => _factory.Dispose();
+
+    // Records rendered log lines so tests can prove only approved fields are logged.
+    private sealed class ListLogger : ILogger<ContentTranslationJobProcessor>
+    {
+        public List<(LogLevel Level, string Message, Exception Exception)> Entries { get; } = new();
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) =>
+            Entries.Add((logLevel, formatter(state, exception), exception));
+    }
 
     private sealed class FakePort(Func<TranslationRequest, CancellationToken, Task<TranslationResult>> handler) : ITranslationPort
     {
@@ -117,7 +130,7 @@ public class ContentTranslationJobProcessorTests : IDisposable
         CancellationToken stoppingToken = default)
     {
         await using var context = _factory.CreateContext();
-        var sut = new ContentTranslationJobProcessor(repository?.Invoke(context) ?? new ContentTranslationJobRepository(context), port, _options, _clock);
+        var sut = new ContentTranslationJobProcessor(repository?.Invoke(context) ?? new ContentTranslationJobRepository(context), port, _options, _clock, _logger);
         return await sut.RunOnce(Worker, stoppingToken);
     }
 
@@ -281,33 +294,82 @@ public class ContentTranslationJobProcessorTests : IDisposable
         await AssertNoTranslationWrittenAndLegacyIntact(contentId);
     }
 
-    [Fact]
-    public async Task NonRetryableProviderFailure_FailsWithSafeCode()
+    // Every terminal port classification is stored as its own safe code, never resent, and never
+    // writes a translation or touches FarsiContent.
+    [Theory]
+    [InlineData(ContentTranslationErrorCodes.ProviderRejected)]
+    [InlineData(ContentTranslationErrorCodes.ProviderNetwork)]
+    [InlineData(ContentTranslationErrorCodes.ProviderError)]
+    [InlineData(ContentTranslationErrorCodes.EmptyResponse)]
+    [InlineData(ContentTranslationErrorCodes.InvalidJson)]
+    [InlineData(ContentTranslationErrorCodes.InvalidStructure)]
+    public async Task TerminalPortFailure_FailsWithItsOwnCode_WithoutResend(string code)
     {
         var (contentId, cultureId) = await Seed();
         var jobId = await SeedJob(contentId, cultureId);
-        var port = new FakePort((_, _) => Task.FromResult(TranslationResult.Failed("Protected field 'Id' was changed. <provider text>")));
+        var port = new FakePort((_, _) => Task.FromResult(TranslationResult.Failed(code, "<provider text> English title", httpStatus: 401, exceptionType: "SomeException")));
 
         await RunOnce(port);
 
         var job = await Job(jobId);
-        Assert.Equal((ContentTranslationJobState.Failed, ContentTranslationErrorCodes.ProviderError), (job.State, job.ErrorCode));
+        Assert.Equal((ContentTranslationJobState.Failed, 1, code, Now), (job.State, job.AttemptCount, job.ErrorCode, job.CompletedAt));
+        _clock.SetUtcNow(Now.AddDays(1));
         Assert.False(await RunOnce(port));
         Assert.Single(port.Requests);
         await AssertNoTranslationWrittenAndLegacyIntact(contentId);
+
+        var (level, message, exception) = Assert.Single(_logger.Entries);
+        Assert.Equal((LogLevel.Warning, null), (level, exception));
+        Assert.Equal($"Content translation job {jobId} (content {contentId}, attempt 1) failed with {code} (HTTP 401, SomeException)", message);
     }
 
+    // Regression: a validator failure used to be collapsed into provider_error.
     [Fact]
-    public async Task RateLimited_RetriesWithBackoff_ThenFailsWhenAttemptsExhausted()
+    public async Task ValidatorFailure_IsStoredAndShownAsInvalidStructure_NotProviderError()
     {
         var (contentId, cultureId) = await Seed();
         var jobId = await SeedJob(contentId, cultureId);
-        var port = new FakePort((_, _) => Task.FromResult(TranslationResult.Failed("rate limited", retryable: true)));
+        var port = new FakePort((_, _) => Task.FromResult(TranslationResult.Failed(ContentTranslationErrorCodes.InvalidStructure, "Protected field 'Id' was changed.")));
+
+        await RunOnce(port);
+
+        var job = await Job(jobId);
+        Assert.Equal(ContentTranslationErrorCodes.InvalidStructure, job.ErrorCode);
+        Assert.Equal("The translation response changed required content structure. Try again.",
+            ContentTranslationErrorCodes.FailureReasonFor(job.State, job.ErrorCode));
+        Assert.DoesNotContain("Protected", string.Join(" ", _logger.Entries.Select(e => e.Message)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("secret provider text {\"raw\":1}")]
+    [InlineData(ContentTranslationErrorCodes.LeaseExpired)] // a real code, but not one a port may report
+    public async Task UnknownPortCode_IsStoredAsProviderError(string code)
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId);
+        var port = new FakePort((_, _) => Task.FromResult(TranslationResult.Failed(code)));
+
+        await RunOnce(port);
+
+        Assert.Equal((ContentTranslationJobState.Failed, ContentTranslationErrorCodes.ProviderError), ((await Job(jobId)).State, (await Job(jobId)).ErrorCode));
+        Assert.DoesNotContain("secret", string.Join(" ", _logger.Entries.Select(e => e.Message)));
+    }
+
+    [Theory]
+    [InlineData(ContentTranslationErrorCodes.ProviderRateLimited)]
+    [InlineData(ContentTranslationErrorCodes.ProviderTransient)]
+    public async Task RetryableRejection_RetriesWithBackoff_ThenFailsWhenAttemptsExhausted(string code)
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId);
+        var port = new FakePort((_, _) => Task.FromResult(TranslationResult.Failed(code)));
 
         await RunOnce(port);
         var job = await Job(jobId);
-        Assert.Equal((ContentTranslationJobState.Queued, 1, ContentTranslationErrorCodes.ProviderRateLimited, Now.AddSeconds(30), null),
-            (job.State, job.AttemptCount, job.ErrorCode, job.NextAttemptAt, job.LeaseExpiresAt));
+        Assert.Equal((ContentTranslationJobState.Queued, 1, code, Now.AddSeconds(30), null, null),
+            (job.State, job.AttemptCount, job.ErrorCode, job.NextAttemptAt, job.LeaseExpiresAt, job.CompletedAt));
+        Assert.Null(ContentTranslationErrorCodes.FailureReasonFor(job.State, job.ErrorCode));
 
         Assert.False(await RunOnce(port)); // not due yet
         _clock.SetUtcNow(Now.AddSeconds(30));
@@ -317,6 +379,21 @@ public class ContentTranslationJobProcessorTests : IDisposable
         Assert.Equal((ContentTranslationJobState.Failed, 2, ContentTranslationErrorCodes.ProviderRetriesExhausted), (job.State, job.AttemptCount, job.ErrorCode));
         Assert.Equal(2, port.Requests.Count);
         await AssertNoTranslationWrittenAndLegacyIntact(contentId);
+    }
+
+    [Theory]
+    [InlineData(90, 90)]
+    [InlineData(7200, 1800)] // capped
+    public async Task RetryAfter_OverridesBackoff_UpToTheCap(int retryAfterSeconds, int expectedSeconds)
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId);
+        var port = new FakePort((_, _) => Task.FromResult(TranslationResult.Failed(ContentTranslationErrorCodes.ProviderRateLimited,
+            retryAfter: TimeSpan.FromSeconds(retryAfterSeconds), httpStatus: 429)));
+
+        await RunOnce(port);
+
+        Assert.Equal(Now.AddSeconds(expectedSeconds), (await Job(jobId)).NextAttemptAt);
     }
 
     [Fact]
@@ -334,6 +411,23 @@ public class ContentTranslationJobProcessorTests : IDisposable
         Assert.False(await RunOnce(port));
         Assert.Single(port.Requests);
         await AssertNoTranslationWrittenAndLegacyIntact(contentId);
+        Assert.Equal($"Content translation job {jobId} (content {contentId}, attempt 1) failed with provider_timeout (HTTP (null), TaskCanceledException)",
+            Assert.Single(_logger.Entries).Message);
+    }
+
+    [Fact]
+    public async Task UnexpectedException_IsLoggedWithJobIdAndFixedKind_WithoutItsMessage_AndPropagates()
+    {
+        var (contentId, cultureId) = await Seed();
+        var jobId = await SeedJob(contentId, cultureId);
+        var port = new FakePort((_, _) => throw new InvalidOperationException("secret English title"));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => RunOnce(port));
+
+        var (level, message, exception) = Assert.Single(_logger.Entries);
+        Assert.Equal((LogLevel.Error, null), (level, exception));
+        Assert.Equal($"Content translation job {jobId} (content {contentId}, attempt 1) failed with processing_error InvalidOperationException", message);
+        Assert.Equal(ContentTranslationJobState.Processing, (await Job(jobId)).State); // lease expiry fails it later
     }
 
     [Fact]

@@ -18,6 +18,8 @@ namespace Application.UseCases.TranslatorServices;
 // wording; both lists should be kept in sync if the prompt's field lists ever change.
 public static class TranslationOutputValidator
 {
+    public const string InvalidJsonError = "Model response was not valid JSON.";
+
     public static readonly IReadOnlyCollection<string> DefaultTranslatableFields = new[]
     {
         "Title", "HeadLine", "Abstract", "Description", "TinyText", "EditorText"
@@ -48,7 +50,7 @@ public static class TranslationOutputValidator
         }
         catch (JsonException)
         {
-            return "Model response was not valid JSON.";
+            return InvalidJsonError;
         }
 
         return CompareTokens(original, translated, "$", rules);

@@ -14,13 +14,19 @@ public class ContentTranslationErrorCodesTests
     {
         { ContentTranslationErrorCodes.ProviderRetriesExhausted, "Translation could not be completed after several attempts. Try again later." },
         { ContentTranslationErrorCodes.ProviderError, "Translation provider could not complete the request. Try again later." },
+        { ContentTranslationErrorCodes.ProviderRejected, "The translation service rejected this request. Check the server logs." },
+        { ContentTranslationErrorCodes.ProviderNetwork, "The server could not reach the translation service. Try again later." },
+        { ContentTranslationErrorCodes.EmptyResponse, "The translation service returned no text. Try again." },
+        { ContentTranslationErrorCodes.InvalidJson, "The translation response was not valid JSON. Try again." },
+        { ContentTranslationErrorCodes.InvalidStructure, "The translation response changed required content structure. Try again." },
+        { ContentTranslationErrorCodes.ProviderTransient, Generic }, // only ever stored on Queued jobs
         { ContentTranslationErrorCodes.ProviderTimeout, "Translation timed out. Try again." },
         { ContentTranslationErrorCodes.ProviderCancelled, "Translation was interrupted. Try again." },
         { ContentTranslationErrorCodes.InvalidOutput, "The translation response could not be used. Try again." },
         { ContentTranslationErrorCodes.LeaseExpired, "Translation processing was interrupted. Try again." },
         { ContentTranslationErrorCodes.CultureUnavailable, "The target language is unavailable. Contact an administrator." },
         { ContentTranslationErrorCodes.TranslationDeleted, "The translation was removed before completion." },
-        { ContentTranslationErrorCodes.ProviderRateLimited, Generic }
+        { ContentTranslationErrorCodes.ProviderRateLimited, Generic } // only ever stored on Queued jobs
     };
 
     [Theory]
@@ -63,5 +69,14 @@ public class ContentTranslationErrorCodesTests
     {
         Assert.Null(ContentTranslationErrorCodes.FailureReasonFor(state, ContentTranslationErrorCodes.ProviderError));
         Assert.Null(ContentTranslationErrorCodes.FailureReasonFor(state, "secret"));
+    }
+
+    [Fact]
+    public void OnlyDocumentedPreProcessingRejections_AreRetryable()
+    {
+        var retryable = typeof(ContentTranslationErrorCodes).GetFields(BindingFlags.Public | BindingFlags.Static)
+            .Where(f => f.IsLiteral).Select(f => (string)f.GetRawConstantValue()!).Where(ContentTranslationErrorCodes.IsRetryable);
+
+        Assert.Equal(new[] { ContentTranslationErrorCodes.ProviderRateLimited, ContentTranslationErrorCodes.ProviderTransient }, retryable.OrderBy(c => c));
     }
 }
