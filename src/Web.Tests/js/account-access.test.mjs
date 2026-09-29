@@ -112,6 +112,22 @@ test("ticking a permission updates the hidden value and flags unsaved changes", 
   assert.equal(calls.text["#accessSummary"], "1 permission selected in Main.");
 });
 
+test("ticking the Content module key toggles that exact key and leaves the action keys alone", () => {
+  const actions = "CMS1000_1001_ADD_1000,CMS1000_1001_EDIT_1005,CMS1000_1001_PREVIEW_BODY_1007,";
+  const { context, state } = load({ values: { "#Accesses": actions } });
+  context.setEntityAccessHideInput("CMS1000_1001");
+  assert.equal(state["#Accesses"], actions + "CMS1000_1001,");
+  assert.equal(state["#Accesses"].split(",").filter((k) => k === "CMS1000_1001").length, 1);
+  context.setEntityAccessHideInput("CMS1000_1001");
+  assert.equal(state["#Accesses"], actions);
+});
+
+test("removing the Content module key loaded from a saved value keeps every other key", () => {
+  const { context, state } = load({ values: { "#Accesses": "CMS1000_1001_EDIT_1005,CMS1000_1001,CMS1000_1001_ADD_1000" } });
+  context.setEntityAccessHideInput("CMS1000_1001");
+  assert.equal(state["#Accesses"], "CMS1000_1001_EDIT_1005,CMS1000_1001_ADD_1000,");
+});
+
 test("saving permissions confirms the replacement, then posts the unchanged form payload", async () => {
   const { context, calls } = load({ values: { "#Accesses": "A,B,", "#__ddlApplications__ option:selected:text": "Main" } });
   context.saveEntityAccess();
